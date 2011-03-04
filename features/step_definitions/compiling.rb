@@ -1,10 +1,12 @@
+$: << File.join(File.expand_path(File.dirname(__FILE__)), "..", "..", "lib")
+
 require 'tmpdir'
+require 'cluster'
 require 'compiler'
 
 Before do
   @dir = Dir.mktmpdir()
-  @compiler = Compiler.new
-  @compiler.project.dir = @dir
+  @compiler = nil
 end
 
 After do
@@ -12,12 +14,11 @@ After do
 end
 
 Given /^a file "([^"]*)"$/ do |file, content|
-  f = File.new(File.join(@dir, file), 'w')
-  f.write (content)
-  f.close
+  File.open(File.join(@dir, file), 'w') { |f| f.write(content) }
 end
 
 When /^I compile "([^"]*)"$/ do |proto|
+  @compiler = Compiler.new(Cluster.new(@dir))
   @result = @compiler.compile(proto)
 end
 

@@ -1,13 +1,11 @@
-require 'project'
-
 class Compiler
-  attr_reader :project
+  attr_reader :cluster
 
-  def initialize()
-    @project = Project.new
+  def initialize(cluster)
+    @cluster = cluster
   end
 
-  def compile(path)
-    project.compile(path)
+  def compile(name)
+    cluster.compile(name)
   end
 end
