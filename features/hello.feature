@@ -8,7 +8,7 @@ Feature: Hello World
       Section Public
         - main <-
         (
-          Internal.Println "Hello World !";
+          Internal.println "Hello World !";
         );
       """
      When I compile "HELLO"

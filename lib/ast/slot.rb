@@ -1,3 +1,4 @@
+require 'ast/common'
 
 module AST
 
@@ -9,6 +10,10 @@ module AST
     attr_accessor :value
 
     def initialize()
+    end
+    
+    def to_s
+      "#{style} #{name} #{conv_affect(affect)} #{affect_keywords.join(' ')} #{value};"
     end
   end
 

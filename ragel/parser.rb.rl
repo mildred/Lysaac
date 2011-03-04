@@ -1,28 +1,21 @@
 require 'ast/slot'
 require 'ast/prototype'
+require 'ast/internal'
 
 %%{
 # http://www.devchix.com/2008/01/13/a-hello-world-for-ruby-on-ragel-60/
 
 machine lysaac;
 
-action inc_line_number {
-  @line_number += 1
-  puts "inc_line_number #{@line_number}"
-}
-
-action reset_col_number {
-  @column_number = 1
-  #puts "reset_col_number #{@column_number}"
-}
-
-action inc_col_number {
-  @column_number += 1
-  #puts "inc_col_number #{@column_number}"
+action line_break {
+  register_line_break(fpc)
+  coords = coords_for(fpc)
+  puts "#{coords.join(':')}: line_break"
 }
 
 action r_identifier {
-  puts "r_identifier"
+  c = fc
+  puts "r_identifier #{c.chr}"
   @last_identifier = String.new
 }
 
@@ -32,7 +25,8 @@ action c_identifier {
 }
 
 action r_protoname {
-  puts "r_protoname"
+  c = fc
+  puts "r_protoname #{c.chr}"
   @last_protoname = String.new
 }
 
@@ -63,6 +57,11 @@ action cst_proto {
   @last_constant = AST::Prototype.new(@last_protoname.intern)
 }
 
+action cst_internal {
+  puts :Internal
+  @last_constant = AST::Internal.new
+}
+
 action affect {
   @last_affect = fc.chr
   puts "affect #{@last_affect}"
@@ -86,11 +85,14 @@ action slot_header_value {
 }
 
 action error {
-  warn "Error line #{@line_number}:#{@column_number}"
+  coords = coords_for(fpc)
+  warn "Error line #{coords.join(':')}"
 }
 
 action test {
-  puts "test #{@line_number}:#{@column_number}"
+  coords = coords_for(fpc)
+  c = fc
+  puts "#{coords.join(':')}: test #{c} '#{c.chr}'"
 }
 
 include lysaac_common "common.rl";
@@ -111,15 +113,34 @@ module Lysaac
       stack = []
       top = 0
 
-      @line_number   = 1
-      @column_number = 1
       @prototype     = prototype
+      @line_breaks   = []
 
       # Ragel init
       %% write init;
 
       # Ragel exec
       %% write exec;
+    end
+    
+    def register_line_break(i)
+      if @line_breaks.index(i).nil? then
+        @line_breaks << i
+      end
+    end
+    
+    def coords_for(i)
+      line_num   = 1
+      last_break = 0
+      @line_breaks.each do |br|
+        if br <= i then
+          line_num  += 1
+          last_break = [last_break, br].max
+        end
+      end
+      col_num = i - last_break + 1
+      #puts "coords_for(#{i}) #{line_num}:#{col_num} [#{@line_breaks.join(',')}]"
+      [line_num, col_num]
     end
 
   end
