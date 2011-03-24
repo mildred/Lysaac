@@ -74,10 +74,10 @@ slot = slot_style ws identifier ws affect ws <: expr :> ws ";" ws;
 
 ##### Section #####
 
-section_name = "Public" | "Private";
+section_name = ("Public" %section_public | "Private" %section_private);
 section = "Section" ws <: section_name :> ws <: slot* :> ws;
 
-section_header = "Section" ws "Header" ws <: slot_header* :> ws;
+section_header = "Section" ws "Header" %section_header ws <: slot_header* :> ws;
 section_any = section | section_header;
 
 program = section_any*;

@@ -10,13 +10,18 @@ class Prototype
 
   def initialize(path)
     @path = path
-    @slots = []
+    @sections = []
     @name = ""
     File.open(@path) { |f| @source_text = f.read }
     @@parser.scan(@source_text, self)
+    puts to_s
   end
 
-  def add_slot(slot)
-    @slots << slot
+  def add_section(section)
+    @sections << section
+  end
+  
+  def to_s
+    @sections.map { |s| s.to_s }.join("\n\n")
   end
 end

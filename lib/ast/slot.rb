@@ -8,6 +8,8 @@ module AST
     attr_accessor :affect
     attr_accessor :affect_keywords
     attr_accessor :value
+    
+    include AST
 
     def initialize()
     end

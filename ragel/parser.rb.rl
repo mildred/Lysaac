@@ -1,3 +1,4 @@
+require 'ast/section'
 require 'ast/slot'
 require 'ast/prototype'
 require 'ast/internal'
@@ -78,10 +79,27 @@ action slot_header_def {
   @last_slot.style = @last_style.intern
   @last_slot.affect = @last_affect.intern
   @last_slot.affect_keywords = @last_keywords
+  @last_section.add_slot(@last_slot)
+  puts "Add slot #{@last_slot.name}"
 }
 
 action slot_header_value {
   @last_slot.value = @last_constant
+}
+
+action section_public {
+  @last_section = AST::Section.new("Public")
+  @prototype.add_section(@last_section)
+}
+
+action section_private {
+  @last_section = AST::Section.new("Private")
+  @prototype.add_section(@last_section)
+}
+
+action section_header {
+  @last_section = AST::Section.new("Header")
+  @prototype.add_section(@last_section)
 }
 
 action error {
