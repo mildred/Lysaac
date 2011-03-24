@@ -5,7 +5,7 @@ Section Header
 Section Public
 
   - main <-
-  (
-    "Hello".println;
+  ( + c :CLUSTER;
+    c := CLUSTER.clone.make_path ".";
   );
 

@@ -1,0 +1,67 @@
+Section Header
+
+  + name   := CSTRING;
+  
+  - import := STRING, ABSTRACT_STRING, STRING_CONSTANT;
+  - export := STRING;
+
+Section Inherit
+
+  - parent_abstract_string :Expanded ABSTRACT_STRING;
+
+Section Public
+
+  + storage:NATIVE_ARRAY(CHARACTER) := "".storage;
+
+  + count:INTEGER := 0;
+
+Section Public
+
+  - to_string :STRING <-
+  ( + result:Strict STRING;
+    result := STRING.create capacity;
+    result.copy Self;
+    result
+  );
+  
+  - from_abstract_string s:ABSTRACT_STRING :SELF <- create s;
+  - from_string_constant s:STRING_CONSTANT :SELF <- create s;
+  - from_string          s:STRING          :SELF <- create s;
+
+Section Private
+
+  - create s:ABSTRACT_STRING :SELF <-
+  ( + cs :SELF;
+    cs ?= s;
+    (cs = NULL).if {
+      cs ?= bucket.reference_at s;
+    };
+    (cs = NULL).if {
+      cs := SELF.clone.make s;
+      bucket.add cs;
+    };
+    cs
+  );
+
+  - make s:ABSTRACT_STRING :SELF <-
+  (
+    count := s.count;
+    (count != 0).if {
+      storage := NATIVE_ARRAY(CHARACTER).create (count+1);
+      storage.copy_from (s.storage) until (count-1);
+      storage.put '\0' to count;
+    };
+    Self
+  );
+
+  //
+  // Aliasing String.
+  //
+
+  - bucket :SET(ABSTRACT_STRING) :=
+  (
+    bucket := HASHED_SET(ABSTRACT_STRING).create;
+    bucket.add CSTRING;
+    bucket
+  );
+

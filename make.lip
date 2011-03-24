@@ -9,5 +9,6 @@ Section Private
     general_front_end;
     input_file := "lysaac";
     path "src/";
+    path "lib/";
   );
 

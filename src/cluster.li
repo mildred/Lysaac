@@ -1,0 +1,26 @@
+Section Header
+
+  + name := CLUSTER;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+
+Section Private
+
+  - parse <-
+  (
+    "Parsing cluster: ".print; path.println;
+  );
+
+Section Public
+
+  + path :CSTRING;
+
+  - make_path p:CSTRING :SELF <-
+  (
+    path := p;
+    parse;
+    Self
+  );
+

@@ -1,0 +1,7 @@
+Section Header
+
+  + name := ANY;
+
+Section Inherit
+
+  - parent_object : OBJECT := OBJECT;
