@@ -1,0 +1,44 @@
+Section Header
+
+  + name := LIBC;
+  
+  - external := `
+    #include <sys/types.h>
+    #include <dirent.h>
+  `;
+
+Section Public
+
+  - opendir name:NATIVE_ARRAY(CHARACTER) :POINTER <-
+    `opendir(@name)`:POINTER;
+
+  - closedir dir:POINTER :INTEGER <-
+    `closedir((DIR*) @dir)`:INTEGER;
+    
+  - readdir dir:POINTER :(INTEGER, NATIVE_ARRAY(CHARACTER)) <-
+  // Return type and name
+  ( + dirent :POINTER;
+    + type :INTEGER;
+    + name :NATIVE_ARRAY(CHARACTER);
+    dirent := `readdir((DIR*) @dir)`:POINTER;
+    (dirent != NULL).if_false {
+      type := `((struct dirent *) @dirent)->d_type`:INTEGER;
+      name := `((struct dirent *) @dirent)->d_name`:NATIVE_ARRAY(CHARACTER);
+    } else {
+      type := 0;
+      name := NULL;
+    };
+    type, name
+  );
+  
+  // Dirent types
+
+  - dt_blk :INTEGER <- `DT_BLK`:INTEGER;
+  - dt_chr :INTEGER <- `DT_CHR`:INTEGER;
+  - dt_dir :INTEGER <- `DT_DIR`:INTEGER;
+  - dt_fifo:INTEGER <- `DT_FIFO`:INTEGER;
+  - dt_lnk :INTEGER <- `DT_LNK`:INTEGER;
+  - dt_reg :INTEGER <- `DT_REG`:INTEGER;
+  - dt_sock:INTEGER <- `DT_SOCK`:INTEGER;
+  - dt_unknown:INTEGER <- `DT_UNKNOWN`:INTEGER;
+

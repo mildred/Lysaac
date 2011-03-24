@@ -8,9 +8,42 @@ Section Inherit
 
 Section Private
 
-  - parse <-
-  (
+  - source_list :FAST_ARRAY(CSTRING) := FAST_ARRAY(CSTRING).create 0;
+
+  - parse path:CSTRING <-
+  ( + p:POINTER;
+    + s:STRING;
+    + nac:NATIVE_ARRAY(CHARACTER);
+    + i:INTEGER;
+    + has_source :BOOLEAN;
+
     "Parsing cluster: ".print; path.println;
+
+    p := LIBC.opendir(path);
+    {(i, nac) := LIBC.readdir(p);
+     nac != NULL
+    }.while_do {
+      s := nac;
+      (i != LIBC.dt_dir).if {
+        (nac.has_suffix ".li").if {
+          has_source := true;
+          source_list.add_last (path + "/" + nac);
+        };
+      };
+    };
+    LIBC.closedir(p);
+    has_source.if {
+      p := LIBC.opendir(path);
+      {(i, nac) := LIBC.readdir(p);
+       nac != NULL
+      }.while_do {
+        ((s !== ".") && {s !== ".."} && {i = LIBC.dt_dir}).if {
+          s := nac;
+          parse (path + "/" + nac);
+        }
+      };
+      LIBC.closedir(p);
+    };
   );
 
 Section Public
@@ -20,7 +53,7 @@ Section Public
   - make_path p:CSTRING :SELF <-
   (
     path := p;
-    parse;
+    parse path;
     Self
   );
 

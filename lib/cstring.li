@@ -3,7 +3,7 @@ Section Header
   + name   := CSTRING;
   
   - import := STRING, ABSTRACT_STRING, STRING_CONSTANT;
-  - export := STRING;
+  - export := STRING, NATIVE_ARRAY(CHARACTER);
 
 Section Inherit
 
@@ -23,6 +23,8 @@ Section Public
     result.copy Self;
     result
   );
+  
+  - to_native_array_of_character :NATIVE_ARRAY(CHARACTER) <- storage;
   
   - from_abstract_string s:ABSTRACT_STRING :SELF <- create s;
   - from_string_constant s:STRING_CONSTANT :SELF <- create s;
