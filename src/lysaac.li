@@ -1,0 +1,11 @@
+Section Header
+  
+  + name := LYSAAC;
+  
+Section Public
+
+  - main <-
+  (
+    "Hello".println;
+  );
+

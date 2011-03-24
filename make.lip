@@ -1,0 +1,13 @@
+Section Inherit
+
+  + parent:STRING;
+
+Section Private
+
+  - front_end <-
+  (
+    general_front_end;
+    input_file := "lysaac";
+    path "src/";
+  );
+
