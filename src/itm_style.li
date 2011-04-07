@@ -1,0 +1,23 @@
+Section Header
+
+  + name := Expanded ITM_STYLE;
+
+Section Public
+
+  + character :CHARACTER := 0.to_character;
+
+  - valid :BOOLEAN <- character != 0.to_character;
+  - plus  :BOOLEAN <- character = '+';
+  - minus :BOOLEAN <- character = '-';
+
+  - clone :SELF <-
+  ( + self:SELF;
+    self;
+  );
+
+  - make c:CHARACTER :SELF <-
+  (
+    character := c;
+    Self
+  );
+

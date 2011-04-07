@@ -9,8 +9,83 @@ Section Inherit
 Section SELF
 
   + source :STRING;
+  + position :INTEGER;
+  
+  - last_character :CHARACTER <-
+  ( + c:CHARACTER;
+    source.valid_index position.if {
+      c := source.item position;
+    } else {
+      c := 0.to_character;
+    };
+    c
+  );
+  
+  - read_spaces <-
+  (
+    {(last_character = 0.to_character) || {last_character > ' '}}.until_do {
+      position := position + 1;
+    };
+  );
+  
+  - read_style :ITM_STYLE <-
+  ( + res:ITM_STYLE;
+    res := ITM_STYLE.clone.make last_character;
+    res.valid.if {
+      position := position + 1;
+    };
+    res
+  );
+  
+  - read_always str:ABSTRACT_STRING <-
+  (
+    not_yet_implemented;
+  );
+  
+  - read_section_header <-
+  (
+    read_spaces;
+    read_always "Section";
+    read_spaces;
+    read_always "Header";
+    read_h_slots;
+  );
+  
+  - read_h_slots <-
+  (
+    read_h_slot.if {
+      read_h_slots;
+    };
+  );
+  
+  - read_h_slot :BOOLEAN <-
+  ( + result :BOOLEAN;
+    + style :ITM_STYLE;
+    + ident :CSTRING;
+    + affect :CHARACTER;
+    
+    read_spaces;
+    style := read_style;
+    result := style.valid;
+    result.if {
+      read_spaces;
+      ident := read_ident;
+      result := ident != NULL;
+    };
+    result.if {
+      read_spaces;
+      affect := read_affect;
+      (affect != 0.to_character).if {
+        read_spaces;
+        read_h_constant;
+        read_spaces;
+      };
+      read_always ";";
+    };
+    result
+  );
 
-  - read_source f:ABSTRACT_STRING <-
+  - open_source f:ABSTRACT_STRING <-
   ( + file:POINTER;
     + sz:INTEGER;
 
@@ -20,7 +95,6 @@ Section SELF
     LIBC.fread (source.storage, 1, sz, file);
     LIBC.fclose file;
     source.from_external (source.storage);
+    position := source.lower;
   );
-
-
 

@@ -20,5 +20,5 @@ Section CLUSTER
   
   - parse <-
   (
-    read_source (cluster.filename);
+    open_source (cluster.filename);
   );
