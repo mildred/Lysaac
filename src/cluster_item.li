@@ -1,0 +1,40 @@
+Section Header
+
+  + name := CLUSTER_ITEM;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+
+Section CLUSTER
+
+  - make n:CSTRING file f:CSTRING :SELF <-
+  (
+    name     := n;
+    filename := f;
+    Self
+  );
+
+Section Public
+
+  + filename  :CSTRING := NULL;
+
+  + name      :CSTRING := NULL;
+
+  - is_prototype :BOOLEAN <- filename.has_suffix ".li";
+
+  - is_cluster   :BOOLEAN <- filename.has_suffix ".cli";
+
+  + cluster :CLUSTER <-
+  [ -? {is_cluster}; ]
+  (
+    cluster := CLUSTER.clone.make_file filename
+  );
+
+  + prototype :POINTER <-
+  [ -? {is_prototype}; ]
+  ( + proto :POINTER;
+    // do the parsing;
+    prototype := proto
+  );
+

@@ -6,6 +6,7 @@ Section Public
 
   - main <-
   ( + c :CLUSTER;
-    c := CLUSTER.clone.make_path ".";
+    c := CLUSTER.clone.make_path (COMMAND_LINE.item 1);
+    c.display;
   );
 

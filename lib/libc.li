@@ -21,7 +21,7 @@ Section Public
     + type :INTEGER;
     + name :NATIVE_ARRAY(CHARACTER);
     dirent := `readdir((DIR*) @dir)`:POINTER;
-    (dirent != NULL).if_false {
+    (dirent != NULL).if {
       type := `((struct dirent *) @dirent)->d_type`:INTEGER;
       name := `((struct dirent *) @dirent)->d_name`:NATIVE_ARRAY(CHARACTER);
     } else {

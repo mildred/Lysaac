@@ -8,16 +8,26 @@ Section Inherit
 
 Section Private
 
-  - source_list :FAST_ARRAY(CSTRING) := FAST_ARRAY(CSTRING).create 0;
+  - list :FAST_ARRAY(CLUSTER_ITEM) := FAST_ARRAY(CLUSTER_ITEM).create 0;
+  
+  - find_name (name:STRING, file:ABSTRACT_STRING) <-
+  ( + i :INTEGER;
+    name.clear;
+    i := file.lower;
+    {(i <= file.upper) && {file.item i != '.'}}.while_do {
+      name.add_last (file.item i.to_upper);
+      i := i + 1;
+    };
+  );
 
   - parse path:CSTRING <-
   ( + p:POINTER;
-    + s:STRING;
+    + s, s2:STRING;
     + nac:NATIVE_ARRAY(CHARACTER);
     + i:INTEGER;
     + has_source :BOOLEAN;
 
-    "Parsing cluster: ".print; path.println;
+    s2 := STRING.create 32;
 
     p := LIBC.opendir(path);
     {(i, nac) := LIBC.readdir(p);
@@ -25,9 +35,12 @@ Section Private
     }.while_do {
       s := nac;
       (i != LIBC.dt_dir).if {
-        (nac.has_suffix ".li").if {
-          has_source := true;
-          source_list.add_last (path + "/" + nac);
+        ((s.has_suffix ".li") || {s.has_suffix ".cli"}).if {
+          find_name (s2, s);
+          has_source := TRUE;
+          s.add_first '/';
+          s.prepend path;
+          list.add_last (CLUSTER_ITEM.clone.make s2 file s);
         };
       };
     };
@@ -37,12 +50,47 @@ Section Private
       {(i, nac) := LIBC.readdir(p);
        nac != NULL
       }.while_do {
+        s := nac;
         ((s !== ".") && {s !== ".."} && {i = LIBC.dt_dir}).if {
-          s := nac;
-          parse (path + "/" + nac);
-        }
+          s.add_first '/';
+          s.prepend path;
+          parse s;
+        };
       };
       LIBC.closedir(p);
+    };
+  );
+  
+  - display_indent ind:ABSTRACT_STRING <-
+  ( + it:ITERATOR(CLUSTER_ITEM);
+    + s :ABSTRACT_STRING;
+
+    s := ind + "│ ";
+
+    ind.print;
+    list.is_empty.if { "  ".print; } else { "│ ".print; };
+    "Cluster in: ".print;
+    path.println;
+    (it := list.iterate).loop_v { i:CLUSTER_ITEM;
+      ind.print;
+      it.last.if {
+        "╰─".print;
+        s := ind + "  ";
+      } else {
+        "├─".print;
+      };
+      i.is_prototype.if {
+        "◇ ".print;
+      } else {
+        "◆ ".print;
+      };
+      i.name.print;
+      " (".print;
+      i.filename.print;
+      ")".println;
+      i.is_cluster.if {
+        i.cluster.display_indent s;
+      };
     };
   );
 
@@ -55,5 +103,17 @@ Section Public
     path := p;
     parse path;
     Self
+  );
+  
+  - make_file f:CSTRING :SELF <-
+  (
+    not_yet_implemented;
+    Self
+  );
+  
+  - display <-
+  (
+    "◆ Root Cluster".println;
+    display_indent "";
   );
 

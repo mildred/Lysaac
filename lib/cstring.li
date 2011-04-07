@@ -5,6 +5,8 @@ Section Header
   - import := STRING, ABSTRACT_STRING, STRING_CONSTANT;
   - export := STRING, NATIVE_ARRAY(CHARACTER);
 
+  - comment := "Aliased string";
+
 Section Inherit
 
   - parent_abstract_string :Expanded ABSTRACT_STRING;
