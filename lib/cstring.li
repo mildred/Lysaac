@@ -68,4 +68,10 @@ Section Private
     bucket.add CSTRING;
     bucket
   );
+  
+  //
+  // Inherit
+  //
+
+  - to_external:NATIVE_ARRAY(CHARACTER) <- storage;
 

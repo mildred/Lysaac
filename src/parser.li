@@ -1,0 +1,26 @@
+Section Header
+
+  + name      := PARSER;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+
+Section SELF
+
+  + source :STRING;
+
+  - read_source f:ABSTRACT_STRING <-
+  ( + file:POINTER;
+    + sz:INTEGER;
+
+    file := LIBC.fopen (f.to_external, "rb".to_external);
+    sz := LIBC.file_size file;
+    source := STRING.create (sz+1);
+    LIBC.fread (source.storage, 1, sz, file);
+    LIBC.fclose file;
+    source.from_external (source.storage);
+  );
+
+
+

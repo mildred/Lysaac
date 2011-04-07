@@ -8,7 +8,7 @@ Section Inherit
 
 Section Private
 
-  - list :FAST_ARRAY(CLUSTER_ITEM) := FAST_ARRAY(CLUSTER_ITEM).create 0;
+  + list :FAST_ARRAY(CLUSTER_ITEM) := FAST_ARRAY(CLUSTER_ITEM).create 0;
   
   - find_name (name:STRING, file:ABSTRACT_STRING) <-
   ( + i :INTEGER;
@@ -69,8 +69,12 @@ Section Private
 
     ind.print;
     list.is_empty.if { "  ".print; } else { "│ ".print; };
-    "Cluster in: ".print;
-    path.println;
+    (path = NULL).if {
+      "Could not find cluster".println;
+    } else {
+      "Cluster in: ".print;
+      path.println;
+    };
     (it := list.iterate).loop_v { i:CLUSTER_ITEM;
       ind.print;
       it.last.if {
@@ -94,20 +98,39 @@ Section Private
     };
   );
 
+Section PARSER_CLI
+
+  - set_path p:CSTRING <-
+  (
+    path := p;
+  );
+
+  - find_path_by_name name:CSTRING <-
+  // find the path to the cluster `name' and return TRUE if successfull (`path'
+  // set) or FALSE if not.
+  (
+  );
+
 Section Public
 
   + path :CSTRING;
+  
+  + filename :CSTRING;
 
   - make_path p:CSTRING :SELF <-
   (
+    list := FAST_ARRAY(CLUSTER_ITEM).create 0;
     path := p;
+    filename := NULL;
     parse path;
     Self
   );
   
   - make_file f:CSTRING :SELF <-
   (
-    not_yet_implemented;
+    list := FAST_ARRAY(CLUSTER_ITEM).create 0;
+    filename := f;
+    PARSER_CLI.clone.make Self.parse;
     Self
   );
   

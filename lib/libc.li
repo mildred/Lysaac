@@ -9,6 +9,26 @@ Section Header
 
 Section Public
 
+  - fopen (file, mode:NATIVE_ARRAY(CHARACTER)) :POINTER <-
+    `fopen(@file, @mode)`:POINTER;
+  
+  - file_size p:POINTER :INTEGER <-
+  ( + result:INTEGER;
+    `fseek((FILE*)(@p),0,SEEK_END)`;
+    result := `ftell((FILE *)@p)`:INTEGER;
+    `fseek((FILE*)(@p),0,SEEK_SET)`;
+    result
+  );
+
+  - fread (buf:NATIVE_ARRAY(CHARACTER), size:INTEGER, nmemb:INTEGER, f:POINTER) :INTEGER <-
+    `fread((void *)(@buf),(size_t)(@size), (size_t)(@nmemb),(FILE*)(@f))`:(INTEGER);
+
+  - fwrite (buf:NATIVE_ARRAY(CHARACTER), size:INTEGER, nmemb:INTEGER, f:POINTER) :INTEGER <-
+    `fwrite((void *)(@buf),(size_t)(@size), (size_t)(@nmemb),(FILE*)(@f))`:(INTEGER);
+
+  - fclose f:POINTER <-
+    `fclose(@f)`;
+
   - opendir name:NATIVE_ARRAY(CHARACTER) :POINTER <-
     `opendir(@name)`:POINTER;
 

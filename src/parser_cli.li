@@ -1,0 +1,24 @@
+Section Header
+
+  + name      := PARSER_CLI;
+
+Section Inherit
+
+  + parent_parser :Expanded PARSER;
+
+Section Private
+
+  + cluster :CLUSTER;
+
+Section CLUSTER
+
+  - make c:CLUSTER :SELF <-
+  (
+    cluster := c;
+    Self
+  );
+  
+  - parse <-
+  (
+    read_source (cluster.filename);
+  );
