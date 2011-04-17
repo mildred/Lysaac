@@ -1,12 +1,31 @@
 Section Header
   
   + name := LYSAAC;
-  
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+
 Section Public
 
   - main <-
   ( + c :CLUSTER;
-    c := CLUSTER.clone.make_path (COMMAND_LINE.item 1);
-    c.display;
+    + dir, main :ABSTRACT_STRING;
+    (COMMAND_LINE.upper >= 1).if {
+      dir := COMMAND_LINE.item 1;
+    };
+    (COMMAND_LINE.upper >= 2).if {
+      main := COMMAND_LINE.item 2;
+    };
+    (dir != NULL).if {
+      c := CLUSTER.clone.make_path dir;
+      (main != NULL).if {
+        not_yet_implemented;
+      } else {
+        c.display;
+      };
+    } else {
+      "Usage: lysaac DIR [PROTO]".println;
+    };
   );
 

@@ -10,37 +10,209 @@ Section SELF
 
   + source :STRING;
   + position :INTEGER;
+  + line :INTEGER;
+  + column :INTEGER;
   
-  - last_character :CHARACTER <-
+  - print_warning <-
+  (
+    "Warning:".print; line.print; ":".print; column.print; ": ".print;
+  );
+  
+  - character i:INTEGER :CHARACTER <-
   ( + c:CHARACTER;
-    source.valid_index position.if {
-      c := source.item position;
+    source.valid_index (position+i).if {
+      c := source.item (position+i);
     } else {
       c := 0.to_character;
     };
     c
   );
   
-  - read_spaces <-
+  - last_character :CHARACTER <-
+    character 0;
+  
+  - read_character :CHARACTER <-
   (
-    {(last_character = 0.to_character) || {last_character > ' '}}.until_do {
+    source.valid_index position.if {
       position := position + 1;
+      (character (-1) = '\n').if {
+        line := line + 1;
+        column := 1;
+      } else {
+        column := column + 1;
+      };
+    };
+    last_character
+  );
+  
+  - read_characters n:INTEGER <-
+  (
+    (n > 0).if {
+      read_character;
+      read_characters (n-1);
     };
   );
   
+  - read_maybe str:ABSTRACT_STRING :BOOLEAN <-
+  ( + i:INTEGER;
+    i := str.lower;
+    {(i <= str.upper) && {character (i - str.lower) = str.item i}}.while_do {
+      i := i + 1;
+    };
+    (i > str.upper)
+  );
+
+  - read_always str:ABSTRACT_STRING <-
+  (
+    read_maybe str.if {
+      read_characters (str.count);
+    } else {
+      print_warning;
+      "expected \"".print; str.print; "\"".println;
+    };
+  );
+  
+  - read_spaces <-
+  (
+    {(last_character = 0.to_character) || {last_character > ' '}}.until_do {
+      read_character;
+    };
+  );
+  
+  //-- style -> [+-]
+  
+  + last_style :ITM_STYLE;
+  
   - read_style :ITM_STYLE <-
-  ( + res:ITM_STYLE;
-    res := ITM_STYLE.clone.make last_character;
-    res.valid.if {
+  (
+    last_style := ITM_STYLE.clone.make last_character;
+    last_style.valid.if {
       position := position + 1;
+    };
+    last_style
+  );
+  
+  //-- affect -> ":=" | "?=" | "<-"
+  
+  + last_affect :ITM_AFFECT;
+  
+  - read_affect :ITM_AFFECT <-
+  (
+    read_maybe ":=".if {
+      last_affect := ITM_AFFECT.clone.make ':';
+      read_characters 2;
+    }.elseif {read_maybe "<-"} then {
+      last_affect := ITM_AFFECT.clone.make '<';
+      read_characters 2;
+    }.elseif {read_maybe "?="} then {
+      last_affect := ITM_AFFECT.clone.make '?';
+      read_characters 2;
+    } else {
+      last_affect := ITM_AFFECT.clone.make (0.to_character);
+    };
+    last_affect
+  );
+  
+  //-- identifier -> [a-zA-Z_][a-zA-Z0-9_]*
+  
+  + last_identifier :STRING := STRING.create 64;
+  
+  - read_identifier :BOOLEAN <-
+  ( + res:BOOLEAN;
+    last_identifier.clear;
+    last_character.is_digit.if_false {
+      {(last_character.is_lower) ||
+       {last_character.is_digit} ||
+       {last_character = '_'}
+      }.while_do {
+        res := TRUE;
+        last_identifier.add_last last_character;
+        read_character;
+      };
     };
     res
   );
   
-  - read_always str:ABSTRACT_STRING <-
-  (
-    not_yet_implemented;
+  //-- keyword -> [A-Z][a-z0-9_]*
+  
+  + last_keyword :STRING := STRING.create 64;
+  
+  - read_keyword :BOOLEAN <-
+  ( + res:BOOLEAN;
+    last_keyword.clear;
+    ((character 0.is_upper) && {character 1.is_lower}).if {
+      res := TRUE;
+      last_keyword.add_last last_character;
+      read_character;
+      {(last_character.is_lower) ||
+       {last_character.is_digit} ||
+       {last_character = '_'}
+      }.while_do {
+        last_keyword.add_last last_character;
+        read_character;
+      };
+    };
+    res
   );
+  
+  //-- cap_identifier -> [A-Z][A-Z0-9_]*
+  
+  + last_cap_identifier :STRING := STRING.create 64;
+  
+  - read_cap_identifier :BOOLEAN <-
+  ( + res:BOOLEAN;
+    last_cap_identifier.clear;
+    (last_character.is_upper).if {
+      res := TRUE;
+      {(last_character.is_upper) ||
+       {last_character.is_digit} ||
+       {last_character = '_'}
+      }.while_do {
+        last_cap_identifier.add_last last_character;
+        read_character;
+      };
+    };
+    res
+  );
+  
+  //-- string -> '"' string_content* '"'
+  //-- string_content -> [^"] | '""'
+  
+  - last_string :STRING := STRING.create 128;
+  
+  - read_string :BOOLEAN <-
+  ( + result :BOOLEAN;
+    last_string.clear;
+    (last_character = '"').if {
+      read_character;
+      read_string_content;
+      read_always "\"";
+      result := TRUE;
+    };
+    result
+  );
+  
+  - read_string_content <-
+  (
+    ((character 0 = '"') && {character 1 = '"'}).if {
+      last_string.add_last '"';
+      read_character;
+      read_character;
+      read_string_content;
+    }.elseif {last_character != '"'} then {
+      last_string.add_last last_character;
+      read_character;
+      read_string_content;
+    } else {
+    };
+  );
+  
+  //++ PROTOTYPE -> cap_identifier
+  
+  - last_prototype :STRING  <- last_cap_identifier;
+  - read_prototype :BOOLEAN <- read_cap_identifier;
+  
+  //++ SECTIONE_HEADER -> "Section" "Header" H_SLOTS
   
   - read_section_header <-
   (
@@ -51,6 +223,8 @@ Section SELF
     read_h_slots;
   );
   
+  //++ H_SLOTS -> H_SLOT*
+  
   - read_h_slots <-
   (
     read_h_slot.if {
@@ -58,31 +232,98 @@ Section SELF
     };
   );
   
+  //++ H_SLOT -> style identifier affect keyword* H_CONSTANT ";"
+  
   - read_h_slot :BOOLEAN <-
   ( + result :BOOLEAN;
+    + has_slot :BOOLEAN;
     + style :ITM_STYLE;
     + ident :CSTRING;
-    + affect :CHARACTER;
+    + affect :ITM_AFFECT;
     
     read_spaces;
     style := read_style;
     result := style.valid;
+    has_slot := result;
     result.if {
       read_spaces;
-      ident := read_ident;
-      result := ident != NULL;
+      result := read_identifier;
+      ident := last_identifier;
+      result.if_false {
+        print_warning; "expected style".println;
+      };
     };
     result.if {
       read_spaces;
       affect := read_affect;
-      (affect != 0.to_character).if {
-        read_spaces;
-        read_h_constant;
-        read_spaces;
+      result := (affect != 0.to_character);
+      result.if_false {
+        print_warning; "expected affect".println;
       };
+    };
+    result.if {
+      read_keywords;
+    };
+    result.if {
+      read_spaces;
+      result := read_h_constant;
+      result.if_false {
+        print_warning; "expected constant".println;
+      };
+    };
+    has_slot.if {
+      read_spaces;
       read_always ";";
     };
+    result.if {
+      hook_h_slot (ident, style);
+    }.elseif {has_slot} then {
+      print_warning;
+      "ignored slot".println;
+      last_string.println;
+    };
     result
+  );
+  
+  - hook_h_slot (ident:CSTRING, style:ITM_STYLE);
+  
+  //++ KEYWORDS -> keyword*
+  
+  - read_keywords <-
+  (
+    read_spaces;
+    read_keyword.if {
+      read_keywords;
+    };
+  );
+  
+  //++ H_CONSTANT -> integer | identifier | prototype | string
+  
+  - last_h_constant :INTEGER;
+  - h_constant_ident  :INTEGER := 1;
+  - h_constant_proto  :INTEGER := 2;
+  - h_constant_string :INTEGER := 2;
+  
+  - read_h_constant :BOOLEAN <-
+  ( + found :BOOLEAN;
+    read_spaces;
+    //found.if_false {
+    //  found := read_integer;
+    //  found.if { last_h_constant := h_constant_int; };
+    //};
+    found.if_false {
+      found := read_identifier;
+      found.if { last_h_constant := h_constant_ident; };
+    };
+    found.if_false {
+      found := read_prototype;
+      found.if { last_h_constant := h_constant_proto; };
+    };
+    found.if_false {
+      found := read_string;
+      found.if { last_h_constant := h_constant_string; };
+    };
+    found
   );
 
   - open_source f:ABSTRACT_STRING <-
@@ -96,5 +337,7 @@ Section SELF
     LIBC.fclose file;
     source.from_external (source.storage);
     position := source.lower;
+    line := 1;
+    column := 1;
   );
 

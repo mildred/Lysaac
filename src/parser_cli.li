@@ -10,6 +10,36 @@ Section Private
 
   + cluster :CLUSTER;
 
+  - read_cli <-
+  (
+    read_section_header;
+  );
+  
+  - hook_h_slot (ident:CSTRING, style:ITM_STYLE) <-
+  (
+    (ident == "name").if {
+      (last_h_constant = h_constant_proto).if {
+        (last_prototype.as_lower == cluster.name).if_false {
+          print_warning;
+          "expected ".print; cluster.name.as_upper.println;
+        };
+      } else {
+        print_warning;
+        "expected prototype constant".println;
+      };
+    }.elseif {ident == "path"} then {
+      (last_h_constant = h_constant_string).if {
+        cluster.set_path last_string;
+      } else {
+        print_warning;
+        "expected string constant".println;
+      };
+    } else {
+      print_warning;
+      "unknown slot ".print; ident.println;
+    };
+  );
+
 Section CLUSTER
 
   - make c:CLUSTER :SELF <-
@@ -21,4 +51,5 @@ Section CLUSTER
   - parse <-
   (
     open_source (cluster.filename);
+    read_cli;
   );

@@ -116,6 +116,19 @@ Section Public
   + path :CSTRING;
   
   + filename :CSTRING;
+  
+  - name :CSTRING <-
+  ( + result :CSTRING;
+    + i:INTEGER;
+    
+    i := filename.last_index_of '/';
+    filename.valid_index i.if {
+      result := filename.substring (i+1) to (filename.upper - 4);
+    } else {
+      result := filename.substring (name.lower) to (filename.upper - 4);
+    };
+    result
+  );
 
   - make_path p:CSTRING :SELF <-
   (

@@ -1,6 +1,6 @@
 Section Header
 
   + name := Private Cluster LIB;
-  - path := "../lib"
+  - path := "../lib";
 
 

@@ -1,14 +1,15 @@
 Section Header
 
-  + name := Expanded ITM_STYLE;
+  + name := Expanded ITM_AFFECT;
 
 Section Public
 
   + character :CHARACTER := 0.to_character;
 
   - valid :BOOLEAN <- character != 0.to_character;
-  - plus  :BOOLEAN <- character = '+';
-  - minus :BOOLEAN <- character = '-';
+  - data  :BOOLEAN <- character = ':';
+  - code  :BOOLEAN <- character = '<';
+  - cast  :BOOLEAN <- character = '?';
 
   - clone :SELF <-
   ( + self:SELF;
@@ -17,7 +18,7 @@ Section Public
 
   - make c:CHARACTER :SELF <-
   (
-    ((c = '+') || {c = '-'}).if {
+    ((c = ':') || {c = '<'} || {c = '?'}).if {
       character := c;
     } else {
       character := 0.to_character;
