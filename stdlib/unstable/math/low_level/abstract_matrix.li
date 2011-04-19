@@ -1,0 +1,163 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Math-Library                                  //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := ABSTRACT_MATRIX(E);
+  
+  - comment  := "(n,m) matrix";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Private
+  
+  + storage:FAST_ARRAY2(E);
+  
+Section Public  
+  
+  - lines:INTEGER <- storage.count1;
+  - columns:INTEGER <- storage.coun2;
+  
+  
+  - make (n,m:INTEGER) <-
+  (
+    storage := FAST_ARRAY2(E).create (n,m);
+  );
+  
+  - create_from v:FAST_ARRAY2(E) :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make_from v;
+    result
+  );
+  
+  - make_from v:FAST_ARRAY2(E) <-
+  (
+    storage := v;
+  );
+  
+  
+  //
+  // Access.
+  //
+  
+  - copy other:SELF <-
+  (
+    storage.copy (other.getv);
+  );
+  
+  - zero:SELF <- create (lines,columns) value (E.zero);
+  
+  
+  - put v:E to (l,c:INTEGER) <- 
+  (
+    storage.put v to (l,c);
+  );
+  
+  - set_all_with val:E <-
+  (
+    storage.set_all_with val;
+  );
+  
+  - item (l,c:INTEGER) :E <- 
+  (
+    storage.item (l,c)
+  );
+  
+  - getv:FAST_ARRAY2(E) <-
+  (
+    storage
+  );
+  
+  - to_external:POINTER <-
+  (
+    storage.to_external
+  );
+  
+  //
+  // Operations.
+  //
+  
+  - put_foreach block:BLOCK <-
+  (
+    storage.lower1.to (storage.upper1) do { line:INTEGER;
+      storage.lower2.to (storage.upper2) do { column:INTEGER;
+	storage.put (block.value (line,column)) to (line, column);
+      };
+    };
+  );
+  
+  - load_identity <-
+  (
+    put_foreach { (l,c:INTEGER);
+      + result:E;
+      
+      (l = c).if {
+        result := E.one;
+      } else {
+        result := E.zero;
+      };
+      result
+    };
+  );
+  
+  - Self:SELF '+' Left 80 other:SELF :SELF <-
+  ( + m:FAST_ARRAY(E);
+    
+    m := FAST_ARRAY(E).create (lines,columns);
+    m.put_foreach { (l,c:INTEGER);
+      item (l,c) + other.item (l,c)
+    };
+    create_from m
+  );
+
+  - Self:SELF '-' Left 80 other:SELF :SELF <-
+  ( + m:FAST_ARRAY(E);
+    
+    m := FAST_ARRAY(E).create (lines,columns);
+    m.put_foreach { (l,c:INTEGER);
+      item (l,c) - other.item (l,c)
+    };
+    create_from m
+  );
+  
+  - Self:SELF '*' Left 100 scalar:E :SELF <-
+  ( + m:FAST_ARRAY(E);
+    
+    m := FAST_ARRAY(E).create (lines,columns);
+    m.put_foreach { (l,c:INTEGER);
+      item (l,c) * scalar
+    };
+    create_from m
+  );
+  
+  - print <-
+  (
+    storage.lower1.to (storage.upper1) do { line:INTEGER;
+      "(  ".print;
+      storage.lower2.to (storage.upper2) do { column:INTEGER;
+        storage.item (line,column).print; "  ".print;
+      };
+      ")\n".print;
+    };
+  );

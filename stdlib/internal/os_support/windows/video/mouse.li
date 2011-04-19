@@ -1,0 +1,141 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        := MOUSE;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     := "X11 - Mouse driver";
+
+  - bibliography:= "http://IsaacOS.com";
+  - author      := "Benoit Sonntag (bsonntag@loria.fr)";
+
+Section Inherit
+
+  + parent_input:Expanded INPUT;
+
+Section Public
+
+  - set (x,y:INTEGER) with (left_new,right_new:BOOLEAN) <-
+  ( + tmp:UINTEGER_8;
+    + x_new, y_new:INTEGER;
+
+    y_new := y.max y_minimum.min y_maximum;
+    x_new := x.max x_minimum.min x_maximum;
+
+    tmp:=(p_end+1)&003h;
+    buffer_event.item p_end.make (x_new,y_new) button (left_new,right_new);
+
+    (((tmp+2)&3)!=p_beg).if {
+      p_end:=tmp;
+    };
+
+    get_event;
+
+    // Update status.
+    x_current:=x_new;
+    y_current:=y_new;
+    right:=right_new;
+    left :=left_new;
+  );
+
+Section Public
+
+  + x_minimum:INTEGER;
+  + x_maximum:INTEGER;
+
+  + y_minimum:INTEGER;
+  + y_maximum:INTEGER;
+
+  + x_current:INTEGER;
+  + y_current:INTEGER;
+
+  + right:BOOLEAN;
+  + left:BOOLEAN;
+
+Section Private
+
+  + buffer_event:FAST_ARRAY(EVENT_MOUSE);
+  - p_beg:UINTEGER_8;  // Pointer on the buffer (beginning)
+  - p_end:UINTEGER_8;  // Pointer on the buffer (end)
+
+Section Public
+
+  //
+  // Creation / Initialisation.
+  //
+
+  - make <-
+  ( + new_event:EVENT_MOUSE;
+
+    is_actif := TRUE;
+    //
+    // Mouse hardware configuration.
+    //
+
+    x_maximum := VIDEO.x_max;
+    y_maximum := VIDEO.y_max;
+
+    //
+    // Software configuration.
+    //
+    buffer_event := FAST_ARRAY(EVENT_MOUSE).create 4;
+    0.to 3 do { j:INTEGER;
+      new_event := EVENT_MOUSE.clone;
+      buffer_event.put new_event to j;
+      (j != 0).if {
+	new_event.set_prev (buffer_event.item (j-1));
+      };
+    };
+    buffer_event.first.set_prev new_event;
+  );
+
+  - get_event <-
+  ( + p:INTEGER;
+    + evt:EVENT_MOUSE;
+
+    p := p_beg;
+    { p != p_end }.while_do {
+      evt := buffer_event.item p;
+      (list_client.lower).to (list_client.upper) do { j:INTEGER;
+	list_client.item j.receive (buffer_event.item p);
+      };
+      p := (p + 1) & 03h;
+    };
+  );
+
+  - acknowledge <-
+  (
+    p_beg := (p_beg+1) & 03h;
+  );
+
+
+
+
+
+
+
+
+
+
+
+

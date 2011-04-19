@@ -1,0 +1,141 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := EVENT_MOUSE;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+    
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Sonntag Benoit (bsonntag@loria.fr)";
+  - comment     :="Mouse event.";
+  
+Section Inherit
+
+  + parent_event:Expanded EVENT;
+  
+Section Public
+  
+  - source:INBOX := MOUSE;
+    
+  + x_current:INTEGER;
+  + y_current:INTEGER;
+    
+  + right:BOOLEAN;
+  + left:BOOLEAN;
+  
+  + prev:EVENT_MOUSE;
+  
+  - set_prev new_prev:EVENT_MOUSE <-
+  (
+    prev := new_prev;
+  );
+  
+  - make (xn,yn:INTEGER) button (l,r:BOOLEAN) <-
+  (
+    x_current:=xn;
+    y_current:=yn;
+    left :=l;
+    right:=r;
+    destination := NULL;
+  );
+  
+  - copy_from evt:EVENT_MOUSE <-
+  (
+    ? {evt != NULL};
+    x_current := evt.x_current;
+    y_current := evt.y_current;
+    left := evt.left;
+    right := evt.right;
+    destination := NULL;
+  );
+   
+  - dx:INTEGER <- (x_current - prev.x_current);
+  
+  - dy:INTEGER <- (y_current - prev.y_current);
+  
+  - left_up:BOOLEAN    <- ((! prev.left) && {left});
+
+  - left_down:BOOLEAN  <- (prev.left && {! left});
+  
+  - right_up:BOOLEAN   <- ((! prev.right) && {right});
+  
+  - right_down:BOOLEAN <- (prev.right && {! right});
+    
+  - is_pressed:BOOLEAN <- ((left!=prev.left) || {right!=prev.right});
+  
+  - is_moving:BOOLEAN  <- ((x_current!=prev.x_current) || {y_current!=prev.y_current});
+
+  - is_moving_only:BOOLEAN <- ((! is_pressed) && {is_moving});
+  
+  //
+  // Window consideration.
+  //
+  
+  - window:AREA <- 
+  ( + result:AREA;
+    result ?= destination;
+    ? {result != NULL};
+    result
+  );
+  
+  - x_relative:INTEGER <-
+  ( 
+    x_current - window.x_window    
+  );
+  
+  - y_relative:INTEGER <-
+  ( 
+    y_current - window.y_window
+  );
+  
+  - is_in:BOOLEAN <-
+  ( + area:AREA;
+    area ?= destination;
+    (x_current.in_range (area.x_window) to (area.x_window + area.width  - 1)) &&
+    {y_current.in_range (area.y_window) to (area.y_window + area.height - 1)}
+  );
+  
+  - in_up:BOOLEAN <- (! prev.is_in) && {is_in};
+  
+  - is_out:BOOLEAN <- ! is_in;
+  
+  - out_up:BOOLEAN <- (prev.is_in) && {! is_in};
+  
+  //
+  // Display.
+  //  
+
+  - display <-
+  (
+    string_msg.copy "Mouse event";
+    left.if {
+      string_msg.append " Left";
+    };
+    right.if {
+      string_msg.append " Right";
+    };
+    string_msg.add_last '\n';
+    VIDEO.message string_msg;
+  );
+  
+  

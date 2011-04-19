@@ -1,0 +1,211 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name    := BMP_LINE(E);
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment := "Generic bitmap line";
+  
+Section Inherit
+  
+  + parent_abstract_bmp_line:Expanded ABSTRACT_BMP_LINE;
+  
+Section Private
+  
+  + storage:NATIVE_ARRAY(E);
+  
+Section Public
+  
+  //  
+  // Creation.
+  //
+  
+  - create n:INTEGER :SELF <-
+  ( + result:SELF;
+    ? {n>0};
+    
+    result:=clone;
+    result.make n;
+    
+    ? {result.count    = n};
+    ? {result.capacity = n};
+    result
+  );
+  
+  - make n:INTEGER <-
+  (
+    (n > capacity).if {
+      capacity := n;      
+      storage := NATIVE_ARRAY(E).create n;
+    };
+    upper := n - 1;
+  );
+
+  - create_with_capacity n:INTEGER :SELF <- 
+  // Warning : Not storage copy.
+  ( + result:SELF;
+    
+    result:=clone;
+    result.make_with_capacity n;
+    
+    ? {result.count    = 0};
+    ? {result.capacity = n};
+    result
+  );
+  
+  - make_with_capacity n:INTEGER <-
+  (
+    (n > capacity).if {
+      storage := NATIVE_ARRAY(E).create n;
+      capacity := n;
+    };
+    upper := -1;
+  );
+    
+  - create n:INTEGER at offset:UINTEGER_32 :SELF <- 
+  // Warning : Not storage copy.
+  ( + result:SELF;
+    
+    result:=clone;
+    result.make n at offset;
+    
+    ? {result.count    = n};
+    ? {result.capacity = n};
+    result
+  );
+  
+  - make n:INTEGER at offset:UINTEGER_32 <-
+  ( 
+    capacity := n;
+    upper    := n - 1;    
+    storage  := CONVERT(UINTEGER_32,NATIVE_ARRAY(E)).on offset;    
+  );
+  
+  - pixel_geometry:E;
+   
+  //
+  // Put.
+  //
+  
+  - put col:UINTEGER_32 to n:INTEGER <-
+  ( ? {n.in_range 0 to upper};    
+    item n.make col;    
+  );
+  
+  - put col:UINTEGER_32 from idx_begin:INTEGER to idx_end:INTEGER <-   
+  (  
+    E.make col;    
+    idx_begin.to idx_end do { n:INTEGER;
+      storage.put E to n;
+    };
+  );
+  
+  - put bmp:ABSTRACT_BMP_LINE offset ofs:INTEGER from idx_begin:INTEGER to idx_end:INTEGER <-
+  ( + offset:INTEGER;    
+    + bmp_self:SELF;
+    + col:UINTEGER_32;
+    ? {idx_begin <= idx_end};
+    ? {idx_begin >= 0};
+    ? {idx_end.in_range 0 to upper};
+    ? {ofs >= 0};    
+    ? {(ofs + (idx_end - idx_begin)) <= bmp.upper}; 
+        
+    offset := ofs;
+    bmp_self ?= bmp;
+    (bmp_self != NULL).if {
+      // Speed version.            
+      idx_begin.to idx_end do { n:INTEGER;
+	storage.put (bmp_self.item offset) to n;	
+	offset := offset + 1;
+      };
+    } else {
+      // Slow version (because conversion for each pixel)
+      idx_begin.to idx_end do { n:INTEGER;
+	col := bmp.get_color offset;				
+	item n.make col;	
+	offset := offset + 1;
+      };
+    };
+  );
+  
+  //
+  // Get.
+  //
+  
+  - get_color n:INTEGER :UINTEGER_32 <-
+  ( ? {n.in_range 0 to upper};    
+    item n.rgbcolor
+  );
+  
+  - item n:INTEGER :E <- storage.item n;
+  
+  - item_8  n:INTEGER :PIXEL_8  <- item n.to_pixel_8;
+  
+  - item_15 n:INTEGER :PIXEL_15 <- item n.to_pixel_15;
+
+  - item_16 n:INTEGER :PIXEL_16 <- item n.to_pixel_16;
+
+  - item_24 n:INTEGER :PIXEL_24 <- item n.to_pixel_24;
+
+  - item_32 n:INTEGER :PIXEL_32 <- item n.to_pixel_32;
+  
+  //
+  // Arrayed consideration.
+  //
+  
+  - get_storage:NATIVE_ARRAY(UINTEGER_8) <- 
+  CONVERT(NATIVE_ARRAY(E),NATIVE_ARRAY(UINTEGER_8)).on storage;
+  
+  - element_sizeof:INTEGER <- pixel_geometry.object_size;
+
+  - valid_stream s:INTEGER :BOOLEAN <- (s % element_sizeof)=0;
+  
+  + ofs_buf:INTEGER;
+  
+  - add_last_buffer buf:FAST_ARRAY(UINTEGER_8) from beg:INTEGER to end:INTEGER <-
+  ( + pos:INTEGER;
+    
+    // BSBS: Peu faire mieux directement avec les storages...
+    pos := count * element_sizeof + ofs_buf;
+    beg.to end do { j:UINTEGER_32;
+      get_storage.put (buf.item j) to pos;
+      ofs_buf := (ofs_buf + 1) % element_sizeof;
+      (ofs_buf=0).if {
+	? {count < capacity};
+	upper := upper + 1;	
+      };
+      pos := pos + 1;
+    };
+  );
+  
+  //
+  // Arrayed consideration.
+  //
+  
+  - set_capacity new_capacity:INTEGER <-  
+  (
+    make_with_capacity new_capacity;
+  );
+
+  

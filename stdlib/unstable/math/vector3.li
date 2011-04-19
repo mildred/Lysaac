@@ -1,0 +1,157 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Math-Library                                  //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+   
+  + name     := VECTOR3(E);
+  
+  - comment  := "(x,y,z) vector";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  + x:E;
+  + y:E;
+  + z:E;
+  
+  - create (a,b,c:E) :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make (a,b,c);
+    result
+  );
+  
+  - make (a,b,c:E) <-
+  (
+    x := a;
+    y := b;
+    z := c;
+  );
+  
+  - copy :SELF <-
+  (
+    create (x,y,z)
+  );
+   
+  - zero:SELF <- create (E.zero,E.zero,E.zero);
+
+ 
+  - set_x v:E <- 
+  (
+    x := v;
+  );
+  - set_y v:E <- 
+  (
+    y := v;
+  );
+  - set_z v:E <- 
+  (
+    z := v;
+  );
+  
+  - get :(E,E,E) <-
+  (
+    x, y, z
+  );
+  
+  - getv:FAST_ARRAY(E) <-
+  (
+    + result:FAST_ARRAY(E);
+    
+    result := FAST_ARRAY(E).create 3;
+    result.put x to 0;
+    result.put y to 1;
+    result.put z to 2;
+    result
+  );
+  
+  - '-' Self:SELF :SELF <- 
+  (
+    create (-x, -y, -z)
+  );
+  
+  - Self:SELF '+' Left 80 other:VECTOR3(E) :SELF <-
+  (
+    create (x + other.x, y + other.y, z + other.z)
+  );
+
+  - Self:SELF '-' Left 80 other:VECTOR3(E) :SELF <-
+  (
+    create (x - other.x, y - other.y, z - other.z)
+  );
+  
+  - Self:SELF '*' Left 100 scalar:E :SELF <-
+  (
+    create (scalar * x, scalar * y, scalar * z)
+  );
+  
+  - Self:SELF '/' Left 100 scalar:E :SELF <-
+  (
+    ? {scalar != 0};
+    create (x / scalar, y / scalar, z / scalar)
+  );
+  
+  - magnitude:E <- 
+  // magnitude = sqrt(V.x^2 + V.y^2 + V.z^2)
+  (
+    (x*x + y*y + z*z).sqrt
+  );
+   
+  - normalize <-
+  // normalize self vector (of length 1) 
+  ( + m:E;
+    
+    m := magnitude;
+    make (x/m, y/m, z/m); 
+  );
+  
+  - normalized :SELF <-
+  // return a normalized vector (of length 1) from self
+  (
+    Self / magnitude
+  );
+  
+  - dot other:VECTOR3(E) :E <-
+  (
+    x*other.x + y*other.y + z*other.z
+  );
+  
+  - cross other:VECTOR3(E) :SELF <-
+  // calculate the cross product 
+  (
+    + nx,ny,nz:E;
+    
+    nx := (y * other.z) - (z * other.y);
+    ny := (z * other.x) - (x * other.z);
+    nz := (x * other.y) - (y * other.x);
+    
+    create (nx,ny,nz)
+  );
+  
+  
+  - print <-
+  (
+    "(".print; x.print;", ".print; y.print; ", ".print;
+    z.print; ")".print;
+  );

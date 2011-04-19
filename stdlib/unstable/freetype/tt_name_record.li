@@ -1,0 +1,88 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name        := TT_NAME_RECORD;
+
+  - comment     :="Name record.";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Mapping  
+  
+  + platform_id:USHORTINT;
+  + encoding_id:USHORTINT;
+  + language_id:USHORTINT;
+  + name_id:USHORTINT;
+  + string_length:USHORTINT;
+  + string_offset:USHORTINT;
+  
+Section Public
+  
+  - to_big_endian <-
+  (
+    platform_id := PROCESSOR.to_motorola_ushort platform_id; 
+    encoding_id := PROCESSOR.to_motorola_ushort encoding_id;
+    language_id := PROCESSOR.to_motorola_ushort language_id;
+    name_id := PROCESSOR.to_motorola_ushort name_id;
+    string_length := PROCESSOR.to_motorola_ushort string_length;
+    string_offset := PROCESSOR.to_motorola_ushort string_offset;        
+  );
+  
+  - print <-
+  (
+    "\n       Platform: ".print;
+    platform.print;
+    "\n       Encoding ID: ".print;
+    encoding_id.print;
+    "\n       Language: 0x".print;
+    //language.print;
+    language_id.to_hexadecimal.print;
+    "\n       Name ID: ".print;
+    //name.print;
+    name_id.to_hexadecimal.print;
+    "\n       Str length: ".print;
+    string_length.print;
+    "\n       Str offset: ".print;
+    string_offset.print;    
+  );
+  
+  - platform:STRING_CONSTANT <-
+  ( + result:STRING_CONSTANT;
+    
+    platform_id.when 0 then { result := "0.Apple" }
+    .when 1 then { result := "1.Mac" }
+    .when 2 then { result := "2.Iso" }
+    .when 3 then { result := "3.Microsoft"};
+    
+    result
+  );
+  
+  - language:STRING_CONSTANT <-
+  // JBJB A REMPLIR AVEC DECODAGE
+  ( 
+    "toto"
+  );
+  
+  - name:STRING_CONSTANT <-
+  // JBJB A REMPLIR AVEC DECODAGE
+  (
+    "tata"
+  );
+  
+  
+  

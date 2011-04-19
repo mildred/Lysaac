@@ -1,0 +1,136 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := UNSIGNED_INTEGER;
+
+  - comment := "Generic Unsigned Integer.";
+
+Section Insert
+
+  - parent_integer:INTEGER := INTEGER;
+
+Section Public
+
+  //
+  // Range
+  //
+
+  - minimum:INTEGER_64 := 0.to_raw_integer_64;
+
+  //
+  // Function :
+  //
+
+  - sign:INTEGER <-
+  // Sign of Current (0 -1 or 1).
+  (
+    (Self != 0).to_integer;
+  );
+
+  - abs:SELF <- Self;	// Absolute value of `self'.
+
+  //
+  // Convertion
+  //
+
+  - append_in buffer:STRING <-
+  // Append in the `buffer' the equivalent of `to_string'. No new STRING
+  // creation during the process.
+  ( + val:SELF;
+    + i,j:INTEGER;
+    ? {buffer!=NULL};
+
+    (Self = 0).if {
+      buffer.extend '0';
+    } else {
+
+      i := buffer.upper+1;
+
+      val := Self;
+      {val = 0}.until_do {
+	buffer.extend ((val % 10).digit);
+	val := val / 10;
+      };
+      j := buffer.upper;
+
+      {i >= j}.until_do {
+	buffer.swap i with j;
+	j := j - 1;
+	i := i + 1;
+      };
+
+    };
+  );
+
+  - print <-
+  (
+    print_positif;
+  );
+
+  - to_octal:SELF <-
+  // Gives coresponding octal value.
+  ( + result, unit, current:SELF;
+
+    current := Self;
+    unit := 1;
+    {current!=0}.while_do {
+      result := result + ((current & 7)*unit);
+      unit := (unit << 3) + (unit << 1);
+      current := current >> 3;
+    };
+    result
+  );
+
+  //
+  // Hashing:
+  //
+
+  - hash_code:INTEGER <- to_integer;
+
+  //
+  // Looping
+  //
+
+  - downto limit_down:SELF do blc:{SELF; } <-
+  (
+    (Self+1).downto_unsigned limit_down do blc;
+  );
+
+  //
+  // Bound test
+  //
+
+  - bound_test low:INTEGER_64 to up:UINTEGER_64 :BOOLEAN <-
+  (
+    (up > to_raw_uinteger_64)
+  );
+
+Section Private
+
+  - downto_unsigned limit_down:SELF do blc:{SELF; } <-
+  (
+    (Self > limit_down).if {
+      blc.value (Self - 1);
+      (Self - 1).downto_unsigned limit_down do blc;
+    };
+  );
+

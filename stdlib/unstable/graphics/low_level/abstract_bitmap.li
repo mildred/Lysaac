@@ -1,0 +1,1592 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name        := ABSTRACT_BITMAP;
+
+
+  - copyright   := "2003-2005 JÃ©rome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment     := "Generic Bitmap.";
+    
+  - external    := `
+//
+// Font System 1250 bytes.
+//
+unsigned short __index_font[96]={
+0x000,0x007,0x008,0x00B,0x012,0x017,0x021,0x028,0x029,0x02C,0x02F,0x034,
+0x039,0x03B,0x03F,0x040,0x044,0x049,0x04C,0x051,0x056,0x05B,0x060,0x065,
+0x06A,0x06F,0x074,0x075,0x077,0x07C,0x081,0x086,0x08B,0x097,0x0A0,0x0A7,
+0x0AF,0x0B7,0x0BE,0x0C5,0x0CD,0x0D5,0x0D6,0x0DB,0x0E2,0x0E8,0x0F1,0x0F9,
+0x101,0x109,0x111,0x11A,0x121,0x12A,0x132,0x13B,0x148,0x150,0x159,0x15F,
+0x162,0x166,0x169,0x16E,0x175,0x177,0x17E,0x184,0x18A,0x190,0x196,0x199,
+0x19F,0x1A4,0x1A5,0x1A7,0x1AD,0x1AE,0x1B7,0x1BC,0x1C2,0x1C8,0x1CE,0x1D1,
+0x1D6,0x1D9,0x1DE,0x1E5,0x1EE,0x1F4,0x1FB,0x1FF,0x204,0x205,0x20A,0x211};
+
+unsigned short __graph_font[0x211]={
+0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x0000,0x17F8,0x0078,0x0000,
+0x0078,0x0200,0x1E40,0x03C0,0x1E78,0x03C0,0x0278,0x0040,0x08E0,0x1110,
+0x3FF8,0x1110,0x0E60,0x0030,0x0848,0x0448,0x0230,0x0100,0x0080,0x0C40,
+0x1220,0x1210,0x0C00,0x0E00,0x1170,0x1088,0x1188,0x1670,0x0800,0x1400,
+0x0078,0x1FC0,0x6030,0x8008,0x8008,0x6030,0x1FC0,0x0050,0x0060,0x0038,
+0x0060,0x0050,0x0100,0x0100,0x07C0,0x0100,0x0100,0x2000,0x1000,0x0100,
+0x0100,0x0100,0x0100,0x1000,0x7000,0x0E00,0x01C0,0x0038,0x0FF0,0x1008,
+0x1008,0x1008,0x0FF0,0x0010,0x0010,0x1FF8,0x1C30,0x1208,0x1108,0x1088,
+0x1070,0x0810,0x1008,0x1088,0x1088,0x0F70,0x0300,0x0280,0x0260,0x0210,
+0x1FF8,0x09F8,0x1088,0x1088,0x1088,0x0F08,0x0FF0,0x1108,0x1088,0x1088,
+0x0F10,0x0008,0x1C08,0x0308,0x00C8,0x0038,0x0F70,0x1088,0x1088,0x1088,
+0x0F70,0x08F0,0x1108,0x1108,0x1088,0x0FF0,0x1040,0x2000,0x1040,0x0100,
+0x0380,0x06C0,0x0C60,0x0820,0x0280,0x0280,0x0280,0x0280,0x0280,0x0820,
+0x0C60,0x06C0,0x0380,0x0100,0x0030,0x0008,0x1708,0x0088,0x0070,0x03C0,
+0x0C30,0x1008,0x1008,0x2384,0x2444,0x2444,0x2244,0x25C8,0x1408,0x1430,
+0x03C0,0x1800,0x0600,0x0380,0x0260,0x0218,0x0260,0x0380,0x0600,0x1800,
+0x1FF8,0x1088,0x1088,0x1088,0x1088,0x1088,0x0F70,0x07E0,0x0810,0x1008,
+0x1008,0x1008,0x1008,0x0810,0x0420,0x1FF8,0x1008,0x1008,0x1008,0x1008,
+0x1008,0x0810,0x07E0,0x1FF8,0x1088,0x1088,0x1088,0x1088,0x1088,0x1008,
+0x1FF8,0x0088,0x0088,0x0088,0x0088,0x0088,0x0008,0x07E0,0x0810,0x1008,
+0x1008,0x1008,0x1108,0x0910,0x1F20,0x1FF8,0x0080,0x0080,0x0080,0x0080,
+0x0080,0x0080,0x1FF8,0x1FF8,0x0C00,0x1000,0x1000,0x1000,0x0FF8,0x1FF8,
+0x0080,0x0140,0x0220,0x0410,0x0808,0x1000,0x1FF8,0x1000,0x1000,0x1000,
+0x1000,0x1000,0x1FF8,0x0060,0x0180,0x0600,0x1800,0x0600,0x0180,0x0060,
+0x1FF8,0x1FF8,0x0010,0x0060,0x0080,0x0100,0x0600,0x0800,0x1FF8,0x07E0,
+0x0810,0x1008,0x1008,0x1008,0x1008,0x0810,0x07E0,0x1FF8,0x0108,0x0108,
+0x0108,0x0108,0x0108,0x0090,0x0060,0x07E0,0x0810,0x1008,0x1008,0x1008,
+0x1408,0x0810,0x17E0,0x1FF8,0x0108,0x0108,0x0108,0x0108,0x0108,0x0190,
+0x0E60,0x1000,0x0C70,0x1088,0x1088,0x1088,0x1108,0x1108,0x0E30,0x0008,
+0x0008,0x0008,0x0008,0x1FF8,0x0008,0x0008,0x0008,0x0008,0x07F8,0x0800,
+0x1000,0x1000,0x1000,0x1000,0x0800,0x07F8,0x0018,0x0060,0x0180,0x0600,
+0x1800,0x0600,0x0180,0x0060,0x0018,0x0038,0x00C0,0x0700,0x1800,0x0700,
+0x00C0,0x0038,0x00C0,0x0700,0x1800,0x0700,0x00C0,0x0038,0x1818,0x0420,
+0x0240,0x0180,0x0180,0x0240,0x0420,0x1818,0x0018,0x0020,0x0040,0x0080,
+0x1F00,0x0080,0x0040,0x0020,0x0018,0x1808,0x1608,0x1108,0x1088,0x1068,
+0x1018,0xFFF8,0x8008,0x8008,0x0038,0x01C0,0x0E00,0x7000,0x8008,0x8008,
+0xFFF8,0x0010,0x0008,0x0004,0x0008,0x0010,0x4000,0x4000,0x4000,0x4000,
+0x4000,0x4000,0x4000,0x0008,0x0010,0x0E80,0x1140,0x1140,0x1140,0x1140,
+0x0F80,0x1000,0x1FF8,0x0880,0x1040,0x1040,0x1040,0x0F80,0x0F80,0x1040,
+0x1040,0x1040,0x1040,0x0880,0x0F80,0x1040,0x1040,0x1040,0x0880,0x1FF8,
+0x0F80,0x1240,0x1240,0x1240,0x1240,0x0B80,0x0040,0x1FF0,0x0048,0x0F80,
+0x9040,0x9040,0x9040,0x8880,0x7FC0,0x1FF8,0x0080,0x0040,0x0040,0x1F80,
+0x1FC8,0x8000,0x7FC8,0x1FF8,0x0200,0x0300,0x0480,0x0840,0x1000,0x1FF8,
+0x1FC0,0x0080,0x0040,0x0040,0x1F80,0x0080,0x0040,0x0040,0x1F80,0x1FC0,
+0x0080,0x0040,0x0040,0x1F80,0x0F80,0x1040,0x1040,0x1040,0x1040,0x0F80,
+0xFFC0,0x0880,0x1040,0x1040,0x1040,0x0F80,0x0F80,0x1040,0x1040,0x1040,
+0x0880,0xFFC0,0x1FC0,0x0080,0x0040,0x0980,0x1240,0x1240,0x1240,0x0C80,
+0x0040,0x0FF0,0x1040,0x0FC0,0x1000,0x1000,0x0800,0x1FC0,0x00C0,0x0300,
+0x0C00,0x1000,0x0C00,0x0300,0x00C0,0x00C0,0x0700,0x1800,0x0700,0x00C0,
+0x0700,0x1800,0x0700,0x00C0,0x1040,0x0880,0x0700,0x0700,0x0880,0x1040,
+0x80C0,0x8300,0x4C00,0x3000,0x0C00,0x0300,0x00C0,0x1840,0x1640,0x1140,
+0x10C0,0x0200,0x0200,0x7DF0,0x8008,0x8008,0xFFF8,0x8008,0x8008,0x7DF0,
+0x0200,0x0200,0x0030,0x0008,0x0008,0x0010,0x0020,0x0020,0x0018};
+`;
+
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  - get_abstract_bitmap:ABSTRACT_BITMAP <- Self;
+  
+  - get_y_line y:INTEGER :ABSTRACT_BMP_LINE <-
+  (
+    deferred;
+    NULL
+  );
+  
+  //
+  // Data.
+  //
+  
+  // Image size.
+  + height:INTEGER;       
+  + width:INTEGER;        
+  
+  - x_max:INTEGER <- width  - 1;
+  - y_max:INTEGER <- height - 1;
+    
+  // Clipping :
+  + clip_x0:INTEGER; 
+  + clip_y0:INTEGER;
+  + clip_x1:INTEGER;
+  + clip_y1:INTEGER;
+  
+  // Current position.
+  + spot_x:INTEGER;  
+  + spot_y:INTEGER;
+  
+  // Current color.
+  + rgbcolor    :UINTEGER_32; // Format: RRGGBB in hexadecimal
+  + rgbbackcolor:UINTEGER_32;
+  + transparent :BOOLEAN;
+  
+  + mode:UINTEGER_8 := mode_copy; // Set mode. 
+  
+  // Ref. `X.h'
+  - mode_copy:UINTEGER_8 := 03h;
+  - mode_xor :UINTEGER_8 := 06h;
+  
+  - set_mode m:UINTEGER_8 <-
+  (
+    mode := m;
+  );
+  
+  // Macro colors
+  
+  - black:UINTEGER_32 := 0000000h;
+  - white:UINTEGER_32 := 0FFFFFFh;
+  - red:UINTEGER_32   := 0FF0000h;
+  - green:UINTEGER_32 := 000FF00h;
+  - blue:UINTEGER_32  := 00000FFh;
+  - yellow:UINTEGER_32:= 0FFFF00h;
+  - purple:UINTEGER_32:= 0FF00FFh;
+  - cyan:UINTEGER_32  := 000FFFFh;
+  - gray:UINTEGER_32  := 0808080h;
+  - brown:UINTEGER_32 := 0400000h;  
+  
+  
+  - pixel_geometry:PIXEL <- (deferred; NULL);
+  
+  //
+  // Creation. 
+  //
+
+  - create_size (w,h:INTEGER) :SELF <-
+  ( + result:SELF;
+        
+    result:=clone;
+    result.make_size (w,h);
+    result
+  );
+  
+  - make_size (w,h:INTEGER) <-
+  (
+    deferred;
+  );
+  
+  - create (w,h:INTEGER) at offset_begin:UINTEGER_32 bytes_per_line lx:INTEGER :SELF <-   
+  ( + result:SELF;
+        
+    result:=clone;
+    result.make (w,h) at offset_begin bytes_per_line lx;
+    result
+  );
+  
+  - make (w,h:INTEGER) at offset_begin:UINTEGER_32 bytes_per_line lx:INTEGER <-
+  ( 
+    deferred;
+  );
+
+Section Public
+  
+  //
+  // Low level.
+  //   
+    
+  - pixel_hard (x,y:INTEGER) color col:UINTEGER_32 <-
+  ( 
+    deferred;
+  );
+  
+  - line_h_hard (x0,y0:INTEGER) until x1:INTEGER color col:UINTEGER_32 <-
+  ( 
+    deferred;
+  );
+    
+  - line_h_hard (x0,y0:INTEGER) until x1:INTEGER image line:ABSTRACT_BMP_LINE offset ofs:INTEGER <-
+  (     
+    deferred;
+  );
+  
+  - get_pixel_hard (x,y:INTEGER) :PIXEL <-
+  (
+    deferred;
+  );
+
+  - get_color_hard (x,y:INTEGER) :UINTEGER_32 <-
+  (
+    deferred;
+  );
+  
+Section Public  
+  
+  - color col:UINTEGER_32 <-
+  (
+    rgbcolor := col;
+  );
+
+  - backcolor col:UINTEGER_32 <-
+  (
+    rgbbackcolor := col;
+  );
+  
+  - transparent_on <-
+  (
+    transparent := TRUE;
+  );
+  
+  - transparent_off <-
+  (
+    transparent := FALSE;
+  );
+  
+  - clipping (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  ( + lx,ly:INTEGER;
+    
+    lx := width - 1;
+    ly := height - 1;
+    clip_x0 := x0.max 0.min lx;
+    clip_x1 := x1.max 0.min lx;
+    clip_y0 := y0.max 0.min ly;
+    clip_y1 := y1.max 0.min ly;
+  );
+  
+  - clipping_off <-
+  (
+    clip_x0 := 0;
+    clip_x1 := width - 1;
+    clip_y0 := 0;
+    clip_y1 := height - 1;
+  );
+  
+  - move_to (pos_x,pos_y:INTEGER) <-
+  (
+    spot_x := pos_x;
+    spot_y := pos_y;
+  );
+  
+  //
+  // GetPixel
+  //
+  
+  - get_pixel:BOOLEAN <-
+  // Load Spot pixel.
+  ( + result:BOOLEAN;
+    + pix:PIXEL;
+    
+    ((spot_x.in_range clip_x0 to clip_x1) && {spot_y.in_range clip_y0 to clip_y1}).if {
+      result:=TRUE;
+      pix:=get_pixel_hard (spot_x,spot_y);
+      pix.is_transparent.if {
+	// Transparent.
+	rgbcolor := black;
+	transparent=TRUE;
+      } else {
+	// Read color.
+	transparent:= FALSE;
+	rgbcolor := pix.rgbcolor;
+      };
+    } else {
+      rgbcolor := black;
+      transparent := FALSE;
+    };
+    
+    result
+  );
+  
+  - get_pixel_to (x,y:INTEGER) :BOOLEAN<-
+  (
+    move_to (x,y);
+    get_pixel
+  );
+  
+  //
+  // PutPixel
+  //
+  
+  - pixel:BOOLEAN <-
+  ( + result:BOOLEAN;
+   
+    // Test Clipping;
+    ((spot_x.in_range clip_x0 to clip_x1) && {spot_y.in_range clip_y0 to clip_y1 }).if {
+      result:=TRUE;
+      pixel_hard (spot_x,spot_y) color rgbcolor;
+    };  
+    result
+  );
+  
+  - pixel_to (x,y:INTEGER) :BOOLEAN <-
+  (
+    move_to (x,y);
+    pixel
+  );
+  
+  - pixel_color col:UINTEGER_32 :BOOLEAN <-
+  (
+    color col;
+    pixel
+  );
+  
+  - pixel_to (x,y:INTEGER) color col:UINTEGER_32 :BOOLEAN <-
+  (
+    color col;
+    pixel_to (x,y)
+  );
+  
+  //
+  // Line
+  //
+  
+  - line_h (x,y:INTEGER) until x_end:INTEGER image line:ABSTRACT_BMP_LINE :BOOLEAN <-
+  (
+    + result:BOOLEAN;
+    + x02,x1,x0:INTEGER;
+    ? {x >= 0};
+    ? {y >= 0};
+    ? {x_end >= 0};
+    ? {line != NULL};
+    
+    x0 := x;
+    x1 := x_end;
+    spot_x := x1;        
+    (y.in_range clip_y0 to clip_y1).if {
+      result := TRUE;
+      ( x0 > x1 ).if {
+	x02 := x0;
+	x0 := x1;
+	x1 := x02;
+      };
+      ( clip_x1 < x1 ).if {
+	x1 := clip_x1;
+	result := FALSE;
+      };
+      
+      ( clip_x0 > x0 ).if {
+	x02 := clip_x0;
+	result := FALSE;
+      } else {
+	x02 := x0;
+      };
+      
+      ( x0 <= x1 ).if {
+	line_h_hard (x02,y) until x1 image line offset (x02-x0);
+      };
+    };
+    result
+  );
+  
+  - line_h_until x:INTEGER :BOOLEAN <-
+  ( + result:BOOLEAN;
+    + x0,x1:INTEGER;
+
+    x0 := spot_x;
+    x1 := x;
+    spot_x := x1;
+    
+    (spot_y.in_range clip_y0 to clip_y1).if {
+      result := TRUE;
+      
+      ( x0 > x1).if {
+	+ swap:INTEGER;
+	swap := x0;
+	x0 := x1;
+	x1 := swap;
+      };
+      
+      ( clip_x1 < x1 ).if {
+	x1 := clip_x1;
+	result := FALSE;
+      };
+      
+      ( clip_x0 > x0 ).if {
+	x0 := clip_x0;
+	result := FALSE;
+      };
+      
+      (x0 <= x1).if {
+	line_h_hard (x0,spot_y) until x1 color rgbcolor;
+      };
+    };
+    result
+  );
+    
+  - line_h_until x1:INTEGER color col:UINTEGER_32 :BOOLEAN <-
+  (
+    color col;
+    line_h_until x1
+  );
+  
+  - line_h (x0,y0:INTEGER) until x1:INTEGER :BOOLEAN <-
+  (
+    move_to (x0,y0);
+    line_h_until x1
+  );
+  
+  
+  - line_h (x0,y0:INTEGER) until x1:INTEGER color col:UINTEGER_32 :BOOLEAN <-
+  (
+    color col;
+    line_h (x0,y0) until x1
+  );
+  
+  - line_v_until y:INTEGER :BOOLEAN <-
+  ( + y0,y1:INTEGER;
+    + result:BOOLEAN;
+    
+    y0 := spot_y;
+    y1 := y;
+    spot_y := y1;
+    
+    (spot_x.in_range clip_x0 to clip_x1).if {
+      result := TRUE;
+      
+      ( y0 > y1 ).if {
+	+ swap:INTEGER;
+	swap := y0;
+	y0 := y1;
+	y1 := swap;
+      };
+      
+      ( clip_y1 < y1).if {
+	y1 := clip_y1;
+	result := FALSE;
+      };
+      
+      ( clip_y0 > y0 ).if {
+	y0 := clip_y0;
+	result := FALSE;
+      };
+      
+      ( y0 <=y1 ).if {
+	y0.to y1 do { j:INTEGER;
+	  pixel_hard (spot_x,j) color rgbcolor;
+	};
+      };
+    };    
+    
+    result
+  );
+  
+  - line_v_until y1:INTEGER color col:UINTEGER_32 :BOOLEAN <-
+  (
+    color col;
+    line_v_until y1
+  );
+  
+  - line_v (x0,y0:INTEGER) until y1:INTEGER :BOOLEAN <-
+  (
+    move_to (x0,y0);
+    line_v_until y1
+  );
+  
+  - line_v (x0,y0:INTEGER) until y1:INTEGER color col:UINTEGER_32 :BOOLEAN <-
+  (
+    color col;
+    line_v (x0,y0) until y1
+  );
+  
+  
+  //:UINTEGER_8 CalculCode(:INTEGER_64 X,:INTEGER_64 Y,:INTEGER_64 Xmin,:INTEGER_64 Ymin,:INTEGER_64 Xmax,:INTEGER_64 Ymax)
+  //{ return( (X<Xmin)|((X>Xmax)<<1)|((Y<Ymin)<<2)|((Y>Ymax)<<3) );
+  //};
+  
+  //************************
+  //* CLIPPING DE LINE BUGGE -> Blocage !!!
+  //************************
+  
+/*  
+  char ClipLine(:INTEGER_64 x0,:INTEGER_64 y0,:INTEGER_64 x1,:INTEGER_64 y1,:INTEGER_64 Xmin,:INTEGER_64 Ymin,:INTEGER_64 Xmax,:INTEGER_64 Ymax)
+  { :UINTEGER_8 Bool=0; // Accepte=Faux , Fin=Vrai
+    :UINTEGER_8 cod0,cod1,codExt;
+    short x,y;
+    char tst;
+    cod0=CalculCode(x0,y0,Xmin,Ymin,Xmax,Ymax);
+    cod1=CalculCode(x1,y1,Xmin,Ymin,Xmax,Ymax);
+    tst=((cod0==0) && (cod1==0));
+    do {
+      if ((cod0==0) && (cod1==0)) { // Interieur de la fenetre.
+	Bool=3;  // Accepte=Vrai et Fin=Vrai.
+      } else if ((cod0&cod1)!=0)
+      Bool|=2; // Fin=Vrai
+      else {                        // Segment ni accepte ni rejete.
+	if (cod0!=0) codExt=cod0; else codExt=cod1;
+	if (codExt&8) {
+	  x=x0+(x1-x0)*(float)(Ymax-y0)/(float)(y1-y0);
+	  y=Ymax;
+	} else if (codExt&4) {
+	  x=x0+(x1-x0)*(float)(Ymin-y0)/(float)(y1-y0);
+	  y=Ymin;
+	} else if (codExt&2) {
+	  x=Xmax;
+	  y=y0+(y1-y0)*(float)(Xmax-x0)/(float)(x1-x0);
+	} else if (codExt&1) {
+	  x=Xmin;
+	  y=y0+(y1-y0)*(float)(Xmin-x0)/(float)(x1-x0);
+	};
+	if (codExt==cod0) {
+	  x0=x; y0=y;
+	  cod0=CalculCode(x0,y0,Xmin,Ymin,Xmax,Ymax);
+	} else {
+	  x1=x; y1=y;
+	  cod1=CalculCode(x1,y1,Xmin,Ymin,Xmax,Ymax);
+	};
+      };
+    } while (!(Bool&2));
+    if (Bool&1) TraceLine(x0,y0,x1,y1);
+    return(tst);
+  };*/
+    
+  - line_to (x2,y2:INTEGER) :BOOLEAN <-
+  (
+    + result:BOOLEAN;
+    + x1,y1:INTEGER;
+    + dx,dy:INTEGER;
+    + i1,i2:INTEGER;
+    + x,y:INTEGER;
+    + dd:INTEGER;
+    
+    x1 := spot_x;
+    y1 := spot_y;
+    dx := x2 - x1;
+    dy := y2 - y1;
+    
+    ( dy = 0).if {
+      result := line_h_until x2;
+    }.elseif {dx = 0} then {
+      result := line_v_until y2;
+    } else {
+      spot_x := x2;
+      spot_y := y2;
+      
+      (dx >= 0).if {
+	(dy >= 0).if {
+	  (dx >= dy).if {	    	    	    
+	    i1 := 2 * dy;
+	    dd := i1 - dx;
+	    i2 := dd - dx;
+	    x := x1; 
+	    y := y1;
+	    {x <= x2}.while_do {
+	      pixel_to (x,y);
+	      (dd >= 0).if { 
+		y := y+1; 
+		dd := dd+i2; 
+	      } else {
+		dd := dd+i1;
+	      };
+	      x := x+1;
+	    };	    
+	  } else {
+	    i1 := 2 * dx;
+	    dd := i1 - dy;
+	    i2 := dd - dy;
+	    x := x1; 
+	    y := y1;
+	    {y <= y2}.while_do {
+	      pixel_to (x,y);
+	      (dd >= 0).if { 
+		x := x+1; 
+		dd := dd+i2; 
+	      } else {
+		dd := dd+i1;
+	      };
+	      y := y+1;
+	    };	    
+	  };
+	} else {
+	  (dx >= -dy).if {	    
+	    i1 := 2 * dy;
+	    dd := i1 + dx;
+	    i2 := dd + dx;
+	    x := x1; 
+	    y := y1;
+	    {x <= x2}.while_do {
+	      pixel_to (x,y);
+	      (dd <= 0).if { 
+		y := y - 1; 
+		dd := dd+i2; 
+	      } else {
+		dd := dd+i1;
+	      };
+	      x := x+1;
+	    };
+	  } else {
+	    i1 := 2 * dx;
+	    dd := i1 + dy;
+	    i2 := dd + dy;
+	    x := x1; 
+	    y := y1;
+	    {y >= y2}.while_do {
+	      pixel_to (x,y);
+	      (dd >= 0).if { 
+		x := x+1; 
+		dd := dd+i2; 
+	      } else {
+		dd := dd+i1;
+	      };
+	      y := y-1;
+	    };	    
+	  };	 
+	};
+      } else {
+	(dy >= 0).if {
+	  (-dx >= dy).if {
+	    i1 := 2 * dy;
+	    dd := i1 + dx;
+	    i2 := dd + dx;
+	    x := x1; 
+	    y := y1;
+	    {x >= x2}.while_do {
+	      pixel_to (x,y);
+	      (dd >= 0).if { 
+		y := y + 1; 
+		dd := dd+i2; 
+	      } else {
+		dd := dd+i1;
+	      };
+	      x := x - 1;
+	    };
+	  } else {
+	    i1 := 2 * dx;
+	    dd := i1 + dy;
+	    i2 := dd + dy;
+	    x := x1; 
+	    y := y1;
+	    {y <= y2}.while_do {
+	      pixel_to (x,y);
+	      (dd <= 0).if { 
+		x := x - 1; 
+		dd := dd+i2; 
+	      } else {
+		dd := dd+i1;
+	      };
+	      y := y + 1;
+	    };
+	  };
+	} else {
+	  (-dx >= -dy).if {
+	    i1 := 2 * dy;
+	    dd := i1 - dx;
+	    i2 := dd - dx;
+	    x := x1; 
+	    y := y1;
+	    {x >= x2}.while_do {
+	      pixel_to (x,y);
+	      (dd <= 0).if { 
+		y := y-1; 
+		dd := dd+i2; 
+	      } else {
+		dd := dd+i1;
+	      };
+	      x := x-1;
+	    };
+	  } else {
+	    i1 := 2 * dx;
+	    dd := i1 - dy;
+	    i2 := dd - dy;
+	    x := x1; 
+	    y := y1;
+	    {y >= y2}.while_do {
+	      pixel_to (x,y);
+	      (dd <= 0).if { 
+		x := x-1; 
+		dd := dd+i2; 
+	      } else {
+		dd := dd+i1;
+	      };
+	      y := y - 1;
+	    };
+	  };
+	};	 
+      };      
+      result:=TRUE;
+    };
+    
+    result
+  );
+  
+  - line_to (x1,y1:INTEGER) color col:UINTEGER_32 :BOOLEAN <-
+  (
+    color col;
+    line_to (x1,y1)
+  );
+  
+  
+  - line (x1,y1:INTEGER) to (x2,y2:INTEGER) :BOOLEAN <-
+  (
+    move_to (x1,y1);
+    line_to (x2,y2)
+  );
+  
+  
+  - line (x1,y1:INTEGER) to (x2,y2:INTEGER) color col:UINTEGER_32 :BOOLEAN <-
+  (
+    color col;
+    line (x1,y1) to (x2,y2)
+  );
+      
+  //
+  // Rectangle
+  //
+  
+  - rectangle_to (x1,y1:INTEGER) :BOOLEAN <-
+  (
+    + result:BOOLEAN;
+    + x0,y0:INTEGER;
+    x0 := spot_x;
+    y0 := spot_y;
+    (y0 = y1).if {
+      result := line_h_until x1;
+    }.elseif {x0 = x1} then {
+      result := line_v_until y1;
+    } else {
+      result := line_h (x0,y0) until x1 | line_h (x0,y1) until x1;
+      ( y0 < y1 ).if {
+	result := result | (line_v  (x0,(y0 + 1)) until (y1 - 1)) | (line_v (x1,(y0 + 1)) until (y1 - 1));
+      } else {
+	result := result | (line_v (x0,(y1 + 1)) until (y0 - 1)) | (line_v (x1,(y1 + 1)) until (y0 - 1));
+      };
+    };
+    result
+  );
+    
+  - rectangle_to (x1,y1:INTEGER) color col:UINTEGER_32 :BOOLEAN <-
+  (
+    color col;
+    rectangle_to (x1,y1)
+  );
+  
+  - rectangle (x0,y0:INTEGER) to (x1,y1:INTEGER) :BOOLEAN <-
+  (
+    move_to (x0,y0);
+    rectangle_to (x1,y1)
+  );
+  
+  - rectangle (x0,y0:INTEGER) to (x1,y1:INTEGER) color col:UINTEGER_32 :BOOLEAN <-
+  (
+    color col;
+    rectangle (x0,y0) to (x1,y1)
+  );
+  
+  - rectangle_fill_to (x,y:INTEGER) :BOOLEAN <-
+  ( + x0,y0,x1,y1,tmp:INTEGER;
+    + col:UINTEGER_32;
+    + result:BOOLEAN;
+    
+    x0 := spot_x;
+    y0 := spot_y;
+    x1 := x;
+    y1 := y;
+    ( x0 > x1).if {
+      tmp := x0;
+      x0 := x1;
+      x1 := tmp;
+    };
+    
+    ( y0 > y1).if {
+      tmp := y0;
+      y0 := y1;
+      y1 := tmp;
+    };
+    
+    (( x0 > clip_x1 ) || { x1 < clip_x0 } || { y0 > clip_y1 } || { y1 < clip_y0 }).if {
+      result := FALSE;
+    } else {
+      result := TRUE;
+      
+      (clip_x0 > x0).if {
+	x0 := clip_x0;
+	result := FALSE;
+      };
+      (clip_y0 > y0).if { 
+	y0 := clip_y0;
+	result := FALSE;
+      };
+      ( clip_x1 < x1 ).if {
+	x1 := clip_x1;
+	result := FALSE;
+      };
+      (clip_y1 < y1).if {
+	y1 := clip_y1;
+	result := FALSE;
+      };            
+      col := rgbcolor;
+      y0.to y1 do { j:INTEGER;
+	line_h_hard (x0,j) until x1 color col;
+      };
+    };
+    result
+  );
+    
+  - rectangle_fill (x0,y0:INTEGER) to (x1,y1:INTEGER) :BOOLEAN <-
+  (
+    move_to (x0,y0);
+    rectangle_fill_to (x1,y1)
+  );
+  
+  - rectangle_fill (x0,y0:INTEGER) to (x1,y1:INTEGER) color col:UINTEGER_32 :BOOLEAN <-
+  (
+    color col;
+    rectangle_fill (x0,y0) to (x1,y1)
+  );
+  
+  //
+  // Circle
+  //
+  
+Section Private  
+  
+  - circle_points (x,y:INTEGER) centre (cx,cy:INTEGER) <-
+  (     
+    pixel_to ((cx+x),(cy+y));
+    pixel_to ((cx+x),(cy-y));
+    pixel_to ((cx+y),(cy+x));
+    pixel_to ((cx+y),(cy-x));
+    pixel_to ((cx-x),(cy+y));
+    pixel_to ((cx-x),(cy-y));
+    pixel_to ((cx-y),(cy+x));
+    pixel_to ((cx-y),(cy-x));
+  );
+  
+Section Public  
+  
+  - circle_fill_rayon r:INTEGER <-
+  ( + cx,cy,x,y,d,de,dse:INTEGER;
+    
+    cx := spot_x;
+    cy := spot_y;
+    x   := 0;
+    y   := r;
+    d   := 1 - r;
+    de  := 3;
+    dse := 5 - (r << 1);    
+    line_h ((cx-y),cy) until (cx+y);
+    {y > x}.while_do {
+      (d < 0).if {
+	d   := d   + de;
+	de  := de  + 2;
+	dse := dse + 2;
+	x   := x   + 1;
+	
+	line_h ((cx-y),(cy+x)) until (cx+y);
+	line_h ((cx-y),(cy-x)) until (cx+y);
+      } else {
+	d   := d + dse;
+	de  := de  + 2;
+	dse := dse + 4;
+	x   := x   + 1;
+	y   := y   - 1;
+	line_h ((cx-x),(cy+y)) until (cx+x);
+	line_h ((cx-x),(cy-y)) until (cx+x);
+	
+	line_h ((cx-y),(cy+x)) until (cx+y);
+	line_h ((cx-y),(cy-x)) until (cx+y);
+      };      
+    };
+  );
+  
+  - circle_fill (x,y:INTEGER) rayon r:INTEGER <-
+  (
+    move_to (x,y);
+    circle_fill_rayon r;
+  );
+  
+  - circle_fill (x,y:INTEGER) rayon r:INTEGER color col:UINTEGER_32 <-
+  (
+    color col;
+    circle_fill (x,y) rayon r;
+  );
+
+  - circle_rayon r:INTEGER <-
+  ( + cx,cy,x,y,d,de,dse:INTEGER;
+    
+    cx := spot_x;
+    cy := spot_y;
+    x   := 0;
+    y   := r;
+    d   := 1 - r;
+    de  := 3;
+    dse := 5 - (r << 1);
+    circle_points (x,y) centre (cx,cy);
+    {y > x}.while_do {
+      (d < 0).if {
+	d   := d   + de;
+	de  := de  + 2;
+	dse := dse + 2;
+	x   := x   + 1;
+      } else {
+	d   := d + dse;
+	de  := de  + 2;
+	dse := dse + 4;
+	x   := x   + 1;
+	y   := y   - 1;
+      };
+      circle_points (x,y) centre (cx,cy);
+    };
+  );
+  
+  - circle (x,y:INTEGER) rayon r:INTEGER <-
+  (
+    move_to (x,y);
+    circle_rayon r;
+  );
+  
+  - circle (x,y:INTEGER) rayon r:INTEGER color col:UINTEGER_32 <-
+  (
+    color col;
+    circle (x,y) rayon r;
+  );
+  
+  //
+  // Spline
+  //
+  
+Section Private  
+  
+  - delta_spline:REAL_16_16 := 32768.to_raw_real_16_16;
+  
+Section Public  
+  
+  - spline_w1 (px0,py0:INTEGER) w2 (px1,py1:INTEGER) to (x1,y1:INTEGER) :BOOLEAN <-
+  ( + result:BOOLEAN;
+    + x0,y0,d_x,d_y:INTEGER;
+    + num_points:INTEGER;
+    // Derivatives of x(t) and y(t).
+    + x, dx, ddx, dddx:REAL_16_16; 
+    + y, dy, ddy, dddy:REAL_16_16;
+    // Temp variables used in the setup.
+    + dt, dt2, dt3:REAL_16_16;
+    + xdt2_term, xdt3_term:REAL_16_16;
+    + ydt2_term, ydt3_term:REAL_16_16;
+    
+    x0 := spot_x;
+    y0 := spot_y;
+        
+    d_x := px0 - x0;
+    d_y := py0 - y0;
+    num_points := (d_x*d_x + d_y*d_y).sqrt;      
+    
+    d_x := px1 - px0;
+    d_y := py1 - py0;
+    num_points := num_points + (d_x*d_x + d_y*d_y).sqrt; 
+    
+    d_x := x1 - px1;
+    d_y := y1 - py1;
+    num_points := (num_points + (d_x*d_x + d_y*d_y).sqrt).sqrt;
+    num_points := num_points + (num_points >> 2); // * 1.25 .sqrt
+    
+    
+    (num_points > 128).if {
+      num_points := 128; // Max points
+    };
+    
+    (num_points < 2).if {
+      num_points := 2;   // Min points
+    };
+    
+    dt := 1.to_real_16_16 /# (num_points - 1);
+    dt2 := dt * dt;
+    dt3 := dt2 * dt;
+    
+    // x coordinates.
+    xdt2_term := dt2 *# ((px1 - px0 * 2 + x0) * 3);
+    xdt3_term := dt3 *# (x1 + ((px0 - px1) * 3) -x0);
+    
+    dddx := xdt3_term *# 6;
+    ddx  := xdt3_term *# -6 + xdt2_term *# 2;
+    dx   := xdt3_term - xdt2_term + dt *# ((px0 - x0)*3);  
+    x    := x0.to_real_16_16;
+    
+    // y coordinates.
+    ydt2_term := dt2 *# ((py1 - py0 * 2 + y0) * 3);
+    ydt3_term := dt3 *# (y1 + ((py0 - py1) * 3) - y0);
+    
+    dddy := ydt3_term *# 6;
+    ddy  := ydt3_term *# -6 + ydt2_term *# 2;
+    dy   := ydt3_term - ydt2_term + dt *# ((py0 - y0)*3); 
+    y    := y0.to_real_16_16;
+        
+    x := x + delta_spline;
+    y := y + delta_spline;
+    
+    1.to (num_points - 1) do { i:INTEGER;
+      ddx := ddx + dddx;
+      dx := dx + ddx;
+      x := x + dx;
+      ddy := ddy + dddy;
+      dy := dy + ddy;
+      y := y + dy;
+      result:= result | line_to ((x.to_integer),(y.to_integer)); 
+    };    
+    result    
+  );
+  
+  - spline_w1 (px0,py0:INTEGER) w2 (px1,py1:INTEGER) to (x1,y1:INTEGER) color col:UINTEGER_32 :BOOLEAN <-
+  (
+    color col;
+    spline_w1 (px0,py0) w2 (px1,py1) to (x1,y1)
+  );
+  
+  
+  - spline (x0,y0:INTEGER) w1 (px0,py0:INTEGER) w2 (px1,py1:INTEGER) to (x1,y1:INTEGER) :BOOLEAN <-
+  (
+    move_to (x0,y0);
+    spline_w1 (px0,py0) w2 (px1,py1) to (x1,y1)
+  );
+  
+  
+  - spline (x0,y0:INTEGER) w1 (px0,py0:INTEGER) w2 (px1,py1:INTEGER) to (x1,y1:INTEGER) color col:UINTEGER_32 :BOOLEAN <-
+  (
+    color col;
+    spline (x0,y0) w1 (px0,py0) w2 (px1,py1) to (x1,y1)
+  );
+  
+  //*****************************************************************************
+  //*                         POLYGONE COMPLEXE                                 *
+  //* V.4.0 : Il n'y a plus de contrainte de sens comme dans la version 3.0     *
+  //*         Nouvelle algo made in `moi'...                                    *
+  //*         Il faut juste faire attention à appeler dans l'ordre suivant :    *
+  //*         => poly_move_to poly_line_to ... poly_trace                       *
+  //*                                                                           *
+  //* Rmq. : Il reste des optimisations à faire pour le tri (qsort) et utiliser *
+  //*        des MAP_FAST_ARRAY capable de s'agrandir dynamiquement ...        *
+  //*                                                                           *
+  //*                                                           BeN inside      *
+  //*****************************************************************************
+  
+Section Private  
+  
+  + edges:FAST_ARRAY(EDGE); // BSBS: A optimiser avec un MAP_FAST_ARRAY ... quand il y aura add_last, resize...
+
+  + edges_upper:INTEGER;
+  + poly_ymax:INTEGER := INTEGER.minimum.to_integer;
+  
+  + poly_list_y:FAST_ARRAY(EDGE);
+    
+  + begin_y:EDGE;  
+  + begin_idx:INTEGER;
+  
+  + last_y:EDGE;  
+  + last_idx:INTEGER;
+  
+  + x_origin:INTEGER;
+  + y_origin:INTEGER;
+  
+Section Private  
+  
+  - display_poly <-
+  ( + edge:EDGE;
+    
+    0.to (poly_list_y.upper) do { i:INTEGER;
+      edge := poly_list_y.item i;
+      {edge != NULL}.while_do {
+	edge.display;
+	';'.print;
+	edge := edge.next_y;
+      };
+      '\n'.print;
+    };
+  );
+  
+Section Private  
+  
+  - connect_first <-
+  (
+    poly_line_to (x_origin,y_origin);
+    ((begin_y!=NULL) && {begin_y.is_down = last_y.is_down}).if {
+      // Connecting.
+      (begin_y.is_down).if {
+	// Add first list. 
+	last_y.set_next_y begin_y;	
+	poly_list_y.put (poly_list_y.item last_idx) to begin_idx;
+      } else {
+	// Add last list.
+	begin_y.set_next_y last_y;
+      };
+      poly_list_y.remove last_idx;
+    };
+  );    
+  
+  - sort_list_y <-
+  // Bubble sort :-( => BSBS: Optmize with Quick sort...
+  ( + low,up,idx,upper:INTEGER;
+    + swap:BOOLEAN;
+    
+    upper := poly_list_y.upper-1;
+    
+    low := 0;
+    up  := upper;
+    {
+      swap:=FALSE;
+      low.to up do { i:INTEGER;	
+	(poly_list_y.item i.y0 > poly_list_y.item (i+1).y0).if {
+	  poly_list_y.swap i with (i+1);
+	  swap := TRUE;
+	};
+	
+	idx := upper - i;
+	(poly_list_y.item idx.y0 > poly_list_y.item (idx+1).y0).if {
+	  poly_list_y.swap idx with (idx+1);
+	  swap := TRUE;
+	};		
+      };
+      up  := up - 1;
+      low := low + 1;
+    }.do_while {swap};
+  );
+
+Section Public  
+  
+  - poly_move_to (x,y:INTEGER) <-
+  (     
+    
+    (edges = NULL).if {
+      poly_list_y := FAST_ARRAY(EDGE).create_with_capacity 16;
+      edges := FAST_ARRAY(EDGE).create 64;      
+      0.to 63 do { n:INTEGER;
+	edges.put (EDGE.clone) to n;
+      };
+    };
+  
+    (edges_upper != 0).if {      
+      connect_first;
+    };
+    move_to (x,y); 
+    x_origin := x;
+    y_origin := y;
+    begin_y  := NULL;
+    last_y   := NULL;
+    
+    poly_ymax := poly_ymax.max y;
+  );
+  
+  - poly_line_to (x1,y1:INTEGER) <-
+  ( + edge,edge2:EDGE;
+    + x0,y0:INTEGER;
+    
+    x0:=spot_x; 
+    y0:=spot_y; 
+    
+    ((x0!=x1) || {y0!=y1}).if {
+      
+      move_to (x1,y1); 
+            
+      (edges_upper >= (edges.upper-4)).if { // BSBS: A optimiser avec MAP_ARRAY ...
+	// Append 16 Edges.	
+	0.to 15 do { j:INTEGER;
+	  edges.add_last (EDGE.clone);
+	};
+      };
+            
+      (y0=y1).if { 
+	// Flat.
+	edge  := edges.item edges_upper;	
+	edges_upper := edges_upper + 1;
+	poly_list_y.add_last edge;
+	edge2 := edges.item edges_upper;
+	edges_upper := edges_upper + 1;
+	poly_list_y.add_last edge2;
+	
+	(x0 < x1).if {
+	  edge .make (x0,y0) add 1;
+	  edge2.make (x1,y1) add (-1);
+	} else {
+	  edge .make (x0,y0) add (-1);
+	  edge2.make (x1,y1) add 1;
+	};
+      } else { 
+	// Line.	
+	edge  := edges.item edges_upper;
+	edges_upper := edges_upper + 1;
+	edge.make (x0,y0) to (x1,y1);
+	
+	(begin_y=NULL).if {
+	  begin_idx := poly_list_y.count;
+	  begin_y   := edge;
+	};
+	
+	((last_y=NULL) || {last_y.is_down != edge.is_down}).if {
+	  // New line_y.
+	  poly_list_y.add_last edge;
+	  last_idx := poly_list_y.upper;
+	  last_y   := edge;
+	  poly_ymax := poly_ymax.max y1;
+	} else {
+	  // Continue line_y.
+	  (edge.is_down).if {
+	    // Add last.
+	    last_y.set_next_y edge;
+	    poly_ymax := poly_ymax.max y1;
+	  } else {
+	    // Add first.
+	    poly_list_y.put edge to last_idx;
+	    edge.set_next_y last_y;	    
+	  };
+	  last_y := edge;
+	};
+      };
+    };    
+  );
+  
+  - poly_rectangle (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  (
+    poly_move_to (x0,y0);
+    poly_line_to (x1,y0);
+    poly_line_to (x1,y1);
+    poly_line_to (x0,y1);
+    poly_line_to (x0,y0);
+  );
+
+  - poly_spline_w1 (px0,py0:INTEGER) w2 (px1,py1:INTEGER) to (x1,y1:INTEGER) <-
+  ( + x0,y0,d_x,d_y:INTEGER;
+    + num_points:INTEGER;
+    // Derivatives of x(t) and y(t).
+    + x, dx, ddx, dddx:REAL_16_16; 
+    + y, dy, ddy, dddy:REAL_16_16;
+    // Temp variables used in the setup.
+    + dt, dt2, dt3:REAL_16_16;
+    + xdt2_term, xdt3_term:REAL_16_16;
+    + ydt2_term, ydt3_term:REAL_16_16;
+    
+    x0 := spot_x;
+    y0 := spot_y;
+    
+    d_x := px0 - x0;
+    d_y := py0 - y0;
+    num_points := (d_x*d_x + d_y*d_y).sqrt;  
+    
+    d_x := px1 - px0;
+    d_y := py1 - py0;
+    num_points := num_points + (d_x*d_x + d_y*d_y).sqrt; 
+    
+    d_x := x1 - px1;
+    d_y := y1 - py1;
+    num_points := (num_points + (d_x*d_x + d_y*d_y).sqrt).sqrt;
+    num_points := num_points + (num_points >> 2); // * 1.25 .sqrt
+    
+    num_points := num_points.min 128.max 2;
+    
+    dt := 1.to_real_16_16 /# (num_points - 1);
+    dt2 := dt * dt;
+    dt3 := dt2 * dt;
+    
+    // x coordinates.
+    xdt2_term := dt2 *# ((px1 - px0 * 2 + x0) * 3);
+    xdt3_term := dt3 *# (x1 + ((px0 - px1) * 3) -x0);
+    
+    dddx := xdt3_term *# 6;
+    ddx  := xdt3_term *# -6 + xdt2_term *# 2;
+    dx   := xdt3_term - xdt2_term + dt *# ((px0 - x0)*3);  
+    x    := x0.to_real_16_16;
+    
+    // y coordinates.
+    ydt2_term := dt2 *# ((py1 - py0 * 2 + y0) * 3);
+    ydt3_term := dt3 *# (y1 + ((py0 - py1) * 3) - y0);
+    
+    dddy := ydt3_term *# 6;
+    ddy  := ydt3_term *# -6 + ydt2_term *# 2;
+    dy   := ydt3_term - ydt2_term + dt *# ((py0 - y0)*3); 
+    y    := y0.to_real_16_16;
+        
+    x := x + delta_spline;
+    y := y + delta_spline;
+    
+    1.to (num_points - 1) do { i:INTEGER;
+      ddx := ddx + dddx;
+      dx  := dx + ddx;
+      x   := x + dx;
+      ddy := ddy + dddy;
+      dy  := dy + ddy;
+      y   := y + dy;
+      poly_line_to (x.to_integer,y.to_integer); 
+    };    
+  );
+  
+  - poly_ellipse (x,y:INTEGER) rays (ray_x,ray_y:INTEGER) <-
+  ( + x0,y0,x1,y1,dx,dy:INTEGER;
+    x0 := x - ray_x;
+    x1 := x + ray_x;
+    y0 := y - ray_y;
+    y1 := y + ray_y;
+    dx := (ray_x * 5) / 9;
+    dy := (ray_y * 5) / 9;
+    
+    poly_move_to (x,y0);    
+    poly_spline_w1 (x+dx,y0) w2 (x1,y-dy) to (x1,y) ;
+    poly_spline_w1 (x1,y+dy) w2 (x+dx,y1) to (x ,y1);
+    poly_spline_w1 (x-dx,y1) w2 (x0,y+dy) to (x0,y) ;
+    poly_spline_w1 (x0,y-dy) w2 (x-dx,y0) to (x ,y0);     
+  );
+  
+  - poly_trace <-
+  ( + edge,next_edge,edgep:EDGE;
+    + x_edges:EDGE;
+    + x0,x1,new_x:INTEGER;
+    + idx_y:INTEGER;
+    + trace:INTEGER;
+    + line :INTEGER;    
+    
+    (edges_upper != 0).if {
+      (poly_ymax >= clip_y0).if {
+        // Connexion with first point.    
+        connect_first;
+        
+        // Optimize clip_y0
+        (poly_list_y.upper).downto 0 do { j:INTEGER;
+          edge := poly_list_y.item j;
+          {(edge != NULL) && {edge.y1 < clip_y0}}.while_do {
+            edge := edge.next_y;
+          };
+          (edge = NULL).if {
+            poly_list_y.remove j;	  
+          } else {
+            poly_list_y.put edge to j;	  
+          };
+        };
+        
+        // Sort on Y.    
+        sort_list_y;
+        
+        poly_ymax := poly_ymax.min clip_y1;
+        line := 1;
+        // for each scanline in the polygon.
+        (poly_list_y.first.y0).to poly_ymax do { y:INTEGER;
+          // Active edges.
+          {(idx_y <= poly_list_y.upper) && {poly_list_y.item idx_y.y0 = y}}.while_do {
+            x_edges := poly_list_y.item idx_y.add x_edges;
+            idx_y   := idx_y + 1;
+          };
+          
+          // Draw horizontal line. 
+          x1:=INTEGER.minimum.to_integer;
+          edge:=x_edges;
+          {edge!=NULL}.while_do {
+            next_edge:=edge.next_x;	
+            // Trace.
+            (y >= clip_y0).if { 
+              
+              (trace = 0).if {
+                // Begin point.    
+                new_x := (edge.x+127)>>8;
+                ((new_x != x1) && {new_x != (x1 + 1)}).if {
+                  ((x0 <= clip_x1) && {x1 >= clip_x0}).if { 
+                    x0:=x0.max clip_x0;
+                    x1:=x1.min clip_x1;
+                    line_h_hard (x0,y) until x1 color rgbcolor; 
+                  };  
+                  x0 := new_x;
+                };
+              };
+              
+              (edge.is_point).if {
+                trace := trace + edge.dx; 
+              } else {
+                trace := trace + line;
+                line  := - line;
+              };
+              
+              (trace = 0).if {
+                // End point.
+                x1 := (edge.x+128)>>8;	    
+              };	  
+            };
+            
+            // Inc edges.	  
+            (edge.width!=0).if { 	    
+              edge.new_step;
+              
+              // Sort with X :
+              edgep:=edge.prev_x;
+              {(edgep!=NULL) && {edge.x<edgep.x}}.while_do {
+                edgep:=edgep.prev_x;
+              };
+              (edgep!=edge.prev_x).if {
+                edge.prev_x.set_next_x (edge.next_x);
+                (edge.next_x!=NULL).if {
+                  edge.next_x.set_prev_x (edge.prev_x);
+                };
+                edge.set_prev_x edgep;
+                (edgep!=NULL).if {
+                  edge.set_next_x (edgep.next_x);
+                  edgep.set_next_x edge;
+                } else {
+                  edge.set_next_x x_edges;
+                  x_edges:=edge;
+                };
+                (edge.next_x!=NULL).if {
+                  edge.next_x.set_prev_x edge;
+                };
+              };
+            } else {
+              // Next line.
+              x_edges:=edge.next_line x_edges; 
+            };
+            edge := next_edge;
+          };
+          ((x0 <= clip_x1) && {x1 >= clip_x0}).if { 
+            x0:=x0.max clip_x0;
+            x1:=x1.min clip_x1;
+            line_h_hard (x0,y) until x1 color rgbcolor; 
+          };
+        };
+      };
+    };
+    // Init structure for next.
+    edges_upper:=0;
+    poly_list_y.clear;
+    begin_y:=NULL;
+    poly_ymax:=INTEGER.minimum.to_integer;
+  );
+  
+  - poly_trace_color col:UINTEGER_32 <-
+  ( 
+    color col;
+    poly_trace;
+  );
+  
+  - put_bitmap bmp:ABSTRACT_BITMAP to (x,y:INTEGER) <-
+  (
+    deferred;
+  );
+
+  - put_bitmap bmp:ABSTRACT_BITMAP to (x,y:INTEGER) scale (scale_x,scale_y:REAL_16_16) <-  
+  (
+    deferred;
+  );
+  
+Section Public
+  
+  // For demo ... :-)
+  
+  - font_width string:ABSTRACT_STRING :INTEGER <-
+  ( 
+    font_width string size (string.upper)
+  );
+  
+  - font_width_letter char:CHARACTER :INTEGER <-
+  ( + offset_begin,offset_end:INTEGER;
+    + car:INTEGER;
+
+    car := char.to_integer;
+    ((car < 32) || {car >= 127}).if {
+      car := 0;
+    } else {
+      car := car-32;
+    };
+    offset_begin:=`__index_font[@car]`:INTEGER;
+    offset_end  :=`__index_font[@car+1]`:INTEGER;
+    offset_end - offset_begin + 1
+  );
+
+  - font_width string:ABSTRACT_STRING size n:INTEGER :INTEGER <-
+  (     
+    font_width string at (string.lower) to n
+  );
+  
+  - font_width string:ABSTRACT_STRING at beg:INTEGER to end:INTEGER :INTEGER <-
+  ( + result:INTEGER;
+
+    beg.to end do { j:INTEGER;
+      result:=result + font_width_letter (string.item j);
+    };
+    result
+  );
+  
+  - print_char c:CHARACTER to (x,y:INTEGER) :INTEGER <-
+  ( + pix_x,pix_y,offset_begin,offset_end:INTEGER;
+    + bit_count:UINTEGER_16;
+    + sz_letter:INTEGER;
+    + car:UINTEGER_8;
+    
+    car := c.to_uinteger_8;
+    ((y <= clip_y1) && {(y+15) >= clip_y0} && {x <= clip_x1}).if {
+      pix_x:=x;      	
+      ((car<32) || {car>=127}).if {
+	car:=0;
+      } else {
+	car:=car-32;
+      };
+      offset_begin:=`__index_font[@car]`:INTEGER;
+      offset_end  :=`__index_font[@car+1]`:INTEGER;
+      sz_letter := offset_end-offset_begin + 1;
+      ((pix_x + sz_letter) > clip_x0).if {
+	{offset_begin != offset_end}.while_do {
+	  (pix_x.in_range clip_x0 to clip_x1).if {
+	    pix_y:=y;
+	    bit_count:=1;
+	    {bit_count != 0}.while_do {
+	      (pix_y.in_range clip_y0 to clip_y1).if {
+		((`__graph_font[@offset_begin]`:UINTEGER_16 & bit_count)!=0).if {
+		  pixel_hard (pix_x,pix_y) color rgbcolor;
+		};		
+	      };
+	      pix_y:=pix_y+1;
+	      bit_count:=bit_count << 1;
+	    };
+	  };
+	  pix_x:=pix_x+1;
+	  offset_begin:=offset_begin+1;
+	};
+	pix_x := pix_x + 1;
+      } else {
+	pix_x := pix_x + sz_letter;
+      };    
+    };    
+    pix_x
+  );
+  
+  - print string:ABSTRACT_STRING at b:INTEGER to e:INTEGER to (x,y:INTEGER) :INTEGER <-
+  ( + pix_x,pix_y,offset_begin,offset_end:INTEGER;
+    + bit_count:UINTEGER_16;
+    + car,sz_letter:INTEGER;
+    
+    ((y <= clip_y1) && {(y+15) >= clip_y0} && {x <= clip_x1}).if {
+      pix_x:=x;
+      b.to e do { j:INTEGER;
+	car:=string.item j.to_integer;
+	((car<32) || {car>=127}).if {
+	  car:=0;
+	} else {
+	  car:=car-32;
+	};
+	offset_begin:=`__index_font[@car]`:INTEGER;
+	offset_end  :=`__index_font[@car+1]`:INTEGER;
+	sz_letter := offset_end-offset_begin + 1;
+	((pix_x + sz_letter) > clip_x0).if {
+	  {offset_begin != offset_end}.while_do {
+	    (pix_x.in_range clip_x0 to clip_x1).if {
+	      pix_y:=y;
+	      bit_count:=1;
+	      {bit_count != 0}.while_do {
+		(pix_y.in_range clip_y0 to clip_y1).if {
+		  ((`__graph_font[@offset_begin]`:UINTEGER_16 & bit_count)!=0).if {
+		    pixel_hard (pix_x,pix_y) color rgbcolor;
+		  };		
+		};
+		pix_y:=pix_y+1;
+		bit_count:=bit_count << 1;
+	      };
+	    };
+	    pix_x:=pix_x+1;
+	    offset_begin:=offset_begin+1;
+	  };
+	  pix_x := pix_x + 1;
+	} else {
+	  pix_x := pix_x + sz_letter;
+	};	
+      };
+    };
+    pix_x
+  );
+
+  - print string:ABSTRACT_STRING to (x,y:INTEGER) :INTEGER <-
+  ( 
+    print string at (string.lower) to (string.upper) to (x,y)
+  );

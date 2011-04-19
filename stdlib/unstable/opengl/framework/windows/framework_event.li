@@ -1,0 +1,206 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := FRAMEWORK_EVENT;
+  
+  - comment  := "GL Framework: handle input";
+  
+  - external := 
+  `
+  POINT p;
+  
+#ifndef GLBINDING__USE_GUI
+  extern void resize (int,int); // pour l'instant
+  extern void event_keydown (int,int);
+  extern void event_keyup (int,int);
+  extern int event_mousemove (int,int);
+  extern int event_mouseclick (int);
+  
+  MSG   msg;
+
+  
+  LRESULT CALLBACK MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+  { 
+    LONG    lRet = 0; 
+    PAINTSTRUCT    ps;
+    
+    
+    switch (uMsg)
+    {
+      case WM_SIZE:
+      if (!fullscreen)
+      // resize only in windowed mode
+      {
+	resize (LOWORD(lParam),HIWORD(lParam));
+	GetClientRect(win.hwnd, &win.rect);
+      }
+      break;
+      case WM_KEYDOWN: 
+      
+      event_keydown (wParam, lParam);
+     
+      break;
+      case WM_KEYUP:
+  
+      event_keyup (wParam, lParam);
+      break;
+      // Mouse
+      case WM_MOUSEMOVE: 
+      
+      event_mousemove ((short)LOWORD(lParam), (short)HIWORD(lParam));
+
+      break;
+      
+      case WM_LBUTTONDOWN:
+      case WM_RBUTTONDOWN:
+      
+      event_mouseclick ((((wParam & MK_LBUTTON) != 0) << 1) | ((wParam & MK_RBUTTON) != 0));
+      
+      break;
+      
+      case WM_PAINT:
+      BeginPaint(win.hwnd, &ps);
+      EndPaint(win.hwnd, &ps);
+      break;
+      
+      case WM_CLOSE:
+      PostQuitMessage(0);
+      break;
+      
+      default:
+      return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    }
+    return 0;
+  }
+#endif
+`;
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section External
+  
+  - event_keydown (wparam,lparam:INTEGER) <-
+  (
+    + k:INTEGER;
+    
+    k := KEYCODE.get_key wparam;
+    keys.put TRUE to k;
+    FRAMEWORK.on_keydown k;
+  );
+  
+  - event_keyup (wparam,lparam:INTEGER) <-
+  (
+    + k:INTEGER;
+    
+    k := KEYCODE.get_key wparam;
+    keys.put FALSE to k;
+    FRAMEWORK.on_keyup k;
+  );
+  
+  - event_mousemove (x,y:INTEGER) :INTEGER <-
+  (
+    mouse_x := x;
+    mouse_y := y;
+ 
+    FRAMEWORK.on_mousemove (x,y);
+    `1`:(INTEGER) // hack to make the slot persistent
+  );
+  
+  - event_mouseclick b:INTEGER :INTEGER <-
+  (
+    FRAMEWORK.on_mouseclick b;
+    `1`:(INTEGER) // hack to make the slot persistent
+  );
+  
+Section Public
+  
+  - make <-
+  (
+    // Remove this after compiler has been fixed...
+    event_keydown (0,0);
+    event_keyup (0,0);
+    event_mousemove (0,0);
+    event_mouseclick 0;
+  );
+  
+  - keys:FAST_ARRAY(BOOLEAN) := 
+  ( + result:FAST_ARRAY(BOOLEAN);
+    
+    result := FAST_ARRAY(BOOLEAN).create 256;
+    result.set_all_with FALSE;
+    result
+  );
+  
+  - mouse_x:INTEGER;
+  - mouse_y:INTEGER;
+  
+  // hack for windows
+  - get_mouse_pos:(INTEGER,INTEGER) <- 
+  (
+    `GetCursorPos(&p)`;
+    (`p.x`:INTEGER, `p.y`:INTEGER)
+  );
+  
+  - update:BOOLEAN <-
+  ( 
+    + go:BOOLEAN;
+
+    go := TRUE;
+    {go && {`PeekMessage (&msg, NULL, 0, 0, PM_REMOVE)` != 0}}.while_do {
+      (`msg.message`:INTEGER = `WM_QUIT`:INTEGER).if {
+        //
+        FRAMEWORK.stop;
+        //
+	go := FALSE;	
+      } else {
+	`TranslateMessage (&msg)`;
+	`DispatchMessage (&msg)`;
+      };
+    };
+    go
+  );
+  
+  - keydown k:INTEGER :BOOLEAN <-
+  (
+    keys.item k
+  );
+  
+  - keyup k:INTEGER :BOOLEAN <-
+  (
+    ! keys.item k
+  );
+  
+  - set_up k:INTEGER <-
+  (
+    keys.put FALSE to k;
+  );
+  
+  - warp_mouse (x,y:INTEGER) <-
+  (
+    mouse_x := x;
+    mouse_y := y;
+    `SetCursorPos (@x,@y)`;
+  );
+  

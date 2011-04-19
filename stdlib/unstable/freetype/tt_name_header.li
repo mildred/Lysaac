@@ -1,0 +1,47 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name        := TT_NAME_HEADER;
+  - comment     :=" .";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Mapping
+  
+  + format:USHORTINT;
+  + num_name_records:USHORTINT;
+  + storage_offset:USHORTINT;
+  
+Section Public  
+  
+  - to_big_endian <-
+  (
+    format := PROCESSOR.to_motorola_ushort format;
+    num_name_records := PROCESSOR.to_motorola_ushort num_name_records;
+    storage_offset := PROCESSOR.to_motorola_ushort storage_offset;
+  );
+  
+  - print <-
+  (
+    "\n     Format: ".print;
+    format.print;
+    "\n     Number records: ".print;
+    num_name_records.print;
+    "\n     Storage offset: ".print;
+    storage_offset.print;
+  );

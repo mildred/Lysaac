@@ -1,0 +1,67 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Application                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := MD2_FRAME;
+  
+  - comment  := "Quake2' md2 model format";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+ 
+  
+Section Public
+  
+  - fixme:VECTOR3(REAL_32) := VECTOR3(REAL_32).zero;
+  
+  + name:STRING;
+  
+  // frame transformation
+  + scale:VECTOR3(REAL_32) := fixme;
+  + translate:VECTOR3(REAL_32) := fixme;
+  
+  + vertex:FAST_ARRAY(MD2_VERTEX);
+  
+  
+  - create (n:ABSTRACT_STRING, s,t:VECTOR3(REAL_32), v:FAST_ARRAY(MD2_VERTEX)) :SELF <-
+  (
+    + result:SELF;
+    result := SELF.clone;
+    result.make (n,s,t,v);
+    result
+  );
+  
+  - make (n:ABSTRACT_STRING, s,t:VECTOR3(REAL_32), v:FAST_ARRAY(MD2_VERTEX)) <-
+  (
+    name := STRING.create_from_string n;
+    scale := s;
+    translate := t;
+    vertex := v;
+  );
+  
+  - print <- 
+  (
+    "\n-> frame ".print; name.print;
+    " sc = ".print; scale.print;
+    " tr = ".print; translate.print;
+  );

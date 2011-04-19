@@ -1,0 +1,60 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := QUADRICS;
+  
+  - comment  := "3D Primitive (sphere,cylinder,...)";
+
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  - fill_mode:INTEGER  <- 1;
+  - point_mode:INTEGER  <- 2;
+  - line_mode:INTEGER  <- 3;
+  
+  - begin_quadric <- deferred;
+  - end_quadric <- deferred;
+  
+  - new_quadric body:{} <-
+  (
+    begin_quadric;
+    body.value;
+    end_quadric;
+  );
+  
+  - enable_texture <- deferred;
+  
+  - disable_texture <- deferred;
+  
+  - set_style style:INTEGER <- deferred; 
+  
+  //
+  // Quadrics
+  //
+  
+  - draw_sphere (radius,slices,stacks:REAL_32) <- deferred;
+  - draw_cylinder (base,top,height,slices,stacks:REAL_32) <- deferred;
+  - draw_disk (inner,outer,slices,loops:REAL_32) <- deferred;

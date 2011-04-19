@@ -1,0 +1,61 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                  Lisaac                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name      := SDL_ROTOZOOM;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>";
+  - comment   := "SDL Rotozoom library";
+  - lip       <- 
+  (
+    add_lib "-lSDL_gfx";
+  );
+
+Section Inherit
+
+  + parent:OBJECT := OBJECT;
+
+Section Public
+  // SDL_ROTOZOOM_SCOPE SDL_Surface *rotozoomSurface(SDL_Surface * src, double angle, double zoom, int smooth);
+  - rotozoom_surface (image:SDL_SURFACE_T, angle:REAL_64, zoom:REAL_64, smooth:INTEGER) :SDL_SURFACE_T <-
+  ( + res_p:POINTER;
+    + surface :SDL_SURFACE_T;
+    
+    res_p := `rotozoomSurface(@image, @angle, @zoom, @smooth)`:(POINTER);
+    surface := SDL_SURFACE_T.clone;
+    surface := CONVERT(POINTER,SDL_SURFACE_T).on res_p;
+    surface
+  );
+
+/*
+  - rotozoom_surface_xy (image:SDL_SURFACE_T, angle:REAL_64, zoomx:REAL_64, zoomy:REAL_64, smooth:INTEGER) :SDL_SURFACE_T <-
+  ( + res_p:POINTER;
+    + image_p:POINTER;
+    + surface :SDL_SURFACET;
+    
+    res_p := `rotozoomSurfaceXY(@image, @angle, @zoomx, @zoomy, @smooth)`:(POINTER);
+
+    surface := SDL_SURFACET.create_with res_p;
+
+    surface
+  );
+*/

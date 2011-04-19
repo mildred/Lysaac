@@ -1,0 +1,94 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_CMAP;
+  - comment     :="Character To Glyph Index Mapping Table .";
+  
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Public
+  
+  + header:TT_CMAP_HEADER;
+  
+  + table:MAP_FIXED_ARRAY(TT_CMAP_TABLE);
+  
+  + subtable:FIXED_ARRAY(TT_CMAP_SUBTABLE);
+  
+  - create file:STD_FILE :SELF <-
+  ( + result:SELF;
+    
+    result := SELF.clone;
+    result.make file;
+    result
+  );
+  
+  - make file:STD_FILE <-
+  ( + tmp_header:TT_CMAP_SUBTABLE_HEADER;
+    + cursor:UINTEGER_32;
+    cursor := file.cursor;
+    header := TT_CMAP_HEADER.clone;
+    file.read header;    
+    header.to_big_endian;
+    (header.num_tables > 0).if {
+      table := MAP_FIXED_ARRAY(TT_CMAP_TABLE).create_with_capacity (header.num_tables);
+      file.read table size (TT_CMAP_TABLE.object_size * header.num_tables);
+      subtable := FIXED_ARRAY(TT_CMAP_SUBTABLE).create (header.num_tables);
+      tmp_header := TT_CMAP_SUBTABLE_HEADER.clone;
+      0.to (header.num_tables - 1) do { i:INTEGER;
+	table.item i.to_big_endian;
+	file.set_cursor (cursor + table.item i.offset);
+	file.read tmp_header;
+	tmp_header.to_big_endian;
+	file.set_cursor (cursor + table.item i.offset);
+	(tmp_header.format).when 0 then {
+	  subtable.put (TT_CMAP_SUBTABLE0.create file) to i;
+	}.when 2 then {
+	  subtable.put (TT_CMAP_SUBTABLE2.create file) to i;
+	}.when 4 then {
+	  subtable.put (TT_CMAP_SUBTABLE4.create file) to i;
+	}.when 6 then {
+	  subtable.put (TT_CMAP_SUBTABLE6.create file) to i;
+	};
+      };      
+    };
+  );
+
+  - print <-
+  (
+    "\n********* CMAP TABLE *********\n".print;
+    header.print;
+    0.to (header.num_tables - 1) do { i:INTEGER;
+      "\n  Subtable ".print;
+      (i + 1).print;
+      '.'.print;
+      table.item i.print;
+      subtable.item i.print;
+      '\n'.print;
+    };
+    '\n'.print;
+  );  
+  
+  
+  
+  
+  
+  
+  
+  

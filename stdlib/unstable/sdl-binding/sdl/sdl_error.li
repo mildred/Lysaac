@@ -1,0 +1,57 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                  Lisaac                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name      := SDL_ERROR;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>";
+  - comment   := "SDL Error stak managment";
+
+Section Public
+
+//
+// ERROR:
+//
+
+  - set error:STRING <-
+  // Push an error
+  ( + ptr :NATIVE_ARRAY(CHARACTER);
+    ptr := error.to_external;
+    `SDL_SetError(@ptr)`;
+  );
+  
+  - get :STRING <-
+  // get latest pushed error
+  ( + error :NATIVE_ARRAY(CHARACTER);
+    + result :STRING;
+    
+    error := `SDL_GetError()`:NATIVE_ARRAY(CHARACTER);
+    result := STRING.clone;
+    result.from_external(error);
+    result
+  );
+
+  - clear <-
+  // Clear all errors
+  (
+    `SDL_ClearError()`;
+  );

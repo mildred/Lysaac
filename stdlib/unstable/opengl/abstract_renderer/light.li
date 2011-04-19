@@ -1,0 +1,108 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                             //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := LIGHT;
+  
+  - comment  := "Light properties";
+  
+Section Inherit
+  
+  + parent_state:Expanded STATE;
+  
+Section Public
+  
+  + ambient:COLOR; // scattered light - no particular direction
+  + diffuse:COLOR; // conic light  
+  + specular:COLOR; // shininess
+  
+  + position:VECTOR3(REAL_32);
+  
+  + is_directional:BOOLEAN; // if true 'position' is the direction
+  
+  + modified:BOOLEAN;
+  
+  
+  - create (a,d,s:COLOR) at (pos:VECTOR3(REAL_32)) :SELF <-
+  (
+    + result:SELF;
+    result := SELF.clone;
+    result.make (a,d,s,pos);
+    result
+  );
+  
+  - make (a,d,s:COLOR, pos:VECTOR3(REAL_32)) <- 
+  (
+    ambient := a;
+    diffuse := d;
+    specular := s;
+    
+    position := pos;
+    modified := TRUE;
+  );
+  
+  //
+  // Lighting Model
+  //
+  
+  - set_model_ambient col:RGBA <- deferred;
+  - set_model_local_viewer b:BOOLEAN <- deferred;
+  - set_model_two_side b:BOOLEAN <- deferred;
+  
+  
+  - notify <-
+  (
+    modified := TRUE;
+  );
+  
+  - set_ambient c:COLOR <- 
+  (
+    notify;
+    ambient := c;
+  );
+  
+  - set_diffuse c:COLOR <- 
+  (
+    notify;
+    diffuse := c;
+  );
+  
+  - set_specular c:COLOR <- 
+  (
+    notify;
+    specular := c;
+  );
+  
+  - set_position p:VECTOR3(REAL_32) <- 
+  (
+    notify;
+    position := p;
+  );
+  
+  - set_directional <- 
+  (
+    notify;
+    is_directional := TRUE;
+  );
+  
+  - enable_default_light <- deferred;
+  - disable_default_light <- deferred;

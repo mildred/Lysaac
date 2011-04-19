@@ -1,0 +1,84 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_FOG;
+  
+  - comment  := "Opengl Fog";
+  
+Section Inherit
+  
+  + parent_fog:Expanded FOG;
+  
+Section Public
+  
+  - enable <-
+  (
+    parent_state.enable;
+    `glEnable(GL_FOG)`;
+  );
+  
+  - disable <-
+  ( 
+    parent_state.disable;
+    `glDisable(GL_FOG)`;
+  );
+  
+  - push_attrib <-
+  (
+    `glPushAttrib(GL_ENABLE_BIT)`;
+  );
+  
+  - pop_attrib <-
+  (
+    `glPopAttrib()`;
+  );
+  
+  - render <- 
+  (
+    + m:INTEGER;
+    + p:POINTER;
+    + r:REAL_32;
+    
+    (fogmode = filter_linear).if {
+      m := `GL_LINEAR`:INTEGER;
+    } else {
+      m := `GL_EXP2`:INTEGER; // GL_EXP for old pc
+    };
+    `glFogi(GL_FOG_MODE, @m)`;
+    
+    p := color.get_array.to_external;
+    `glFogfv(GL_FOG_COLOR, @p)`;
+    
+    r := density;
+    `glFogf(GL_FOG_DENSITY, @r)`;
+    
+    `glHint(GL_FOG_HINT, GL_DONT_CARE)`; // GL_DONT_CARE, GL_NICEST or GL_FASTEST 
+    r := start;
+    `glFogf(GL_FOG_START, @r)`;
+    
+    r := end;
+    `glFogf(GL_FOG_END, @r)`;
+    `glEnable(GL_FOG)`;
+  );
+  
+  

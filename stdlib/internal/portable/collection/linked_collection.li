@@ -1,0 +1,99 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := LINKED_COLLECTION(V);
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := "Common root of LINKED_LIST and TWO_WAY_LINKED_LIST..";
+
+Section Inherit
+
+  - parent_collection:COLLECTION(V) := COLLECTION(V);
+
+Section Public
+
+  - lower:INTEGER := 1;
+  // Lower index bound is frozen.
+
+  + upper:INTEGER;
+  // Memorized upper index bound.
+
+  - create:SELF <-
+  ( + result:SELF;
+
+    result := clone;
+    result.make;
+    result
+  );
+
+  - make <-
+  // Make an empty list
+  (
+    deferred;
+  );
+
+  - remove_head n:INTEGER <-
+  ( + i:INTEGER;
+
+    i := n;
+    {i = 0}.until_do {
+      remove_first;
+      i := i - 1;
+    };
+  );
+
+  - remove_tail n:INTEGER <-
+  ( + i:INTEGER;
+
+    i := n;
+    {i = 0}.until_do {
+      remove_last;
+      i := i - 1;
+    };
+  );
+
+  - first_index_of element:V :INTEGER <-
+  (
+    index_of element start lower
+  );
+
+  - fast_first_index_of element:V :INTEGER <-
+  (
+    fast_index_of element start lower
+  );
+
+  //
+  // Implement manifest generic creation.
+  //
+
+  - manifest_make needed_capacity:INTEGER <-
+  // Manifest creation of a list of items of type E.
+  (
+    create
+  );
+
+  - manifest_put index:INTEGER to element:V <-
+  (
+    add_last element;
+  );

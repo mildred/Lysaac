@@ -1,0 +1,80 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Application                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := BOUNCE_PLANE;
+  
+  - comment  := "part of particle engine";
+  
+Section Inherit
+  
+  - parent_constraint:CONSTRAINT := CONSTRAINT;
+  
+Section Public
+  
+  + normal:VECTOR3(REAL_32);
+  + offset:REAL_32;
+  
+  //
+  // Creation.
+  //
+
+  - create (n:VECTOR3(REAL_32), off:REAL_32) :SELF <-
+  ( + result:SELF;
+    result := clone;
+    result.make (n,off);
+    result
+  );
+
+  - make (n:VECTOR3(REAL_32), off:REAL_32) <-
+  ( 
+    normal := n;
+    offset := off;
+  );
+
+
+  
+  - apply_to p:PARTICLE time t:REAL_32 <-
+  (
+    + dist:REAL_32;
+    
+    dist := distance_to (p.position);
+    
+    (dist < p.size).if {
+      p.set_direction (p.dir - (normal * (2.0*p.dir.dot normal)));
+      p.set_position (p.position + (normal * (p.size - dist)));
+    };
+  );
+  
+Section Private
+  
+  - distance_to p:VECTOR3(REAL_32) :REAL_32 <-
+  (
+    (p.dot normal) + offset
+  );
+
+ 
+  
+  
+  
+  
+  

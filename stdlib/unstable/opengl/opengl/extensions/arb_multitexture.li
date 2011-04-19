@@ -1,0 +1,77 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := ARB_MULTITEXTURE;
+  
+  - comment  := "GL_ARB_multitexture extension";
+  
+  - external := `
+  
+  #define GL_TEXTURE0_ARB                   0x84C0
+  typedef void (APIENTRY * PFNGLACTIVETEXTUREARBPROC) (GLenum target);
+  typedef void (APIENTRY * PFNGLCLIENTACTIVETEXTUREARBPROC) (GLenum texture);
+  typedef void (APIENTRY * PFNGLMULTITEXCOORD2FARBPROC) (GLenum target,float s,float t);
+  
+  PFNGLACTIVETEXTUREARBPROC        liglActiveTextureARB = NULL;
+  PFNGLCLIENTACTIVETEXTUREARBPROC  liglClientActiveTextureARB = NULL;
+  PFNGLMULTITEXCOORD2FARBPROC      liglMultiTexCoord2fARB = NULL;
+  `;
+  
+Section Inherit
+  
+  - parent_gl_extension:GL_EXTENSION := GL_EXTENSION;
+  
+Section Public
+  
+  - name:STRING_CONSTANT := "GL_ARB_multitexture";
+  
+  - make <-
+  (
+    `liglActiveTextureARB = (PFNGLACTIVETEXTUREARBPROC) GPA("glActiveTextureARB")`;
+    `liglClientActiveTextureARB = (PFNGLCLIENTACTIVETEXTUREARBPROC) GPA("glClientActiveTextureARB")`;
+    `liglMultiTexCoord2fARB = (PFNGLMULTITEXCOORD2FARBPROC) GPA("glMultiTexCoord2fARB")`;
+  );
+  
+  - active_texture n:INTEGER <-
+  (
+    + unit:INTEGER;
+    
+    unit := `GL_TEXTURE0_ARB`:INTEGER + n;
+    `liglActiveTextureARB(@unit)`;
+  );
+  
+  - client_active_texture n:INTEGER <-
+  (
+    + unit:INTEGER;
+    
+    unit := `GL_TEXTURE0_ARB`:INTEGER + n;
+    `liglClientActiveTextureARB(@unit)`;
+  );
+  
+  - texcoord2f (s,t:REAL_32) unit n:INTEGER <-
+  (
+    + unit:INTEGER;
+    
+    unit := `GL_TEXTURE0_ARB`:INTEGER + n;
+    `liglMultiTexCoord2fARB(@unit, @s, @t)`;
+  );

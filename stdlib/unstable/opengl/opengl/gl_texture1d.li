@@ -1,0 +1,117 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_TEXTURE1D;
+  
+  - comment  := "OpenGL 1D texture";
+  
+Section Inherit
+  
+  + parent_abstract_texture:Expanded GL_ABSTRACT_TEXTURE;
+  
+Section Public
+  
+  - draw (x,y:INTEGER) <- // fixme
+  (
+    + w,h:INTEGER;
+    
+    w := width;
+    h := height;
+    
+    bind;
+    
+    `glBegin (GL_QUADS);
+    glTexCoord2f (0, 0);
+    glVertex2f (@x, @y);
+    glTexCoord2f (1, 0);
+    glVertex2f (@x + @w, @y);
+    glTexCoord2f (1, 1);
+    glVertex2f (@x + @w, @y + @h);
+    glTexCoord2f (0, 1);
+    glVertex2f (@x, @y + @h);
+    glEnd ();
+    `;
+  );
+  
+  - draw_strech (x,y,w,h:INTEGER) <- // fixme
+  (
+    bind;
+    
+    `glBegin (GL_QUADS);
+    glTexCoord2f (0, 0);
+    glVertex2f (@x, @y);
+    glTexCoord2f (1, 0);
+    glVertex2f (@x + @w, @y);
+    glTexCoord2f (1, 1);
+    glVertex2f (@x + @w, @y + @h);
+    glTexCoord2f (0, 1);
+    glVertex2f (@x, @y + @h);
+    glEnd ();
+    `;
+  );
+  
+  - replace_region (x,y,w,h:INTEGER) with_data (pixels:FAST_ARRAY(UINTEGER_8),type:INTEGER) <-
+  // y & height are always 1
+  ( + p:POINTER;
+    
+    p := pixels.to_external;
+    `glTexSubImage1D(GL_TEXTURE_1D, 0, @x, @w, @type, GL_UNSIGNED_BYTE, @p)`;
+  );
+  
+  - replace_region (x,y,w,h:INTEGER) with image:IMAGE <-
+  (
+    + p:POINTER;
+    + type:INTEGER;
+    
+    type := image.channels;
+    p := image.get_pixels.to_external;
+    `glTexSubImage1D(GL_TEXTURE_1D, 0, @x, @w, @type, GL_UNSIGNED_BYTE, @p)`;
+  );
+  
+  - replace_region (x,y,w,h:INTEGER) with_framebuffer_at (x0,y0:INTEGER) <-
+  // w and y = 1
+  (
+    `glCopyTexSubImage1D(GL_TEXTURE_1D, 0, @x, @x0,@y0, @w)`;
+  );
+  
+Section GL_ABSTRACT_TEXTURE
+  
+  - target:INTEGER <- `GL_TEXTURE_1D`:INTEGER;
+  
+  - raw_create (ch,w,h,type:INTEGER) data p:POINTER <-
+  (
+    `glTexImage1D(GL_TEXTURE_1D, 0, @ch, @w, 0, @type, GL_UNSIGNED_BYTE, @p)`;
+  );
+  
+  - raw_create_mipmap (ch,w,h,type:INTEGER) data p:POINTER <-
+  (
+    `gluBuild1DMipmaps(GL_TEXTURE_1D, @ch, @w, @type, GL_UNSIGNED_BYTE, @p)`;
+  );
+  
+  - raw_copy (x,y,w,h:INTEGER) type t:INTEGER <-
+  (
+    `glCopyTexImage1D(GL_TEXTURE_1D, 0, @t, @x, @y, @w, @h, 0)`;
+  );
+  
+  
+  

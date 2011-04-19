@@ -1,0 +1,816 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := STRING;
+
+
+  - import := NATIVE_ARRAY(CHARACTER),
+              NATIVE_ARRAY(INTEGER_8),
+              NATIVE_ARRAY(UINTEGER_8);
+  - export := NATIVE_ARRAY(CHARACTER),
+              NATIVE_ARRAY(INTEGER_8),
+              NATIVE_ARRAY(UINTEGER_8);
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := "String library.";
+
+Section Inherit
+
+  - inherit_abstract_string:ABSTRACT_STRING := ABSTRACT_STRING;
+
+  - parent_arrayed:ARRAYED := ARRAYED;
+
+Section Public //ABSTRACT_STRING, ABSTRACT_ENTRY
+
+  + storage:NATIVE_ARRAY(CHARACTER);
+
+Section Public
+
+  + count:INTEGER;
+
+  + capacity:INTEGER;
+
+  //
+  // General :
+  //
+
+  - set_storage tab:NATIVE_ARRAY(CHARACTER) <-
+  ( ? {tab != NULL};
+    storage := tab;
+  );
+
+  //
+  // Creation / Modification :
+  //
+
+  - create needed_capacity:INTEGER :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make needed_capacity;
+    result
+  );
+
+  - create_from_string str:ABSTRACT_STRING :SELF <-
+  ( + result:SELF;
+
+    result := create (str.count);
+    result.copy str;
+    result
+  );
+
+  - make needed_capacity:INTEGER <-
+  // Initialize the string to have at least `needed_capacity'
+  // characters of storage.
+  ( ? {needed_capacity >= 0};
+    (needed_capacity > 0).if {
+      (capacity < needed_capacity).if	{
+	storage := NATIVE_ARRAY(CHARACTER).create needed_capacity;
+	capacity := needed_capacity;
+      };
+    };
+    count := 0;
+
+    //? {needed_capacity <= capacity};
+    //? {count = 0};
+  );
+
+  - make_empty <-
+  // Create an empty string
+  (
+    make 0;
+  );
+
+
+  - create_filled (c:CHARACTER,n:INTEGER) :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make_filled (c,n);
+    result
+  );
+
+  - make_filled (c:CHARACTER,n:INTEGER) <-
+  // Initialize string with `n` copies of `c`
+  [
+    -? {n >= 0};
+  ]
+  (
+    make n;
+    count := n;
+    fill_with c;
+  )
+  [
+    +? {count = n};
+    +? {occurrences c = count};
+  ];
+
+  - twin:STRING <-
+  (
+    create_from_string Self
+  );
+
+  //
+  // Modification :
+  //
+
+  - resize new_count:INTEGER <-
+  // Resize self. When `new_count' is greater than `count',
+  // new positions are initialized with the default value of CHARACTER
+  [
+    -? { new_count >= 0 };
+  ]
+  (
+    (new_count <= count).if {
+    }.elseif { capacity < new_count } then {
+      (capacity = 0).if {
+	storage := NATIVE_ARRAY(CHARACTER).create new_count;
+      } else {
+	storage := storage.realloc capacity with new_count;
+      };
+      capacity := new_count;
+    } else {
+      storage.clear count to (new_count - 1);
+    };
+    count := new_count;
+  )
+  [
+    +? {count = new_count};
+    +? {capacity >= Old capacity};
+  ];
+
+  - set_capacity new_capacity:INTEGER <-
+  // Resize `capacity' self, but not count.
+  ( + old_capacity:INTEGER;
+    ? { new_capacity >= 0 };
+    old_capacity := capacity;
+
+    (new_capacity > capacity).if {
+      (capacity = 0).if {
+	storage := NATIVE_ARRAY(CHARACTER).create new_capacity;
+      } else {
+	storage := storage.realloc capacity with new_capacity;
+      };
+      capacity := new_capacity;
+    };
+
+    ? {(new_capacity > old_capacity) ->> {new_capacity = capacity}};
+  );
+
+  - clear <-
+  // Clear out the current STRING.
+  // Note: internal `storage' memory is neither released nor shrunk.
+  (
+    count := 0;
+    ? {count = 0};
+  );
+
+  - copy other:ABSTRACT_STRING<-
+  // Copy `other' onto Current.
+  (
+    count := other.count;
+    (count > 0).if {
+      (capacity < count).if	{
+	storage  := NATIVE_ARRAY(CHARACTER).create count;
+	capacity := count;
+      };
+      storage.copy_from (other.storage) until (count-1);
+    };
+    ? {count = other.count};
+  );
+
+  - fill_with c:CHARACTER <-
+  // Replace every character with `c'.
+  (
+    storage.set_all_with c until (count - 1);
+
+    ? {occurrences c = count};
+  );
+
+  - replace_all old_char:CHARACTER with new_char:CHARACTER <-
+  // Replace all occurrences of the element `old_char' by `new_character'
+  (
+    storage.fast_replace_all old_char with new_char until (count - 1);
+  )
+  [
+    +? { count = Old count };
+    +? { occurrences old_char = 0};
+  ];
+
+  - append other:ABSTRACT_STRING <-
+  // Append `other' to Current.
+  ( + other_count, needed_capacity:INTEGER;
+    ? {other != NULL};
+
+    other_count := other.count;
+    needed_capacity := count + other_count;
+    (capacity < needed_capacity).if	{
+      (capacity = 0).if	{
+	capacity := needed_capacity;
+	storage  := NATIVE_ARRAY(CHARACTER).create capacity;
+      } else {
+	storage  := storage.realloc capacity with needed_capacity;
+	capacity := needed_capacity;
+      };
+    };
+    storage.copy (other.storage) to count until other_count;
+    count := needed_capacity;
+  );
+
+  - Self:SELF '+=' Right other:ABSTRACT_STRING :STRING_BUFFER <-
+  (
+    append other;
+    Self
+  );
+
+  - prepend other:ABSTRACT_STRING <-
+  // Prepend `other' to Current
+  ( + i, j: INTEGER;
+    ? {other!=NULL};
+
+    i := count;
+    j := other.count;
+    resize (i + j);
+    ((i > 0) && {j > 0}).if	{
+      storage.move 0 to (i - 1) by j;
+    };
+    storage.copy_from (other.storage) until (j - 1);
+  );
+
+  - insert_string s:ABSTRACT_STRING to i:INTEGER <-
+  // Insert `s' at index `i', shifting characters from index `i'
+  // to `count' rightwards.
+  (
+    + j,k:INTEGER;
+
+    ? { s != NULL };
+    ? { i.in_range 1 to (count + 1)};
+
+    j := count;
+    k := s.count;
+    resize (j + k);
+    (i <= j).if {
+      storage.move (i - 1) to (j - 1) by k;
+    };
+    storage.copy (s.storage) to (i - 1) until k;
+  );
+
+  - replace_substring s:ABSTRACT_STRING from start:INTEGER to end:INTEGER <-
+  // Replace the substring from start to end, inclusive, with s
+  (
+    + remove_len,insert_len, difference, old_count: INTEGER;
+
+    ? {s != NULL};
+    ? { end <= count};
+    ? {start.in_range 1 to (end + 1)};
+
+    old_count := count;
+    remove_len := end - start + 1;
+    insert_len := s.count;
+    difference := insert_len - remove_len;
+
+    (difference > 0).if {
+      resize (old_count + difference);
+      (end < old_count).if { // something to move ?
+	storage.move (end + 1 - 1) to (old_count - 1) by difference;
+      };
+    }.elseif {difference < 0} then {
+      (end < count).if { // something to move?
+	storage.move(end + 1 - 1) to (old_count - 1) by difference;
+      };
+      resize (old_count + difference)
+    };
+    storage.copy (s.storage) to (start - 1) until (s.count);
+  );
+
+  - replace_all_substring motif:ABSTRACT_STRING with txt:ABSTRACT_STRING <-
+  ( + idx:INTEGER;
+
+    idx := lower;
+    {
+      idx := substring_index (motif,idx);
+      (idx != 0).if {
+        replace_substring txt from idx to (idx+motif.count-1);
+      };
+    }.do_while {idx != 0};
+  );
+
+  - put ch:CHARACTER to index:INTEGER<-
+  // Put `ch' at position `index'.
+  ( ? {valid_index index};
+
+    storage.put ch to (index - 1);
+
+    ? {item index = ch};
+  );
+
+  - swap i1:INTEGER with i2: INTEGER <-
+  ( + tmp,old_i1,old_i2: CHARACTER;
+    ? {valid_index i1};
+    ? {valid_index i2};
+
+    old_i1:=item i1;
+    old_i2:=item i2;
+    tmp := item i1;
+    put (item i2) to i1;
+    put tmp to i2;
+
+    ? {item i1 = old_i2};
+    ? {item i2 = old_i1};
+  );
+
+  - insert ch:CHARACTER to index:INTEGER <-
+  // Insert `ch' after position `index'.
+  ( + i:INTEGER;
+    ? {0 <= index};
+    ? {index <= count};
+
+    i:=count;
+    extend ' ';
+    {i = index}.until_do {
+      put (item i) to (i + 1);
+      i := i - 1;
+    };
+    put ch to (index + 1);
+
+    ? {item (index + 1) = ch};
+  );
+
+  - insert ch:CHARACTER to index:INTEGER on nb:INTEGER <-
+  // Insert `ch' after position `index'.
+  (
+    ? {0 <= index};
+    ? {index <= count};
+
+    1.to nb do { cpt:INTEGER; // Version bourin!!!
+      insert ch to index;
+    };
+  );
+
+  - shrink min_index:INTEGER to max_index:INTEGER <-
+  // Keep only the slice [`min_index' .. `max_index'] or nothing
+  // when the slice is empty.
+  (
+    ? {1 <= min_index};
+    ? {max_index <= count};
+    ? {min_index <= max_index + 1};
+
+    (max_index < min_index).if {
+      count := 0;
+    } else {
+      (min_index = 1).if {
+	count := max_index;
+      } else {
+	storage.copy_slice storage to 0 from (min_index - 1) to (max_index - 1);
+	count := max_index - min_index + 1
+      };
+    };
+
+    ? {count = max_index - min_index + 1};
+  );
+
+  - remove index:INTEGER <-
+  // Remove character at position `index'.
+  ( + old_count:INTEGER;
+    ? {valid_index index};
+
+    old_count:=count;
+    remove_between index to index;
+
+    ? {count = old_count - 1};
+  );
+
+  - add_first ch: CHARACTER <-
+  // Add `ch' at first position.
+  ( + old_count: INTEGER;
+
+    old_count:=count;
+    add_last(' ');
+    count.downto 2 do { i:INTEGER;
+      put (item (i - 1)) to i;
+    };
+    put ch to 1;
+
+    ? {count = 1 + old_count};
+    ? {item 1 = ch};
+  );
+
+  - add_last ch:CHARACTER <-
+  // Append `ch' to string
+  ( + new_capacity:INTEGER;
+    //+ old_count:INTEGER;
+
+    //old_count:=count;
+    (capacity <= count).if {
+      (capacity = 0).if	{
+	capacity := 32;
+	storage  := NATIVE_ARRAY(CHARACTER).create capacity;
+      } else {
+	new_capacity := capacity * 2;
+	storage      := storage.realloc capacity with new_capacity;
+	capacity     := new_capacity;
+      };
+    };
+    storage.put ch to count;
+    count := count + 1;
+
+    //? {count = 1 + old_count};
+    //? {item count = ch};
+  );
+
+  - append_character c:CHARACTER <- add_last c;
+
+  - extend c:CHARACTER <- add_last c;
+
+  - to_lower <-
+  // Convert all characters to lower case.
+  (
+    count.downto 1 do { i:INTEGER;
+      put (item i.to_lower) to i;
+    };
+  );
+
+  - to_upper <-
+  // Convert all characters to upper case.
+  (
+    count.downto 1 do { i:INTEGER;
+      put (item i.to_upper) to i;
+    };
+  );
+
+  - keep_head n:INTEGER <-
+  // Remove all characters except for the first `n'.
+  // Do nothing if `n' >= `count'.
+  (
+    + old_count:INTEGER;
+    ? { n >= 0};
+    old_count := count;
+    ( n < count).if {
+      remove_last (count - n);
+    };
+
+    ? { count = n.min old_count};
+  );
+
+  - keep_tail n:INTEGER <-
+  // Remove all characters except for the last `n'.
+  // Do nothing if `n' >= `count'.
+  (
+    + old_count:INTEGER;
+    ? { n >= 0};
+    old_count := count;
+    ( n < count).if {
+      remove_first (count - n);
+    };
+
+    ? { count = n.min old_count};
+  );
+
+  - remove_first n:INTEGER <-
+  // Remove `n' first characters.
+  // If `n' >= `count', remove all.
+  (
+    + old_count:INTEGER;
+    ? { n >= 0};
+    old_count:=count;
+    (n > count).if {
+      count := 0;
+    } else {
+      (n > 0).if {
+	remove_between 1 to n;
+      };
+    };
+
+    ? { count = 0.max(old_count - n)};
+  );
+
+  - remove_between start:INTEGER to end:INTEGER <-
+  // Remove all characters from `strt_index' to `end_index' inclusive.
+  (
+    + len,old_count:INTEGER;
+    ? { end <= count };
+    ? { start.in_range 1 to (end + 1)};
+
+    old_count := count;
+    len := end - start + 1;
+    (len > 0).if {
+      (end + 1).to count do { i:INTEGER;
+	put (item i) to  (i - len);
+      };
+      count := count - len;
+    };
+    ? { count = (old_count - (end - start + 1))};
+  );
+
+  - remove_suffix s:ABSTRACT_STRING <-
+  // Remove the suffix `s' of current string.
+  (
+    ?{ has_suffix s};
+    remove_last (s.count);
+  );
+
+  - remove_last n:INTEGER <-
+  ( + old_count:INTEGER;
+    // Remove `n' last characters. If `n' >= `count', remove all.
+    ?{ n >= 0 };
+    old_count:=count;
+
+    (n > count).if {
+      count := 0;
+    } else {
+      count := count - n;
+    };
+
+    ? { count = 0.max(old_count - n) };
+  );
+
+  - remove_tail n:INTEGER <-
+  (
+    remove_last n;
+  );
+
+  - remove_prefix s:ABSTRACT_STRING <-
+  // Remove the prefix `s' of current string.
+  (
+    ?{ has_prefix s};
+    remove_first (s.count);
+  );
+
+  - left_adjust <-
+  // Remove leading blanks.
+  (+ i: INTEGER;
+    { ((i + 1) > count) || {item (i + 1) != ' '}}.until_do {
+      i := i + 1;
+    };
+    remove_first i;
+    ? { is_empty || {item 1 != ' '}};
+  );
+
+  - right_adjust <-
+  // Remove trailing blanks.
+  (
+    { (count = 0) || { item count != ' '}}.until_do {
+      count := count - 1;
+    };
+    ? { is_empty || {item count != ' '}};
+  );
+
+  - extend_multiple c:CHARACTER by n:INTEGER <-
+  // Extend Current with `n' times character `c'.
+  (
+    + old_count:INTEGER;
+    ? { n >= 0};
+    old_count := count;
+    (n - 1).downto 0 do { i:INTEGER;
+      append_character c;
+    };
+
+    ? { count = n + old_count};
+  );
+
+  - precede_multiple c:CHARACTER by n:INTEGER <-
+  // Prepend `n' times character `c' to Current.
+  (
+    + old_count:INTEGER;
+
+    ? { n >= 0 };
+    old_count := count;
+    (n > 0).if {
+      (old_count = 0).if {
+	extend_multiple c by n;
+      } else {
+	extend_multiple '\0' by n;
+	storage.move 0 to (old_count - 1) by n;
+	storage.set_all_with c until (n - 1);
+      };
+    };
+    ? { count = n + old_count};
+  );
+
+  - extend_to_count c:CHARACTER until needed_count:INTEGER <-
+  // Extend Current with `c' until `needed_count' is reached.
+  // Do nothing if `needed_count' is already greater or equal
+  // to `count'.
+  (
+    ? { needed_count >= 0 };
+    (needed_count - count).downto 1 do { i:INTEGER;
+      append_character(c);
+    };
+
+    ? { count >= needed_count};
+  );
+
+  -  precede_to_count c:CHARACTER until needed_count:INTEGER <-
+  // Prepend `c' to Current until `needed_count' is reached.
+  // Do nothing if `needed_count' is already greater or equal
+  // to `count'.
+  ( + offset, old_count: INTEGER;
+    ? { needed_count >= 0};
+    old_count := count;
+    offset := needed_count - old_count;
+    (offset > 0).if {
+      extend_to_count '\0' until needed_count;
+      storage.move 0 to (old_count - 1) by offset;
+      storage.set_all_with c until (offset - 1);
+    };
+
+    ? { count >= needed_count };
+  );
+
+  - reverse <-
+  // Reverse the string.
+  (
+    + i1, i2: INTEGER;
+    i1 := 1;
+    i2 := count;
+    { i1 >= i2 }.until_do {
+      swap i1 with i2;
+      i1 := i1 + 1;
+      i2 := i2 - 1;
+    };
+  );
+
+  - remove_all_occurrences ch:CHARACTER <-
+  // Remove all occurrences of `ch'.
+  (
+    +  j: INTEGER;
+    j := 1;
+    lower.to upper do { i:INTEGER;
+      (item i != ch).if {
+	put (item i) to j;
+	j := j + 1;
+      };
+    };
+    count := j - 1;
+  );
+
+  - extend_unless ch:CHARACTER <-
+  // Extend `Current' (using `extend') with `ch' unless `ch' is
+  // already the `last' character.
+  (
+    + old_count:INTEGER;
+    old_count := count;
+    ( (count = 0) || {item count != ch}).if {
+      append_character ch;
+    };
+
+    ? { last = ch };
+    ? { count >= old_count };
+  );
+
+  - make_from_string model:ABSTRACT_STRING <-
+  // Initialize from the characters of `model'.
+  // Useful in proper descendants of STRING.
+  ( + c:INTEGER;
+
+    ? { model != NULL };
+    c := model.count;
+    (capacity < c).if {
+      storage := NATIVE_ARRAY(CHARACTER).calloc c;
+      capacity := c;
+    };
+    count := c;
+    storage.copy_from (model.storage) until (c - 1);
+
+    ? { count = model.count};
+  );
+
+  - set_count new_count:INTEGER <-
+  [
+    -? { new_count <= capacity };
+  ]
+  (
+    count := new_count;
+  );
+
+  //
+  // Interfacing with C string :
+  //
+
+  - to_external:NATIVE_ARRAY(CHARACTER) <-
+  // Gives C access to the internal `storage' (may be dangerous).
+  // To be compatible with C, a null character is added at the end
+  // of the internal `storage'. This extra null character is not
+  // part of the Eiffel STRING.
+  (
+    // Append 0 terminal.
+    (capacity > count).if {
+      storage.put '\0' to count;
+    } else {
+      add_last '\0';
+      count := count - 1;
+    };
+
+    storage
+  )
+  [
+    +? {count = Old count};
+    +? {Result.is_not_null};
+  ];
+
+  - from_external p:NATIVE_ARRAY(CHARACTER) <-
+  // Internal `storage' is set using `p' (may be dangerous because
+  // the external C string `p' is not duplicated).
+  // Assume `p' has a null character at the end in order to
+  // compute the Eiffel `count'. This extra null character
+  // is not part of the Eiffel STRING.
+  // Also consider `from_external_copy' to choose the most appropriate.
+  ( ? {p.is_not_null};
+
+    count := 0;
+    {p.item count = '\0'}.until_do {
+      count := count + 1;
+    };
+    (storage != p).if {
+      storage := p;
+      capacity := count + 1;
+    };
+
+    ? {capacity >= (count + 1)};
+    ? {p = to_external};
+  );
+
+  - from_external_copy p:NATIVE_ARRAY(CHARACTER)  <-
+  // Internal `storage' is set using a copy of `p'.
+  // Assume `p' has a null character at the end in order to
+  // compute the Eiffel `count'. This extra null character
+  // is not part of the Eiffel STRING.
+  // Also consider `from_external' to choose the most appropriate.
+  ( + i:INTEGER;
+    ? {p.is_not_null};
+    i := 0;
+    count := 0;
+    {p.item i = '\0'}.until_do {
+      add_last (p.item i);
+      i := i + 1;
+    };
+  );
+
+  //
+  // Guru section.
+  //
+
+  - element_sizeof:INTEGER <- 1;
+
+  - to_native_array_uinteger_8:NATIVE_ARRAY(UINTEGER_8) <-
+  (
+    CONVERT(NATIVE_ARRAY(CHARACTER),NATIVE_ARRAY(UINTEGER_8)).on storage
+  );
+
+  - add_last_buffer buf:FAST_ARRAY(UINTEGER_8) from beg:INTEGER to end:INTEGER <-
+  (
+    beg.to end do { j:INTEGER;
+      add_last (buf.item j.to_character);
+    };
+  );
+
+  - item_byte idx:INTEGER offset ofs:INTEGER :UINTEGER_8 <-
+  (
+    ? {ofs = 0};
+    ? {idx <= upper};
+    item idx.to_uinteger_8
+  );
+
+  - restore_after_external <-
+  (
+    count := 0;
+    {storage.item count = '\0'}.until_do {
+      count := count + 1;
+    };
+  );
+
+  //
+  // Import/Export NATIVE_ARRAY
+  //
+
+  - from_native_array_of_character p:NATIVE_ARRAY(CHARACTER) :SELF <-
+  ( + s :SELF;
+    s := SELF.create 0;
+    s.from_external_copy p;
+    s
+  );
+
+  - from_native_array_of_integer_8 p:NATIVE_ARRAY(INTEGER_8) :SELF <-
+    from_external_copy(CONVERT(NATIVE_ARRAY(INTEGER_8),NATIVE_ARRAY(CHARACTER)).on p);
+
+  - from_native_array_of_uinteger_8 p:NATIVE_ARRAY(UINTEGER_8) :SELF <-
+    from_external_copy(CONVERT(NATIVE_ARRAY(UINTEGER_8),NATIVE_ARRAY(CHARACTER)).on p);

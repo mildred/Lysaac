@@ -1,0 +1,28 @@
+Section Header
+  // Toggle
+
+  + name      := TOGGLE;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP Toggle";
+
+Section Inherit
+
+  + parent:Expanded CONTROL := CONTROL;
+
+Section Public
+  
+  - make title:ABSTRACT_STRING :SELF <-
+  ( + result:SELF;
+    + h:POINTER;
+    + n_title:NATIVE_ARRAY(CHARACTER);
+    
+    n_title := title.to_external;
+
+    h := `IupToggle(@n_title, NULL)`:POINTER;
+
+    result := SELF.clone;
+    result.set_handle h;
+    result
+  );

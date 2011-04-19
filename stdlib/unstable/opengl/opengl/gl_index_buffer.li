@@ -1,0 +1,106 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_INDEX_BUFFER;
+  
+Section Inherit
+  
+  - parent_index_buffer:INDEX_BUFFER := INDEX_BUFFER;
+  
+Section Public
+  
+  + index:FAST_ARRAY(UINTEGER_16);
+  
+  + index_id:UINTEGER_32;
+  
+  
+  - make sz:INTEGER <- 
+  (
+    index := FAST_ARRAY(UINTEGER_16).create_with_capacity sz;
+  );
+  
+  - build <- 
+  (
+    + p:POINTER;
+    
+    (OPENGL.arb_vertex_buffer_object != NULL).if {
+      // create index array
+      (index.count > 0).if {
+        index_id := OPENGL.arb_vertex_buffer_object.genbuffer;
+        OPENGL.arb_vertex_buffer_object.bind_index index_id;
+        
+        // load data into GPU cache
+        p := index.to_external;
+        OPENGL.arb_vertex_buffer_object.buffer_index_data p size (index.count*UINTEGER_16.object_size);
+      };
+    };
+  );
+  
+  - bind <-
+  (   
+    (index.count > 0).if {
+      (OPENGL.arb_vertex_buffer_object != NULL).if {
+        // use GPU index buffer
+        OPENGL.arb_vertex_buffer_object.bind_index index_id;
+      };
+    };    
+  );
+  
+  - draw mode:INTEGER size sz:INTEGER <-
+  (
+    + p:POINTER;
+    
+    (OPENGL.arb_vertex_buffer_object != NULL).if {
+      `glDrawElements (@mode, @sz, GL_UNSIGNED_SHORT, 0)`;
+    } else {
+      p := index.to_external;
+      `glDrawElements (@mode, @sz, GL_UNSIGNED_SHORT, @p)`;
+    };
+    (OPENGL.arb_vertex_buffer_object != NULL).if {
+      OPENGL.arb_vertex_buffer_object.disable_index;
+    };
+  );
+  
+  - begin_indices <-
+  (
+  );
+  
+  - end <- 
+  (
+    build;
+  );
+  
+  - add_index i:UINTEGER_16 <- 
+  (
+    index.add_last i; 
+  );
+  
+  - destroy <-
+  // bug!!!
+  (
+    (OPENGL.arb_vertex_buffer_object != NULL).if {
+      (index.count > 0).if {
+        OPENGL.arb_vertex_buffer_object.delete index_id;
+      };
+    };
+  );

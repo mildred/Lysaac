@@ -1,0 +1,43 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := STENCIL_BUFFER;
+  
+  - comment  := "store some bits for each pixels ";
+  
+Section Inherit
+  
+  + parent_depth_buffer:Expanded DEPTH_BUFFER; // extends depth buffer
+  
+Section Public
+  
+  // stencil operations
+  - keep:INTEGER <- 1;   // do not change value
+  - replace:INTEGER <- 2; // replace value
+  - incr:INTEGER <- 3; // increment value
+  - decr:INTEGER <- 4; // decrement value
+  - invert:INTEGER <- 5; // invert bits value
+  
+  
+  - set_function f:INTEGER value val:INTEGER_32 mask m:UINTEGER_32 <- deferred;
+  - when_pass op1:INTEGER when_fail op2:INTEGER when_zfail op3:INTEGER <- deferred;

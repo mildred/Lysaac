@@ -1,0 +1,91 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                             //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_EVALUATOR2D;
+  
+  - comment  := "Maps a spline surface";
+  
+Section Inherit
+  
+  + parent_evaluator2d:Expanded EVALUATOR2D;
+  
+Section Public
+  
+  // types of the control points
+  - vertex3:INTEGER <- `GL_MAP2_VERTEX_3`:INTEGER;
+  - vertex4:INTEGER <- `GL_MAP2_VERTEX_4`:INTEGER;
+  - index:INTEGER <- `GL_MAP2_INDEX`:INTEGER;
+  - normal:INTEGER <- `GL_MAP2_NORMAL`:INTEGER;
+  - color4:INTEGER <- `GL_MAP2_COLOR_4`:INTEGER;
+  - texture_coord1:INTEGER <- `GL_MAP2_TEXTURE_COORD_1`:INTEGER;
+  - texture_coord2:INTEGER <- `GL_MAP2_TEXTURE_COORD_2`:INTEGER;
+  - texture_coord3:INTEGER <- `GL_MAP2_TEXTURE_COORD_3`:INTEGER;
+  - texture_coord4:INTEGER <- `GL_MAP2_TEXTURE_COORD_4`:INTEGER;
+  
+  // mesh drawing modes
+  - line:INTEGER <- `GL_LINE`:INTEGER;
+  - point:INTEGER <- `GL_POINT`:INTEGER;
+  - fill:INTEGER <- `GL_FILL`:INTEGER;
+  
+  - enable <-
+  (
+    + mode:INTEGER;
+    
+    mode := type;
+    parent_state.enable;
+    `glEnable(@mode)`;
+  );
+  
+  - disable <-
+  (
+    + mode:INTEGER;
+    
+    mode := type;
+    parent_state.disable;
+    `glDisable(@mode)`;
+  );
+  
+  - map (u_order,u_size:INTEGER) and (v_order,v_size:INTEGER) range (u1,v1:REAL_32) to (u2,v2:REAL_32) <- 
+  (
+    + mode:INTEGER;
+    + p:POINTER;
+    
+    mode := type;
+    p := control_points.to_external;
+    `glMap2f(@mode,@u1,@u2,@u_size,@u_order,@v1,@v2,@v_size,@v_order,@p)`;
+  );
+  
+  - evaluate (x,y:REAL_32) <-
+  (
+    `glEvalCoord2f(@x,@y)`;
+  );
+  
+  - generate_grid  (w,h:INTEGER) between (u1,u2:REAL_32) and  (v1,v2:REAL_32)<-
+  (
+    `glMapGrid2f(@w,@u1,@u2,@h,@v1,@v2)`;
+  );
+  
+  - evaluate_mesh mode:INTEGER from (start1,start2:INTEGER) to (end1,end2:INTEGER) <-
+  (
+    `glEvalMesh2(@mode, @start1, @end1, @start2, @end2)`;
+  );

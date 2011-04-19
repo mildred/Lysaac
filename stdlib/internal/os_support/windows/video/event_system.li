@@ -1,0 +1,236 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        := EVENT_SYSTEM;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     := "X11 - Event System";
+
+  - bibliography:= "http://IsaacOS.com";
+  - author      := "Benoit Sonntag (bsonntag@loria.fr)";
+
+  - external :=
+`
+void (*get_event)()=NULL;
+int event_num;
+int event_p1;
+int event_p2;
+int event_p3;
+int event_p4;
+
+unsigned char buf[50];
+
+HDC hdc_glob;
+LRESULT CALLBACK MainWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  PAINTSTRUCT ps;
+  HDC hdc_old;
+  RECT rect;
+    switch (uMsg)
+    {
+      // Timer
+      case WM_TIMER:
+      event_num = 13;
+      get_event();
+      return 0;
+      // Create
+      case WM_CREATE:
+      return 0;
+
+      // Repaint
+      case WM_PAINT:
+      event_num = 0;
+      hdc_old = hdc_glob;
+      hdc_glob = BeginPaint(hwnd, &ps);
+      event_p1 = ps.rcPaint.left;
+      event_p2 = ps.rcPaint.top;
+      event_p3 = ps.rcPaint.right;
+      event_p4 = ps.rcPaint.bottom;
+      get_event();
+      EndPaint(hwnd, &ps);
+      hdc_glob = hdc_old;
+      return 0;
+
+      // Destroy
+      case WM_DESTROY:
+      PostQuitMessage(0);
+      exit(0);
+      return 0;
+
+      // Mouse
+      case WM_MOUSEMOVE:
+      event_num = 1;
+      event_p1 = (short)LOWORD(lParam);
+      event_p2 = (short)HIWORD(lParam);
+      event_p3 = (((wParam & MK_LBUTTON) != 0) << 1) | ((wParam & MK_RBUTTON) != 0);
+      get_event();
+      return 0;
+      case WM_LBUTTONDOWN:
+      event_num = 2;
+      get_event();
+      return 0;
+      case WM_LBUTTONUP:
+      event_num = 3;
+      get_event();
+      return 0;
+      case WM_RBUTTONDOWN:
+      event_num = 4;
+      get_event();
+      return 0;
+      case WM_RBUTTONUP:
+      event_num = 5;
+      get_event();
+      return 0;
+
+      // Kayboard
+      case WM_KEYDOWN:
+      //sprintf(buf,"KeyDown : %c(%d) ,%lx      ",wParam,wParam,lParam);
+      //TextOutA(hdc_glob,10,100,buf,strlen(buf));
+      event_num = 10;
+      event_p1 = wParam;
+      event_p2 = lParam;
+      get_event();
+      return 0;
+
+      case WM_CHAR:
+      //sprintf(buf,"Char : %c(%d) ,%lx      ",wParam,wParam,lParam);
+      //TextOutA(hdc_glob,10,120,buf,strlen(buf));
+      event_num = 11;
+      event_p1 = wParam;
+      event_p2 = lParam;
+      get_event();
+      return 0;
+
+      case WM_KEYUP:
+      //sprintf(buf,"KeyUp : %c(%d) ,%lx      ",wParam,wParam,lParam);
+      //TextOutA(hdc_glob,10,140,buf,strlen(buf));
+      event_num = 12;
+      event_p1 = wParam;
+      event_p2 = lParam;
+      get_event();
+      return 0;
+
+      default:
+      return DefWindowProc(hwnd, uMsg, wParam, lParam);
+    }
+  }
+`;
+
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Interrupt
+
+  - get_physical_event <-
+  ( + p1,p2,p3,p4:INTEGER;
+
+    p1 := `event_p1`:INTEGER;
+    p2 := `event_p2`:INTEGER;
+    p3 := `event_p3`:INTEGER;
+    p4 := `event_p4`:INTEGER;
+
+    `event_num`:INTEGER
+    //
+    // Event Window
+    //
+    .when 0 then {
+      // Refresh Linux Window
+      (DESK.physical_screen != NULL).if {
+	DESK.physical_screen.redraw (p1,p2) to (p3,p4);
+      };
+    }
+    //
+    // Event Mouse
+    //
+    .when 1 then {
+      MOUSE.set (p1,p2) with (((p3 & 10b)!=0),((p3 & 01b)!=0));
+    }
+    .when 2 then {
+      MOUSE.set ((MOUSE.x_current),(MOUSE.y_current)) with (TRUE,(MOUSE.right));
+    }
+    .when 3 then {
+      MOUSE.set ((MOUSE.x_current),(MOUSE.y_current)) with (FALSE,(MOUSE.right));
+    }
+    .when 4 then {
+      MOUSE.set ((MOUSE.x_current),(MOUSE.y_current)) with ((MOUSE.left),TRUE);
+    }
+    .when 5 then {
+      MOUSE.set ((MOUSE.x_current),(MOUSE.y_current)) with ((MOUSE.left),FALSE);
+    }
+    //
+    // Event Keyboard
+    //
+    .when 10 then {
+      // Down
+      KEYBOARD.key (((p2>>16)&0FFh).to_uinteger_8) press TRUE;
+    }
+    .when 11 then {
+      // Char
+      KEYBOARD.key (p1.to_uinteger_8) press FALSE;
+    }
+    //.when 11 then {
+      // Up
+      //KEYBOARD.key `ev.xkey.keycode`:UINTEGER_8 press FALSE;
+    //}
+    // Timer
+    .when 13 then {
+      TIMER.timer_interrupt;
+      TIMER.get_event;
+    };
+  );
+
+Section Public
+
+  - sleep n:INTEGER <-
+  // Milisecond
+  (
+    `sleep(@n)`;
+  );
+
+  - make <-
+  ( + ptr:POINTER;
+
+    ptr := get_physical_event;
+    `get_event = @ptr`;
+  );
+
+  - get_event <-
+  (
+    `
+    GetMessage(&msg_glob, NULL, 0, 0);
+    TranslateMessage(&msg_glob);
+    DispatchMessage(&msg_glob);
+    `;
+  );
+
+
+
+
+
+
+
+
+
+
+

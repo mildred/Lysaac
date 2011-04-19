@@ -1,0 +1,82 @@
+///////////////////////////////////////////////////////////////////////////////
+//                              Lisaac Example                               //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := G_PAGE;
+      
+  - author  := "Sonntag Benoit (bsonntag@loria.fr)";
+  - comment := "Output text for GUI.";
+
+Section Inherit  
+  
+  + parent_area:Expanded AREA;
+
+  - parent_g_expr:G_EXPR := G_EXPR;
+          
+Section Public
+   
+  //
+  // Width / Height
+  //
+  
+  - width_min:INTEGER  := 500; //128;
+  
+  - height_min:INTEGER := 200; //128;
+    
+  //
+  // Creation.
+  //
+  
+  - create:SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make;
+    result
+  );
+  
+  - make <-
+  (
+    // Nothing.
+  ); 
+
+  //
+  // Update position.
+  //
+  
+  - set_position rac:AREA at (x,y:INTEGER) size (w,h:INTEGER) <-
+  ( 
+    update rac from (x,y) size (w,h);
+  );
+  
+  //
+  // Display.
+  //
+  
+  - draw (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  (     
+    clipping (x0,y0) to (x1,y1);    
+    //    
+    rectangle (x_min,y_min) to (x_max,y_max) color black;
+    rectangle_fill (x_min+1,y_min+1) to (x_max-1,y_max-1) color yellow;
+    rectangle_fill (0,0) to (width_min-1,height_min-1) color blue;
+    
+  );

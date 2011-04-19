@@ -1,0 +1,122 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := ARB_VERTEX_BUFFER_OBJECT;
+  
+  - comment  := "ARB_vertex_buffer_object extension";
+  
+  - external := `
+  
+  // VBO Extension Definitions, From glext.h
+  #define GL_ARRAY_BUFFER_ARB 0x8892
+  #define GL_ELEMENT_ARRAY_BUFFER_ARB       0x8893
+  #define GL_STATIC_DRAW_ARB 0x88E4
+  typedef void (APIENTRY * PFNGLBINDBUFFERARBPROC) (GLenum target, GLuint buffer);
+  typedef void (APIENTRY * PFNGLDELETEBUFFERSARBPROC) (GLsizei n, const GLuint *buffers);
+  typedef void (APIENTRY * PFNGLGENBUFFERSARBPROC) (GLsizei n, GLuint *buffers);
+  typedef void (APIENTRY * PFNGLBUFFERDATAARBPROC) (GLenum target, int size, const GLvoid *data, GLenum usage);
+  
+  // VBO Extension Function Pointers
+  PFNGLGENBUFFERSARBPROC liglGenBuffersARB = NULL;					
+  PFNGLBINDBUFFERARBPROC liglBindBufferARB = NULL;					
+  PFNGLBUFFERDATAARBPROC liglBufferDataARB = NULL;					
+  PFNGLDELETEBUFFERSARBPROC liglDeleteBuffersARB = NULL;				
+  unsigned int ARB_vertex_buffer_object_id;
+  `;
+  
+Section Inherit
+  
+  - parent_gl_extension:GL_EXTENSION := GL_EXTENSION;
+  
+Section Public
+  
+  - name:STRING_CONSTANT := "ARB_vertex_buffer_object";
+  
+  - make <-
+  (
+    // Get Pointers To The GL Functions
+    `liglGenBuffersARB = (PFNGLGENBUFFERSARBPROC) GPA("glGenBuffersARB");
+    liglBindBufferARB = (PFNGLBINDBUFFERARBPROC) GPA("glBindBufferARB");
+    liglBufferDataARB = (PFNGLBUFFERDATAARBPROC) GPA("glBufferDataARB");
+    liglDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC) GPA("glDeleteBuffersARB");`;
+  );
+  
+  - genbuffer:UINTEGER_32 <-
+  (
+    `liglGenBuffersARB(1, &ARB_vertex_buffer_object_id)`;
+    `ARB_vertex_buffer_object_id`:UINTEGER_32
+  );
+  
+  - genbuffers n:INTEGER :FAST_ARRAY(UINTEGER_32) <-
+  (
+    + p:POINTER;
+    + result:FAST_ARRAY(UINTEGER_32);
+    
+    result := FAST_ARRAY(UINTEGER_32).create n;
+    p := result.to_external;
+    `liglGenBuffersARB(@n, @p)`;
+    result
+  );
+  
+  - bind buffer:UINTEGER_32 <-
+  (
+    `liglBindBufferARB(GL_ARRAY_BUFFER_ARB, @buffer)`;
+  );
+  
+  - bind_index buffer:UINTEGER_32 <-
+  (
+    `liglBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, @buffer)`;
+  );
+  
+  - disable <-
+  (
+    `liglBindBufferARB(GL_ARRAY_BUFFER_ARB, 0)`;
+  );
+  
+  - disable_index <-
+  (
+    `liglBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0)`;
+  );
+  
+  - buffer_data data:POINTER size sz:INTEGER <-
+  (
+    `liglBufferDataARB(GL_ARRAY_BUFFER_ARB, @sz, @data, GL_STATIC_DRAW_ARB)`;
+  );
+  
+  - buffer_index_data data:POINTER size sz:INTEGER <-
+  (
+    `liglBufferDataARB(GL_ELEMENT_ARRAY_BUFFER_ARB, @sz, @data, GL_STATIC_DRAW_ARB)`;
+  );
+  
+  - delete id:UINTEGER_32 <-
+  (
+    `liglDeleteBuffersARB(1, (GLuint*)@id)`;
+  );
+  
+  - delete_buffers ids:FAST_ARRAY(UINTEGER_32) count n:INTEGER <-
+  (
+    + p:POINTER;
+    
+    p := ids.to_external;
+    `liglDeleteBuffersARB(@n, @p)`;
+  );

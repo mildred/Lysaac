@@ -1,0 +1,104 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name      := FORMAT_IMG;
+
+  - copyright := "2003-2008 Sonntag Benoit";
+
+  - author    := "Sonntag Benoit (sonntag@icps.u-strasbg.fr)";
+  - comment   := "Format image generic";
+
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Public
+  
+  - name:STRING_CONSTANT <- 
+  (
+    deferred; 
+    NULL
+  );
+      
+  - extension:STRING_CONSTANT <-
+  (
+    deferred;
+    NULL
+  );
+  
+  - is_bitmap:BOOLEAN <-
+  (
+    deferred;
+    FALSE
+  );
+  
+  - is_vectorial:BOOLEAN <- ! is_bitmap;
+  
+  - height:INTEGER <- ( deferred; 0);
+  - width:INTEGER  <- ( deferred; 0);
+  
+  //
+  // Creation.
+  //
+
+  - create_with_file f:FILE :SELF <-
+  ( + result:SELF;
+    result := clone;
+    result.make_with_file f;
+    result
+  );
+
+  - make_with_file f:FILE :SELF <-
+  ( 
+    deferred;
+  );
+  
+  - create_with buf:FAST_ARRAY(UINTEGER_8) :SELF <-
+  ( + result:SELF;
+    result := clone;
+    result.make_with buf;
+    result
+  );
+
+  - make_with buf:FAST_ARRAY(UINTEGER_8) :SELF <-
+  ( 
+    deferred;
+  );
+  
+  //
+  // Put image.
+  //
+  
+  - put_image_in bmp:ABSTRACT_BITMAP <-
+  (
+    deferred;
+  );
+  
+  - put_image_in bmp:ABSTRACT_BITMAP scale s:REAL_16_16 <-
+  (
+    deferred;
+  );
+  
+Section FORMAT_IMG
+  
+  + pos_buffer:INTEGER;
+  

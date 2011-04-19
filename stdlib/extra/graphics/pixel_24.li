@@ -1,0 +1,106 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name    := Expanded PIXEL_24;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment := "Pixel on 24 bits.";
+    
+Section Insert
+  
+  - parent_pixel:PIXEL := PIXEL;
+  
+Section Mapping
+  
+  + map_blue:UINTEGER_8;
+  
+  + map_green:UINTEGER_8;
+
+  + map_red:UINTEGER_8;
+  
+Section Public
+  
+  - blue:UINTEGER_8 <- map_blue;
+  
+  - green:UINTEGER_8 <- map_green;
+
+  - red:UINTEGER_8 <- map_red;
+  
+  - get_raw col:UINTEGER_32 :UINTEGER_32 <-
+  (
+    col
+  );
+  
+  - get_color:UINTEGER_32 <-
+  ( + result:UINTEGER_32;
+    /* BSBS: NE MARCHE PAS (see viewer)
+    result := `&(@Self)`:UINTEGER_32;
+    result := result & 0FFFFFFh;
+    */
+    result := map_red;
+    result := (result << 8) | map_green;
+    result := (result << 8) | map_blue;
+    
+    result
+  );
+    
+  - make col:UINTEGER_32 <-
+  (
+    map_red   :=  (col >> 16).to_uinteger_8;
+    map_green := ((col & 00FF00h) >> 8).to_uinteger_8;
+    map_blue  :=  (col & 0000FFh).to_uinteger_8;
+  );  
+  
+  - make_rgb (r,g,b:UINTEGER_8) <-
+  (
+    map_red := r;
+    map_green := g;
+    map_blue := b;
+  );
+  
+  - size:UINTEGER_8       := 24; 
+  - red_size:UINTEGER_8   := 8;
+  - red_pos:UINTEGER_8    := 16;
+  - green_size:UINTEGER_8 := 8;
+  - green_pos:UINTEGER_8  := 8;
+  - blue_size:UINTEGER_8  := 8;
+  - blue_pos:UINTEGER_8   := 0;
+  - reserved_size:UINTEGER_8 :=0;
+  - reserved_pos:UINTEGER_8  :=0;
+        
+  - to_pixel_24:PIXEL_24 <- Self;
+  
+
+
+
+
+
+
+
+
+
+
+
+
+

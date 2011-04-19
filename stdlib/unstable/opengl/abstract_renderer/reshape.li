@@ -1,0 +1,70 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := RESHAPE;
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Private  
+  
+  - r:RENDERER;
+  
+Section Public
+  
+  - set_render_system renderer:RENDERER <-
+  (
+    r := renderer;
+  );
+  
+  //
+  // Reshape Events
+  //
+  
+  - on_resize (w,h:INTEGER) <- 
+  ( + ratio,f:REAL_32;
+    
+    `glViewport(0, 0, @w, @h)`;
+    `glMatrixMode(GL_PROJECTION)`;
+    `glLoadIdentity()`;
+    ratio := w.to_real / h.to_real;
+    f := r.fov;
+    `gluPerspective(@f, @ratio, 0.1, 1000)`;
+    `glMatrixMode(GL_MODELVIEW)`;
+    `glLoadIdentity()`;
+    
+    
+    /* r.transform.set_viewport (r.viewport);
+    
+    // modify projection matrix
+    r.transform.new_projection {
+      r.transform.load_identity;
+      
+      r.transform.perspective (r.fov, w.to_real/h.to_real, 0.1, 1000.0);
+    };
+    // clear modelview matrix
+    r.transform.load_identity;
+    */
+  );
+  

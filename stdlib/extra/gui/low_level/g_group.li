@@ -1,0 +1,113 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := G_GROUP;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+      
+  - author  := "Sonntag Benoit (bsonntag@loria.fr)";
+  - comment := "Group elements for GUI.";
+
+Section Inherit  
+
+  + parent_area:Expanded AREA;
+  
+  + parent_g_expr:Expanded G_EXPR;
+          
+Section Public
+  
+  + root:G_EXPR;
+  
+  //
+  // Width / Height
+  //
+  
+  - predict_size (w,h:INTEGER) :(INTEGER,INTEGER) <-
+  (
+    w, h
+  );
+  
+  - width_min:INTEGER  <- root.width_min;
+  
+  - height_min:INTEGER <- root.height_min;
+    
+  //
+  // Creation.
+  //
+  
+  - create elt:G_EXPR :SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make elt;
+    result
+  );
+  
+  - make elt:G_EXPR <-
+  (
+    root := elt;    
+  ); 
+   
+  //
+  // Update position.
+  //
+  
+  - set_position rac:AREA at (x,y:INTEGER) <-
+  (
+    set_position rac at (x,y) size (width_min,height_min);
+  );
+
+  - set_position rac:AREA at (x,y:INTEGER) size (w,h:INTEGER) <-
+  (
+    update rac from (x,y) size (w,h);
+    root.set_position Self at (0,0) size (w,h);
+  );
+  
+  //
+  // Display.
+  //
+  
+  - draw (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  (    
+    draw_slave Self from (x0,y0) to (x1,y1);    
+  );
+  
+  - draw_slave bmp:ABSTRACT_BITMAP from (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  (
+    deferred;
+  );
+  
+  - refresh <-
+  (
+    parent_area.refresh;
+    (root != NULL).if {
+      root.refresh;
+    };
+  );
+  
+  - delete <-
+  (
+    parent_area.delete;
+    DESK.set_focus DESK;
+  );
+  

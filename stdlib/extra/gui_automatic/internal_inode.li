@@ -1,0 +1,265 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name      := INTERNAL_INODE;
+
+  - copyright := "Jonathan Ponte, Maxime Audrin, Benoit Sonntag";
+
+  - comment   := "Interface Node for GUII.";
+  
+  // Warning: This Prototype is shared. All the data have to be deferred !
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+
+Section Private  
+  
+  //
+  // Append for the problem with Dynamic inheritance !
+  //
+
+  
+Section Public  
+  
+  //
+  // Data.
+  //
+  - name:STRING_CONSTANT <- (deferred; NULL);
+  - representation:STRING_CONSTANT := "None";
+  - operator:CHARACTER <- (deferred; NULL);
+  - priority:INTEGER_8 <- (deferred; NULL);
+  - list:LINKED_LIST(INODE) <- ( deferred; NULL);
+//  - action:BLOCK <- { root:INODE; };
+  - content:G_EXPR <- ( deferred; NULL);
+  - win_out:G_WIN_OUT <- (deferred; NULL);
+  - covering:INTEGER <- ( deferred; 0);		//take items whose are over this pourcentage
+  - height:INTEGER <- ( deferred; 0);
+  - width:INTEGER <- ( deferred; 0);
+  - min_height:INTEGER <- deferred;
+  - min_width:INTEGER <- deferred;
+  - type:INTEGER <- (deferred; 0);
+  - depth:INTEGER <- (deferred; 0);
+  - parent:INTERNAL_INODE <- (deferred; NULL);
+  - dimensions:LINKED_LIST(DIMENSION);
+  - screen_width:INTEGER <- (deferred;0);
+  - screen_height:INTEGER <- (deferred;0);
+  - connector_width:INTEGER <- (deferred;0);
+  - connector_height:INTEGER <- (deferred;0);
+  - used_height:INTEGER <- (deferred;0);
+  - used_width:INTEGER <- (deferred;0);
+  - dimensions_nb:INTEGER <- (deferred;0);
+  - width_win_in:INTEGER  <- (deferred;0);
+  - height_win_in:INTEGER <- (deferred;0);
+
+  //bug compilo 0.13
+  - bugw_screen:INTEGER <- (deferred;0);
+  - bugh_screen:INTEGER <- (deferred;0);
+
+  //
+  // Flags.
+  //
+  - is_xor:BOOLEAN <- operator = '^';
+  - is_and:BOOLEAN <- operator = '&';
+  - is_or:BOOLEAN  <- operator = '|';
+  
+  //
+  // Added.
+  //
+  - Self:SELF '+' other:INODE :INODE <- deferred;
+  
+  //
+  // Method.
+  //
+  - print <- deferred;
+  - get_menu_parent:INTERNAL_INODE <- ( deferred; NULL);
+  - open <- deferred;
+  - close <- deferred;
+  - make_representation <- deferred;
+  - evaluate n:INODE width w:INTEGER height h:INTEGER :REAL_32<- (deferred;0);
+  - compute_size_from_prc p:INTEGER <- deferred;
+  - semantic_evaluation (w,h:INTEGER) :BOOLEAN <- (deferred; FALSE);
+  - semantic_evaluation_win_in n:INODE width w:INTEGER height h:INTEGER :BOOLEAN <-(deferred;FALSE);
+  - space_evaluation (w,h:INTEGER) :REAL_32 <- (deferred; 0);
+  - predict_size :INTEGER <- (deferred;0);
+
+  //
+  // browse
+  //
+  
+  - browse_group tst:BLOCK :BOOLEAN <-
+  (
+    + i:INTEGER;
+    (! list.is_empty).if {
+	i := list.lower;
+	{(i <= list.upper) && {tst.value (list.item i)}}.while_do {
+	  i := i + 1;
+
+	};
+	i > list.upper
+    }
+  );
+  
+  - browse_group_group tst:BLOCK :BOOLEAN <-
+  [ ? {! list.is_empty}; ]
+  ( + i,j:INTEGER;
+    + lst:LINKED_LIST(INODE);
+    + result:BOOLEAN;
+
+    i := list.lower;
+    result := TRUE;
+    {(i <= list.upper) && {result}}.while_do {
+      lst := list.item i.list;
+      (lst.is_empty).if {
+        result := FALSE;
+      } else {
+        j := lst.lower;
+        {(j <= lst.upper) && {tst.value (lst.item j)}}.while_do {
+          j := j + 1;
+        };
+        result := j > lst.upper;
+      };
+      i := i + 1;
+    };
+    result
+  );
+  
+  - get_nitem_from_prc p:INTEGER : INTEGER <-
+  (
+    + j:INTEGER;
+    
+    j:=0;
+    list.foreach {
+      i:INODE;
+      (i.priority > p).if {
+        j:=j+1;
+      };
+    };
+    j
+  );
+  
+  - get_area_prc (w,h:INTEGER):REAL_32 <-
+  [
+    ? {width <= w};
+    ? {height <= h};
+  ]
+  (
+    +a,b,c,d:REAL_32;
+    a:=width;
+    b:=height;
+    c:=w;
+    d:=h;
+    //"a: ".print;a.print;", b: ".print;b.print;", c".print;c.print;", d: ".print;d.print;'\n'.print;
+    //"Result get_area: ".print;((a*b)/(c*d)*100).print;'\n'.print;
+    (a*b)/(c*d)*100
+  )
+  [ ? {Result.in_range 0 to 100}; ];
+
+  //
+  // Debug routine
+  //
+  - display <-
+  (
+    name.print;
+    " (".print;
+    representation.print;
+    ")\n".print;
+    (list != NULL).if {
+      base.print;
+      (operator)
+      .when '|' then { "(OR ".print; }
+      .when '&' then { "(AND ".print; }
+      .when '^' then { "(XOR ".print; };
+      priority.print;")\n".print;
+      base.print;
+      (list.is_empty).if {
+        "\n".print;
+      } else {
+        " | \n".print;
+      };
+      (list.lower).to (list.upper) do { j:INTEGER;
+        base.print; 
+        " +- ".print;
+        (j != list.upper).if {
+          base.append " |  ";
+        } else {
+          base.append "    ";
+        };
+        list.item j.display;
+        base.remove_last 4;	
+      };
+    };
+  );
+  
+  - display_dimensions <-
+  (
+    +j:INTEGER;
+    
+    dimensions.foreach {
+      i:DIMENSION;
+      j:=j+1;
+      "Dimensions ".print;j.print;" : width ".print;i.width.print;", height ".print;i.height.print;", ligne ".print;i.line_height.print;'\n'.print;
+    };
+  );
+
+  - diplay_patterns <-
+  (
+    "Patterns for ".print;name.print;'\n'.print;
+    dimensions.lower.to (dimensions.upper) do {
+      n:INTEGER;
+      +d:DIMENSION;
+
+      d:=dimensions.item n;
+      (d.pattern=NULL).if {
+        "Not found".print;
+      } else {
+        d.pattern.print;
+      };
+      " with dimensions ".print;d.width.print;"x".print;d.height.print;" score: ".print;d.score_sum.print;
+      (n%2=1).if {
+        " operator: |\n".print;
+      } else {
+        " operator: /\n".print;
+      };
+    };
+  );
+  
+  - get_best_disposition :INTEGER <-
+  (
+    +j:INTEGER;
+    +score:REAL_32;
+
+    dimensions.lower.to (dimensions.upper) do {
+      i:INTEGER;
+      ((dimensions.item i.score_sum>=score)).if {
+        score:=dimensions.item i.score_sum;
+        j:=i;
+      };
+    };
+    j
+  );
+
+
+Section Private
+  
+  - base:STRING := STRING.create 250;
+  

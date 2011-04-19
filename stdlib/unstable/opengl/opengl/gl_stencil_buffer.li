@@ -1,0 +1,102 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_STENCIL_BUFFER;
+  
+  - comment  := "Opengl Stencil Buffer";
+  
+Section Inherit
+  
+  - parent_buffer:STENCIL_BUFFER := STENCIL_BUFFER;
+  
+Section Public
+  
+   // pixel test functions
+  - always:INTEGER <- `GL_ALWAYS`:INTEGER;
+  - never:INTEGER <- `GL_NEVER`:INTEGER;
+  - less:INTEGER <-  `GL_LESS`:INTEGER;
+  - lequal:INTEGER <- `GL_LEQUAL`:INTEGER;
+  - equal:INTEGER <- `GL_EQUAL`:INTEGER;
+  - gequal:INTEGER <- `GL_GEQUAL`:INTEGER;
+  - greater:INTEGER <- `GL_GREATER`:INTEGER;
+  - notequal:INTEGER <- `GL_NOTEQUAL`:INTEGER;
+  
+  // stencil operations
+  - keep:INTEGER <- `GL_KEEP`:INTEGER;
+  - replace:INTEGER <- `GL_REPLACE`:INTEGER;
+  - incr:INTEGER <- `GL_INCR`:INTEGER;
+  - decr:INTEGER <- `GL_DECR`:INTEGER;
+  - invert:INTEGER <- `GL_INVERT`:INTEGER;
+  
+  
+  - enable <-
+  (
+    parent_state.enable;
+    `glEnable (GL_STENCIL_TEST)`;
+  );
+  
+  - disable <-
+  (
+    parent_state.disable;
+    `glDisable (GL_STENCIL_TEST)`;
+  );
+  
+  - push_attrib <-
+  (
+    `glPushAttrib(GL_ENABLE_BIT)`;
+  );
+  
+  - pop_attrib <-
+  (
+    `glPopAttrib()`;
+  ); 
+  
+  - set_clear_value val:REAL_32 <-
+  (
+    `glClearStencil(@val)`;
+  );
+  
+  - clear <- 
+  (
+    `glClear(GL_STENCIL_BUFFER_BIT)`;
+  );
+  
+  - set_function f:INTEGER value val:INTEGER_32 mask m:UINTEGER_32 <- 
+  (
+    `glStencilFunc(@f, @val, @m)`;
+  );
+  
+  - when_pass op1:INTEGER when_fail op2:INTEGER when_zfail op3:INTEGER <- 
+  (
+    `glStencilOp(@op2, @op3, @op1)`;
+  );
+  
+  - lock <- 
+  // stencil buffer is read-only
+  (
+    `glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP)`;
+  );
+  
+  - unlock <-
+  ( 
+  );

@@ -1,0 +1,94 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name    := G_GLDRAW;
+  
+  
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment := "OpenGL output for GUI.";
+  
+Section Inherit  
+  
+  + parent_area:Expanded AREA;
+  
+  + parent_g_expr:Expanded G_EXPR;
+  
+Section Public
+  
+  + scene:SCENE;
+  
+  //
+  // Width / Height
+  //
+  
+  - predict_size txt:ABSTRACT_STRING :(INTEGER,INTEGER) <-
+  ( 
+    (width,height)
+  );
+  
+  - width_min:INTEGER <-
+  ( 
+    width + 50
+  );
+  
+  - height_min:INTEGER <-
+  (
+    height + 50
+  );
+  
+  //
+  // Creation.
+  //
+  
+  - create sc:SCENE :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make sc;
+    result
+  );
+  
+  - make sc:SCENE <-
+  (
+    scene := sc;
+    GL_DRIVER.add_gldraw Self;
+  );
+  
+  //
+  // Update position.
+  //
+  
+  - set_position rac:AREA at (x,y:INTEGER) size (w,h:INTEGER) <-
+  ( 
+    update rac from (x,y) size (w,h);
+  );
+  
+  //
+  // Display.
+  //
+  
+  - draw (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  (         
+    // 
+    // Drawn later with opengl framebuffer
+    //
+  );

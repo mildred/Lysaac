@@ -1,0 +1,158 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name      := DROP_DOWN_MENU;
+
+  - copyright := "Jonathan Ponte, Maxime Audrin, Benoit Sonntag";
+
+  - comment   := "Drop down menu for GUII.";
+  
+Section Inherit
+
+  - parent_internal_inode:INTERNAL_INODE := INTERNAL_INODE;
+
+Section Public
+
+  - representation:STRING_CONSTANT := "DROP_DOWN_MENU";
+
+  - print <-
+  (
+    "DROP_DOWN_MENU".print;
+  );
+
+  - make_representation <-
+  (
+    +expr:G_EXPR;
+
+    list.foreach {
+      i:INODE;
+
+      (i.priority>covering).if {
+        i.make_representation;
+        (expr=NULL).if {
+          expr:=i.content;
+
+        } else {
+          expr:=expr / i.content;
+        };
+      };
+    };
+    win_out:=(G_WIN_OUT.create expr).fix_height.fix_width;
+    content:=(G_BUTTON.create (G_OUT.create name) connect win_out).fix_height.fix_width;
+  );
+
+  - compute_size_from_prc p:INTEGER <-
+  [ ? {! list.is_empty}; ]
+  (
+    list.foreach {
+      i:INODE;
+      (i.priority > p).if {
+        (width,height):=G_DIV_EXPR.predict_size (width,height) and (G_BUTTON.predict_size (G_OUT.predict_size (i.name)));
+      };
+    };
+    (width,height):=G_WIN_OUT.predict_size (G_RAW.predict_size (width,height));
+  );
+
+//
+// Evaluation.
+//
+
+// A drop down menu can be apply only if sons are leafs
+  - semantic_evaluation (w,h:INTEGER) :BOOLEAN<-
+  (
+    +nb:INTEGER;
+
+    (operator = '|').if {
+      list.foreach {
+        i:INODE;
+
+        (ACTION.evaluate i width screen_width height screen_height > 0).if {
+          nb:=nb+1;
+        };
+      };
+    };
+    nb=list.count
+  );
+
+- space_evaluation (w,h:INTEGER) :REAL_32<-
+  (
+    + area,r,result:REAL_32;
+
+    compute_size_from_prc 0;
+    ((height >= h) || {width >= w}).if {
+      "Priority 0 failed\n".print;
+      compute_size_from_prc 25;
+      ((height >= h) || {width >= w}).if {
+        "Priority 25 failed\n".print;
+        compute_size_from_prc 50;
+        ((height >= h) || {width >= w}).if {
+          "Priority 50 failed\n".print;
+          r:=0;
+          width:=0;
+          height:=0;
+        } else {
+          covering:=50;
+          r:=get_nitem_from_prc 50;
+        };
+      } else {
+        covering:=25;
+        r:=get_nitem_from_prc 25;
+      };
+    } else {
+      covering:=0;
+      r:=list.count;
+    };
+    r:=(r/list.count)*100;
+    (r>0).if {
+      area:=get_area_prc (w,h);
+      name.print;" area := ".print;(get_area_prc (w,h)).print;"\n".print;
+      (r>area).if {
+        result:=r-area;
+      } else {
+        result:=0;
+      };
+    } else {
+      result:=0;
+    };
+    result
+  )
+  [ ? {Result.in_range 0 to 100}; ];
+
+
+- evaluate n:INODE width w:INTEGER height h:INTEGER : REAL_32<-
+  (
+    + result:REAL_32;
+
+    n.set_representation DROP_DOWN_MENU;
+    // Semantic evaluation && Space evaluation.
+    "DROP_DOWN_MENU semantic evaluation of ".print;n.name.print;"\n".print;
+    (n.semantic_evaluation (w,h)).if {
+      //"DROP_DOWN_MENU space evaluation of ".print;n.name.print;"\n".print;
+      result:=n.space_evaluation (w,h);
+    } else {
+       result:=0;
+    };
+    "DROP_DOWN_MENU result for ".print;n.name.print;"= ".print;result.print;"%\n".print;
+    result
+  )
+  [ ? {Result.in_range 0 to 100}; ];
+

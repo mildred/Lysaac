@@ -1,0 +1,31 @@
+Section Header
+  // Val
+
+  + name      := VAL;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP Val";
+
+Section Inherit
+
+  + parent:Expanded CONTROL := CONTROL;
+
+Section Public
+  
+  - make type:ABSTRACT_STRING :SELF <-
+  ( + result:SELF;
+    + h:POINTER;
+    + n_type:NATIVE_ARRAY(CHARACTER);
+    
+    n_type := type.to_external;
+
+    h := `IupVal(@n_type)`:POINTER;
+
+    result := SELF.clone;
+    result.set_handle h;
+    result
+  );
+
+  - make_horizontal :SELF <- make "HORIZONTAL";
+  - make_vertical :SELF <- make "VERTICAL";

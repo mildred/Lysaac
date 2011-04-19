@@ -1,0 +1,175 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := VERTEX_BUFFER;
+  
+  - comment  := "api independant vertex buffer";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  - drawing_mode:INTEGER;
+  - capacity:INTEGER;
+  
+  - points:INTEGER <- 1;
+  - lines:INTEGER <- 2;
+  - polygon:INTEGER <- 3;
+  - triangles:INTEGER <- 4;
+  - quads:INTEGER <- 5;
+  - line_strip:INTEGER <- 6;
+  - line_loop:INTEGER <- 7;  
+  - triangle_strip:INTEGER <- 8;
+  - triangle_fan:INTEGER <- 9;
+  - quad_strip:INTEGER <- 10;
+  
+  
+  - create sz:INTEGER :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make sz;
+    result
+  );
+  
+  - create_subarray :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make capacity;
+    result
+  );
+  
+  - make sz:INTEGER <- deferred;
+  
+  - destroy <- deferred;
+  
+  - begin_points <- deferred;
+  - begin_lines <- deferred; 
+  - begin_polygon <- deferred;
+  - begin_triangles <- deferred;
+  - begin_quads <- deferred;
+  - begin_line_strip <- deferred;
+  - begin_line_loop <- deferred;  
+  - begin_triangle_strip <- deferred;
+  - begin_triangle_fan <- deferred;
+  - begin_quad_strip <- deferred;
+  
+  - end <- deferred;
+  
+  - new_points body:{} <- 
+  (
+    begin_points;
+    body.value;
+    end;
+  );
+  
+  - new_lines body:{} <- 
+  (
+    begin_lines;
+    body.value;
+    end;
+  );
+  
+  - new_polygon body:{} <- 
+  (
+    begin_polygon;
+    body.value;
+    end;
+  );
+  
+  - new_triangles body:{} <- 
+  (
+    begin_triangles;
+    body.value;
+    end;
+  );
+  
+  - new_quads body:{} <- 
+  (
+    begin_quads;
+    body.value;
+    end;
+  );
+  
+  - new_line_strip body:{} <- 
+  (
+    begin_line_strip;
+    body.value;
+    end;
+  );
+  
+  - new_line_loop body:{} <- 
+  (
+    begin_line_loop;
+    body.value;
+    end;
+  );
+  
+  - new_triangle_strip body:{} <- 
+  (
+    begin_triangle_strip;
+    body.value;
+    end;
+  );
+  
+  - new_triangle_fan body:{} <- 
+  (
+    begin_triangle_fan;
+    body.value;
+    end;
+  );
+  
+  - new_quad_strip body:{} <- 
+  (
+    begin_quad_strip;
+    body.value;
+    end;
+  );
+
+  - add_vertex2f (x,y:REAL_32) <- deferred;
+  - add_vertex3f (x,y,z:REAL_32) <- deferred;
+  - add_vertex v:VERTEX <- deferred;
+  - add_vertex v:VERTEX color col:COLOR <- deferred;
+  - add_vertex3f (x,y,z:REAL_32) color col:COLOR <- deferred;
+  
+  - add_texel2f (s,t:REAL_32) <- deferred;
+  - add_normal3f (x,y,z:REAL_32) <- deferred;
+  - add_normal v:VECTOR3(REAL_32) <- deferred;
+  
+  - add_color (c:COLOR) <- deferred;
+  - add_color3f (r,g,b:REAL_32) <- deferred;
+  
+  - build <- deferred;
+  
+  - bind <- deferred;
+  - bind_unit n:INTEGER <- deferred;
+  
+  - draw <- deferred;
+  - draw_using index_array:INDEX_BUFFER <- deferred;
+  
+  
+  - get_vertex_data:FAST_ARRAY(REAL_32) <- deferred;
+  - get_texels_data:FAST_ARRAY(REAL_32) <- deferred;
+  - get_normals_data:FAST_ARRAY(REAL_32) <- deferred;
+  - get_colors_data:FAST_ARRAY(REAL_32) <- deferred;

@@ -1,0 +1,200 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                             //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_SHADER;
+  
+  - comment  := "OpengGL GLSL Shader";
+  
+Section Inherit
+  
+  - parent_shader:SHADER := SHADER;
+  
+Section Public
+  
+  //
+  //  OpengGL ID handlers
+  //
+  + vertex_shader_id:UINTEGER_32;
+  + fragment_shader_id:UINTEGER_32;
+  + program_id:UINTEGER_32;
+  
+  + is_loaded:BOOLEAN;
+  
+  
+  - make (vertex_shader,fragment_shader:ABSTRACT_STRING) <-
+  (
+    + source:STRING;
+    
+    // create shader program
+    program_id := OPENGL.arb_shader_object.create_program;
+    
+    //
+    // vertex shader
+    //
+    source := get_source vertex_shader;
+    (source != NULL).if {
+      
+      // create shader object
+      vertex_shader_id := OPENGL.arb_shader_object.create_vertex_shader;
+      
+      // set source code
+      OPENGL.arb_shader_object.shader_source vertex_shader_id string source;
+      
+      // compile shader
+      OPENGL.arb_shader_object.compile vertex_shader_id;
+      
+      // attach shader to program
+      OPENGL.arb_shader_object.attach_object (program_id, vertex_shader_id);
+      
+      is_loaded := TRUE;
+    };
+    
+    //
+    // fragment shader
+    //
+    source := get_source fragment_shader;
+    (source != NULL).if {
+      
+      // create shader object
+      fragment_shader_id := OPENGL.arb_shader_object.create_fragment_shader;
+      
+      // set source code
+      OPENGL.arb_shader_object.shader_source fragment_shader_id string source;
+      
+      // compile shader
+      OPENGL.arb_shader_object.compile fragment_shader_id;
+      
+      // attach shader to program
+      OPENGL.arb_shader_object.attach_object (program_id, fragment_shader_id);
+      
+      is_loaded := TRUE;
+    };
+    
+    is_loaded.if {
+      // link program
+      OPENGL.arb_shader_object.link_program program_id;
+    };
+  );
+  
+  - has_compiled:BOOLEAN <-
+  (
+    (OPENGL.arb_shader_object.get_infolog_status vertex_shader_id = 1) && {OPENGL.arb_shader_object.get_infolog_status fragment_shader_id = 1}
+  );
+  
+  - get_infolog buffer:STRING <-
+  (
+    + sz:UINTEGER_32;
+    + tmp:FAST_ARRAY(CHARACTER); 
+     
+    sz := OPENGL.arb_shader_object.get_infolog_length vertex_shader_id;
+    tmp := FAST_ARRAY(CHARACTER).create sz;
+    
+    OPENGL.arb_shader_object.get_infolog vertex_shader_id in tmp size sz;
+    tmp.lower.to (tmp.upper) do { i:INTEGER;
+      buffer.add_last (tmp.item i);
+    };
+
+    sz := OPENGL.arb_shader_object.get_infolog_length fragment_shader_id;
+    tmp := FAST_ARRAY(CHARACTER).create sz; 
+    
+    OPENGL.arb_shader_object.get_infolog fragment_shader_id in tmp size sz;
+    tmp.lower.to (tmp.upper) do { i:INTEGER;
+      buffer.add_last (tmp.item i);
+    };
+  );
+  
+  - enable <-
+  (
+    is_loaded.if {
+      // use program
+      OPENGL.arb_shader_object.use_program program_id;
+    };
+  );
+  
+  - disable <-
+  (
+    is_loaded.if {
+      OPENGL.arb_shader_object.use_program 0;
+    };
+  );
+  
+  - get_uniform_location varname:ABSTRACT_STRING :INTEGER <- 
+  (
+    OPENGL.arb_shader_object.get_uniform_location (program_id, varname)
+  );
+  
+  - set_uniform1f loc:INTEGER to val:REAL_32 <- 
+  (
+    OPENGL.arb_shader_object.uniform1f (loc, val);
+  );
+  
+  - set_uniform2f loc:INTEGER to (v0,v1:REAL_32) <- 
+  (
+    OPENGL.arb_shader_object.uniform2f (loc, v0,v1);
+  );
+  
+  - set_uniform3f loc:INTEGER to (v0,v1,v2:REAL_32) <- 
+  (
+    OPENGL.arb_shader_object.uniform3f (loc, v0,v1,v2);
+  );
+  
+  - set_uniform4f loc:INTEGER to (v0,v1,v2,v3:REAL_32) <- 
+  (
+    OPENGL.arb_shader_object.uniform4f (loc, v0,v1,v2,v3);
+  );
+  
+  - bind_sampler tex:TEXTURE unit u:INTEGER location loc:INTEGER <-
+  (
+    tex.bind_unit u;
+    set_uniform1f loc to u;
+  );
+  
+  - delete <-
+  (
+    OPENGL.arb_shader_object.delete_object vertex_shader_id;
+    OPENGL.arb_shader_object.delete_object fragment_shader_id;
+    OPENGL.arb_shader_object.delete_object program_id;
+  );
+  
+Section Private  
+  
+  - get_source filename:ABSTRACT_STRING :STRING <- 
+  (
+    + file:POINTER;
+    + source:STRING;
+    + sz:INTEGER;
+    
+    (filename != NULL).if {
+      // read shader source code
+      file := FS_MIN.open_read filename;
+      (file != NULL).if {
+        sz := FS_MIN.file_size file;
+        source := STRING.create (sz+1);
+        
+        FS_MIN.read file in source size sz;
+        FS_MIN.close file;
+      };
+    };
+    source
+  );
+  

@@ -1,0 +1,287 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name    := GRP_TREE;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment := "Tree representation";
+  
+Section Inherit
+  
+  + parent_gui:Expanded GUI;
+  
+Section Public
+  
+  + root_item:GUI_ITEM;  
+  
+  + area_intern:GUI_INTERN;
+  
+  - bmp_tree:AREA <- area_intern.area;
+  
+  //
+  // Creation
+  //
+  
+  - create_in f:AREA at (x,y:INTEGER) size (w,h:INTEGER) with itm:GUI_ITEM :SELF <- 
+  ( + result:SELF;
+    
+    result := clone;
+    result.make_in f at (x,y) size (w,h) with itm;
+    result
+  );
+
+  - make_in f:AREA at (x,y:INTEGER) size (w,h:INTEGER) with itm:GUI_ITEM <-
+  (
+    root_item := itm;
+    make_in f at (x,y) size (w,h) action Self;
+    // Clipping intern:
+    area_intern := GUI_INTERN.create_in Self at (1,1) size ((w-2),(h-2));
+    set_position itm; 
+    update_position;
+    refresh;
+  );
+  
+  //
+  // Line manager.
+  //
+
+  - set_position rac:GUI_ITEM <-
+  ( + grp:ITM_GROUP;
+            
+    grp ?= rac;
+    (grp = NULL).if {
+      rac.make bmp_tree from ((-rac.width_min-1),0) size ((rac.width_min),(rac.height_min));     
+    } else {
+      set_position (grp.itm_left);
+      set_position (grp.itm_right);
+    };    
+  );
+
+  //
+  // Display.
+  //
+  
+  - draw (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  ( + xx0,yy0,xx1,yy1:INTEGER;
+    
+    clipping (x0,y0) to (x1,y1);    
+    border_in (x_min,y_min) to (x_max,y_max);
+    (area_intern != NULL).if {  
+      xx0 := x0 + x_window - bmp_tree.x_window;
+      yy0 := y0 + y_window - bmp_tree.y_window;
+      xx1 := x1 + x_window - bmp_tree.x_window;
+      yy1 := y1 + y_window - bmp_tree.y_window;            
+      //xx0.print; ','.print; yy0.print; '-'.print;
+      //xx1.print; ','.print; yy1.print; '\n'.print;
+      bmp_tree.clipping (xx0,yy0) to (xx1,yy1);      
+      bmp_tree.rectangle_fill (0,0) to ((bmp_tree.x_max),(bmp_tree.y_max)) color color_back_light;      
+      sub_draw root_item at (2,2);
+    };
+  );
+  
+Section Private  
+  
+  - sub_draw rac:GUI_ITEM at (x,y:INTEGER) :INTEGER <-
+  ( + grp:ITM_GROUP;
+    + itm:GUI_ITEM;
+    + new_y,old_y:INTEGER;
+    + is_open:BOOLEAN;
+    
+    grp ?= rac;
+    (grp = NULL).if {      
+      new_y := y + rac.height_min;      
+    } else {
+      is_open := grp.operator = '|';
+      node (x,(y+3)) stat is_open;
+      old_y := y+3+9;
+      new_y := sub_draw (grp.itm_left) at ((x+16),y);      
+      (is_open).if {
+	itm := grp.itm_right;
+	grp ?= itm;
+	{(grp != NULL) && {is_open}}.while_do {
+	  bmp_tree.line_v ((x+4),old_y) until (new_y-1+3) color red; 
+	  is_open := grp.operator = '|';
+	  node (x,(new_y+3)) stat is_open;
+	  old_y := new_y+3+9;
+	  new_y := sub_draw (grp.itm_left) at ((x+16),new_y);
+	  itm := grp.itm_right;
+	  grp ?= itm;
+	};
+	(is_open).if {
+	  bmp_tree.line_v ((x+4),old_y) until (new_y+8) color red;       
+	  bmp_tree.line_h_until (x+15) color red;      
+	  new_y := sub_draw itm at ((x+16),new_y);
+	};
+      };
+    };
+    new_y
+  );
+  
+  - node (x,y:INTEGER) stat is_open:BOOLEAN <-
+  (
+    bmp_tree.rectangle_fill ((x+1),(y+1)) to ((x+7),(y+7)) color white;
+    bmp_tree.rectangle (x,y) to ((x+8),(y+8)) color black;    
+    bmp_tree.line_h ((x+2),(y+4)) until (x+6); 
+    (is_open).if_false {
+      bmp_tree.line_v ((x+4),(y+2)) until (y+6); 
+    };
+    bmp_tree.line_h ((x+9),(y+4)) until (x+15) color red;
+  );
+  
+Section Public
+      
+  //
+  // Event.
+  //  
+
+  - receive msg:EVENT <-  
+  ( + evt_mouse:EVENT_MOUSE;
+    + win:AREA;    
+    
+    
+    evt_mouse ?= msg;
+    (evt_mouse != NULL).if { 
+      (evt_mouse.destination = bmp_tree).if {
+	(evt_mouse.left_up).if {
+	  last_group := NULL;
+	  get_group root_item at (2,2) to ((evt_mouse.x_relative),(evt_mouse.y_relative));
+	  (last_group != NULL).if {	    
+	    (last_group.operator = '|').if {
+	      last_group.set_operator '/';
+	      close_group (last_group.itm_right);
+	    } else {
+	      last_group.set_operator '|';	      
+	    };
+	    update_position;
+	    refresh;
+	  };
+	};
+      };
+      win := INTERFACE.get_object ((evt_mouse.x_current),(evt_mouse.y_current));
+      (win != Self).if {
+	INTERFACE.receive msg;
+      };
+    };    
+  );
+  
+  + bmp_width_max:INTEGER;
+  
+  - update_position <-
+  ( + h,w:INTEGER;
+    
+    bmp_width_max := 0;
+    h := open_group root_item at (2,2) + 2;
+    w := bmp_width_max;
+    ((h != bmp_tree.height) || {w != bmp_tree.width}).if {
+      area_intern.resize_area (w,h);     
+    };
+  );
+  
+  - open_group rac:GUI_ITEM at (x,y:INTEGER) :INTEGER <-
+  ( + grp:ITM_GROUP;
+    + itm:GUI_ITEM;
+    + new_y,old_y,w:INTEGER;
+    + is_open:BOOLEAN;
+    
+    grp ?= rac;
+    (grp = NULL).if {      
+      new_y := y + rac.height_min;
+      rac.set_position (x,y);
+      w := x + rac.width + 2;
+      (bmp_width_max < w).if {
+	bmp_width_max := w;
+      };
+    } else {
+      is_open := grp.operator = '|';      
+      old_y := y+3+9;
+      new_y := open_group (grp.itm_left) at ((x+16),y);      
+      (is_open).if {
+	itm := grp.itm_right;
+	grp ?= itm;
+	{(grp != NULL) && {is_open}}.while_do {	  
+	  is_open := grp.operator = '|';	  
+	  old_y := new_y+3+9;
+	  new_y := open_group (grp.itm_left) at ((x+16),new_y);
+	  itm := grp.itm_right;
+	  grp ?= itm;
+	};
+	(is_open).if {
+	  new_y := open_group itm at ((x+16),new_y);
+	};
+      };
+    };
+    new_y
+  );  
+  
+  - close_group rac:GUI_ITEM <-
+  ( + grp:ITM_GROUP;
+    grp ?= rac;
+    (grp = NULL).if {
+      rac.set_position ((-rac.width_min-1),0);
+    } else {
+      close_group (grp.itm_left );
+      close_group (grp.itm_right);
+    };
+  );
+  
+  - last_group:ITM_GROUP;
+  
+  - get_group rac:GUI_ITEM at (x,y:INTEGER) to (px,py:INTEGER) :INTEGER <-
+  ( + grp:ITM_GROUP;
+    + itm:GUI_ITEM;
+    + new_y,old_y:INTEGER;
+    + is_open:BOOLEAN;
+    
+    (y < py).if {    
+      grp ?= rac;
+      (grp = NULL).if {      
+	new_y := y + rac.height_min;      
+      } else {
+	is_open := grp.operator = '|';      
+	((px.in_range x to (x+8)) && {py.in_range (y+3) to (y+12)}).if {
+	  last_group := grp;
+	};
+	old_y := y+3+9;
+	new_y := get_group (grp.itm_left) at ((x+16),y) to (px,py);
+	(is_open).if {
+	  itm := grp.itm_right;
+	  grp ?= itm;
+	  {(grp != NULL) && {is_open} && {last_group=NULL}}.while_do {	  
+	    is_open := grp.operator = '|';	  
+	    ((px.in_range x to (x+8)) && {py.in_range (new_y+3) to (new_y+12)}).if {
+	      last_group := grp;
+	    };
+	    old_y := new_y+3+9;
+	    new_y := get_group (grp.itm_left) at ((x+16),new_y) to (px,py);
+	    itm := grp.itm_right;
+	    grp ?= itm;
+	  };
+	  (is_open).if {	  
+	    new_y := get_group itm at ((x+16),new_y) to (px,py);
+	  };
+	};
+      };
+    };
+    new_y
+  );

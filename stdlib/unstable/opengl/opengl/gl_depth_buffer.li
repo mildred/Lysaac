@@ -1,0 +1,89 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_DEPTH_BUFFER;
+  
+  - comment  := "Opengl Depth Buffer";
+  
+Section Inherit
+  
+  - parent_buffer:DEPTH_BUFFER := DEPTH_BUFFER;
+  
+Section Public
+  
+  // pixel test functions
+  - always:INTEGER <- `GL_ALWAYS`:INTEGER;
+  - never:INTEGER <- `GL_NEVER`:INTEGER;
+  - less:INTEGER <-  `GL_LESS`:INTEGER;
+  - lequal:INTEGER <- `GL_LEQUAL`:INTEGER;
+  - equal:INTEGER <- `GL_EQUAL`:INTEGER;
+  - gequal:INTEGER <- `GL_GEQUAL`:INTEGER;
+  - greater:INTEGER <- `GL_GREATER`:INTEGER;
+  - notequal:INTEGER <- `GL_NOTEQUAL`:INTEGER;
+  
+  - enable <-
+  (
+    parent_state.enable;
+    `glEnable (GL_DEPTH_TEST)`;
+  );
+  
+  - disable <-
+  (
+    parent_state.disable;
+    `glDisable (GL_DEPTH_TEST)`;
+  );
+  
+  - push_attrib <-
+  (
+    `glPushAttrib(GL_ENABLE_BIT)`;
+  );
+  
+  - pop_attrib <-
+  (
+    `glPopAttrib()`;
+  );
+  
+  - set_clear_value val:REAL_32 <-
+  (
+    `glClearDepth(@val)`;
+  );
+  
+  - clear <- 
+  (
+    `glClear(GL_DEPTH_BUFFER_BIT)`;
+  );
+  
+  - set_function f:INTEGER <- 
+  (
+    `glDepthFunc(@f)`;
+  );
+  
+  - lock <- 
+  (
+    `glDepthMask(GL_TRUE)`;
+  );
+  
+  - unlock <-
+  (
+    `glDepthMask(GL_FALSE)`;
+  );

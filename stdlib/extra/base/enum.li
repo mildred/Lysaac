@@ -1,0 +1,101 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name := Expanded ENUM;
+
+  - author        := "Mildred Ki'Lya <mildred593(at)online.fr>";
+  - copyright     := "2008 Mildred Ki'Lya";
+  - comment       := "";
+
+  //  HOWTO
+  //  =====
+  //
+  //Section Header
+  //
+  //    + name := Expanded MY_ENUM;
+  //
+  //    - import := INTEGER;
+  //    - export := INTEGER;
+  //
+  //    - type := `int`;
+  //
+  //  Section Insert
+  //
+  //    - parent_enum :Expanded ENUM;
+  //
+  //  Section Public
+  //
+  //    - val1 :MY_ENUM := create;
+  //    - val2 :MY_ENUM := create;
+  //    ...
+
+Section Insert
+
+  - parent_integer:INTEGER;
+
+Section SELF
+
+  + min :INTEGER := 0;
+  + max :INTEGER := -1;
+
+  - create :SELF <- create_after;
+
+  - create_before :SELF <-
+  (
+    min := min - 1;
+    min
+  );
+
+  - create_after :SELF <-
+  (
+    max := max + 1;
+    max
+  );
+
+  - create_code i:INTEGER :SELF <-
+  ( + res :SELF;
+    (max - min < 0).if {
+      min := i;
+      max := i;
+    } else {
+      (i < min).if { min := i };
+      (i > max).if { max := i };
+    };
+    i
+  );
+
+  - is_valid i:INTEGER :BOOLEAN <- i.in_range min to max;
+
+  - from_integer i:INTEGER :SELF <-
+  (
+    ? { is_valid i };
+    CONVERT(INTEGER,SELF).on i
+  );
+
+  - to_integer :INTEGER <-
+  ( 
+    CONVERT(SELF,INTEGER).on Self
+  );
+
+
+// kate: hl Lisaac v0.2; indent-width 2; space-indent on; replace-tabs off;
+// kate: tab-width 8; remove-trailing-space on;

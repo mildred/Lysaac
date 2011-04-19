@@ -1,0 +1,70 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := Expanded UINTEGER_8;
+
+  - export  :=
+  UINTEGER_64, UINTEGER_32, UINTEGER_16,
+  INTEGER_64 , INTEGER_32 , INTEGER_16 ,
+  INTEGER;
+
+  - comment :="Unsigned 8 bits integer.";
+
+  - type    := `unsigned char`;
+  - default := (0.to_raw_uinteger_8);
+
+Section Insert
+
+  - parent_unsigned_integer:UNSIGNED_INTEGER := UNSIGNED_INTEGER;
+
+Section Public
+
+  - object_size:INTEGER := 1;
+
+  //
+  // Range.
+  //
+
+  - maximum:UINTEGER_64 := 255.to_raw_uinteger_64;
+
+  //
+  // Conversion with test.
+  //
+
+  - to_uinteger_8:UINTEGER_8 <- Self;
+
+  - to_character:CHARACTER <-
+  [ -? {in_range (CHARACTER.minimum) to (CHARACTER.maximum)}; ]
+  (
+    CONVERT(UINTEGER_8, CHARACTER).on Self
+  );
+
+
+    - to limit_up:SELF do blc:{UINTEGER_8;} <-
+  // Classical loop from `Self' to `limit_up'
+  (
+    (Self <= limit_up).if {
+      blc.value Self;
+      (Self + 1).to limit_up do blc;
+    };
+  );
+

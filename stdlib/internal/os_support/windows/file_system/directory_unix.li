@@ -1,0 +1,188 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        :=DIRECTORY_UNIX;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - bibliography:="http://IsaacOS.com";
+
+  - author      :="Benoit Sonntag (bsonntag@loria.fr)";
+
+  - comment     :="Directory management";
+
+  - external :=
+`
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <windows.h>
+WIN32_FIND_DATA data;
+HANDLE hfile;
+`;
+
+Section Inherit
+
+  + parent_entry_unix:Expanded ENTRY_UNIX;
+
+  + parent_directory:Expanded DIRECTORY;
+
+Section Public
+
+  //
+  // Physical implementation.
+  //
+
+  //
+  // Scanning
+  //
+  - is_open:BOOLEAN <- ( list != NULL);
+
+  //
+  // Scanning
+  //
+
+  - open:BOOLEAN <-
+  ( + p,n:NATIVE_ARRAY(CHARACTER);
+    + new_entry:ENTRY;
+    + result:BOOLEAN;
+    + i:INTEGER;
+
+    (list = NULL).if {
+      list := LINKED_LIST(ENTRY).create;
+    } else {
+      list.clear;
+    };
+
+    string_tmp.copy path;
+    string_tmp.append "\\*.*";
+    p := string_tmp.to_external;
+    `hfile = FindFirstFile(@p,&data)`;
+    (`hfile != INVALID_HANDLE_VALUE`:BOOLEAN{TRUE,FALSE}).if {
+      result := TRUE;
+      {
+	n := `data.cFileName`:NATIVE_ARRAY(CHARACTER);
+	string_tmp.clear;
+	i := 0;
+	{n.item i = '\0'}.until_do {
+	  string_tmp.add_last (n.item i);
+	  i := i + 1;
+	};
+	(string_tmp !== ".".to_string).if {
+	  string_tmp.add_first '/';
+	  string_tmp.prepend path;
+	  reduce_path string_tmp;
+	  new_entry := get_entry string_tmp;
+	  (new_entry = NULL).if {
+	    result := FALSE;
+	  } else {
+	    (new_entry.path.count < path.count).if {
+	      parent := new_entry;
+	    } else {
+	      list.add_last new_entry;
+	    };
+	  };
+	};
+      }.do_while {(`FindNextFile(hfile,&data)`:BOOLEAN{TRUE,FALSE}) && {result}};
+      `FindClose(hfile)`;
+    };
+    result
+  );
+
+Section DIRECTORY
+
+  - physical_get_entry new_path:ABSTRACT_STRING :ENTRY <-
+  // Same UNIX
+  ( + pe:NATIVE_ARRAY(CHARACTER);
+    + result:ENTRY;
+
+    pe := new_path.to_external;
+    `#ifdef __MINGW_H
+    `;
+    `{ struct stat t`;
+      (`stat(@pe,&t)`:INTEGER = 0).if {
+        (`S_ISDIR(t.st_mode)`:INTEGER = 0).if {
+          // File.
+          result := FILE_UNIX.clone;
+        } else {
+          // Directory.
+          result := DIRECTORY_UNIX.clone;
+        };
+        result.set_path new_path;
+        alias.put result to (result.path); // with { (e1,e2:ABSTRACT_STRING); e1 ~=e2 };
+      };
+    `}`;
+    `#else
+    `;
+    `{ struct stat64 t`;
+      (`stat64(@pe,&t)`:INTEGER = 0).if {
+        (`S_ISDIR(t.st_mode)`:INTEGER = 0).if {
+          // File.
+          result := FILE_UNIX.clone;
+        } else {
+          // Directory.
+          result := DIRECTORY_UNIX.clone;
+        };
+        result.set_path new_path;
+        alias.put result to (result.path); //with { (e1,e2:ABSTRACT_STRING); e1 ~=e2 };
+      };
+    `}`;
+    `#endif
+    `;
+    result
+  );
+
+  - physical_make_directory new_path:ABSTRACT_STRING :BOOLEAN <-
+  ( + p:NATIVE_ARRAY(CHARACTER);
+    p := new_path.to_external;
+    `mkdir(@p)`:(INTEGER) = 0
+  );
+
+  - physical_make_file new_path:ABSTRACT_STRING :BOOLEAN <-
+  // Same UNIX
+  ( + p:NATIVE_ARRAY(CHARACTER);
+    + stream:POINTER;
+    + result:BOOLEAN;
+
+    p := new_path.to_external;
+    stream := `fopen((char*)@p,"w+b")`:POINTER;
+    (stream != NULL).if {
+      result := `fclose((FILE*)@stream)`:INTEGER = 0;
+    };
+    result
+  );
+
+  - physical_remove p:ABSTRACT_STRING :BOOLEAN <-
+  // Same UNIX
+  ( + pa:NATIVE_ARRAY(CHARACTER);
+    pa := p.to_external;
+    `remove(@pa)`:(INTEGER) = 0
+  );
+
+  - physical_move old_path:ABSTRACT_STRING to new_path:ABSTRACT_STRING :BOOLEAN <-
+  // Same UNIX
+  ( + old_p,new_p:NATIVE_ARRAY(CHARACTER);
+    old_p := old_path.to_external;
+    new_p := new_path.to_external;
+    `rename(@old_p,@new_p)`:(INTEGER) = 0
+  );
+

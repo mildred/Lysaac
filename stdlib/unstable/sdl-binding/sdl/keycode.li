@@ -1,0 +1,182 @@
+///////////////////////////////////////////////////////////////////////////////
+//                           Lisaac-SDL Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := KEYCODE;
+  - comment  := "X11 key mapping";
+  - author   := "Xavier Oswald <x.oswald@free.fr>";
+
+  - external :=
+  `
+    SDL_keysym keysym;
+  `;
+
+Section Inherit
+  
+  - parent_keycode: Expanded ABSTRACT_KEYCODE;
+  
+Section Public
+
+  - make <-
+  (
+    keys := HASHED_DICTIONARY(INTEGER,INTEGER).create;
+
+    keys.add k_backspace to (`SDLK_BACKSPACE`:INTEGER);
+    keys.add k_tab to (`SDLK_TAB`:INTEGER);
+    keys.add k_clear to (`SDLK_CLEAR`:INTEGER);
+    keys.add k_return to (`SDLK_RETURN`:INTEGER);
+    keys.add k_pause to (`SDLK_PAUSE`:INTEGER);
+    keys.add k_escape to (`SDLK_ESCAPE`:INTEGER);
+    keys.add k_space to (`SDLK_SPACE`:INTEGER);
+    keys.add k_exclaim to (`SDLK_EXCLAIM`:INTEGER);
+    keys.add k_quotedbl to (`SDLK_QUOTEDBL`:INTEGER);
+    keys.add k_hash to (`SDLK_HASH`:INTEGER);
+    keys.add k_dollar to (`SDLK_DOLLAR`:INTEGER);
+    keys.add k_ampersand to (`SDLK_AMPERSAND`:INTEGER);
+    keys.add k_quote to (`SDLK_QUOTE`:INTEGER);
+    keys.add k_leftparen to (`SDLK_LEFTPAREN`:INTEGER);
+    keys.add k_rightparen to (`SDLK_RIGHTPAREN`:INTEGER);
+    keys.add k_asterisk to (`SDLK_ASTERISK`:INTEGER);
+    keys.add k_plus to (`SDLK_PLUS`:INTEGER);
+    keys.add k_comma to (`SDLK_COMMA`:INTEGER);
+    keys.add k_minus to (`SDLK_MINUS`:INTEGER);
+    keys.add k_period to (`SDLK_PERIOD`:INTEGER);
+    keys.add k_slash to (`SDLK_SLASH`:INTEGER);
+    keys.add k_0 to (`SDLK_0`:INTEGER);
+    keys.add k_1 to (`SDLK_1`:INTEGER);
+    keys.add k_2 to (`SDLK_2`:INTEGER);
+    keys.add k_3 to (`SDLK_3`:INTEGER);
+    keys.add k_4 to (`SDLK_4`:INTEGER);
+    keys.add k_5 to (`SDLK_5`:INTEGER);
+    keys.add k_6 to (`SDLK_6`:INTEGER);
+    keys.add k_7 to (`SDLK_7`:INTEGER);
+    keys.add k_8 to (`SDLK_8`:INTEGER);
+    keys.add k_9 to (`SDLK_9`:INTEGER);
+    keys.add k_colon to (`SDLK_COLON`:INTEGER);
+    keys.add k_semicolon to (`SDLK_SEMICOLON`:INTEGER);
+    keys.add k_less to (`SDLK_LESS`:INTEGER);
+    keys.add k_equals to (`SDLK_EQUALS`:INTEGER);
+    keys.add k_greater to (`SDLK_GREATER`:INTEGER);
+    keys.add k_at to (`SDLK_AT`:INTEGER);
+    keys.add k_leftbracket to (`SDLK_LEFTBRACKET`:INTEGER);
+    keys.add k_backslash to (`SDLK_BACKSLASH`:INTEGER);
+    keys.add k_rightbracket to (`SDLK_RIGHTBRACKET`:INTEGER);
+    keys.add k_caret to (`SDLK_CARET`:INTEGER);
+    keys.add k_underscore to (`SDLK_UNDERSCORE`:INTEGER);
+    keys.add k_backquote to (`SDLK_BACKQUOTE`:INTEGER);
+    keys.add k_a to (`SDLK_a`:INTEGER);
+    keys.add k_b to (`SDLK_b`:INTEGER);
+    keys.add k_c to (`SDLK_c`:INTEGER);
+    keys.add k_d to (`SDLK_d`:INTEGER);
+    keys.add k_e to (`SDLK_e`:INTEGER);
+    keys.add k_f to (`SDLK_f`:INTEGER);
+    keys.add k_g to (`SDLK_g`:INTEGER);
+    keys.add k_h to (`SDLK_h`:INTEGER);
+    keys.add k_i to (`SDLK_i`:INTEGER);
+    keys.add k_j to (`SDLK_j`:INTEGER);
+    keys.add k_k to (`SDLK_k`:INTEGER);
+    keys.add k_l to (`SDLK_l`:INTEGER);
+    keys.add k_m to (`SDLK_m`:INTEGER);
+    keys.add k_n to (`SDLK_n`:INTEGER);
+    keys.add k_o to (`SDLK_o`:INTEGER);
+    keys.add k_p to (`SDLK_p`:INTEGER);
+    keys.add k_q to (`SDLK_q`:INTEGER);
+    keys.add k_r to (`SDLK_r`:INTEGER);
+    keys.add k_s to (`SDLK_s`:INTEGER);
+    keys.add k_t to (`SDLK_t`:INTEGER);
+    keys.add k_u to (`SDLK_u`:INTEGER);
+    keys.add k_v to (`SDLK_v`:INTEGER);
+    keys.add k_w to (`SDLK_w`:INTEGER);
+    keys.add k_x to (`SDLK_x`:INTEGER);
+    keys.add k_y to (`SDLK_y`:INTEGER);
+    keys.add k_z to (`SDLK_z`:INTEGER);
+    keys.add k_delete to (`SDLK_DELETE`:INTEGER);
+    
+    keys.add kp_0 to (`SDLK_KP0`:INTEGER);
+    keys.add kp_1 to (`SDLK_KP1`:INTEGER);
+    keys.add kp_2 to (`SDLK_KP2`:INTEGER);
+    keys.add kp_3 to (`SDLK_KP3`:INTEGER);
+    keys.add kp_4 to (`SDLK_KP4`:INTEGER);
+    keys.add kp_5 to (`SDLK_KP5`:INTEGER);
+    keys.add kp_6 to (`SDLK_KP6`:INTEGER);
+    keys.add kp_7 to (`SDLK_KP7`:INTEGER);
+    keys.add kp_8 to (`SDLK_KP8`:INTEGER);
+    keys.add kp_9 to (`SDLK_KP9`:INTEGER);
+    keys.add kp_period to (`SDLK_KP_PERIOD`:INTEGER);
+    keys.add kp_divide to (`SDLK_KP_DIVIDE`:INTEGER);
+    keys.add kp_multiply to (`SDLK_KP_MULTIPLY`:INTEGER);
+    keys.add kp_minus to (`SDLK_KP_MINUS`:INTEGER);
+    keys.add kp_plus to (`SDLK_KP_PLUS`:INTEGER);
+    keys.add kp_enter to (`SDLK_KP_ENTER`:INTEGER);
+    keys.add kp_equals to (`SDLK_KP_EQUALS`:INTEGER);
+    
+    keys.add k_up to (`SDLK_UP`:INTEGER);
+    keys.add k_down to (`SDLK_DOWN`:INTEGER);
+    keys.add k_right to (`SDLK_RIGHT`:INTEGER);
+    keys.add k_left to (`SDLK_LEFT`:INTEGER);
+    keys.add k_insert to (`SDLK_INSERT`:INTEGER);
+    keys.add k_home to (`SDLK_HOME`:INTEGER);
+    keys.add k_end to (`SDLK_END`:INTEGER);
+    keys.add k_pageup to (`SDLK_PAGEUP`:INTEGER);
+    keys.add k_pagedown to (`SDLK_PAGEDOWN`:INTEGER);
+    
+    keys.add k_f1 to (`SDLK_F1`:INTEGER);
+    keys.add k_f2 to (`SDLK_F2`:INTEGER);
+    keys.add k_f3 to (`SDLK_F3`:INTEGER);
+    keys.add k_f4 to (`SDLK_F4`:INTEGER);
+    keys.add k_f5 to (`SDLK_F5`:INTEGER);
+    keys.add k_f6 to (`SDLK_F6`:INTEGER);
+    keys.add k_f7 to (`SDLK_F7`:INTEGER);
+    keys.add k_f8 to (`SDLK_F8`:INTEGER);
+    keys.add k_f9 to (`SDLK_F9`:INTEGER);
+    keys.add k_f10 to (`SDLK_F10`:INTEGER);
+    keys.add k_f11 to (`SDLK_F11`:INTEGER);
+    keys.add k_f12 to (`SDLK_F12`:INTEGER);
+    keys.add k_f13 to (`SDLK_F13`:INTEGER);
+    keys.add k_f14 to (`SDLK_F14`:INTEGER);
+    keys.add k_f15 to (`SDLK_F15`:INTEGER);
+    
+    keys.add k_numlock to (`SDLK_NUMLOCK`:INTEGER);
+    keys.add k_capslock to (`SDLK_CAPSLOCK`:INTEGER);
+    keys.add k_scrollock to (`SDLK_SCROLLOCK`:INTEGER);
+    keys.add k_rshift to (`SDLK_RSHIFT`:INTEGER);
+    keys.add k_lshift to (`SDLK_LSHIFT`:INTEGER);
+    keys.add k_rctrl to (`SDLK_RCTRL`:INTEGER);
+    keys.add k_lctrl to (`SDLK_LCTRL`:INTEGER);
+    keys.add k_ralt to (`SDLK_RALT`:INTEGER);
+    keys.add k_lalt to (`SDLK_LALT`:INTEGER);
+    keys.add k_rmeta to (`SDLK_RMETA`:INTEGER);
+    keys.add k_lmeta to (`SDLK_LMETA`:INTEGER);
+    keys.add k_lsuper to (`SDLK_LSUPER`:INTEGER);
+    keys.add k_rsuper to (`SDLK_RSUPER`:INTEGER);
+    keys.add k_mode to (`SDLK_MODE`:INTEGER);
+    keys.add k_compose to (`SDLK_COMPOSE`:INTEGER);
+    
+    keys.add k_help to (`SDLK_HELP`:INTEGER);
+    keys.add k_print to (`SDLK_PRINT`:INTEGER);
+    keys.add k_sysreq to (`SDLK_SYSREQ`:INTEGER);
+    keys.add k_break to (`SDLK_BREAK`:INTEGER);
+    keys.add k_menu to (`SDLK_MENU`:INTEGER);
+    keys.add k_power to (`SDLK_POWER`:INTEGER);
+    keys.add k_euro to (`SDLK_EURO`:INTEGER);
+    keys.add k_undo to (`SDLK_UNDO`:INTEGER);
+  );

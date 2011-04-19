@@ -1,0 +1,25 @@
+Section Header
+  // GL Canvas
+
+  + name      := GL_CANVAS;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP GLCanvas";
+
+Section Inherit
+
+  + parent:Expanded CONTROL := CONTROL;
+
+Section Public
+  
+  - make :SELF <-
+  ( + result:SELF;
+    + h:POINTER;
+
+    h := `IupGLCanvas(NULL)`:POINTER;
+
+    result := SELF.clone;
+    result.set_handle h;
+    result
+  );

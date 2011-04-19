@@ -1,0 +1,50 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_CMAP_TABLE;
+  - comment     :="Encoding Table for CMAP";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Mapping
+  
+  + platform_id:UINTEGER_8;
+  
+  + encoding_id:UINTEGER_8;
+  
+  + offset:UINTEGER_32;
+  
+Section Public
+  
+  - to_big_endian <-
+  (
+    platform_id := PROCESSOR.to_motorola_ushort platform_id;
+    encoding_id := PROCESSOR.to_motorola_ushort encoding_id;
+    offset := PROCESSOR.to_motorola_uint offset;
+  );
+  
+  - print <-
+  (
+    "\n     Platform id:".print;
+    platform_id.print;
+    "\n     Encoding id:".print;
+    encoding_id.print;
+    "\n     Offset:".print;
+    offset.print;
+  );

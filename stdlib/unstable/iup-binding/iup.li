@@ -1,0 +1,213 @@
+Section Header
+  // Binding of IUP (http://www.tecgraf.puc-rio.br/iup/) for Lisaac
+
+  + name      := IUP;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP binding";
+
+  - external := `
+  #include "iup.h"
+  `;
+  
+  - lip <-
+  (
+    (target = "windows").if {
+      add_lib "-Wl,--start-group -lgdi32 -lcomdlg32 -lcomctl32 -lopengl32 -lglu32 -lcd -liupcd -liup -liupcontrols -liupim -lim -lfreetype6 -lcomctl32 -lole32 -Wl,--end-group";
+    };
+  );
+
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Public
+  // Error information
+  
+  - error_message  :ABSTRACT_STRING;
+  - error_code     :INTEGER := `IUP_NOERROR`:INTEGER;
+
+  - error_none     :INTEGER := `IUP_NOERROR`:INTEGER;
+  - error          :INTEGER := `IUP_ERROR`:INTEGER;
+  - error_opened   :INTEGER := `IUP_OPENED`:INTEGER;
+
+Section Public
+  // Callback return values
+  
+  - cb_ignore      :INTEGER := `IUP_IGNORE`:INTEGER;
+  - cb_default     :INTEGER := `IUP_DEFAULT`:INTEGER;
+  - cb_close       :INTEGER := `IUP_CLOSE`:INTEGER;
+  - cb_continue    :INTEGER := `IUP_CONTINUE`:INTEGER;
+
+Section Private
+
+  - set_error code:INTEGER message message:ABSTRACT_STRING <-
+  (
+    error_message := message.clone;
+    error_code := code;
+  );
+
+Section Public
+  // System
+  
+  - open :BOOLEAN <-
+  ( + result:BOOLEAN;
+    (`IupOpen(NULL, NULL)`:(INTEGER) = error_none).if {
+      result := TRUE;
+      `
+      #if 0
+      `;
+      
+      BUTTON.perform_action NULL;
+
+      `
+      #endif
+      `;
+    } else {
+      result := FALSE;
+    };
+
+    result
+  );
+  
+  - close <-
+  (
+    `IupClose()`;
+  );
+  
+  - version :STRING <-
+  ( + n_version : NATIVE_ARRAY(CHARACTER);
+    + result : STRING;
+ 
+    n_version := `IupVersion()`:NATIVE_ARRAY(CHARACTER);
+
+    result := STRING.clone;
+    result.from_external(n_version);
+    result
+  );
+  
+  - load filename:ABSTRACT_STRING :BOOLEAN <-
+  ( + n_filename : NATIVE_ARRAY(CHARACTER);
+    + n_message : NATIVE_ARRAY(CHARACTER);
+    + message : STRING;
+    + result : BOOLEAN;
+  
+    n_filename := filename.to_external;
+    n_message := `IupLoad(@n_filename)`:NATIVE_ARRAY(CHARACTER);
+    (n_message = NULL).if {
+      result := TRUE;
+    } else {
+    result := FALSE;
+      message := STRING.clone;
+      message.from_external(n_message);
+      set_error (-1) message message; 
+    };
+
+    result
+  );
+  
+  - set_language language:ABSTRACT_STRING <-
+  ( + n_language : NATIVE_ARRAY(CHARACTER);
+    n_language := language.to_external;
+   	`IupSetLanguage(@n_language)`;
+  );
+  
+  - get_language :ABSTRACT_STRING <-
+  ( + n_lang : NATIVE_ARRAY(CHARACTER);
+    + result : STRING;
+    
+    n_lang := `IupGetLanguage()`:NATIVE_ARRAY(CHARACTER);
+    
+    result := STRING.clone;
+    result.from_external(n_lang);
+    result
+  );
+
+Section Public
+  // Attributes
+  
+Section Public
+  // Events
+  
+  - main_loop <-
+  (
+    `IupMainLoop()`;
+  );
+  
+  - main_loop_level :INTEGER <-
+  (
+    `IupMainLoopLevel()`:INTEGER
+  );
+  
+  - loop_step :INTEGER <-
+  (
+    `IupLoopStep()`:INTEGER
+  );
+  
+  - exit_loop <-
+  (
+    `IupExitLoop()`;
+  );
+  
+  - flush <-
+  (
+    `IupFlush()`;
+  );
+
+Section Public
+  // Layout Construction
+  
+Section Public
+  // Layout Composition
+  
+Section Public
+  // Layout Hierarchy
+  
+Section Public
+  // Layout Utilities
+  
+Section Public
+  // Dialogs 
+  
+Section Public
+  // Predefined Dialogs
+  
+  - message msg:ABSTRACT_STRING title title:ABSTRACT_STRING <-
+  (
+    + n_msg:NATIVE_ARRAY(CHARACTER);
+    + n_title:NATIVE_ARRAY(CHARACTER);
+    
+    n_msg := msg.to_external;
+    n_title := title.to_external;
+    
+    `IupMessage(@n_title, @n_msg)`;
+  );
+
+Section Public
+  // Standard Controls
+  
+Section Public
+  // Additional Controls
+  
+Section Public
+  // Matrix Utilities
+  
+Section Public
+  // Keyboard
+
+Section Public
+  // Menus
+
+Section Public
+  // Images
+
+Section Public
+  // Names
+
+Section Public
+  // Fonts
+
+Section Public
+  // Miscellaneous
+

@@ -1,0 +1,289 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := MOUSE;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := "X11 - Mouse driver";
+
+Section Inherit
+
+  + parent_input:Expanded INPUT;
+
+  + parent_window:Expanded AREA; // MASK
+
+Section Public
+
+  - set (x,y:INTEGER) with (left_new,right_new:BOOLEAN) <-
+  ( + tmp:UINTEGER_8;
+    + x_new, y_new:INTEGER;
+
+    y_new := y.max y_minimum.min y_maximum;
+    x_new := x.max x_minimum.min x_maximum;
+
+    tmp:=(p_end+1)&003h;
+    buffer_event.item p_end.make (x_new,y_new) button (left_new,right_new);
+
+    (((tmp+2)&3)!=p_beg).if {
+      p_end:=tmp;
+    };
+
+    get_event;
+
+    // Update status.
+    x_current:=x_new;
+    y_current:=y_new;
+    right :=right_new;
+    left  :=left_new;
+  );
+
+Section Public
+
+  + x_minimum:INTEGER;
+  - x_maximum:INTEGER <- VIDEO.x_max;
+
+  + y_minimum:INTEGER;
+  - y_maximum:INTEGER <- VIDEO.y_max;
+
+  + x_current:INTEGER;
+  + y_current:INTEGER;
+
+  + right:BOOLEAN;
+  + left :BOOLEAN;
+
+Section Private
+
+  + buffer_event:FAST_ARRAY(EVENT_MOUSE);
+  - p_beg:UINTEGER_8;  // Pointer on the buffer (beginning)
+  - p_end:UINTEGER_8;  // Pointer on the buffer (end)
+
+Section Public
+
+  //
+  // Creation / Initialisation.
+  //
+
+  - make <-
+  ( + new_event:EVENT_MOUSE;
+
+    is_actif := TRUE;
+
+    //
+    // Software configuration.
+    //
+    buffer_event := FAST_ARRAY(EVENT_MOUSE).create 4;
+    0.to 3 do { j:INTEGER;
+      new_event := EVENT_MOUSE.clone;
+      buffer_event.put new_event to j;
+      (j != 0).if {
+	new_event.set_prev (buffer_event.item (j-1));
+      };
+    };
+    buffer_event.first.set_prev new_event;
+
+    // MASK
+    mask := FAST_ARRAY(UINTEGER_16).create 16;
+    make (DESK.physical_screen) from (x_current,y_current) size (16,16);
+  );
+
+  - get_event <-
+  ( + p:INTEGER;
+    + evt:EVENT_MOUSE;
+
+    p := p_beg;
+    (p != p_end).if {
+      ((x_current != x_window) || {y_current != y_window}).if {
+	set_position (x_current,y_current);
+      };
+      { p != p_end }.while_do {
+        evt := buffer_event.item p;
+	(list_client.lower).to (list_client.upper) do { j:INTEGER;
+	  list_client.item j.receive (buffer_event.item p);
+	};
+	p := (p + 1) & 03h;
+      };
+    };
+  );
+
+  - acknowledge <-
+  (
+    p_beg := (p_beg+1) & 03h;
+  );
+
+  //
+  // Display.
+  //
+
+  // BSBS: A refaire avec une bitmap en dehors contenant le dessin avec une couleur de mask!!
+  // Plus simple, plus puissant, plus rapide !
+
+  + mask:FAST_ARRAY(UINTEGER_16);
+
+  - pixel_hard (x,y:INTEGER) color col:UINTEGER_32 <-
+  ( + m:UINTEGER_16;
+    ? {x<16};
+    ? {y<16};
+
+    m:=mask.item y;
+    m:=m | (1<<x);
+    mask.put m to y;
+    parent_window.pixel_hard (x,y) color col;
+  );
+
+  - line_h_hard (x0,y0:INTEGER) until x1:INTEGER color col:UINTEGER_32 <-
+  ( + m:UINTEGER_16;
+    ? {x0<16};
+    ? {y0<16};
+    ? {x1<16};
+
+    m:=mask.item y0;
+    x0.to x1 do { xx:INTEGER;
+      m:=m | (1<<xx);
+    };
+
+    mask.put m to y0;
+    parent_window.line_h_hard (x0,y0) until x1 color col;
+  );
+
+  - slave_pixel_hard (x,y:INTEGER) color col:UINTEGER_32 <-
+  ( + m:UINTEGER_16;
+
+    m:=mask.item y;
+    ((m & (1<<x))=0).if {
+      parent_window.pixel_hard (x,y) color col;
+    };
+  );
+
+  - slave_line_h_hard (x1,y:INTEGER) until x2:INTEGER color col:UINTEGER_32 <-
+  ( + m:UINTEGER_16;
+
+    m:=mask.item y;
+    x1.to x2 do { xx:INTEGER;
+      ((m & (1<<xx))=0).if {
+	parent_window.pixel_hard (xx,y) color col;
+      };
+    };
+  );
+
+  - slave_line_h_hard (x1,y:INTEGER) until x2:INTEGER image line:ABSTRACT_BMP_LINE offset ofs:INTEGER <-
+  ( + m:UINTEGER_16;
+    + col:UINTEGER_32;
+    + ofs_img:INTEGER;
+    ofs_img := ofs;
+    m:=mask.item y;
+    x1.to x2 do { xx:INTEGER;
+      ((m & (1<<xx))=0).if {
+	col := line.get_color ofs_img;
+	parent_window.pixel_hard (xx,y) color col;
+      };
+      ofs_img := ofs_img + 1;
+    };
+  );
+
+  - draw (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  (
+    clipping (x0,y0) to (x1,y1);
+
+    color white;
+    poly_move_to (1,1);
+    poly_line_to (9,9);
+    poly_line_to (6,9);
+    poly_line_to (8,14);
+    poly_line_to (5,14);
+    poly_line_to (5,9);
+    poly_line_to (1,9);
+    poly_move_to (1,1);
+    poly_trace;
+
+    color red;
+    line_v (0,0)  until 10;
+    line_h (1,10) until 4;
+    line_v (4,11) until 15;
+    line_h (5,15) until 9;
+    line (9,15) to (7,10);
+    line_h (7,10) until 10;
+    line (1,0) to (10,9);
+  );
+
+  - get_object (x,y:INTEGER) :AREA <-
+  (
+    NULL
+  );
+
+  //
+  // Extern robot.
+  //
+
+  - extern_event_move (x,y:INTEGER) <-
+  (
+    `XTestFakeMotionEvent(display,-1,@x,@y,1)`;
+    `XFlush(display)`;
+  );
+
+  - extern_event_left_down <-
+  (
+    `XTestFakeButtonEvent(display,1,True,1)`;
+    `XFlush(display)`;
+  );
+
+  - extern_event_left_up <-
+  (
+    `XTestFakeButtonEvent(display,1,False,1)`;
+    `XFlush(display)`;
+  );
+
+  - extern_event_right_down <-
+  (
+    `XTestFakeButtonEvent(display,3,True,1)`;
+    `XFlush(display)`;
+  );
+
+  - extern_event_right_up <-
+  (
+    `XTestFakeButtonEvent(display,3,False,1)`;
+    `XFlush(display)`;
+  );
+
+  - extern_get_mouse:(INTEGER,INTEGER,BOOLEAN,BOOLEAN) <-
+  ( + x,y,mask:INTEGER;
+    + l,r:BOOLEAN;
+    `{ Window	dummy1, dummy2`;
+      `int x,y,winx,winy,mask`;
+      `XQueryPointer(display,RootWindow(display, DefaultScreen(display)), &dummy1, &dummy2, &x,&y, &winx, &winy, &mask)`;
+      x := `winx`:INTEGER;
+      y := `winy`:INTEGER;
+      mask := `mask`:INTEGER;
+    `}`;
+    l := (mask & 100h)!=0;
+    r := (mask & 400h)!=0;
+    x,y,l,r
+  );
+
+
+
+
+
+
+
+
+

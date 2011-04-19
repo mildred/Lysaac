@@ -1,0 +1,76 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := POINT_INT;
+  
+  - comment     := "Point graphics Vector in INTEGER.";
+  
+  - bibliography:= "http://IsaacOS.com";
+  
+  - author      := "Benoit Sonntag (bsonntag@loria.fr), Jerome Boutet (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Mapping
+ 
+  + x:INTEGER;  
+  + y:INTEGER;
+  
+Section Public
+  
+  //
+  // Constructor.
+  // 
+  
+  - create (new_x,new_y:INTEGER) :SELF <-
+  ( + result:SELF;
+    
+    result:=clone;
+    result.make (new_x,new_y);
+    
+    result
+  );
+  
+  //
+  // Modification.
+  //
+  
+  - make (new_x,new_y:INTEGER) <-
+  (
+    x:=new_x;
+    y:=new_y;
+  );
+  
+  - translate (dx,dy:INTEGER) <-
+  (
+    x:=x+dx;
+    y:=y+dy;
+  );
+  
+  - multiply (cx,cy:INTEGER) <-
+  (
+    x:=x*cx;
+    y:=y*cy;
+  );
+  
+  //
+  // Display.
+  //
+
+  - display bmp:BITMAP <-
+  (
+    deferred;
+  );

@@ -1,0 +1,95 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name      := PAGE;
+
+  - copyright := "Jonathan Ponte, Maxime Audrin, Benoit Sonntag";
+
+  - comment   := "Vertical menu for GUII.";
+  
+Section Inherit
+  
+  - parent_internal_inode:INTERNAL_INODE := INTERNAL_INODE;
+  
+Section Public
+
+  - representation:STRING_CONSTANT := "PAGE";
+
+  - print <-
+  (
+    "PAGE".print;
+  );
+
+  - make_representation <-
+  (
+    content:=G_PAGE.create;
+  );
+  
+  - semantic_evaluation (w,h:INTEGER) :BOOLEAN <-
+  (
+    +result:BOOLEAN;
+    
+    ((list.is_empty) && {operator='^'}).if {
+      result:=TRUE;
+    } else {
+      result:=FALSE;
+    };
+    result
+  );
+   
+  
+  - space_evaluation (w,h:INTEGER) :REAL_32 <-
+  (
+    +result:REAL_32;
+    
+    width:=G_PAGE.width_min;
+    height:=G_PAGE.height_min;
+    ((width > w) || {height > h}).if {
+      result:=0.0;
+    } else {
+      result:=100.0;
+    };
+    result
+  );
+
+- evaluate n:INODE width w:INTEGER height h:INTEGER : REAL_32<-
+  (
+     
+     +result:REAL_32;
+     
+     "PAGE semantic evaluation of ".print;n.name.print;"\n".print;
+     n.set_representation PAGE;
+     //Semantic evaluation (if the "base" son doesn't have any sons itself then it is a PAGE at 100%
+     (n.semantic_evaluation (w,h)).if {
+       ((G_PAGE.width_min <= w) || {G_PAGE.height_min <= h}).if {
+         result:=n.space_evaluation (w,h);
+       };
+     }; 
+     "PAGE result of ".print;n.name.print;"= ".print;result.print;"% \n".print;
+     result
+  );
+
+
+
+
+
+		

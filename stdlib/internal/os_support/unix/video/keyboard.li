@@ -1,0 +1,196 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := KEYBOARD;
+
+  - copyright   := "2003-2005 JÃ©rome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     :="X11 - Keyboard Driver";
+
+  - version := 1;
+  - date    :="2003/04";
+
+Section Inherit
+
+  + parent_input_keyboard:Expanded INPUT_KEYBOARD;
+
+Section Private
+
+  // Lower case.
+  - lower_case:STRING_CONSTANT := "&é\"'(-è_çà)=\8\\9\azertyuiop^$\13\ qsdfghjklmù  *wxcvbn,;:!";
+  // Upper case.
+  - upper_case:STRING_CONSTANT := "1234567890°+\8\\9\AZERTYUIOP\"£\13\ QSDFGHJKLM%  µWXCVBN?./§";
+
+  // Num lock.
+  - num_on :STRING_CONSTANT := "789-456+1230.";
+  - num_off:STRING_CONSTANT := "BUA-L\0R+EDZIS";
+
+  // AltGr.
+  - alt_gr:STRING_CONSTANT := "¹~#{[|`\\^@]}";
+
+  // Extension key.
+  - ext_key:STRING_CONSTANT := "BUAL REDZIS  HP";
+
+  - keyup cu:UINTEGER_8 :UINTEGER_8 <-
+  ( + result,pcu:UINTEGER_8;
+
+    // Patch 64bits
+    ((UINTEGER_CPU.object_size = 8) && {
+        (cu = 111) || {cu = 113} || {cu = 114} || {cu = 116}
+    }).if {
+      (cu <= 113).if {
+        pcu := cu - 13;
+      } else {
+        pcu := cu - 12;
+      };
+    } else {
+      pcu := cu;
+    };
+    // End patch
+
+    cmd := cmd & 0F7h; // Deactivate the cmd bit
+    //bin_code.put ((bin_code.item (pcu>>3)) & ~(1<<(pcu&7))) to (pcu>>3);
+    // Analyze: for deactivate the cmd
+    ((pcu = 37) || {pcu = 109}).if {
+      //CTRL 1 or CTRL2
+      cmd := cmd & (~01h);
+    }.elseif { pcu = 113 } then {
+      // Alt Gr
+      cmd := cmd & (~02h);
+    }.elseif { pcu = 64 } then {
+      // Alt
+      cmd := cmd & (~04h);
+      result := ascii_code;
+      ascii_code := 0;
+    }.elseif { (pcu = 50) || { pcu = 62} } then {
+      // Shift 1 or Shift 2
+      cmd := cmd & (~10h);
+    };
+    result
+  );
+
+  - keydown cu:UINTEGER_8 :UINTEGER_8 <-
+  ( + result,pcu:UINTEGER_8;
+
+    // Patch 64bits
+    ((UINTEGER_CPU.object_size = 8) && {
+        (cu = 111) || {cu = 113} || {cu = 114} || {cu = 116}
+    }).if {
+      (cu <= 113).if {
+        pcu := cu - 13;
+      } else {
+        pcu := cu - 12;
+      };
+    } else {
+      pcu := cu;
+    };
+    // End patch
+
+    //bin_code.put ((bin_code.item (pcu>>3)) | (~(1<<(pcu&7)))) to (pcu>>3); // Activate key
+    // Analyze: for activate the cmd
+    ((pcu = 37) || {pcu = 109}).if {
+      //CTRL1 or CTRL2
+      cmd := cmd | 01h;
+    }.elseif { pcu = 113 } then {
+      // Alt Gr
+      cmd := cmd | 02h;
+    }.elseif { pcu = 64 } then {
+      // Alt
+      cmd := cmd | 04h;
+    }.elseif { pcu = 65 } then {
+      // Space
+      result := ' '.to_uinteger_8;
+    }.elseif { (pcu = 50) || { pcu = 62} } then {
+      // Shift 1 or Shift 2
+      cmd := cmd | 10h;
+      ((cmd & 20h)!=0).if {
+	cmd := cmd & (~20h);
+	//light;
+      };
+    }.elseif { pcu = 66 } then {
+      // Cap
+      cmd := cmd ^ 20h;
+      //light;
+    }.elseif { pcu = 77 } then {
+      // Num Lock
+      cmd := cmd ^ 40h;
+    }.elseif { pcu = 78 } then {
+      // Scroll Lock
+      cmd := cmd ^ 80h;
+    }.elseif { pcu = 9 } then {
+      // Esc
+      cmd :=  cmd | 08h;
+      result := 27;
+    }.elseif {((cmd&2)!=0) && {pcu.in_range 10 to 21}} then {
+      cmd :=  cmd & (~02h);
+      result := alt_gr.item (pcu-9).to_uinteger_8;
+    }.elseif {pcu.in_range 10 to 61} then {
+      ((cmd & 30h)=0).if {
+	result := lower_case.item (pcu-9).to_uinteger_8;
+      } else {
+	result := upper_case.item (pcu-9).to_uinteger_8;
+      };
+      (result <= 13).if {
+	cmd := cmd | 08h;
+      };
+    }.elseif {pcu = 63} then {
+      result := '*'.to_uinteger_8;
+    }.elseif {pcu.in_range 67 to 76} then {
+      cmd :=  cmd | 08h;      // F1 to F10 = cmd
+      result :=  pcu - 67 + 'a'.to_uinteger_8;  // 'a' to 'j'
+    }.elseif {pcu.in_range 79 to 91} then {
+      ((cmd & 40h) = 0).if {
+	// Ver num off
+	result := num_off.item (pcu-78).to_uinteger_8;
+	(result.to_character.in_range 'A' to 'Z').if {
+	  cmd := cmd | 8h;
+	};
+      } else {
+	// Verr num on
+	result := num_on.item (pcu-78).to_uinteger_8;
+	((cmd & 4) != 0).if {
+	  ascii_code := ascii_code * 10 + (result-'0'.to_uinteger_8);
+	  result := 0;
+	};
+      };
+    }.elseif {(pcu = 95) || {pcu = 96}} then {
+      cmd :=  cmd | 08h;      // F11 to F12 = cmd
+      result :=  pcu - 95 + 'k'.to_uinteger_8;  // 'k' to 'l'
+    }.elseif {pcu = 94} then {
+      ((cmd & 30h)=0).if {
+	result := '<'.to_uinteger_8;
+      } else {
+	result := '>'.to_uinteger_8;
+      };
+    }.elseif {pcu.in_range 97 to 111} then {
+      cmd := cmd | 08h;
+      result := ext_key.item (pcu-96).to_uinteger_8;
+    }.elseif {pcu = 112} then {
+      result := '/'.to_uinteger_8;
+    };
+    result
+  );
+
+
+
+
+

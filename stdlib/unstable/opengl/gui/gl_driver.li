@@ -1,0 +1,218 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_DRIVER;
+  
+  - external := `#define GLBINDING__USE_GUI`;
+  
+Section Inherit
+  
+  + parent_opengl:Expanded OPENGL;
+  
+  - parent_video_driver:VIDEO_DRIVER := VIDEO_DRIVER;
+  
+Section Private  
+  
+  // GUI calls affects this virtual bitmap
+  - gui_screen:FAST_ARRAY(UINTEGER_8);// BITMAP(PIXEL_32);
+  
+Section Public
+  
+  - is_initialized:BOOLEAN;
+  
+  
+  - make (w,h:INTEGER) <-
+  (
+    parent_opengl.make (w,h);
+    gui_init (w,h);
+  );
+  
+  - make (w,h:INTEGER) title s:ABSTRACT_STRING <-
+  ( 
+    parent_opengl.make (w,h) title s;
+    gui_init (w,h);
+  );
+  
+  - gui_init (w,h:INTEGER) <-
+  (  
+    gui_screen := FAST_ARRAY(UINTEGER_8).create (w*h*3); 
+    `glPixelStorei(GL_UNPACK_ALIGNMENT, 1)`;
+    
+    width := w;
+    height := h;
+
+    // init minimmal Framework (used by 3D stuff)
+    FRAMEWORK.make_for_gui Self;
+    
+    is_initialized := TRUE;
+  );
+  
+  - render t:REAL_32 <-
+  ( + p:POINTER;
+    + w,h:INTEGER;
+    
+    parent_opengl.begin_frame;
+    
+    `glMatrixMode(GL_PROJECTION)`;
+    `glPushMatrix()`;
+    `glLoadIdentity()`;
+    
+    `glOrtho(0,@w,@h,0,-99999,99999)`;
+    `glMatrixMode(GL_MODELVIEW)`;
+    `glLoadIdentity()`;
+    
+    w := width;
+    h := height;
+    
+    p := gui_screen.to_external;      
+    `glDrawPixels(@w, @h, GL_RGB, GL_UNSIGNED_BYTE, @p)`; // SLOW !!!!
+    `glFlush()`;
+    
+    `glMatrixMode(GL_PROJECTION)`;
+    `glPopMatrix()`;
+    
+    `glMatrixMode(GL_MODELVIEW)`;
+    `glLoadIdentity()`;
+    
+    render_gldraw t;
+  );
+  
+  - render_gldraw t:REAL_32 <-
+  ( + x0,x1,y0,y1:INTEGER;
+    + h:INTEGER;
+    + r,f:REAL_32;
+    
+    (gl_components != NULL).if {
+      gl_components.lower.to (gl_components.upper) do { i:INTEGER;
+        x0 := gl_components.item i.x_window;
+        y0 := gl_components.item i.y_window-1;
+        x1 := gl_components.item i.width + x0;
+        y1 := gl_components.item i.height + y0;
+        
+        h := height;
+        viewport.make (x0, h - y1, x1 - x0, y1 - y0);
+        
+        `glViewport(@x0, @h - @y1, @x1 - @x0, @y1 - @y0)`;
+        `glScissor(@x0, @h - @y1, @x1 - @x0, @y1 - @y0)`;
+        `glEnable(GL_SCISSOR_TEST)`;
+        
+        `glMatrixMode(GL_PROJECTION)`;
+        `glLoadIdentity()`;
+        
+        r := (x1-x0).to_real / (y1-y0).to_real;
+        f := fov;
+        `gluPerspective(@f, @r, 0.1, 1000)`;
+        
+        `glMatrixMode(GL_MODELVIEW)`;
+        `glLoadIdentity()`;
+        
+        `glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);`;
+        
+        // draw component
+        gl_components.item i.scene.render t; 
+        
+        `glDisable(GL_SCISSOR_TEST)`;
+      };
+    };
+    parent_opengl.end_frame;   
+  );
+  
+  - close <-
+  (
+    (gl_components != NULL).if {
+      gl_components.lower.to (gl_components.upper) do { i:INTEGER;
+        gl_components.item i.scene.release;
+      };
+    };
+    parent_opengl.close;
+  );
+  
+  //
+  // GUI-OpenGL components
+  //
+  
+Section Public  
+  
+  - gl_components:LINKED_LIST(G_GLDRAW);
+  
+  - add_gldraw c:G_GLDRAW <-
+  (
+    (gl_components = NULL).if {
+      gl_components := LINKED_LIST(G_GLDRAW).create;
+    };
+    gl_components.add_last c;
+    
+    //
+    c.scene.initialize;
+    //
+  );
+  
+  
+  // 
+  // Redefine Low level Bitmap.
+  //
+  
+Section Public
+  
+  - pixel_hard (x,y:INTEGER) color col:UINTEGER_32 <-
+  ( + p:FAST_ARRAY(UINTEGER_8);
+    + xx,yy:INTEGER;
+    //GL_DRIVER.gui_screen.pixel_hard (x,y) color col;
+    
+    xx :=  x;
+    yy := height - y;
+    
+    p := GL_DRIVER.gui_screen;
+    PIXEL_32.make col;
+    
+    p.put (PIXEL_32.red) to ((yy*width+xx)*3);
+    p.put (PIXEL_32.green) to ((yy*width+xx)*3+1);
+    p.put (PIXEL_32.blue) to ((yy*width+xx)*3+2);
+  );
+  
+  - line_h_hard (x,y:INTEGER) until x1:INTEGER color col:UINTEGER_32 <-
+  ( 
+    //GL_DRIVER.gui_screen.line_h_hard (x,y) until x1 color col;
+    
+    x.to x1 do { i:INTEGER;
+      pixel_hard (i,y) color col;
+    };
+  );
+  
+  - line_h_hard (x,y:INTEGER) until x1:INTEGER 
+  image line:ABSTRACT_BMP_LINE offset ofs:INTEGER <-
+  ( 
+    //GL_DRIVER.gui_screen.line_h_hard (x,y) until x1 image line offset ofs;
+    
+    x.to x1 do { i:INTEGER;
+      pixel_hard (i,y) color ((line.item (ofs+i)).rgbcolor);
+    };
+  );
+  
+  - get_pixel_hard (x,y:INTEGER) :PIXEL <-
+  (
+    // GL_DRIVER.gui_screen.get_pixel_hard (x,y)
+    
+    PIXEL_32.make (gui_screen.item (x+ y*width));
+    PIXEL_32
+  );

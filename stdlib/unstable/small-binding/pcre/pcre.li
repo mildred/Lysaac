@@ -1,0 +1,401 @@
+//
+// This code is released as-is for any purpose you see fit. Any
+// bug fixes or enhancements you may make, it would be kind to
+// contribute these back to me so others can benefit as well.
+//
+// Jeremy Cowgar <jeremy@cowgar.com>
+//
+
+Section Header
+  // Binding for PCRE (http://pcre.org) for Lisaac
+
+  + name      := PCRE;
+
+  - copyright := "2009 Jeremy Cowgar";
+
+  - comment   := "PCRE binding. Requires linking to libpcre.";
+
+  - external := `
+  #include <pcre.h>
+  const char *PCRE_error_message;
+  int PCRE_error_offset;
+  int PCRE_error_code;
+  int PCRE_ovector[30];
+  `;
+
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Public
+  // Option Constants
+
+  - default         :INTEGER := `DEFAULT`:INTEGER;
+  - caseless        :INTEGER := `CASELESS`:INTEGER;
+  - multiline       :INTEGER := `MULTILINE`:INTEGER;
+  - dotall          :INTEGER := `DOTALL`:INTEGER;
+  - extended        :INTEGER := `EXTENDED`:INTEGER;
+  - anchored        :INTEGER := `ANCHORED`:INTEGER;
+  - dollar_endonly  :INTEGER := `DOLLAR_ENDONLY`:INTEGER;
+  - extra           :INTEGER := `EXTRA`:INTEGER;
+  - notbol          :INTEGER := `NOTBOL`:INTEGER;
+  - noteol          :INTEGER := `NOTEOL`:INTEGER;
+  - ungreedy        :INTEGER := `UNGREEDY`:INTEGER;
+  - notempty        :INTEGER := `NOTEMPTY`:INTEGER;
+  - utf8            :INTEGER := `UTF8`:INTEGER;
+  - no_auto_capture :INTEGER := `NO_AUTO_CAPTURE`:INTEGER;
+  - no_utf8_check   :INTEGER := `NO_UTF8_CHECK`:INTEGER;
+  - auto_callout    :INTEGER := `AUTO_CALLOUT`:INTEGER;
+  - partial         :INTEGER := `PARTIAL`:INTEGER;
+  - dfa_shortest    :INTEGER := `DFA_SHORTEST`:INTEGER;
+  - dfa_restart     :INTEGER := `DFA_RESTART`:INTEGER;
+  - firstline       :INTEGER := `FIRSTLINE`:INTEGER;
+  - dupnames        :INTEGER := `DUPNAMES`:INTEGER;
+  - newline_cr      :INTEGER := `NEWLINE_CR`:INTEGER;
+  - newline_lf      :INTEGER := `NEWLINE_LF`:INTEGER;
+  - newline_crlf    :INTEGER := `NEWLINE_CRLF`:INTEGER;
+  - newline_any     :INTEGER := `NEWLINE_ANY`:INTEGER;
+  - newline_anycrlf :INTEGER := `NEWLINE_ANYCRLF`:INTEGER;
+  - bsr_anycrlf     :INTEGER := `BSR_ANYCRLF`:INTEGER;
+  - bsr_unicode     :INTEGER := `BSR_UNICODE`:INTEGER;
+
+Section Private
+
+  + regex_pointer :POINTER := NULL;
+  // Internal pointer to the "pcre *" handle.
+
+Section Public
+
+  + pattern:ABSTRACT_STRING;
+  // Regular expression pattern
+
+  + error_message:ABSTRACT_STRING;
+  // Error message, if error_code is > 0
+
+  + error_offset:INTEGER := 0;
+  // Offset in the pattern where error occurred
+
+  + error_code:INTEGER := 0;
+  // Error code
+
+Section Private
+  // Internal setters used for creation slots
+
+  - set_regex_pointer value:POINTER <-
+  (
+    regex_pointer := value;
+  );
+
+  - set_pattern value:ABSTRACT_STRING <-
+  (
+    pattern := value;
+  );
+
+  - set_error_message value:ABSTRACT_STRING <-
+  (
+    error_message := value;
+  );
+
+  - set_error_offset value:INTEGER <-
+  (
+    error_offset := value;
+  );
+
+  - set_error_code value:INTEGER <-
+  (
+    error_code := value;
+  );
+
+Section Private
+  // Internal make slots
+
+  - make pattern:ABSTRACT_STRING pointer pointer:POINTER :SELF <-
+  (
+    + result:SELF;
+
+    result := SELF.clone;
+    result.set_pattern pattern;
+    result.set_regex_pointer pointer;
+    result
+  );
+
+  - make pattern:ABSTRACT_STRING code error_code:INTEGER offset error_offset:INTEGER message error_message:ABSTRACT_STRING :SELF <-
+  (
+    + result:SELF;
+
+    result := SELF.clone;
+    result.set_pattern pattern;
+    result.set_error_code error_code;
+    result.set_error_offset error_offset;
+    result.set_error_message error_message;
+    result
+  );
+
+Section Public
+  // Creation
+
+  - create pattern:ABSTRACT_STRING :SELF <-
+  // Create a new PCRE object.
+  //
+  // You should check the result.error_code. If not zero
+  // then an error occurred while compiling the pattern.
+  // You can retrieve detailed error information from
+  // the slots `error_code`, `error_message` and
+  // `error_offset`.
+  (
+    + pointer:POINTER;
+    + n_pattern:NATIVE_ARRAY(CHARACTER);
+    + error_message:STRING;
+    + error_code:INTEGER;
+    + error_offset:INTEGER;
+    + result:SELF;
+
+    n_pattern := pattern.to_external;
+
+    pointer := `pcre_compile2(@n_pattern, 0, &PCRE_error_code, &PCRE_error_message, &PCRE_error_offset, NULL)`:POINTER;
+    (pointer = 0). if {
+      error_code := `PCRE_error_code`:INTEGER;
+      error_offset := (`PCRE_error_offset`:INTEGER + 1);
+      error_message := STRING.clone;
+      error_message.from_external(`PCRE_error_message`:NATIVE_ARRAY(CHARACTER));
+
+      result := SELF.make pattern code error_code offset error_offset message (error_message.to_string);
+    } else {
+      result := SELF.make pattern pointer pointer;
+    };
+
+    result
+  );
+
+  - clear <-
+  // Clear any match data.
+  (
+    matches.clear;
+  );
+
+Section Public
+  // Matching
+
+  + matches:FAST_ARRAY(INTEGER);
+  // Pairs of integers specifying the start and end of
+  // the match for each capture group. Index 0 and 1
+  // are always the entire match. Index 2 and 3 will
+  // be the first matched group, 4 and 5 the second
+  // matched group, etc...
+
+  - match subject:ABSTRACT_STRING since since:INTEGER options options:INTEGER :INTEGER <-
+  // Match against `subject` starting at `since` with the
+  // with options `options`.
+  //
+  // Returns the number of matches found.
+  (
+    + pointer:POINTER;
+    + n_subject:NATIVE_ARRAY(CHARACTER);
+    + subject_len:INTEGER;
+    + match_count:INTEGER;
+
+    pointer := regex_pointer;
+    n_subject := subject.to_external;
+    subject_len := subject.count;
+
+    match_count := `pcre_exec(@pointer, NULL, @n_subject, @subject_len, @since-1, @options, PCRE_ovector, 30)`:INTEGER;
+    (match_count > 0).if {
+      matches := FAST_ARRAY(INTEGER).create (match_count * 2);
+      0.to (matches.count - 1) by 2 do { idx:INTEGER;
+        matches.put (`PCRE_ovector[@idx]`:INTEGER + 1) to idx;
+        matches.put (`PCRE_ovector[@idx+1]`:INTEGER) to (idx+1);
+      };
+    } else {
+      matches := FAST_ARRAY(INTEGER).create 0;
+    };
+
+    match_count
+  );
+
+  - match subject:ABSTRACT_STRING since since:INTEGER :INTEGER <-
+  // Match gainst `subject` with default options starting at
+  // `since`.
+  //
+  // Returns the number of matches found.
+  (
+    match subject since since options 0
+  );
+
+  - match subject:ABSTRACT_STRING options options:INTEGER :INTEGER <-
+  // Match against `subject` with `options` starting at
+  // position 1 in the `subject`.
+  //
+  // Returns the number of matches found.
+  (
+    match subject since 1 options options
+  );
+
+  - match subject:ABSTRACT_STRING :INTEGER <-
+  // Match against `subject` with default options starting
+  // at position 1 in the `subject`.
+  //
+  // Returns the number of matches found.
+  (
+    match subject since 1 options 0
+  );
+
+  - count :INTEGER <-
+  // Number of matches
+  (
+    (matches.count + 1) / 2 // +1 deals with the zero based index
+  );
+
+  - item idx:INTEGER on subject:ABSTRACT_STRING :STRING <-
+  // Get a match item `idx` on `subject`. `idx` 0 being
+  // the entire match, 1 being the first group, 2 being
+  // the second, etc...
+  //
+  // Returns a new STRING.
+  (
+    + start:INTEGER;
+    + result:STRING;
+
+    (idx >= count).if {
+      result := STRING.clone;
+      result.make_empty;
+    } else {
+      start := idx * 2;
+
+      result := (subject.substring (matches.item start) to (matches.item (start + 1)));
+    };
+
+    result
+  );
+
+Section Private
+
+  - add_match subject:ABSTRACT_STRING match idx:INTEGER to result:STRING conversion convert:INTEGER :INTEGER <-
+  (
+    + value:STRING;
+    + new_convert:INTEGER;
+    + match_idx:INTEGER;
+
+    match_idx := idx * 2;
+
+    value := (subject.substring (matches.item match_idx) to (matches.item (match_idx + 1)));
+    new_convert := convert;
+
+    ( convert = 0 ).if {
+      result.append value;
+    }.elseif { convert = 1 } then {
+      value.put ((value.item 1).to_upper) to 1;
+      result.append value;
+      new_convert := 0;
+    }.elseif { convert = 2 } then {
+      value.put ((value.item 1).to_lower) to 1;
+      result.append value;
+      new_convert := 0;
+    }.elseif { convert = 3 } then {
+      value.to_upper;
+      result.append value;
+    }.elseif { convert = 4 } then {
+      value.to_lower;
+      result.append value;
+    };
+
+    new_convert
+  );
+
+Section Public
+  // Replacement
+  //
+  // All `replacement` values can contain a few key escaped characters:
+  //
+  // * \0 - recall entire match
+  // * \1..\9 - recall match 1 through 9
+  // * \u - convert the next character to upper case
+  // * \l - convert the next character to lower case
+  // * \U - convert all characters to upper case until a \E or \e is encountered
+  // * \L - convert all characters to lower case until a \E or \e is encountered
+  // * \E or \e - turn off upper or lower case conversion
+
+  - replace subject:ABSTRACT_STRING with replacement:ABSTRACT_STRING since since:INTEGER options options:INTEGER :STRING <-
+  // Replace `subject` with `replacement` starting at `since` with
+  // the match options `options`.
+  //
+  // Returns a new STRING.
+  (
+    + ch:CHARACTER;
+    + result:STRING;
+    + idx:INTEGER;
+    + convert:INTEGER; // 0=None, 1=Next Upper, 2=Next Lower, 3=Upper, 4=Lower
+
+    match subject since since options options;
+
+    result := STRING.clone;
+    idx := 1;
+    convert := 0;
+
+    { idx <= replacement.count }.while_do {
+      ch := replacement.item idx;
+
+      ( ch = '\\' ).if {
+        idx := idx + 1;
+        ch := replacement.item idx;
+
+        ( (ch >= '0') & (ch <= '9') ).if {
+          convert := add_match subject match (ch.to_integer - 48) to result conversion convert;
+        }.elseif { ch = 'u' } then {
+          convert := 1;
+        }.elseif { ch = 'l' } then {
+          convert := 2;
+        }.elseif { ch = 'U' } then {
+          convert := 3;
+        }.elseif { ch = 'L' } then {
+          convert := 4;
+        }.elseif { ch.to_upper = 'E' } then {
+          convert := 0;
+        };
+      } else {
+        ( convert = 1 ).if {
+          ch := ch.to_upper;
+          convert := 0;
+        }.elseif { convert = 2 } then {
+          ch := ch.to_lower;
+          convert := 0;
+        }.elseif { convert = 3 } then {
+          ch := ch.to_upper;
+        }.elseif { convert = 4 } then {
+          ch := ch.to_lower;
+        };
+
+        result.append_character ch;
+      };
+
+      idx := idx + 1;
+    };
+
+    result
+  );
+
+  - replace subject:ABSTRACT_STRING with replacement:ABSTRACT_STRING since since:INTEGER :STRING <-
+  // Replace `subject` with `replacement` starting at `since` with
+  // the default match options.
+  //
+  // Returns a new STRING.
+  (
+    replace subject with replacement since since options 0
+  );
+
+  - replace subject:ABSTRACT_STRING with replacement:ABSTRACT_STRING options options:INTEGER :STRING <-
+  // Replace `subject` with `replacement` starting at position
+  // 1 with the default match options.
+  //
+  // Returns a new STRING.
+  (
+    replace subject with replacement since 1 options options
+  );
+
+  - replace subject:ABSTRACT_STRING with replacement:ABSTRACT_STRING :STRING <-
+  // Replace `subject` with `replacement` starting at position
+  // 1 with the default match options.
+  //
+  // Returns a new STRING.
+  (
+    replace subject with replacement since 1 options 0
+  );

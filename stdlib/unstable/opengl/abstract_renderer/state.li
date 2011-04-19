@@ -1,0 +1,87 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                             //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := STATE;
+  
+  - comment  := "The renderer is a Finite-State Machine";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Private
+  
+  + stack:LINKED_LIST(BOOLEAN);
+  
+Section Public
+  
+  //
+  //  Current states:
+  //          - lights
+  //          - planes
+  //          - textures
+  //          - depth test
+  //          - alpha test
+  //          - stencil test
+  //          - scissor test
+  //          - blending
+  //          - culling
+  //          - fog
+  
+  + is_enabled:BOOLEAN;
+  
+  
+  - enable <-
+  (
+    is_enabled := TRUE;
+  );
+  
+  - disable <- 
+  (
+    is_enabled := FALSE;
+  );
+  
+  - push_attrib <- deferred;
+  - pop_attrib <- deferred;
+  - new_attrib body:BLOCK <-
+  (
+    push_attrib;
+    body.value;
+    pop_attrib;
+  );
+  
+  
+  - save <-
+  (
+    (stack = NULL).if {
+      stack := LINKED_LIST(BOOLEAN).create;
+    };
+    stack.add_last is_enabled;
+  );
+  
+  - restore <-
+  (
+    ? {(stack != NULL) && {stack.count > 1}};
+    is_enabled := stack.last;
+    stack.remove_last;
+  );

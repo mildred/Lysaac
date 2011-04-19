@@ -1,0 +1,141 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := SIGNED_FIXED_REAL;
+
+  - comment := "Signed real number of fixed decimal part.";
+
+Section Insert
+
+  - parent_fixed_real:FIXED_REAL := FIXED_REAL;
+
+Section Public
+
+  //
+  // Bound test
+  //
+
+  - bound_test low:INTEGER_64 to up:UINTEGER_64 :BOOLEAN <-
+  (
+    (low < to_raw_integer_64) && {up > to_raw_uinteger_64}
+  );
+
+  //
+  // Around
+  //
+
+  - object_size:INTEGER := 4;
+
+  - floor:INTEGER <-
+  // Greatest integral value no greater than Current.
+  (
+    to_raw_integer_32 >> shift_bits
+  )
+  [
+    +? {Self >= Result};
+    +? {(Self - Result) < 1};
+  ];
+
+  - ceiling:INTEGER <-
+  // Smallest integral value no smaller than Current.
+  (
+    (to_raw_integer_32 + ((1 << shift_bits) - 1)) >> shift_bits
+  )
+  [
+    +? {Self <= Result};
+    +? {(Self - Result) < 1};
+  ];
+
+  - rounded:INTEGER <-
+  // Rounded integral value.
+  (
+    (to_raw_integer_32 + ((1 << shift_bits) / 2)) >> shift_bits
+  );
+
+  - truncated_to_integer:INTEGER <- floor;
+  // Integer part (largest absolute value no greater than Current).
+
+  //
+  // binary operator :
+  //
+
+  - Self:SELF '-'  Left 80  other:SELF :SELF <-
+  (
+    CONVERT(INTEGER_32,SELF).on (to_raw_integer_32 - other.to_raw_integer_32)
+  );
+
+  - Self:SELF '*#' Left 100 other:INTEGER :SELF <-
+  (
+    CONVERT(INTEGER_32,SELF).on (to_raw_integer_32 * other)
+  );
+
+  - Self:SELF '*'  Left 100 other:SELF :SELF <-
+  (
+    CONVERT(INTEGER_64,SELF).on ((to_raw_integer_64 * other.to_raw_integer_64) >> shift_bits)
+  );
+
+  - Self:SELF '/#' Left 100 other:INTEGER :SELF <-
+  (
+    CONVERT(INTEGER_32,SELF).on (to_raw_integer_32 / other)
+  );
+
+  - Self:SELF '/'  Left 100 other:SELF :SELF <-
+  (
+    CONVERT(INTEGER_64,SELF).on ((to_raw_integer_64 << shift_bits) / other.to_raw_integer_64)
+  );
+
+  - Self:SELF '&'  Left 100 other:SELF :SELF <-
+  (
+    CONVERT(INTEGER_32,SELF).on (to_raw_integer_32 & other.to_raw_integer_32)
+  );
+
+  - Self:SELF '>>' Left 100 other:INTEGER :SELF <-
+  (
+    CONVERT(INTEGER_32,SELF).on (to_raw_integer_32 >> other)
+  );
+
+  - Self:SELF '<<' Left 100 other:INTEGER :SELF <-
+  (
+    CONVERT(INTEGER_32,SELF).on (to_raw_integer_32 << other)
+  );
+
+  //
+  // Test binary operator :
+  //
+
+  - Self:SELF '>' Right 60 other:SELF :BOOLEAN <-
+  (
+    to_raw_integer_32 > other.to_raw_integer_32
+  );
+
+  //
+  // prefix : Unary operator
+  //
+
+  - '~' Self:SELF :SELF <-
+  (
+    CONVERT(INTEGER_32,SELF).on (~ to_raw_integer_32)
+  );
+
+
+
+

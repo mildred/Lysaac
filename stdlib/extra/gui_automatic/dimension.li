@@ -1,0 +1,87 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name      := DIMENSION;
+  
+  - copyright := "2003-2008 Sonntag Benoit";
+  
+  - author    := "Sonntag Benoit (sonntag@icps.u-strasbg.fr)";
+  - comment   := "The main prototype";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  +width:INTEGER;
+  +height:INTEGER;
+  +line_height:INTEGER;
+  +pattern:INTERNAL_INODE;
+  +score_sum:REAL_32;
+  +coefficient:INTEGER;
+  
+  
+  //
+  // Creation.
+  //
+  
+  
+  - create (w,h,l:INTEGER) score s:REAL_32 :SELF <-
+  (
+    + result:SELF;
+    result := clone;
+    result.make (w,h,l) score s ;
+    result
+  );
+  
+  - make (w,h,l:INTEGER) score s:REAL_32 <-
+  ( 
+    width:=w;
+    height:=h;
+    score_sum:=s;
+    line_height:=l;
+  );
+  
+  - set_line_height h:INTEGER <-
+  (
+    line_height:=h;
+  );
+  
+  - set_pattern p:INTERNAL_INODE <-
+  (
+    pattern:=p;
+  );
+
+  - add_score score:REAL_32 <-
+  (
+    score_sum:=score_sum+score;
+    coefficient:=coefficient+1;
+  );
+
+  - average :REAL_32 <-
+  (
+    score_sum/coefficient
+  );
+
+
+

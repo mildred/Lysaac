@@ -1,0 +1,50 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                             //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := EVALUATOR2D;
+  
+  - comment  := "Maps a spline surface";
+  
+Section Inherit
+  
+  + parent_abstract_evaluator:Expanded ABSTRACT_EVALUATOR;
+  
+Section Public
+  
+  // mesh drawing modes
+  - line:INTEGER <- 1;
+  - point:INTEGER <- 2;
+  - fill:INTEGER <- 3;
+  
+  // load the map function
+  - map (u_order,u_size:INTEGER) and (v_order,v_size:INTEGER) range (u1,v1:REAL_32) to (u2,v2:REAL_32) <- deferred;
+  
+  // generate a point for the parametric values x,y
+  - evaluate (x,y:REAL_32) <- deferred;
+  
+  // auto generate n points evenly spaced between (t1,t2)
+  - generate_grid  (w,h:INTEGER) between (u1,u2:REAL_32) and (v1,v2:REAL_32) <- deferred;
+  
+  // Warning: mode is defined in the vertex buffer prototype
+  - evaluate_mesh mode:INTEGER from (start1,start2:INTEGER) to (end1,end2:INTEGER) <- deferred;
+  

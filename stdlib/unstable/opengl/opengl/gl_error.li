@@ -1,0 +1,67 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                             //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_ERROR; 
+  
+  - comment  := "OpenGL error";
+  
+Section Inherit
+  
+  - parent_error:ERROR := ERROR;
+  
+Section Public
+  
+  // 
+  // Error codes
+  //
+  
+  - no_error:INTEGER <- `GL_NO_ERROR`:INTEGER;
+  - invalid_enum:INTEGER <- `GL_INVALID_ENUM`:INTEGER;
+  - invalid_value:INTEGER <- `GL_INVALID_VALUE`:INTEGER;
+  - invalid_operation:INTEGER <- `GL_INVALID_OPERATION`:INTEGER;
+  - stack_overflow:INTEGER <- `GL_STACK_OVERFLOW`:INTEGER;
+  - stack_underflow:INTEGER <- `GL_STACK_UNDERFLOW`:INTEGER;
+  - out_of_memory:INTEGER <- `GL_OUT_OF_MEMORY`:INTEGER;
+  
+  
+  - get:INTEGER <- 
+  // return current error state variable
+  (
+    last_error := `glGetError()`:INTEGER;
+    last_error
+  );
+  
+
+  - get buffer:STRING from code:INTEGER <- 
+  // return details of error 
+   ( + str:NATIVE_ARRAY(CHARACTER);
+     + i:INTEGER;
+     
+     str := `gluErrorString(@code)`:NATIVE_ARRAY(CHARACTER);
+     {str.item i != '\0'}.while_do {
+	// copy names of supported extensions
+	
+	buffer.add_last (str.item i);
+	i := i+1;
+      };
+   );

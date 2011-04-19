@@ -1,0 +1,175 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name    := STD_FILE;
+
+  - copyright   := "2003-2007 Benoit Sonntag, Jerome Hilbert";
+  
+  - comment := "Abstract File Management";
+  
+Section Inherit
+  
+  - parent_entry:ENTRY := ENTRY;   
+  
+Section Public
+  
+  - cursor:UINTEGER_32 <-
+  [
+    -? {is_open};
+  ]
+  ( 
+    deferred;
+    0
+  );
+  
+  - size:UINTEGER_32 <-
+  ( 
+    deferred;
+    0
+  );
+  
+  - set_cursor n:UINTEGER_32 <-
+  [
+    -? {is_open};
+    -? {n <= size};
+  ]
+  (
+    deferred;    
+  );
+  
+  //
+  // Update.
+  //
+      
+  - is_empty:BOOLEAN <- size = 0;
+  // Is collection empty ?
+    
+  //
+  // Read.
+  //
+  
+  - read dest:OBJECT :INTEGER <- 
+  // WARNING: It's good for Mapping objects, else serializable is necessary.
+  [
+    -? {is_open};
+  ]
+  ( + buf:NATIVE_ARRAY(UINTEGER_8);
+    buf := CONVERT(OBJECT,NATIVE_ARRAY(UINTEGER_8)).on dest;
+    physical_read buf size (dest.object_size)
+  ); 
+  
+  - read dest:ARRAYED size nb_elt:INTEGER :INTEGER <-
+  [
+    -? {is_open};
+  ]
+  ( + buf:NATIVE_ARRAY(UINTEGER_8);
+    + index,s:INTEGER;
+    + result:INTEGER;
+    + new_count:INTEGER;
+    
+    new_count := dest.count + nb_elt;
+    dest.set_capacity new_count;
+    buf := dest.to_native_array_uinteger_8;
+    index := dest.count * dest.element_sizeof;
+    s := nb_elt * dest.element_sizeof;    
+    result := physical_read (buf+index) size s;
+    dest.set_count new_count;
+    ? {result % dest.element_sizeof = 0};
+    result / dest.element_sizeof
+  );
+  
+  //
+  // Write.
+  //
+  
+  - write src:ARRAYED from start:INTEGER size nb_elt:INTEGER :INTEGER <-
+  [
+    -? {is_open};
+  ]
+  ( + buf:NATIVE_ARRAY(UINTEGER_8);
+    + index,s:INTEGER;
+    + result:INTEGER;
+       
+    buf := src.to_native_array_uinteger_8;
+    index := (start-src.lower) * src.element_sizeof;
+    s := nb_elt * src.element_sizeof;
+    result := physical_write (buf+index) size s;
+    ? {result % src.element_sizeof = 0};
+    result / src.element_sizeof
+  );
+  
+  - write src:ARRAYED size nb_elt:INTEGER :INTEGER <-
+  (
+    write src from (src.lower) size nb_elt
+  );
+  
+  - write src:ARRAYED :INTEGER <-
+  (
+    write src size (src.count)
+  );
+  
+  //
+  // Close.
+  //
+  
+  - close <-
+  ( 
+    deferred;
+  )
+  [
+    +? {! is_open};
+  ];
+  
+  - open_read_only:BOOLEAN <-
+  (
+    deferred;
+  );
+    
+Section STD_FILE
+  
+  - physical_read buf:NATIVE_ARRAY(UINTEGER_8) size s:INTEGER :INTEGER <-
+  [
+    -? {is_open};
+  ]
+  (
+    deferred;
+    0
+  )
+  [
+    +? {cursor = Old cursor + s};
+  ];
+    
+  - physical_write buf:NATIVE_ARRAY(UINTEGER_8) size s:INTEGER :INTEGER <-
+  [
+    -? {is_open};
+  ]
+  (     
+    deferred;
+    0
+  )
+  [
+    +? {cursor = Old cursor + s};
+  ];
+            
+  
+    
+  

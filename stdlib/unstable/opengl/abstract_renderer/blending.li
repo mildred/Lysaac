@@ -1,0 +1,49 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := BLENDING;
+  
+  - comment  := "Abstact Blending Mode";
+  
+Section Inherit
+  
+  + parent_state:Expanded STATE;
+  
+Section Public
+  
+  // factors values
+  - zero:INTEGER <- 0; // (0, 0, 0, 0)
+  - one:INTEGER <- 1; // (1, 1, 1, 1)
+  - dst_color:INTEGER <- 2; // (destR, destG, destB, destA)
+  - one_minus_dst_color:INTEGER <- 3; // (1-destR, 1-destG, 1-destB, 1-destA)
+  - src_color:INTEGER <- 4; // (srcR, srcG, srcB, srcA)
+  - one_minus_src_color:INTEGER <- 5; // (1-srcR, 1-srcG, 1-srcB, 1-srcA)
+  - src_alpha:INTEGER <- 6; // (srcA, srcA, srcA, srcA)
+  - one_minus_src_alpha:INTEGER <- 7; // (1-srcA, 1-srcA, 1-srcA, 1-srcA)
+  - dst_alpha:INTEGER <- 8; // (destA, destA, destA, destA)
+  - one_minus_dst_alpha:INTEGER <- 9; // (1-destA, 1-destA, 1-destA, 1-destA)
+  - src_alpha_saturate:INTEGER <- 10; // (min(srcA, 1-destA), ...)
+
+  - apply (src_factor,dst_factor:INTEGER) <- deferred;
+  
+  - set_alpha_value alpha:REAL_32 <- deferred;

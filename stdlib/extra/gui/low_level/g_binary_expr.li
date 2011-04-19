@@ -1,0 +1,71 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name    := G_BINARY_EXPR;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment := "Binary operator";
+    
+  - author  := "Benoit Sonntag (bsonntag@loria.fr)";
+  
+Section Inherit
+  
+  + parent_g_expr:Expanded G_EXPR;
+  
+Section Public
+  
+  + right:G_EXPR;
+  
+  + left:G_EXPR;
+    
+  //
+  // Creation.
+  //
+  
+  - create l:G_EXPR and r:G_EXPR :SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make l and r;
+    result
+  );
+
+  - make l:G_EXPR and r:G_EXPR <-
+  (
+    deferred;
+  );
+  
+  //
+  // Refresh.
+  //
+  
+  - refresh <-
+  (
+    left.refresh;
+    right.refresh;
+  );
+  
+  
+
+    

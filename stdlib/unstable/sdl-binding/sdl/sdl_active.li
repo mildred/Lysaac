@@ -1,0 +1,51 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                  Lisaac                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name      := SDL_ACTIVE;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>)";
+  - comment   := "SDL Application status";
+
+Section Public
+
+  //
+  // APPLICATION State:
+  //
+
+  - app_mouse_focus :UINTEGER_8 := `SDL_APPMOUSEFOCUS`:(UINTEGER_8); 
+    // The application has mouse coverage 0x01
+
+  - app_input_focus :UINTEGER_8 := `SDL_APPINPUTFOCUS`:(UINTEGER_8);
+    // The application has input focus 0x02
+
+  - app_active :UINTEGER_8 := `SDL_APPACTIVE`:(UINTEGER_8);
+    // The application is active 0x04
+
+  - get_application_state :UINTEGER_8 <-
+  // This function returns the current state of the application, which is a
+  // bitwise combination of `app_mouse_focus', `app_input_focus' , and
+  // `app_active'. If `app_active' is set, then the user is able to
+  // see your application, otherwise it has been iconified or disabled.
+  (
+    `SDL_GetAppState()`:(UINTEGER_8)
+  );

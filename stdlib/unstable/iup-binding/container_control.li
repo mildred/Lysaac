@@ -1,0 +1,24 @@
+Section Header
+  // Base container control
+
+  + name     := CONTAINER_CONTROL;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP Container Control";
+
+Section Inherit
+
+  + parent_control:Expanded CONTROL := CONTROL;
+
+Section Public
+
+  - add child:CONTROL <-
+  ( + h:POINTER;
+    + ch:POINTER;
+    
+    h := handle;
+    ch := child.handle;
+
+    `IupAppend(@h, @ch)`;
+  );

@@ -1,0 +1,70 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                  Lisaac                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name      := SDL_MOUSE;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>)";
+  - comment   := "SDL Mouse handling";
+
+Section Public
+
+  - get_state :(INTEGER,INTEGER,UINTEGER_8)<-
+  // Retrieve the current state of the mouse.
+  // The current button state is returned as a button bitmask, which can
+  // be tested using the SDL_BUTTON(X) macros, and x and y are set to the
+  // current mouse cursor position.  You can pass NULL for either x or y.
+  ( + x,y:POINTER;
+    + state:UINTEGER_8;
+    state := `SDL_GetMouseState((int*)&@x, (int*)&@y)`:(UINTEGER_8);
+    x.to_raw_integer,y.to_raw_integer, state
+  );
+
+  - get_relative_state :(INTEGER,INTEGER,UINTEGER_8) <-
+  // Retrieve the current state of the mouse.
+  // The current button state is returned as a button bitmask, which can
+  // be tested using the SDL_BUTTON(X) macros, and x and y are set to the
+  // mouse deltas since the last call to SDL_GetRelativeMouseState().
+  ( + x,y:POINTER;
+    + state:UINTEGER_8;
+    state := `SDL_GetRelativeMouseState((int*)&@x, (int*)&@y)`:(UINTEGER_8);
+    x.to_raw_integer,y.to_raw_integer,state
+  );
+
+  - warp (x,y:UINTEGER_16) <-
+  // Set the position of the mouse cursor (generates a mouse motion event)
+  (
+    `SDL_WarpMouse(@x, @y)`;
+  );
+
+  - show_cursor toggle:INTEGER :BOOLEAN <-
+  // Toggle whether or not the cursor is shown on the screen.
+  // The cursor start displayed, but can be turned off.
+  // `show_cursor' returns TRUE if the cursor was being displayed
+  // before the call, or FALSE if it was not. You can query the current
+  // state by passing a `toggle' value of -1.
+  ( + state:BOOLEAN;
+    ( `SDL_ShowCursor(@toggle)`:(INTEGER) = 1 ).if {
+      state := TRUE;
+    };
+    state
+  );

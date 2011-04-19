@@ -1,0 +1,38 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_CMAP_SUBTABLE;
+  - comment     :="Encoding Table for CMAP";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Public
+  
+  - create file:STD_FILE :SELF <-
+  ( + result:SELF;
+    ? { file != NULL};
+    
+    result := clone;
+    result.make file;
+    result
+  );
+  
+  - make file:STD_FILE <- deferred;
+  
+  - print <- deferred;

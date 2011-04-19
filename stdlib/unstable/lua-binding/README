@@ -1,0 +1,15 @@
+WARNING
+
+This is esperimental software only.
+It provides a binding for the Lua programming language.
+All lua functions that work on a lua_State are slots of LUA_STATE.
+But be sure to read the source code to see if the function exists. Not all
+functions are bound. and if you add support for others functions, please try to
+keep the source code coherent and send me the changes you made so I can include
+it.
+
+The licence is the MIT licence as specified in the source files. It is the same
+licence as Lua, so you shouldn't have any problem using it.
+
+You will need to link the resulting object file with the lua library. Usually,
+this is done by adding the -llua flag to the gcc command line.

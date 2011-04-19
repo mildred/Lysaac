@@ -1,0 +1,105 @@
+Section Header
+
+  + name := Expanded ENUM;
+
+  - author        := "Mildred Ki'Lya <mildred593(at)online.fr>";
+  - copyright     := "2008 Mildred Ki'Lya";
+  - comment       := "";
+
+  // Copyright (c) 2008 Mildred Ki'Lya <mildred593(at)online.fr>
+  //
+  // Permission is hereby granted, free of charge, to any person
+  // obtaining a copy of this software and associated documentation
+  // files (the "Software"), to deal in the Software without
+  // restriction, including without limitation the rights to use,
+  // copy, modify, merge, publish, distribute, sublicense, and/or sell
+  // copies of the Software, and to permit persons to whom the
+  // Software is furnished to do so, subject to the following
+  // conditions:
+  //
+  // The above copyright notice and this permission notice shall be
+  // included in all copies or substantial portions of the Software.
+  //
+  // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  // NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  // HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  // OTHER DEALINGS IN THE SOFTWARE.
+
+  //  HOWTO
+  //  =====
+  //
+  //  Section Header
+  //
+  //    + name := Expanded MY_ENUM;
+  //
+  //    - import := INTEGER;
+  //    - export := INTEGER;
+  //
+  //    - type := `int`;
+  //
+  //  Section Insert
+  //
+  //    - parent_enum :Expanded ENUM;
+  //
+  //  Section Public
+  //
+  //    - val1 :MY_ENUM := create;
+  //    - val2 :MY_ENUM := create;
+  //    ...
+
+Section Insert
+
+  - parent :Expanded INTEGER;
+
+Section SELF
+
+  + min :INTEGER := 0;
+  + max :INTEGER := -1;
+
+  - create :SELF <- create_after;
+
+  - create_before :SELF <-
+  (
+    min := min - 1;
+    min
+  );
+
+  - create_after :SELF <-
+  (
+    max := max + 1;
+    max
+  );
+
+  - create_code i:INTEGER :SELF <-
+  ( + res :SELF;
+    (max - min < 0).if {
+      min := i;
+      max := i;
+    } else {
+      (i < min).if { min := i };
+      (i > max).if { max := i };
+    };
+    i
+  );
+
+  - is_valid i:INTEGER :BOOLEAN <- i.in_range min to max;
+
+  - from_integer i:INTEGER :SELF <-
+  (
+    ? { is_valid i };
+    `@i`:SELF
+  );
+
+  - to_integer :INTEGER <-
+  ( + self:SELF;
+    self := Self;
+    `@self`:INTEGER
+  );
+
+
+// kate: hl Lisaac v0.2; indent-width 2; space-indent on; replace-tabs off;
+// kate: tab-width 8; remove-trailing-space on;

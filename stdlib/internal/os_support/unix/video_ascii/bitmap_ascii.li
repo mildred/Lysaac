@@ -1,0 +1,92 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        := BITMAP_ASCII;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     := "Bitmap for text mode";
+
+  - bibliography:= "http://IsaacOS.com";
+  - author      := "Benoit Sonntag (bsonntag@loria.fr), Jerome Boutet (boutet@loria.fr)";
+
+Section Inherit
+
+  + parent_bitmap_generic:Expanded BITMAP;
+
+Section Public
+
+  - pixel_geometry:PIXEL := PIXEL_ASCII;
+
+Section Public
+
+  //
+  // Data.
+  //
+
+  // Mapping memory bitmap.
+  + image:FAST_ARRAY(BMP_LINE_ASCII);
+
+  - get_line y:INTEGER :BMP_LINE <-
+  ( //? {y < height};
+    image.item y
+  );
+
+  //
+  // Creation.
+  //
+
+  - make (w,h:INTEGER) <-
+  (
+    width  := w;
+    height := h;
+    //bytes_per_line:=(w * PIXEL_ASCII.size + 7)>>3;
+    image := FAST_ARRAY(BMP_LINE_ASCII).create h;
+    0.to (image.upper) do { y:INTEGER;
+      image.put (BMP_LINE_ASCII.create w) to y;
+    };
+    clipping_off;
+  );
+
+  - make (w,h:INTEGER) at offset_begin:UINTEGER_32 bytes_per_line lx:INTEGER <-
+  ( + offset:UINTEGER_32;
+
+    width  := w;
+    height := h;
+    image := FAST_ARRAY(BMP_LINE_ASCII).create h;
+    offset:=offset_begin;
+    0.to (image.upper) do { y:INTEGER;
+      image.put (BMP_LINE_ASCII.create w at offset) to y;
+      offset:=offset+lx;
+    };
+    clipping_off;
+  );
+
+  - print <-
+  (
+    0.to (height - 1) do {h:INTEGER;
+      image.item h.print;
+      '\n'.print;
+    };
+  );
+
+

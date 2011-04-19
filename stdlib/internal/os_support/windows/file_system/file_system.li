@@ -1,0 +1,50 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        :=FILE_SYSTEM;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     :="File System manager for Unix.";
+
+  - external := `#include <unistd.h>`; // For `getcwd'
+
+Section Inherit
+
+  + parent_directory:DIRECTORY <-
+  ( + cwd:NATIVE_ARRAY(CHARACTER);
+    + result:DIRECTORY;
+
+    DIRECTORY.string_tmp.clear;
+    cwd := DIRECTORY.string_tmp.to_external;
+    `getcwd(@cwd,255)`;
+    DIRECTORY.string_tmp.from_external cwd;
+
+    result ?= DIRECTORY_UNIX.physical_get_entry (DIRECTORY.string_tmp);
+    DIRECTORY.alias.put result to (result.path);
+    ? {result != NULL};
+    parent_directory := result
+  );
+
+
+
+

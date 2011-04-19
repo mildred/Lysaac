@@ -1,0 +1,65 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_GLYPH_TABLE;
+  - comment     :=" FreeType Glyph Object Type.";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Public
+
+  + glyph:FIXED_ARRAY(TT_GLYPH);
+  
+  - create loca:TT_LOCA my_file file:STD_FILE :SELF <-
+  ( + result:SELF;
+    ? { loca != NULL};
+    ? { file != NULL};
+    result := SELF.clone;
+    result.make loca my_file file;
+    result
+  );
+  
+  - make loca:TT_LOCA my_file file:STD_FILE <-
+  ( + cursor:UINTEGER_32;
+    cursor := file.cursor;
+    glyph := FIXED_ARRAY(TT_GLYPH).create (loca.max_loca - 1);
+    0.to (glyph.upper) do { i:INTEGER;
+      (loca.value (i + 1) - loca.value i > 0).if {
+	file.set_cursor (cursor + loca.value i);
+	glyph.put (TT_GLYPH.create file) to i;
+      } else {
+	// Size = 0
+	glyph.put (TT_GLYPH.create_no_contour) to i;
+      };
+    };
+  );
+
+  - print <-
+  (
+    "\n********* GLYPH TABLE*********\n".print;
+    0.to (glyph.upper) do { i:INTEGER;
+      "\nGlyph #".print;
+      i.print;
+      '\n'.print;
+      glyph.item i.print;
+      '\n'.print;
+    };
+    '\n'.print;
+  );    
+  

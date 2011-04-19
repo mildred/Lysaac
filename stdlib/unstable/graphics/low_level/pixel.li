@@ -1,0 +1,114 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name    := PIXEL;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment := "Generic Pixel.";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  - red:UINTEGER_8   <- (deferred; 0);
+  // Abstracted red component on 8 bits.
+
+  - green:UINTEGER_8 <- (deferred; 0);
+  // Abstracted green component on 8 bits.
+
+  - blue:UINTEGER_8  <- (deferred; 0);
+  // Abstracted blue component on 8 bits.
+  
+  - get_raw col:UINTEGER_32 :UINTEGER_32 <- (deferred; 0);
+  
+  //
+  // Access color 32 bits.
+  //
+  
+  - rgbcolor:UINTEGER_32 <-
+  (
+    (red.to_uinteger_32 << 16) | (green.to_uinteger_32 << 8) | blue
+  );
+  
+  //
+  // Modification 32bits.
+  //
+  
+  - make col:UINTEGER_32 <- deferred;
+  
+  - make_rgb (r,g,b:UINTEGER_8) <- deferred;  // For speed conversion between pixels
+  
+  //
+  // Consultation geometry.
+  //
+  
+  - size:UINTEGER_8 <- ( deferred; 0); 
+  - red_size:UINTEGER_8 <- ( deferred; 0);      
+  - red_pos:UINTEGER_8 <- ( deferred; 0);
+  - green_size:UINTEGER_8 <- ( deferred; 0);
+  - green_pos:UINTEGER_8 <- ( deferred; 0);
+  - blue_size:UINTEGER_8 <- ( deferred; 0);
+  - blue_pos:UINTEGER_8 <- ( deferred; 0);
+  - reserved_size:UINTEGER_8 <- ( deferred; 0);
+  - reserved_pos:UINTEGER_8 <- ( deferred; 0);
+  
+  //
+  // Conversion.
+  //
+  
+  - to_pixel_8:PIXEL_8 <- 
+  (     
+    PIXEL_8.create_rgb (red,green,blue)        
+  );
+
+  - to_pixel_15:PIXEL_15 <-
+  ( 
+    PIXEL_15.color_rgb (red,green,blue)
+  );
+  
+  - to_pixel_16:PIXEL_16 <-
+  (     
+    PIXEL_16.color_rgb (red,green,blue)
+  );
+
+  - to_pixel_24:PIXEL_24 <-
+  (     
+    PIXEL_24.color_rgb (red,green,blue)
+  );
+
+  - to_pixel_32:PIXEL_32 <-
+  (     
+    PIXEL_32.color_rgb (red,green,blue)
+  );
+  
+  //
+  // Display.
+  //
+  
+  - print <- deferred;
+
+
+

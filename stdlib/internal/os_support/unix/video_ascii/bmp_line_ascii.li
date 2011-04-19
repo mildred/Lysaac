@@ -1,0 +1,113 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        := BMP_LINE_ASCII;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     := "Bitmap line for text mode";
+
+  - bibliography:= "http://IsaacOS.com";
+  - author      := "Benoit Sonntag (bsonntag@loria.fr), Jerome Boutet (boutet@loria.fr)";
+
+Section Inherit
+
+  + parent_bmp_line:Expanded BMP_LINE;
+
+Section Public
+
+  + storage:MAP_NATIVE_ARRAY(PIXEL_ASCII);
+
+  - get_storage:NATIVE_ARRAY(UINTEGER_8) <- NATIVE_ARRAY(UINTEGER_8).force_conversion storage;
+
+  - make n:INTEGER <-
+  (
+    capacity := n;
+    upper    := n - 1;
+    storage  := MAP_NATIVE_ARRAY(PIXEL_ASCII).calloc n;
+  );
+
+  - make_with_capacity n:INTEGER <-
+  (
+    capacity := n;
+    upper    := -1;
+    storage  := MAP_NATIVE_ARRAY(PIXEL_ASCII).calloc n;
+  );
+
+  - make n:INTEGER at offset:UINTEGER_32 <-
+  (
+    capacity := n;
+    upper    := n - 1;
+    storage  := MAP_NATIVE_ARRAY(PIXEL_ASCII).force_conversion offset;
+  );
+
+Section Public
+
+  - pixel_geometry:PIXEL := PIXEL_ASCII;
+
+  //
+  // Put.
+  //
+
+  - put col:UINTEGER_32 from idx_begin:INTEGER to idx_end:INTEGER <-
+  ( ? {idx_begin<=idx_end};
+    ? {idx_begin>=0};
+    ? {idx_end.in_range 0 to upper};
+
+    idx_begin.to idx_end do { n:INTEGER;
+      storage.item n.color col;
+    };
+  );
+
+  - put bmp:BMP_LINE offset ofs:INTEGER from idx_begin:INTEGER to idx_end:INTEGER <-
+  ( + offset:INTEGER;
+    + pixel:PIXEL_ASCII;
+    ? {idx_begin <= idx_end};
+    ? {idx_begin >= 0};
+    ? {idx_end.in_range 0 to upper};
+    ? {ofs >= 0};
+    ? {(ofs + (idx_end - idx_begin)) <= bmp.upper};
+    offset := ofs;
+    idx_begin.to idx_end do { n:INTEGER;
+      pixel := bmp.item_ascii offset;
+      storage.item n.copy pixel;
+      offset := offset + 1;
+    };
+  );
+
+  //
+  // Get.
+  //
+
+  - item n:INTEGER :PIXEL <-
+  ( ? {n.in_range 0 to upper};
+
+    storage.item n
+  );
+
+  - print <-
+  (
+    0.to upper do { i:INTEGER;
+      item i.print;
+    };
+  );
+

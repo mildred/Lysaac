@@ -1,0 +1,163 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_TABLE_DIRENTRY;
+  - comment     :="The 'Table dir' is followed by 'numtables' table dir entries.";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Mapping
+  
+  + tag1:UINTEGER_16;      // table type
+  + tag2:UINTEGER_16;
+  + tag3:UINTEGER_16;
+  + tag4:UINTEGER_16;
+  + checksum:UINTEGER_32;   // table checksum
+  + offset:UINTEGER_32;     // table file offset
+  + length:UINTEGER_32;     // table length
+  
+Section Public  
+  
+  - to_big_endian <-
+  (
+    //tag := PROCESSOR.to_motorola_uint tag;
+    checksum := PROCESSOR.to_motorola_uint checksum;
+    offset := PROCESSOR.to_motorola_uint offset;    
+    length := PROCESSOR.to_motorola_uint length;
+  );
+  
+  //
+  // Type
+  //
+  
+  // JBJB A VOIR SI ON LAISSE COMME CA (RAPIDE) OU SI ON PASSE PAR UN CALCUL (char.to_usmall)
+  // OU ALIASING
+  
+  // Required Tables
+  
+   - is_cmap:BOOLEAN <-
+  // c m a p (character) ==  99 109 97 112 (UINTEGER_16)
+  (    
+   (tag1 = 99) && {tag2 = 109} && {tag3 = 97} && {tag4 = 112} 
+  );
+
+  - is_glyf:BOOLEAN <-
+  // g l y f (character) ==  103 108 121 102
+  (    
+    (tag1 = 103) && {tag2 = 108} && {tag3 = 121} && {tag4 = 102}        
+  );
+  
+  - is_head:BOOLEAN <-
+  // h e a d (character) == 104 101 97 100
+  (
+    (tag1 = 104) && {tag2 = 101} && {tag3 = 97} && {tag4 = 100} 
+  );
+  
+  - is_hhea:BOOLEAN <-
+  // h h e a (character) == 104 104 101 97
+  (
+    (tag1 = 104) && {tag2 = 104} && {tag3 = 101} && {tag4 = 97} 
+  );
+  
+  - is_hmtx:BOOLEAN <-
+  // h m t x (character) == 104 109 116 120
+  (
+    (tag1 = 104) && {tag2 = 109} && {tag3 = 116} && {tag4 = 120} 
+  );
+    
+  - is_loca:BOOLEAN <-
+  // l o c a (character) == 108 111 99 97
+  (
+    (tag1 = 108) && {tag2 = 111} && {tag3 = 99} && {tag4 = 97} 
+  );
+  
+  - is_maxp:BOOLEAN <-
+  // m a x p (character) == 109 97 120 112
+  (
+    (tag1 = 109) && {tag2 = 97} && {tag3 = 120} && {tag4 = 112} 
+  );  
+  
+  - is_name:BOOLEAN <-
+  // n a m e (character) == 110 97 109 101
+  (
+    (tag1 = 110) && {tag2 = 97} && {tag3 = 109} && {tag4 = 101}
+  );
+  
+  - is_post:BOOLEAN <-
+  // p o s t (character) == 112 111 115 116
+  (
+    (tag1 = 112) && {tag2 = 111} && {tag3 = 115} && {tag4 = 116} 
+  );
+  
+  - is_os2:BOOLEAN <-
+  // O S / 2 (character) ==  79 83 47 50
+  (
+    (tag1 = 79) && {tag2 = 83} && {tag3 = 47} && {tag4 = 50} 
+  );
+  
+  // Optional Tables
+  
+  - is_cvt:BOOLEAN <-
+  // c v t (character) ==  99 118 116 32 
+  (    
+   (tag1 = 99) && {tag2 = 118} && {tag3 = 116} && {tag4 = 32}
+ );
+ 
+ - is_fpgm:BOOLEAN <-
+  // f p g m (character) ==  102 112 103 109 
+  (    
+   (tag1 = 102) && {tag2 = 112} && {tag3 = 103} && {tag4 = 109}
+  );
+  
+  - is_hdmx:BOOLEAN <-
+  // h d m x (character) ==  104 100 109 120 
+  (    
+    (tag1 = 104) && {tag2 = 100} && {tag3 = 109} && {tag4 = 120}
+  );
+ 
+  - is_kern:BOOLEAN <-
+  // k e r n (character) ==  107 101 114 110 
+  (    
+   (tag1 = 107) && {tag2 = 101} && {tag3 = 114} && {tag4 = 110}
+  ); 
+  
+  - is_prep:BOOLEAN <-
+  // p r e p (character) ==  112 114 101 112 
+  (    
+   (tag1 = 112) && {tag2 = 114} && {tag3 = 101} && {tag4 = 112}
+  );
+  //
+  // Display
+  //
+  
+  - print <-
+  (
+    "\nTag: ".print;
+    tag1.to_character.print;    
+    tag2.to_character.print;    
+    tag3.to_character.print;    
+    tag4.to_character.print;
+    "    Checksum: 0x".print;
+    checksum.to_hexadecimal.print;
+    "    Off: 0x".print;
+    offset.to_hexadecimal.print;
+    "    Length: ".print;
+    length.print;    
+  );
+  

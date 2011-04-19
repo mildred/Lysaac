@@ -1,0 +1,138 @@
+Section Header
+
+  + name := ENCODING;
+
+  - author        := "Mildred Ki'Lya <mildred593(at)online.fr>";
+  - copyright     := "2008 Mildred Ki'Lya";
+  - comment       := "";
+
+  // Copyright (c) 2008 Mildred Ki'Lya <mildred593(at)online.fr>
+  //
+  // Permission is hereby granted, free of charge, to any person
+  // obtaining a copy of this software and associated documentation
+  // files (the "Software"), to deal in the Software without
+  // restriction, including without limitation the rights to use,
+  // copy, modify, merge, publish, distribute, sublicense, and/or sell
+  // copies of the Software, and to permit persons to whom the
+  // Software is furnished to do so, subject to the following
+  // conditions:
+  //
+  // The above copyright notice and this permission notice shall be
+  // included in all copies or substantial portions of the Software.
+  //
+  // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  // NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  // HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  // OTHER DEALINGS IN THE SOFTWARE.
+
+  - external := `#include <expat.h>`;
+
+Section Inherit
+
+  + parent :Expanded EXPAT_OBJECT;
+
+Section Private
+
+  + encoding :POINTER;
+
+Section PARSER
+
+  - create p:POINTER :SELF <-
+  ( + res :SELF;
+    res := clone;
+    res.make p;
+    res
+  );
+
+  - make p:POINTER <- encoding := p;
+
+  - from_pointer p:POINTER :SELF <- create p;
+
+Section Public
+
+  - map :NATIVE_ARRAY(INTEGER) <-
+  ( + e :POINTER;
+    e := encoding;
+    `((XML_Encoding*) @e)->map`:NATIVE_ARRAY(INTEGER)
+  );
+
+  - set_convert b:BLOCK <-
+  ( + p :POINTER;
+    convert_block := b;
+    set_data to_pointer;
+    p := encoding;
+    `((XML_Encoding*) @p)->convert = `;
+  );
+
+  - set_release b:BLOCK <-
+  ( + p :POINTER;
+    release_block := b;
+    set_data to_pointer;
+    p := encoding;
+    `((XML_Encoding*) @p)->release = `;
+  );
+
+//   - data :POINTER <-
+//   ( + e :POINTER;
+//     e := encoding;
+//     `((XML_Encoding*) @e)->data`:POINTER
+//   );
+
+//   - convert :POINTER <-
+//   ( + e :POINTER;
+//     e := encoding;
+//     `((XML_Encoding*) @e)->convert`:POINTER
+//   );
+
+//   - release :POINTER <-
+//   ( + e :POINTER;
+//     e := encoding;
+//     `((XML_Encoding*) @e)->release`:POINTER
+//   );
+
+Section Private
+
+  - set_data p:POINTER <-
+  ( + e :POINTER;
+    e := encoding;
+    `((XML_Encoding*) @e)->data = @p`;
+  );
+
+//   - set_convert p:POINTER <-
+//   ( + e :POINTER;
+//     e := encoding;
+//     `((XML_Encoding*) @e)->convert = @p`;
+//   );
+
+//   - set_release p:POINTER <-
+//   ( + e :POINTER;
+//     e := encoding;
+//     `((XML_Encoding*) @e)->release = @p`;
+//   );
+
+Section External
+
+  - lisaac_expat_encoding_convert (ud:POINTER,
+      s:NATIVE_ARRAY(CHARACTER)) :INTEGER <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.convert_block.value s
+  );
+
+  - lisaac_expat_encoding_release (d:POINTER) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.release_block.value;
+  );
+
+Section Private
+
+  + convert_block :BLOCK := { s:NATIVE_ARRAY(CHARACTER) ; INTEGER };
+  + release_block :BLOCK := {};
+
+// kate: hl Lisaac v0.2; indent-width 2; space-indent on; replace-tabs off;
+// kate: tab-width 8; remove-trailing-space on;

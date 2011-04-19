@@ -1,0 +1,99 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_MAXP;
+  - comment     :=" Maxp: maximum profiles.";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Mapping
+  
+  + version:UINTEGER;
+  + num_glyphs:USHORTINT;
+  + max_points:USHORTINT;
+  + max_contours:USHORTINT;
+  + max_composite_points:USHORTINT;
+  + max_composite_contours:USHORTINT;
+  + max_zones:USHORTINT;
+  + max_twilight_points:USHORTINT;
+  + max_storage:USHORTINT;
+  + max_function_defs:USHORTINT;
+  + max_instruction_defs:USHORTINT;
+  + max_stack_elements:USHORTINT;
+  + max_size_of_instructions:USHORTINT;
+  + max_component_elements:USHORTINT;
+  + max_component_depth:USHORTINT;
+  
+Section Public
+  
+  - to_big_endian <-
+  (
+    version := PROCESSOR.to_motorola_uint version;
+    num_glyphs := PROCESSOR.to_motorola_ushort num_glyphs;
+    max_points := PROCESSOR.to_motorola_ushort max_points;
+    max_contours := PROCESSOR.to_motorola_ushort max_contours;
+    max_composite_points := PROCESSOR.to_motorola_ushort max_composite_points;
+    max_composite_contours := PROCESSOR.to_motorola_ushort max_composite_contours;
+    max_zones := PROCESSOR.to_motorola_ushort max_zones;
+    max_twilight_points := PROCESSOR.to_motorola_ushort max_twilight_points;
+    max_storage := PROCESSOR.to_motorola_ushort max_storage;
+    max_function_defs := PROCESSOR.to_motorola_ushort max_function_defs;
+    max_instruction_defs := PROCESSOR.to_motorola_ushort max_instruction_defs;
+    max_stack_elements := PROCESSOR.to_motorola_ushort max_stack_elements;
+    max_size_of_instructions := PROCESSOR.to_motorola_ushort max_size_of_instructions;
+    max_component_elements := PROCESSOR.to_motorola_ushort max_component_elements;
+    max_component_depth := PROCESSOR.to_motorola_ushort max_component_depth; 
+  );
+  
+  - print <-
+  (
+    "\n********* MAXP TABLE *********\n".print;
+    "\n     version:".print;
+    (version >> 16).to_hexadecimal.print;
+    '.'.print;
+    (version & 0FFFFh).to_hexadecimal.print;
+    "\n     num_glyphs:".print;
+    num_glyphs.print;
+    "\n     max_points:".print;
+    max_points.print;
+    "\n     max_contours:".print;
+    max_contours.print;
+    "\n     max_composite_points:".print;
+    max_composite_points.print;
+    "\n     max_composite_contours:".print;
+    max_composite_contours.print;
+    "\n     max_zones:".print;
+    max_zones.print;
+    "\n     max_twilight_points:".print;
+    max_twilight_points.print;
+    "\n     max_storage:".print;
+    max_storage.print;
+    "\n     max_function_defs:".print;
+    max_function_defs.print;
+    "\n     max_instruction_defs:".print;
+    max_instruction_defs.print;
+    "\n     max_stack_elements:".print;
+    max_stack_elements.print;
+    "\n     max_size_of_instructions:".print;
+    max_size_of_instructions.print;
+    "\n     max_component_elements:".print;
+    max_component_elements.print;
+    "\n     max_component_depth:".print; 
+    max_component_depth.print; 
+  );

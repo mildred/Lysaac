@@ -1,0 +1,298 @@
+///////////////////////////////////////////////////////////////////////////////
+//   Lisaac - SDL binding library                                            //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//   http://lisaac.org/                                                      //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+
+  + name      := SDL_SURFACE;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>";
+  - comment   := "SDL Surface struct pointer";
+  - type      := `SDL_Surface`;
+
+  - lip <-
+  (
+    add_lib "-lSDL_image -I/opt/local/include/SDL -D_THREAD_SAFE -L/opt/local/lib ";
+  );
+
+Section Inherit
+
+  + parent_object:OBJECT := OBJECT;
+
+Section Public
+  
+  - swsurface  :UINTEGER_32 <- `SDL_SWSURFACE` :(UINTEGER_32); // Surface is in system memory 
+  - hwsurface  :UINTEGER_32 <- `SDL_HWSURFACE` :(UINTEGER_32); // Surface is in video memory
+  - asyncblit  :UINTEGER_32 <- `SDL_ASYNCBLIT` :(UINTEGER_32); // Use asynchronous blits if possible */
+//
+// SDL PALETTE FLAGS
+//
+  - logpal  :INTEGER <- `SDL_LOGPAL`  :(INTEGER);
+  - physpal :INTEGER <- `SDL_PHYSPAL` :(INTEGER);
+
+//
+//
+//
+  - srccolorkey :INTEGER <- `SDL_SRCCOLORKEY`:(INTEGER);
+  - rleaccel    :INTEGER <- `SDL_RLEACCEL`:(INTEGER);
+
+
+//
+// INTERNAL SURFACE ACCESS
+//
+  - w                      :INTEGER     <- `@Self->w`:(INTEGER); // Surface width. (READ ONLY)
+  - h                      :INTEGER     <- `@Self->h`:(INTEGER); // Surface height (READ_ONLY)
+  - pitch                  :INTEGER     <- `@Self->pitch`:(INTEGER);
+  - format_palette_ncolors :INTEGER     <- `@Self->format->palette->ncolors`:(INTEGER);
+  - flags                  :UINTEGER_32 <- `@Self->flags`:(UINTEGER_32);
+
+  - create :SELF <- SELF.clone; // Create the SDL_Surface structure
+
+  - create_from_bmp filename:STRING_CONSTANT :SELF<-
+  // Load a BMP file with path+name (ie. /data/image.bmp).
+  ( + file:NATIVE_ARRAY(CHARACTER);
+    + ptr:POINTER;
+    + result:SELF;
+    file := filename.to_external;
+    ptr := `SDL_LoadBMP(@file)`:(POINTER);
+    result := CONVERT(POINTER,SELF).on ptr;
+    result
+  );
+
+  - create_from_image filename:ABSTRACT_STRING :SELF<-
+  // Load a BMP file with path+name (ie. /data/image.bmp).
+  ( + file:NATIVE_ARRAY(CHARACTER);
+    file := filename.to_external;
+    `(SDL_Surface*)IMG_Load(@file)`:(SELF)
+  );
+
+  - create_rgb_surface (flags:UINTEGER_32, width, height, depth:INTEGER) with_mask
+                        (rmask, gmask, bmask, amask:UINTEGER_32) :SDL_SURFACE <-
+  ( + ptr:POINTER;
+    + surface :SDL_SURFACE;
+
+    ptr := `SDL_CreateRGBSurface(@flags, @width, @height, @depth, @rmask, @gmask, @bmask, @amask)`:(POINTER);
+    surface := SDL_SURFACE.clone;
+    surface := CONVERT(POINTER,SELF).on ptr;
+    surface
+  );
+
+        
+  - load filename:STRING_CONSTANT <-
+  // Load an image.
+  ( + file:NATIVE_ARRAY(CHARACTER);
+    file := filename.to_external;
+    surface_p := `IMG_Load(@file)`:(POINTER);
+  );
+
+  - pixel_format :SDL_PIXEL_FORMAT <-
+  ( + ptr:POINTER;
+    + p:SDL_PIXEL_FORMAT;
+
+    ptr := `@Self->format`:POINTER;
+    p := SDL_PIXEL_FORMAT.clone;
+    p :=CONVERT(POINTER,SDL_PIXEL_FORMAT).on ptr;
+    p
+  );
+
+  - pixels :FAST_ARRAY(UINTEGER_8) <-
+  ( + r :NATIVE_ARRAY(UINTEGER_8);
+    + result :FAST_ARRAY(UINTEGER_8);
+  
+    r := `@Self->pixels`:(NATIVE_ARRAY(UINTEGER_8));
+    result := FAST_ARRAY(UINTEGER_8).create_with_native_array_byte r size 1;
+    result
+  );
+
+  - format_palette_colors :FAST_ARRAY(SDL_COLOR_HACK) <-
+  ( + p:POINTER;
+    + ptr:NATIVE_ARRAY(SDL_COLOR_HACK);
+    + result:FAST_ARRAY(SDL_COLOR_HACK);
+    + values:INTEGER;
+
+    p := `@Self->format->palette->colors`:(POINTER);
+    ptr := CONVERT(POINTER,NATIVE_ARRAY(SDL_COLOR_HACK)).on p;
+    
+    values := format_palette_ncolors; 
+    
+    result := FAST_ARRAY(SDL_COLOR_HACK).create values;
+    0.to (values - 1) do { i:INTEGER;
+      result.put (ptr.item i) to i;
+    };
+    result
+  );
+
+  // TODO FAST_ARRAY
+  - format_palette :NATIVE_ARRAY(SDL_PALETTE) <-
+  ( + ptr:POINTER;
+    ptr := `@Self->format->palette`:(POINTER);
+    CONVERT(POINTER,NATIVE_ARRAY(SDL_PALETTE)).on ptr
+  );
+
+  - format :NATIVE_ARRAY(SDL_PIXEL_FORMAT) <-
+  ( + ptr:POINTER;
+    ptr := `@Self->format`:(POINTER);
+    CONVERT(POINTER,NATIVE_ARRAY(SDL_PIXEL_FORMAT)).on ptr
+  );
+
+//
+//
+//
+
+  - flip :INTEGER <-
+  // On hardware that supports double-buffering, this function sets up a flip
+  // and returns. The hardware will wait for vertical retrace, and then swap
+  // video buffers before the next video surface blit or lock will return.  On
+  // hardware that doesn not support double-buffering, this is equivalent to
+  // calling `SDL_UpdateRect(screen, 0, 0, 0, 0)'; The `doublebuf' flag must
+  // have been passed to `set_video_mode' when setting the video mode for this
+  // function to perform hardware flipping. This function returns 0 if
+  // successful, or -1 if there was an error.
+  (
+    `SDL_Flip(@Self)`:(INTEGER)
+  );
+
+//
+//
+//
+
+  - blit_surface (src:SDL_RECT, screen:SDL_SURFACE, dst:SDL_RECT) <-
+  (
+    `SDL_BlitSurface(@Self, @src, @screen, @dst);`;
+  );
+
+  - blit_surface_no_src (screen:SDL_SURFACE, dst:SDL_RECT) <-
+  (
+    `SDL_BlitSurface(@Self, NULL, @screen, @dst);`;
+  );
+  
+  - blit_surface_no_src_no_dst (screen:SDL_SURFACE) <-
+  (
+    `SDL_BlitSurface(@Self, NULL, @screen, NULL);`;
+  );
+
+//
+//
+//
+
+  - fill_rect (dst:SDL_RECT, color:UINTEGER_32) <-
+  // This function performs a fast fill of the given rectangle with `color'
+  // The given rectangle is clipped to the destination surface clip area
+  // and the final fill rectangle is saved in the passed in pointer.
+  // This function returns 0 on success, or -1 on error.
+  (
+    `SDL_FillRect(@Self,@dst,@color)`
+  );
+
+  - fill_rect_no_dst color:UINTEGER_32 <-
+  // If 'dstrect' is NULL, the whole surface will be filled with `color'
+  // This function performs a fast fill of the given rectangle with `color'.
+  // The color should be a pixel of the format used by the surface, and 
+  // can be generated by the `SDL.map_rgb' function.
+  // This function returns 0 on success, or -1 on error.
+  (
+    `SDL_FillRect(@Self,NULL,@color)`
+  );
+
+
+  - line_from (x1,y1:INTEGER) to (x2,y2:INTEGER) color col:UINTEGER_32  <-
+  // Draw a line from (x1,y1) to (x2,y2) color `col' into screen
+  [ ? {Self != NULL}; ]
+  (
+      `SDL_DrawLine(@Self,@x1,@y1,@x2,@y2,@col)`
+  );
+
+//
+// LOCKING/UNLOCKING
+//
+  - lock :INTEGER<-
+  // `lock' sets up a surface for directly accessing the pixels.  Between calls
+  // to `lock'/`unlock', you can write to and read from `surface.pixels', using
+  // the pixel format stored in `surface.format'.  Once you are done accessing
+  // the surface, you should use `unlock' to release it.
+  // 
+  // Not all surfaces require locking. If `MUSTLOCK(surface)' evaluates to
+  // 0, then you can read and write to the surface at any time, and the pixel
+  // format of the surface will not change.  In particular, if the
+  // `hwsurface' flag is not given when calling `set_video_mode', you will not
+  // need to lock the display surface before accessing it.
+  //  
+  // No operating system or library calls should be made between lock/unlock
+  // pairs, as critical system locks may be held during this time.
+  // 
+  // It returns 0, or -1 if the surface couldn't be locked.
+  (
+    `SDL_LockSurface(@Self)`:(INTEGER)
+  );
+
+  - unlock <-
+  (
+    `SDL_UnlockSurface(@Self)`;
+  );
+
+//
+//
+//
+  - set_palette (flags:INTEGER, colors:FAST_ARRAY(SDL_COLOR_HACK), first_color:INTEGER, ncolors:INTEGER) <-
+  (
+    + p:POINTER;
+    p := colors.to_external;
+
+    `SDL_SetPalette(@Self, SDL_LOGPAL | SDL_PHYSPAL, @p, @first_color, @ncolors)`;
+  );
+
+  - set_palette_pointer (flags:INTEGER, colors:FAST_ARRAY(SDL_COLOR_HACK), first_color:INTEGER, ncolors:INTEGER) <-
+  ( + p:POINTER;
+    p := colors.to_external;
+    `SDL_SetPalette(@Self, @flags, @p , @first_color, @ncolors)`;
+  );
+
+  - update_rect (x:INTEGER, y:INTEGER, w:UINTEGER_32, h:UINTEGER_32) <-
+  (
+    `SDL_UpdateRect(@Self,@x,@y,@w,@h)`;
+  );
+  
+  - update_rects (x:INTEGER, r:SDL_RECT) <-
+  (
+    `SDL_UpdateRects(@Self,@x,@r)`;
+  );
+
+  - set_color_key(flag:UINTEGER_32, key:UINTEGER_32) <-
+  (
+    `SDL_SetColorKey(@Self,@flag,@key)`;
+  );
+
+//
+//
+//
+  - convert_surface (format:NATIVE_ARRAY(SDL_PIXEL_FORMAT), flags:UINTEGER_32) :SDL_SURFACE <-
+  ( + p:POINTER;
+    p := format.to_external;
+    `SDL_ConvertSurface(@Self, @p, @flags)`:(SDL_SURFACE)
+  );
+
+  - display_format :SDL_SURFACE <-
+  ( + surface:SDL_SURFACE;
+    + p:POINTER;
+
+    p := `SDL_DisplayFormat(@Self)`:(POINTER);
+    surface := CONVERT(POINTER,SDL_SURFACE).on p;
+    surface
+  );
+

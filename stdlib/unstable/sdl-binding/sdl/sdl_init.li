@@ -1,0 +1,204 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac-SDL Library                             //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := SDL_INIT;
+  - comment  := "set and refresh the init values";
+  - author   := "Xavier Oswald <x.oswald@free.fr>";
+
+Section Inherit
+  
+  - parent_object: SDL_SETTINGS := SDL_SETTINGS;
+  
+Section Public
+
+  - set_title t:STRING_CONSTANT <-
+  (
+    title := t;
+  );
+
+  - set_resolution (x,y:INTEGER) <-
+  (
+    width  := x;
+    height := y;
+  );
+
+  - set_bits b:INTEGER <- 
+  (
+    bits := b
+  );
+  
+  - set_fullscreen b:BOOLEAN <-
+  (
+    // add fullsreen function
+    fullscreen := b;
+  );
+
+  - set_timer b:BOOLEAN <- 
+  ( + result: INTEGER;
+    
+    b.if {
+      init_timer.if_false{
+        init_timer := TRUE;
+        result := `SDL_InitSubSystem(SDL_INIT_TIMER)`:(INTEGER);
+        (result = -1).if{
+          `printf("SDL could not initialize %s\n",SDL_GetError())`;
+        } else {
+          "SDL timer initialized\n".print;
+        };
+      } else {
+        "SDL timer already initilized\n".print;
+      };
+    } else {
+      init_timer.if{
+        init_timer := FALSE;
+        `SDL_QuitSubSystem(SDL_INIT_TIMER)`;
+        "SDL shutdown timer...\n".print;
+      };
+    };
+
+  );
+  
+  - set_audio b:BOOLEAN <- 
+  ( + result: INTEGER;
+    
+    b.if {
+      init_audio.if_false{ 
+        init_audio := TRUE;
+        result := `SDL_InitSubSystem(SDL_INIT_AUDIO)`:(INTEGER);
+        (result = -1).if{
+          `printf("SDL could not initialize %s\n",SDL_GetError())`;
+        } else {
+          "SDL audio initialized\n".print;
+        };
+      } else {
+        "SDL audio already initilized\n".print;
+      };
+    } else {
+      init_audio.if{
+        init_audio := FALSE;
+        `SDL_QuitSubSystem(SDL_INIT_AUDIO)`;
+        "SDL shutdown audio...\n".print;
+      };
+    };
+
+  );
+  
+  - set_video b:BOOLEAN <- 
+  ( + result: INTEGER;
+    
+    b.if {
+      init_video.if_false{ 
+        init_video := TRUE;
+        result := `SDL_InitSubSystem(SDL_INIT_VIDEO)`:(INTEGER);
+        (result = -1).if{
+          `printf("SDL could not initialize %s\n",SDL_GetError())`;
+        } else {
+          "SDL video initialized\n".print;
+        };
+      } else {
+        "SDL video already initilized\n".print;
+      };
+    } else {
+      init_video.if{
+        init_video := FALSE;
+        `SDL_QuitSubSystem(SDL_INIT_VIDEO)`;
+        "SDL shutdown video...\n".print;
+      };
+    };
+
+  );
+  
+  - set_cdrom b:BOOLEAN <- 
+  ( + result: INTEGER;
+    
+    b.if {
+      init_cdrom.if_false{ 
+        init_cdrom := TRUE;
+        result := `SDL_InitSubSystem(SDL_INIT_CDROM)`:(INTEGER);
+        (result = -1).if{
+          `printf("SDL could not initialize %s\n",SDL_GetError())`;
+        } else {
+          "SDL cdrom initialized\n".print;
+        };
+      } else {
+        "SDL cdrom already initilized\n".print;
+      };
+    } else {
+      init_cdrom.if{
+        init_cdrom := FALSE;
+        `SDL_QuitSubSystem(SDL_INIT_CDROM)`;
+        "SDL shutdown cdrom...\n".print;
+      };
+    };
+
+  );
+
+  - set_joystick b:BOOLEAN <- 
+  ( + result: INTEGER;
+    
+    b.if {
+      init_joystick.if_false{ 
+        init_joystick := TRUE;
+        result := `SDL_InitSubSystem(SDL_INIT_JOYSTICK)`:(INTEGER);
+        (result = -1).if{
+          `printf("SDL could not initialize %s\n",SDL_GetError())`;
+        } else {
+          "SDL joystick initialized\n".print;
+        };
+      } else {
+        "SDL joystick already initilized\n".print;
+      };
+    } else {
+      init_joystick.if{
+        init_joystick := FALSE;
+        `SDL_QuitSubSystem(SDL_INIT_JOYSTICK)`;
+        "SDL shutdown joystick...\n".print;
+      };
+    };
+
+  );
+
+  - set_everything b:BOOLEAN <-
+  (
+    set_timer    b;
+    set_audio    b;
+    set_video    b;
+    set_cdrom    b;
+    set_joystick b;
+  );
+
+  - set_no_parachute b:BOOLEAN <-
+  (
+    init_no_parachute := b;
+  );
+
+  - set_event_thread b:BOOLEAN <-
+  (
+    init_event_thread := b;
+  );
+
+  - quit <-
+  (
+    `SDL_Quit()`;
+    "SDL quit ...\n".print;
+  );

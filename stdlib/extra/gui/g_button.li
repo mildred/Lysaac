@@ -1,0 +1,212 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := G_BUTTON;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+      
+  - author  := "Sonntag Benoit (bsonntag@loria.fr)";
+  - comment := "Group elements for GUI.";
+  
+  // BSBS: Fusion a faire avec G_CHECK
+  
+Section Inherit  
+
+  + parent_g_group:Expanded G_GROUP;
+  
+Section Public  
+  
+  + auto_action:G_WIN_OUT;
+  
+  + stat:INTEGER_8;
+  
+  + action:{G_BUTTON; } := 
+  { b:G_BUTTON; 
+    // Nothing.
+  };
+  
+  //
+  // Creation
+  //
+  
+  - create elt:G_EXPR connect a:G_WIN_OUT :SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make elt connect a;
+    result
+  );
+  
+  - make elt:G_EXPR connect a:G_WIN_OUT <-
+  (
+    make elt;
+    auto_action := a;
+  );
+  
+  - create elt:G_EXPR action b:{G_BUTTON; } :SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make elt action b;
+    result
+  );
+  
+  - make elt:G_EXPR action b:{G_BUTTON; } <-
+  (
+    make elt;
+    action := b;
+  );
+ 
+  //
+  // Size.
+  //
+  
+  - predict_size (w,h:INTEGER) :(INTEGER,INTEGER) <-
+  (
+    w + 4, h + 4
+  );
+
+  - width_min:INTEGER <-
+  (
+    parent_g_group.width_min + 4
+  );
+  
+  - height_min:INTEGER <-
+  (
+    parent_g_group.height_min + 4
+  );
+
+  //
+  // Update position.
+  //
+  
+  - set_position rac:AREA at (x,y:INTEGER) size (w,h:INTEGER) <-
+  ( + px,py,nw,nh:INTEGER;
+    update rac from (x,y) size (w,h);
+    ((w-4) > root.width_max).if {      
+      nw := root.width_max;
+      px := ((w-4 - nw) / 2) + 2;
+    } else {
+      nw := w - 4;
+      px := 2;
+    };
+    ((h-4) > root.height_max).if {      
+      nh := root.height_max;
+      py := ((h-4 - nh) / 2) + 2;
+    } else {
+      nh := h - 4;
+      py := 2;
+    };    
+    root.set_position Self at (px,py) size (nw,nh);
+  );
+  
+  //
+  // Display.
+  //
+
+  - draw_slave bmp:ABSTRACT_BITMAP from (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  ( + col:UINTEGER_32;
+    
+    ((stat & 1) = 0).if {
+      col := color_back;
+    } else {
+      col := color_back_light;
+    };    
+    bmp.rectangle_fill (x0,y0) to (x1,y1) color col;
+  );
+  
+  - draw (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  ( 
+    clipping (x0,y0) to (x1,y1);
+    (stat = 0).if {
+      draw_slave Self from (x0,y0) to (x1,y1);
+    } else {
+      (stat = 1).if {
+	draw_border_out (x_min  ,y_min  ) to (x_max  ,y_max  );
+	draw_border_out (x_min+1,y_min+1) to (x_max-1,y_max-1);	
+      } else {
+	draw_border_in (x_min  ,y_min  ) to (x_max  ,y_max  );
+	draw_border_in (x_min+1,y_min+1) to (x_max-1,y_max-1);
+      };    
+      draw_slave Self from (x_min+2,y_min+2) to (x_max-2,y_max-2);
+    };
+  );
+  
+  //
+  // Event manager.
+  //
+  
+  - receive msg:EVENT <-
+  // stat :
+  // -1 = Not actif
+  //  0 = out & off
+  //  1 = in  & off
+  //  2 = out & on
+  //  3 = in  & on
+  ( + mouse:EVENT_MOUSE;  
+    + gui:EVENT_GUI;
+    + new_stat:INTEGER;
+    + cur:AREA;
+    + win_out:G_WIN_OUT;
+    
+    mouse ?= msg;
+    gui ?= msg;
+    (mouse != NULL).if {                  
+      new_stat := (mouse.is_in).to_integer | (mouse.left.to_integer << 1);      
+      (new_stat != stat).if {	
+	stat := new_stat;
+	((stat & 1) != 0).if {
+	  // In.	    	    
+	  (mouse.left_down).if {
+	    (auto_action != NULL).if {	    
+	      (auto_action.is_open).if {
+		auto_action.close;
+	      } else {
+		auto_action.open_by Self;				
+	      };
+	      cur := parent;
+	      (cur != NULL).if {
+		{
+		  win_out ?= cur;
+		  cur := cur.parent;
+		}.do_while {(cur != NULL) && {win_out = NULL}};
+		((win_out != NULL) && {win_out.title = NULL}).if {
+		  win_out.close;
+		};
+	      };		
+	    } else {
+	      action.value Self;
+	    };
+	    stat := 0;
+	  };
+	} else {
+	  // Out.	  
+	  ((stat & 10b) = 0).if {
+	    stat := 0;	  
+	    DESK.receive msg;
+	  };
+	};
+	refresh;	
+      };
+    };
+  );

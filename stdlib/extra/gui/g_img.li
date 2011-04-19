@@ -1,0 +1,168 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := G_IMG;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+      
+  - author  := "Sonntag Benoit (bsonntag@loria.fr)";
+  - comment := "Output text for GUI.";
+
+Section Inherit  
+  
+  + parent_area:Expanded AREA;
+  
+  + parent_g_expr:Expanded G_EXPR;
+          
+Section Public
+  
+  + bitmap:ABSTRACT_BITMAP;
+    
+  //
+  // Width / Height
+  //
+  
+  - predict_size filename:ABSTRACT_STRING :(INTEGER,INTEGER) <-
+  ( + entry:ENTRY;
+    + f:FILE;
+    + bmp:FORMAT_BMP;
+    //+ ai_file:AI_FILE;
+    + w,h:INTEGER;
+    
+    entry := FILE_SYSTEM.get_entry filename;
+    ((entry = NULL) || {! entry.is_file}).if {
+      VIDEO.message ("ERROR: File '" + filename + "' not found.\n");
+      die_with_code exit_failure_code;
+    };    
+    (entry.path.has_suffix ".bmp").if {
+      f ?= entry;
+      bmp := FORMAT_BMP.create_with_file f;      
+      (bmp = NULL).if {
+        VIDEO.message "Error: BMP format invalid.\n";
+        die_with_code exit_failure_code;      
+      };
+      w := bmp.width;
+      h := bmp.height;      
+      f.close;
+    }.elseif {entry.path.has_suffix ".ai"} then {
+      not_yet_implemented;
+    };
+    //
+    w,h
+  );
+
+  - width_min :INTEGER <- bitmap.width;
+  
+  - height_min:INTEGER <- bitmap.height;
+
+  - width_max :INTEGER <- width_min;
+  
+  - height_max:INTEGER <- height_min;
+  
+  //
+  // Creation.
+  //
+  
+  - create_with bmp:ABSTRACT_BITMAP :SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make bmp;
+    result
+  );    
+  
+  - create filename:ABSTRACT_STRING :SELF <-
+  ( + result:SELF;
+    + entry:ENTRY;
+    + fmt:FORMAT_IMG;
+    + f:FILE;
+    + ai_file:AI_FILE;
+    + w,h:INTEGER;
+    + bmp:BITMAP(PIXEL_24);
+    
+    entry := FILE_SYSTEM.get_entry filename;
+    ((entry = NULL) || {! entry.is_file}).if {
+      VIDEO.message ("ERROR: File '" + filename + "' not found.\n");
+      die_with_code exit_failure_code;
+    };    
+    (entry.path.has_suffix ".bmp").if {
+      entry.open;    
+      f ?= entry;
+      fmt := FORMAT_BMP.create_with_file f;
+      (fmt = NULL).if {
+        VIDEO.message "Error: BMP format invalid.\n";
+        die_with_code exit_failure_code;      
+      };
+      w := fmt.width;
+      h := fmt.height;
+      bmp := BITMAP(PIXEL_24).create_size (w,h);
+      fmt.put_image_in bmp;          
+      f.close;      
+    }.elseif {entry.path.has_suffix ".ai"} then {      
+      entry.open;      
+      f ?= entry;
+      bmp := BITMAP(PIXEL_24).create_size (10,10);	
+      ai_file := AI_FILE.clone;
+      ai_file.fill_bitmap f in bmp scale 3;	
+      f.close;
+    };
+    //
+    result := clone;
+    result.make bmp;
+    result
+  );
+    
+  - make bmp:ABSTRACT_BITMAP <-
+  (
+    bitmap := bmp;    
+  ); 
+
+  //
+  // Update position.
+  //
+  
+  - set_position rac:AREA at (x,y:INTEGER) size (w,h:INTEGER) <-
+  ( 
+    update rac from (x,y) size (w,h);
+  );
+  
+  //
+  // Display.
+  //
+  
+  - draw (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  ( //+ g_grp:G_GROUP;    
+    clipping (x0,y0) to (x1,y1);    
+    //    
+        
+    put_bitmap bitmap to (0,0);
+    //    
+    //g_grp ?= parent;
+    //(width > width_min).if {
+    //  g_grp.draw_in Self from (width_min,0) to (x_max,height_min-1);
+    //};
+    //(height > height_min).if {
+    //  g_grp.draw_in Self from (0,height_min) to (x_max,y_max);    
+    //};
+  );
+  

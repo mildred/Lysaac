@@ -1,0 +1,221 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name      := ESSAI_LIGHT;
+
+  - copyright := "Jonathan Ponte, Maxime Audrin, Benoit Sonntag";
+
+  - comment   := "Interface Node for GUII.";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  - main <-
+  ( + base,menu,tools,page:INODE;
+    + action_new:BLOCK;
+    + action_open:BLOCK;
+    + action_zoom_in:BLOCK;
+    + action_zoom_out:BLOCK;
+    + action_zoom_page:BLOCK;
+    + action_zoom_select:BLOCK;
+    + action_zoom_100:BLOCK;
+    + action_select:BLOCK;
+    + action_line:BLOCK;
+    + action_rectangle:BLOCK;
+    + action_circle:BLOCK;
+    + action_color:BLOCK;
+    + action_text:BLOCK;
+    + action_zoom:BLOCK;
+    + guii:GUII;
+
+    action_select:= {
+      bt:G_BUTTON;
+      "Zoom\n".print;
+   };
+
+    action_zoom:= {
+      bt:G_BUTTON;
+      "Zoom\n".print;
+   };
+
+    action_text:= {
+      bt:G_BUTTON;
+      "Text\n".print;
+   };
+
+    action_line:= {
+      bt:G_BUTTON;
+      "Select\n".print;
+   };
+
+    action_rectangle:= {
+      bt:G_BUTTON;
+      "Select\n".print;
+   };
+
+    action_circle:= {
+      bt:G_BUTTON;
+      "Select\n".print;
+   };
+
+    action_rectangle:= {
+      bt:G_BUTTON;
+      "Open\n".print;
+    };
+
+    action_color:= {
+      bt:G_BUTTON;
+      "New\n".print;
+    };
+
+    action_zoom_in:= {
+      bt:G_BUTTON;
+      "Zoom in\n".print;
+    };
+
+    action_zoom_out:= {
+      bt:G_BUTTON;
+      "Zoom out\n".print;
+    };
+
+    action_zoom_select:= {
+      bt:G_BUTTON;
+      "Zoom select\n".print;
+    };
+
+    action_zoom_page:= {
+      bt:G_BUTTON;
+      "Zoom page\n".print;
+    };
+
+    action_zoom_100:= {
+      bt:G_BUTTON;
+      "Zoom 100\n".print;
+    };
+
+
+	menu := INODE.create_xor "Menu" priority 100 + (
+	INODE.create_xor "File" priority 100 + (
+	  INODE.create_xor "Clear file" priority 100 + 
+	  INODE.create_xor "New" priority 100 action action_new
+	) + (
+	  INODE.create_xor "Intern file" priority 100 + 
+	  INODE.create_xor "Open" priority 100 action action_open +
+	  INODE.create_xor "Save" priority 100 +
+	  INODE.create_xor "Save as" priority 100
+	) + (
+	  INODE.create_xor "Extern file" priority 100 +
+	  INODE.create_xor "Import" priority 100 +
+	  INODE.create_xor "Export" priority 100
+	) + (
+	  INODE.create_xor "Output file" priority 100 +
+	  INODE.create_xor "Print" priority 100 
+	) + (
+	  INODE.create_xor "Exit manager" priority 100 +
+	  INODE.create_xor "EXit" priority 100 
+	)
+      ) + (
+	INODE.create_xor "Edit" priority 100 + (
+	  INODE.create_xor "History" priority 100 +
+	  INODE.create_xor "Undo" priority 100 +
+	  INODE.create_xor "Redo" priority 100
+	) + (
+	  INODE.create_xor "Edit object" priority 100 +
+	  INODE.create_xor "Delete" priority 100 +
+	  INODE.create_xor "Duplicate" priority 100 +
+	  INODE.create_xor "Select all" priority 100
+	)
+      ) + (
+	INODE.create_xor "Presentation" priority 100 + (
+	  INODE.create_xor "Representation" priority 100 + 
+	  INODE.create_xor "Magnetic locate" priority 100 +
+	  INODE.create_xor "Contour" priority 100
+	)
+      ) + (
+	INODE.create_xor "Disposition" priority 50 + (
+	  INODE.create_xor "Modify" priority 100 + 
+	  INODE.create_xor "Text editor" priority 100 + 
+	  INODE.create_xor "Alignment" priority 100 + 
+	  INODE.create_xor "To curve" priority 100
+	) + (
+	  INODE.create_xor "Order" priority 100 + 
+	  INODE.create_xor "First plan" priority 100 + 
+	  INODE.create_xor "Last plan" priority 100
+	) + (
+	  INODE.create_xor "Link" priority 100 + 
+	  INODE.create_xor "Group" priority 100 + 
+	  INODE.create_xor "Degroup" priority 100 + 
+	  INODE.create_xor "Combine" priority 100 + 
+	  INODE.create_xor "Decombine" priority 100 + 
+	  INODE.create_xor "Auto-combine" priority 100  
+	)
+      ) + (
+	INODE.create_xor "Window" priority 50 + (
+	  INODE.create_xor "Display" priority 100 + 
+	  INODE.create_xor "Refresh draw" priority 100
+	)
+      ) + (
+	INODE.create_xor "Help" priority 25 + (
+	  INODE.create_xor "Information" priority 100 + 
+	  INODE.create_xor "About" priority 100 +
+	  INODE.create_xor "Bugs report" priority 100 +
+	  INODE.create_xor "News" priority 100
+	)
+      );
+
+
+	tools := INODE.create_xor "Tools" priority 100 +
+	    INODE.create_xor "Select" priority 100 action action_select picture "select.bmp" + (
+            INODE.create_xor "Zoom" priority 50 picture "zoom.bmp" + (
+              INODE.create_xor "Raw" priority 100 +
+                INODE.create_xor "Zoom +" priority 100 action action_zoom_in picture "zoom_in.bmp" +
+                INODE.create_xor "Zoom -" priority 100 action action_zoom_out picture "zoom_out.bmp"+
+                INODE.create_xor "Zoom select" priority 50 action action_zoom_select picture "zoom_select.bmp"+
+                INODE.create_xor "Zoom page" priority 25 action action_zoom_page picture "zoom_page.bmp"+
+                INODE.create_xor "Zoom 1:1" priority 25 action action_zoom_100 picture "zoom_100.bmp"
+              )
+            ) +
+            INODE.create_xor "Line" priority 100 action action_line picture "line.bmp" +
+            INODE.create_xor "Rectangle" priority 100 action action_rectangle picture "rectangle.bmp" +
+            INODE.create_xor "Circle" priority 100 action action_circle picture "ellipse.bmp" +
+            INODE.create_xor "Text" priority 100 action action_text picture "text.bmp" +
+            INODE.create_xor "Color" priority 100 action action_color picture "paint.bmp";
+
+
+    page:=INODE.create_xor "Page" priority 100;
+
+    base := INODE.create_or "Paint" priority 100 + menu + tools + page;
+    
+    //
+    // Evaluation.
+    //
+
+    guii:=GUII.create base screen_width 800 screen_height 600;
+    guii.set_depth base from 0;
+    guii.evaluation base;
+    guii.run_interface;
+  );
+  
+  

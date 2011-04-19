@@ -1,0 +1,232 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := ENTRY;
+
+  - copyright   := "2003-2007 Benoit Sonntag, Jerome Hilbert";
+
+  - comment := "Abstract Entry.";
+
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Public
+
+  //
+  // Path.
+  //
+
+  + path:STRING_CONSTANT;
+
+  + name:STRING_CONSTANT;
+
+  - dirname:STRING <-
+  ( + result:STRING;
+
+    result := STRING.create (path.count);
+    get_parent_path path in result;
+    result
+  );
+
+  //
+  // Date / Time.
+  //
+
+  - access:UINTEGER_16 <- ( deferred; 0);
+
+  - access_time:TIME <- ( deferred; TIME);
+  - access_date:DATE <- ( deferred; DATE);
+
+  - update_time:TIME <- ( deferred; TIME);
+  - update_date:DATE <- ( deferred; DATE);
+
+  - create_time:TIME <- ( deferred; TIME);
+  - create_date:DATE <- ( deferred; DATE);
+
+  //
+  // type.
+  //
+
+  - is_directory:BOOLEAN <-
+  ( + dir:DIRECTORY;
+    + e:ENTRY;
+
+    e := Self; // Bug Compilo
+    dir ?= e;
+    dir != NULL
+  );
+
+  - is_file:BOOLEAN <- ! is_directory;
+
+  //
+  // Open / Close
+  //
+
+  - open:BOOLEAN <-
+  // Return FILE or DIRECTORY, NULL:error.
+  (
+    deferred;
+  );
+
+  - is_open:BOOLEAN <-
+  (
+    deferred;
+    FALSE
+  );
+
+Section ENTRY
+
+  - string_tmp:STRING  := STRING.create 255;
+
+  - string_tmp2:STRING  := STRING.create 255;
+
+  - set_path n:ABSTRACT_STRING <-
+  ( + idx:INTEGER;
+    path := STRING_CONSTANT.create_copy n;
+    idx := path.last_index_of '/';
+    (name = NULL).if {
+      name := STRING_CONSTANT.clone;
+    };
+    name.set_storage (path.storage + idx) count (path.count - idx);
+  );
+
+  - reduce_path st:STRING <-
+  ( + i:INTEGER;
+    + stat:INTEGER;
+    + car:CHARACTER;
+
+    st.replace_all '\\' with '/';
+    i := st.lower;
+
+    {i > st.upper}.until_do {
+      car := st.item i;
+      (car = '/').if {
+        // Separator character.
+        stat.when 0 then {
+          // foo/bar => foo/bar
+          //    ^          ^
+          stat := 1;
+        }.when 1 then {
+          // foo//bar => /bar
+          //     ^       ^
+          st.remove_first (i-1);
+          i := st.lower;
+        }.when 2 then {
+          // foo/./bar => foo/bar
+          //      ^          ^
+          st.remove_between (i-1) to i;
+          i := i - 2;
+          stat := 1;
+        }.when 3 then {
+          // toto/foo/../bar => toto/bar
+          //            ^           ^
+          + idx:INTEGER;
+          idx := st.last_index_of '/' since (i-4);
+          // st.last_index_of '/' since (i-4);
+          (idx = 0).if {
+            st.remove_first (i-1);
+            i := st.lower;
+          } else {
+            st.remove_between idx to (i-1);
+            i := idx;
+          };
+          stat := 1;
+        };
+      }.elseif {car = '.'} then {
+        // Point character.
+        (stat)
+        .when 0 then {
+          // foo.bar => foo.bar
+        }.when 1 then {
+          // foo/.bar => foo/.bar
+          stat := 2;
+        }.when 2 then {
+          // foo/..bar => foo/..bar
+          stat := 3;
+        }.when 3 then {
+          // foo/...bar => foo/...bar
+          stat := 0;
+        };
+      }.elseif {(car = ':') && {i > 2} &&
+        {st.item (i-1).is_letter} && {st.item (i-2) = '/'}
+      } then {
+        st.remove_first (i-2);
+        i := st.lower;
+      } else {
+        // Other character.
+        stat := 0;
+      };
+      i := i + 1;
+    };
+
+    stat.when 0 then {
+      // foo/bar  => foo/bar
+      //        ^           ^
+    }.when 1 then {
+      // foo/  => foo
+      //     ^       ^
+      st.remove_last 1;
+    }.when 2 then {
+      // foo/.  => foo
+      //      ^       ^
+      st.remove_last 2;
+    }.when 3 then {
+      // toto/foo/..  => toto
+      //            ^        ^
+      + idx:INTEGER;
+      idx := st.last_index_of '/' since (i-4);
+      (idx = 0).if {
+        st.clear;
+      } else {
+        st.remove_between idx to (i-1);
+      };
+    };
+
+    (st.is_empty).if {
+      st.add_last '/';
+    };
+  );
+
+  //
+  // Alias Entry.
+  //
+
+  - get_parent_path p:ABSTRACT_STRING in tmp:STRING <-
+  [
+    -? {p.last != '/'};
+  ]
+  ( + i:INTEGER;
+
+    (tmp != p).if {
+      tmp.copy p;
+    };
+    i := tmp.last_index_of '/';
+    (i = 0).if {
+      tmp.copy "../";
+    } else {
+      tmp.keep_head (i-1);
+      (tmp.is_empty).if {
+        tmp.add_last '/';
+      };
+    };
+  );

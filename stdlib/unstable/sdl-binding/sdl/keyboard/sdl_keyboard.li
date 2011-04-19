@@ -1,0 +1,120 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac-SDL Library                             //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name      := SDL_KEYBOARD;
+
+  - comment   := "Keyboard handling";
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>";
+
+Section Public
+
+//
+// REPEAT & DELAY:
+//
+  - delay          :INTEGER := 500; // SDL default value is 500;
+  - interval       :INTEGER := 30;  // SDL default velur is 30
+
+  - enable_key_repeat (delay_p, interval_p:INTEGER) <-
+  // Enable/Disable keyboard repeat.  Keyboard repeat defaults to off.
+  // `delay' is the initial delay in ms between the time when a key is
+  // pressed, and keyboard repeat begins.
+  // `interval' is the time in ms between keyboard repeat events.
+  // If `delay' is set to 0, keyboard repeat is disabled.
+  (
+    delay := delay_p;
+    interval := interval_p;
+    `SDL_EnableKeyRepeat(@delay_p, @interval_p)`;
+  );
+
+  - set_defaut_key_repeat <-
+  // Set good default value provided by the SDL library
+  (
+    delay := `SDL_DEFAULT_REPEAT_DELAY`:(INTEGER);
+    interval := `SDL_DEFAULT_REPEAT_INTERVAL`:(INTEGER);
+    `SDL_EnableKeyRepeat(@delay, @interval);`
+  );
+
+  - get_key_repeat :(INTEGER, INTEGER) <-
+  // Get `delay' and `interval' values
+  ( + d,i:POINTER;
+    `SDL_GetKeyRepeat((int*)&d, (int*)&i)`;
+    d.to_raw_integer, i.to_raw_integer 
+  );
+
+//
+// UNICODE handling
+//
+  - previous_state :INTEGER := -1;  // Previous unicode state
+  
+  - enable_unicode enable:INTEGER :INTEGER <-
+  // Enable/Disable UNICODE translation of keyboard input.
+  // This translation has some overhead, so translation defaults off.
+  // If `enable' is 1, translation is enabled.
+  // If `enable' is 0, translation is disabled.
+  // If `enable' is -1, the translation state is not changed.
+  // This function set the `previous_state' slot
+  (
+    previous_state := `SDL_EnableUNICODE(@enable)`:(INTEGER);
+    previous_state
+  );
+
+//
+// Keys mod and state
+//
+  - get_mod_state :INTEGER <-
+  // Get the current key modifier state
+  (
+    `SDL_GetModState()`:(INTEGER)
+  );
+
+  - set_mod_state state:INTEGER <-
+  // Set the current key modifier state.
+  // This does not change the keyboard state, only the key modifier flags.
+  (
+    `SDL_SetModState(@modstate)`;
+  );
+
+  - get_key_name key:INTEGER :STRING <-
+  // Get the name of an SDL virtual keysym
+  ( + name:NATIVE_ARRAY(CHARACTER);
+    + result:STRING;
+    
+    name := `SDL_GetKeyName(@key)`:(NATIVE_ARRAY(CHARACTER));
+    result := STRING.clone;
+    result.from_external_copy name;
+    result
+  );
+
+  // TODO: check fast_array & native_array convertion
+  - get_key_state :FAST_ARRAY(UINTEGER_8) <-
+  // Memory buffer of the current keyboard. Get a snapshot of the current state
+  // of the keyboard. Returns an array of keystates, indexed by the SDLK_*
+  // syms.
+  ( + keyboard: NATIVE_ARRAY(UINTEGER_8);
+    + result  :FAST_ARRAY(UINTEGER_8);
+    keyboard := `SDL_GetKeyboardState(NULL)`:NATIVE_ARRAY(UINTEGER_8);
+    result := FAST_ARRAY(UINTEGER_8).create_with_native_array_byte keyboard size 1000;
+    //result.set_upper 1000;
+    result
+  );

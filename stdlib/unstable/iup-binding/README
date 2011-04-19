@@ -1,0 +1,18 @@
+This is the very early stages of a wrapper for IUP.
+
+It has been tested only on Windows but should work on Linux/Unix
+systems fairly easy. You will need to edit the lip slot iup.li and
+add the correct library definitions for your OS. That should be
+all that is necessary.
+
+To compile this on Windows, you need to download the Iup, Cd and Img
+libraries for your version of MinGW. Place the libraries into your
+MinGW/lib directory and the include files into your MinGW/include
+directory.
+
+You can test the interface by compiling and running the example:
+
+  lisaac example.li
+
+When complete, this will be an entire wrapping around Iup, Cd and Img
+complete with a fully Object Oriented interface.

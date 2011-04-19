@@ -2,7 +2,19 @@ Section Inherit
 
   + parent:STRING;
 
-Section Private
+Section Private  
+  
+  - general_front_end <-
+  (
+    path "stdlib/standard/*";
+    path "stdlib/internal/portable/*";
+    path "stdlib/extra/*";
+    path "stdlib/unstable/*";
+    path "stdlib/internal/os_support/unix/system/";
+    path "stdlib/internal/os_support/unix/file_system/";
+    path "stdlib/internal/os_support/unix/video/";
+  );
+
 
   - front_end <-
   (

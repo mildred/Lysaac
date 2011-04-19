@@ -1,0 +1,76 @@
+///////////////////////////////////////////////////////////////////////////////
+//                           Lisaac-OpenGL library                           //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := COLOR_BUFFER;
+  
+  - comment  := "abstract pixel color buffer";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  - rgb:INTEGER <- 0;
+  - rgba:INTEGER <- 1;
+  - red:INTEGER <- 2;
+  - green:INTEGER <- 3;
+  - blue:INTEGER <- 4;
+  - alpha:INTEGER <- 5;
+  - luminance:INTEGER <- 6; // grey (single component)
+  - luminance_alpha:INTEGER <- 7; // grey+alpha
+  - stencil_index:INTEGER <- 8;
+  - depth_component:INTEGER <- 9;
+  
+  
+  - clear <- deferred;
+  - set_clear_value (r,g,b,a:REAL_32) <- deferred;
+  
+  - set_color c:COLOR <- deferred;
+  - set_color3f (r,g,b:REAL_32) <- deferred;
+  - set_color4f (r,g,b,a:REAL_32) <- deferred;
+  
+  - set_mask (r,g,b,a:BOOLEAN) <- deferred;
+  
+  - enable <- deferred;
+  - disable <- deferred;
+  
+  //
+  // FrameBuffer transfert functions
+  //
+  
+  - read (x,y:INTEGER) size (w,h:INTEGER) type t:INTEGER in buf:FAST_ARRAY(UINTEGER_8) <- deferred;
+  
+  - read_rgb (x,y:INTEGER) size (w,h:INTEGER) in buf:FAST_ARRAY(UINTEGER_8) <- deferred;
+  - read_rgba (x,y:INTEGER) size (w,h:INTEGER) in buf:FAST_ARRAY(UINTEGER_8) <- deferred;
+  
+  
+  - draw_pixels pixels:FAST_ARRAY(UINTEGER_8) size (w,h:INTEGER) type t:INTEGER <- deferred;
+
+  - draw_rgb_pixels pixels:FAST_ARRAY(UINTEGER_8) size (w,h:INTEGER) <- deferred;
+  - draw_rgba_pixels pixels:FAST_ARRAY(UINTEGER_8) size (w,h:INTEGER) <- deferred;
+  
+  - copy (x,y:INTEGER) size (w,h:INTEGER) type t:INTEGER <- deferred;
+  
+  - copy_rgb (x,y:INTEGER) size (w,h:INTEGER) <- deferred;
+  - copy_rgba (x,y:INTEGER) size (w,h:INTEGER) <- deferred;

@@ -1,0 +1,667 @@
+/***************************************************************************
+*                      Isaac Object Operating System                       *
+*                             Freetype Library                             *
+*                      LORIA - UHP - INRIA - FRANCE                        *
+*                   Jerome BOUTET  - boutet@loria.fr                       *
+*                   Benoit SONNTAG - bsonntag@loria.fr                     *
+*                          http://www.IsaacOS.com                          *
+****************************************************************************/
+
+Section Header
+  
+  + name        := TT_RASTER;
+  - comment     :=" .";
+    
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Private
+  
+  - frac x:INTEGER <- x & (precision - 1);
+  
+  - scaled x:INTEGER <- (x << scale_shift) - precision_half;
+   
+  - swap x,y:INTEGER <-
+  (+ tmp:INTEGER;
+    tmp := x;
+    x := y;
+    y := tmp;
+  );
+  
+   - decompose_curve first,last:UINTEGER_8, flipped:BOOLEAN :BOOLEAN <-
+  // scans the outline arays in order to emit individual segments and beziers by calling Line_To()
+  // and Bezier_To. 
+  //              It handles all weird cases, like when the first point
+  //              is off the curve, or when there are simply no 'on'
+  //              points in the contour!
+  ( + x,y:INTEGER;   // current point
+    + cx,cy:INTEGER; // current Bezier control point
+    + mx,my:INTEGER; // current middle point
+    + x_first,y_first:INTEGER; // first point's coordinates
+    + x_last,y_last:INTEGER;   // last point's coordinates
+    + index:UINTEGER_8; //current point's index
+    + on_curve:BOOLEAN; // current point's state
+    
+    x_first := scaled (coords.item first.x);
+    y_first := scaled (coords.item first.y);
+    
+    flipped.if {
+      swap x_first,y_first;
+    };
+    
+    x_last := scaled (coords.item last.x);
+    y_last := scaled (coords.item last.y);
+    
+    flipped.if {
+      swap x_last,y_last;
+    };
+    
+    cx := x_first;
+    last_x := cx;
+    cy := y_first;
+    last_y := cy;
+    
+    on_curve := (flags.item first & 1) > 0;
+    index := first;
+
+    // check first point to determine origin
+    ( ! on_curve ).if {
+      // first point is off the curve.  Yes, this happens...
+      ((flags.last & 1)>0).if {
+	last_x := x_last;  // start at last point if it
+	last_y := y_last;  // is on the curve
+      } else {
+        // if both first and last points are off the curve, 
+        // start at their middle and record its position    
+	// for closure                                      
+	last_x := (last_x + x_last) / 2 ;
+	last_y := (last_y + y_last) / 2 ;
+	x_last := last_x;
+	y_last := last_y;
+      };
+    };
+
+    // now process each contour point individually
+    { index < last }.while_do {
+      index := index + 1;
+      x := scaled( coords.item index.x );
+      y := scaled( coords.item index.y );
+      
+      flipped.if {
+	swap x,y;
+      };
+      
+      on_curve.if {
+	// the previous point was on the curve
+	on_curve := (flags.index & 1) > 0;
+	on_curve.if {
+	  // two successive on points => emit segment
+	  line_to x,y; // JBJB return failure ?
+	} else {
+          // else, keep current control point for next bezier
+          cx := x;
+	  cy := y;
+	};
+      } else {
+	// the previous point was off the curve
+	on_curve := (flags.index & 1) > 0;
+	on_curve.if {
+	  // reaching an `on' point
+	  bezier_to x,y,cx,cy; // JBJB return FAILURE ?
+	} else {
+	  // two successive `off' points => create middle point
+          mx := ( cx + x ) / 2;
+	  my := ( cy + y ) / 2;
+	  
+	  bezier_to mx,my,cx,cy;
+          cx := x;
+          cy := y;
+	};
+      };
+    };
+
+    // end of contour, close curve cleanly
+    ((flags.item first & 1) > 0).if {
+      on_curve.if {
+	line_to x_first,y_first; // JBJB return 
+      } else {
+        bezier_to x_first,y_first,cx,cy; // JBJB return 
+      };
+    } else {
+      ( !on_curve ).if {
+	bezier_to x_last,y_last,cx,cy; // JBJB return 
+      };
+    };
+  );
+  
+  - bezier_to x,y,cx,cy:INTEGER <-
+  // Injects a new bezier arc and adjusts the profile list.
+  // x,   y : arc endpoint (start point in LastX, LastY)
+  // Cx, Cy : control point
+  (+ y1,y2,y3,x3;
+   + state_bez:UINTEGER_16;
+   push_bezier last_x,last_y,cx,cy,x,y;
+
+   {
+     y1 := arc.item 2.y;
+     y2 := arc.item 1.y;
+     y3 := arc.item 0.y;
+     x3 := arc.item 0.x;
+
+     // first, categorize the bezier arc
+
+     ( y1 = y2 ).if {
+       ( y2 = y3 ).if {
+	 state_bez := flat;
+       }.elseif { y2 > y3 } then {
+	 state_bez := descending;
+       } else {
+	 state_bez := ascending;
+       };
+     }.elseif { y1 > y2 } then {
+       ( y2 >= y3 ).if {
+	 state_bez := descending;
+       } else {
+	 state_bez := unknown;
+       };
+     }.elseif { y2 <= y3 } then {
+       state_bez := ascending;
+     } else {
+       state_bez := unknown;
+     };
+
+     // split non-monotonic arcs, ignore flat ones, or/
+     // computes the up and down ones                  
+     
+     (state_bez = flat).if {
+       arc := arc - 2; // JBJB A VOIR !!
+     }.elseif { state_bez = unknown } then {
+       split_bezier arc;
+       arc := arc + 2;
+     } else {
+       // detect a change of direction
+       ( state != state_bez ).if {
+	 (state != unknown).if {
+	   end_profile.if {
+	     // return failure
+	   };
+	 };
+	 ( new_profile state_bez ).if {
+	   // return FAILURE;
+	 };
+       };
+
+       // compute
+       ( state = ascending ).if {
+	 bezier_up min_y,max_y; // return failure
+       }.elseif { state = ascending } then {
+	 bezier_down min_y,max_y; // return failure
+       };
+     };
+   }.do_while ( arc >= arcs );
+
+    last_x := x3;
+    last_y := y3;
+  );
+  
+  
+  - bezier_up miny,maxy:INTEGER <-
+  // Computes thes x-coordinates of an ascending bezier arc
+  //              and stores them in the render pool.
+  ( + y1,y2,e,e2,e0:INTEGER;
+    + f1:INTEGER_8;
+    + tmp_arc,start_arc:NATIVE_ARRAY[POINT_INT];
+    + top:TT_STORAGE;
+
+    tmp_arc := arc;
+    y1  = arc[2].y;
+    y2  = arc[0].y;
+    top = ras.top;
+
+    if ( y2 < miny || y1 > maxy )
+      goto Fin;
+
+    e2 = FLOOR( y2 );
+
+    if ( e2 > maxy )
+      e2 = maxy;
+
+    e0 = miny;
+
+    if ( y1 < miny )
+      e = miny;
+    else
+    {
+      e  = CEILING( y1 );
+      f1 = FRAC( y1 );
+      e0 = e;
+
+      if ( f1 == 0 )
+      {
+        if ( ras.joint )
+        {
+          top--;
+          ras.joint = FALSE;
+        }
+
+        *top++ = arc[2].x;
+
+        DEBUG_PSET;
+
+        e += ras.precision;
+      }
+    }
+
+    if ( ras.fresh )
+    {
+      ras.cProfile->start = TRUNC( e0 );
+      ras.fresh = FALSE;
+    }
+
+    if ( e2 < e )
+      goto Fin;
+
+    if ( ( top + TRUNC( e2 - e ) + 1 ) >= ras.maxBuff )
+    {
+      ras.top   = top;
+      ras.error = Raster_Err_Overflow;
+      return FAILURE;
+    }
+
+    start_arc = arc;
+
+    while ( arc >= start_arc && e <= e2 )
+    {
+      ras.joint = FALSE;
+
+      y2 = arc[0].y;
+
+      if ( y2 > e )
+      {
+        y1 = arc[2].y;
+        if ( y2 - y1 >= ras.precision_step )
+        {
+          Split_Bezier( arc );
+          arc += 2;
+        }
+        else
+        {
+          *top++ = arc[2].x + FMulDiv( arc[0].x - arc[2].x,
+                                       e - y1,
+                                       y2 - y1 );
+          DEBUG_PSET;
+
+          arc -= 2;
+          e   += ras.precision;
+        }
+      }
+      else
+      {
+        if ( y2 == e )
+        {
+          ras.joint  = TRUE;
+          *top++     = arc[0].x;
+
+          DEBUG_PSET;
+
+          e += ras.precision;
+        }
+        arc -= 2;
+      }
+    }
+
+  Fin:
+    ras.top  = top;
+    ras.arc -= 2;
+    return SUCCESS;
+  }
+
+
+/****************************************************************************/
+/*                                                                          */
+/* Function:    Bezier_Down                                                 */
+/*                                                                          */
+/* Description: Computes the x-coordinates of a descending bezier arc       */
+/*              and stores them in the render pool.                         */
+/*                                                                          */
+/* Input:       None.  Arc is taken from the top of the Bezier stack.       */
+/*                                                                          */
+/* Returns:     SUCCESS on success.                                         */
+/*              FAILURE on Render Pool overflow.                            */
+/*                                                                          */
+/****************************************************************************/
+
+  static Bool  Bezier_Down( RAS_ARGS Long  miny, Long  maxy )
+  {
+    TPoint*  arc = ras.arc;
+    Bool     result, fresh;
+
+
+    arc[0].y = -arc[0].y;
+    arc[1].y = -arc[1].y;
+    arc[2].y = -arc[2].y;
+
+    fresh = ras.fresh;
+
+    result = Bezier_Up( RAS_VARS -maxy, -miny );
+
+    if ( fresh && !ras.fresh )
+      ras.cProfile->start = -ras.cProfile->start;
+
+    arc[0].y = -arc[0].y;
+    return result;
+  }
+
+
+/****************************************************************************/
+/*                                                                          */
+/* Function:    Line_To                                                     */
+/*                                                                          */
+/* Description: Injects a new line segment and adjusts Profiles list.       */
+/*                                                                          */
+/* Input:       x, y : segment endpoint (start point in LastX,LastY)        */
+/*                                                                          */
+/* Returns:     SUCCESS on success.                                         */
+/*              FAILURE on Render Pool overflow or Incorrect Profile.       */
+/*                                                                          */
+/****************************************************************************/
+
+  static Bool  Line_To( RAS_ARGS Long  x, Long  y )
+  {
+    /* First, detect a change of direction */
+
+    switch ( ras.state )
+    {
+    case Unknown:
+      if ( y > ras.lastY )
+      {
+        if ( New_Profile( RAS_VARS  Ascending ) ) return FAILURE;
+      }
+      else
+      {
+        if ( y < ras.lastY )
+          if ( New_Profile( RAS_VARS  Descending ) ) return FAILURE;
+      }
+      break;
+
+    case Ascending:
+      if ( y < ras.lastY )
+      {
+        if ( End_Profile( RAS_VAR ) ||
+             New_Profile( RAS_VARS  Descending ) ) return FAILURE;
+      }
+      break;
+
+    case Descending:
+      if ( y > ras.lastY )
+      {
+        if ( End_Profile( RAS_VAR ) ||
+             New_Profile( RAS_VARS  Ascending ) ) return FAILURE;
+      }
+      break;
+
+    default:
+      ;
+    }
+
+    /* Then compute the lines */
+
+    switch ( ras.state )
+    {
+    case Ascending:
+      if ( Line_Up ( RAS_VARS  ras.lastX, ras.lastY,
+                     x, y, ras.minY, ras.maxY ) )
+        return FAILURE;
+      break;
+
+    case Descending:
+      if ( Line_Down( RAS_VARS ras.lastX, ras.lastY,
+                      x, y, ras.minY, ras.maxY ) )
+        return FAILURE;
+      break;
+
+    default:
+      ;
+    }
+
+    ras.lastX = x;
+    ras.lastY = y;
+
+    return SUCCESS;
+  }
+
+section PUBLIC
+  
+  - max_bezier:INTEGER_8 	:= 32;
+  // The maximum number of stacked Bezier curves.
+  // Setting this constant to more than 32 is a pure waste of space.
+  
+  - raster_render_pool:INTEGER := 64000;
+  // The default render pool size
+  
+  - raster_gray_lines:INTEGER_8 := 2048;
+  // The size of the two-lines intermediate bitmap used for anti-aliasing
+  
+  
+  
+  + precision_bits:INTEGER;       // precision related variables 
+  + precision:INTEGER;
+  + precision_half:INTEGER;
+  + precision_mask:INTEGER;
+  + precision_shift:INTEGER;
+  + precision_step:INTEGER;
+  + precision_jitter:INTEGER;
+  
+  + scale_shift:INTEGER;          // == precision_shift   for bitmaps 
+  // == precision_shift+1 for pixmaps 
+  
+  + buff:FIXED_ARRAY[INTEGER];                 // The profiles buffer          
+  + size_buff:FIXED_ARRAY[INTEGER];            // Render pool size             
+  + max_buff:FIXED_ARRAY[INTEGER];             // Profiles buffer size         
+  + top:NATIVE_ARRAY[INTEGER];                  // Current cursor in buffer     
+  
+  + error:INTEGER;
+  
+  + flags:FIXED_ARRAY[UINTEGER_16];               // current flags table    
+  + outs:FIXED_ARRAY[UINTEGER_8];                // current outlines table 
+  
+  + n_points:UINTEGER_8;            // number of points in current glyph   
+  + n_contours:INTEGER_8;           // number of contours in current glyph 
+  + num_turns:INTEGER;             // number of Y-turns in outline        
+  
+  + arc:NATIVE_ARRAY[POINT_INT];                  // current Bezier arc pointer 
+  
+  + b_width:UINTEGER_8;              // target bitmap width  
+  + b_target:FIXED_ARRAY[UINTEGER_16];             // target bitmap buffer 
+  + g_target:FIXED_ARRAY[UINTEGER_16];             // target pixmap buffer 
+  
+  + last_x:INTEGER;
+  + last_y:INTEGER;
+  + min_y:INTEGER;
+  + max_y:INTEGER;
+  
+  
+  + num_profs:UINTEGER_8;            // current number of profiles 
+  
+  + fresh:BOOLEAN;                  
+  // signals a fresh new profile which 
+  // 'start' field must be completed   
+  + joint:BOOLEAN  ;                
+  // signals that the last arc ended   
+  // exactly on a scanline.  Allows removal of doublets               
+  + cprofile:TT_PROFILE;            // current profile                   
+  + fprofile:TT_PROFILE;            // head of linked list of profiles   
+  + gprofile:TT_PROFILE;            // contour's first profile in case   
+  // of impact                         
+  + state:UINTEGER_16;                  // rendering state
+  // 0: Unknown
+  // 1: ascending
+  // 2: descending
+  // 3: flat
+  
+  - unknown:UINTEGER_16 := 0;
+  - ascending:UINTEGER_16 := 1;
+  - descending:UINTEGER_16 := 2;
+  - flat:UINTEGER_16 := 3;
+  
+  + target:TT_RASTER_MAP;           // description of target bit/pixmap 
+  
+  + trace_ofs:INTEGER;              // current offset in target bitmap 
+  + trace_g:INTEGER;                // current offset in target pixmap 
+  
+  + trace_incr:INTEGER_8;            // sweep's increment in target bitmap 
+  
+  + gray_min_x:INTEGER_8;            // current min x during gray rendering 
+  + gray_max_x:INTEGER_8;            // current max x during gray rendering 
+  
+  // dispatch variables 
+  
+  // Function_Sweep_Init*  Proc_Sweep_Init;
+  // Function_Sweep_Span*  Proc_Sweep_Span;
+  // Function_Sweep_Span*  Proc_Sweep_Drop;
+  // Function_Sweep_Step*  Proc_Sweep_Step;
+  
+  + coords:FIXED_ARRAY[TT_VECTOR];
+  
+  + dropout_control:UINTEGER_16;       // current drop_out control method 
+  
+  + grays:FIXED_ARRAY[UINTEGER_16] := FIXED_ARRAY[UINTEGER_16].create 5;         // Palette of gray levels used for render 
+  
+  + gray_lines:FIXED_ARRAY[UINTEGER_16];       
+  // Intermediate table used to render the   
+  // graylevels pixmaps.                     
+  // gray_lines is a buffer holding two      
+  // monochrome scanlines                    
+  
+  + gray_width:INTEGER_8;        
+  // width in bytes of one monochrome        
+  // intermediate scanline of gray_lines.    
+  // Each gray pixel takes 2 bits long there 
+  
+  // The gray_lines must hold 2 lines, thus with size 
+  // in bytes of at least 'gray_width*2'              
+  
+  + second_pass:BOOLEAN;        
+  // indicates wether a horizontal pass      
+  // should be performed to control drop-out 
+  // accurately when calling Render_Glyph.   
+  // Note that there is no horizontal pass   
+  // during gray rendering.                  
+  
+  + arcs:FIXED_ARRAY[TT_POINT] := FIXED_ARRAY[TT_POINT].create (2 * max_bezier + 1);
+  // The Bezier stack 
+  
+  + band_stack:FIXED_ARRAY[TT_BAND] := FIXED_ARRAY[TT_BAND].create 16;
+  // band stack used for sub-banding 
+  
+  + band_top:INTEGER;             // band stack top                  
+  
+  + count_table:FIXED_ARRAY[INTEGER] := FIXED_ARRAY[INTEGER].create 256;
+  // Look-up table used to quickly count 
+  // set bits in a gray 2x2 cell         
+  
+  - raster_init <-
+  (    
+    size_buff := buff + ( raster_render_pool / 4 ); // 4: sizeof (long)
+       
+    gray_width := raster_gray_lines / 2;
+
+    // Initialization of Count_Table
+    
+    0.to 255 do { i:INTEGER;
+      + l,j:INTEGER;
+      l := 0;
+      j := i;
+      
+      
+      0.to 3 do { c:INTEGER;
+	
+	l := l << 4;
+
+	( (j & 080h) > 0).if {
+	  l := l + 1
+	};
+	( (j & 040h) > 0).if {
+	  l := l + 1
+	};
+	
+	j := ( j << 2 ) & 0FFh;
+      };
+      
+      count_table.put l to i;
+    };
+    
+    dropout_control := 2;
+    error           := TT_ERROR.tt_err_ok;
+  );
+
+  - align_profile_size:INTEGER := 8;
+  
+  - convert_glyph flipped:INTEGER :BOOLEAN <-
+  // Converts a glyph into a series of segments and arcs and makes a Profiles list with them. 
+  ( + start:UINTEGER_8;
+    + last_profile:TT_PROFILE;
+    + result:BOOLEAN;
+    
+    fprofile := NULL;
+    joint    := FALSE;
+    fresh    := FALSE;
+    
+    max_buff  := size_buff - align_profile_size;
+
+    num_turns := 0;
+
+    cprofile  := TT_PROFILE.force_conversion top; // JBJB a voir: MAPPING dans TT_PROFILE ou
+    // transformer top en f_array[profile]
+    cprofile.set_offset (top.item 0);
+    num_profs := 0;
+    
+    0.to (n_contours - 1) do { i:INTEGER;
+      state    := unknown;
+      gprofile := NULL;
+      result := decompose_curve start,(outs.item i),flipped;
+      // JBJB test failure
+      
+      start := outs.item i + 1;
+      
+      //  We must now see if the extreme arcs join or not
+      ((frac last_y == 0) && {last_y >= min_y} && {last_y <= max_y }).if {
+	(gprofile && (gprofile.flow) == (cprofile.flow)).if { // JBJB A VOIR !
+	  top := top - 1;
+	};
+      };
+      // Note that ras.gProfile can be nil if the contour was too small to be drawn.
+      
+      last_profile := cprofile;
+      end_profile.if {
+	result := FALSE;
+      };
+      
+      // close the 'next profile in contour' linked list
+      ( gprofile != NULL).if {
+	last_profile.set_next gprofile;	  
+      };
+    };      
+    
+    (finalize_profile_table != 0).if {
+      result := FALSE;
+    };
+    
+    result := top < max_buff;    
+    result
+    
+  );
+    
+  
+ 
+  
+  
+  
+  
+  
+  
+  

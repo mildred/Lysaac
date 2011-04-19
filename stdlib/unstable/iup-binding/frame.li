@@ -1,0 +1,26 @@
+Section Header
+  // Frame
+
+  + name      := FRAME;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP FRAME";
+
+Section Inherit
+
+  + parent:Expanded CONTROL := CONTROL;
+
+Section Public
+  
+  - make child:CONTROL :SELF <-
+  ( + result:SELF;
+    + child_h, h:POINTER;
+
+    child_h := child.handle;
+    h := `IupFrame(@child_h)`:POINTER;
+
+    result := SELF.clone;
+    result.set_handle h;
+    result
+  );

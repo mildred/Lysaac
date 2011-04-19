@@ -1,0 +1,127 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := G_WIN_IN_INTERN;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+      
+  - author  := "Sonntag Benoit (bsonntag@loria.fr)";
+  - comment := "For G_WIN_IN.";
+
+Section Inherit  
+
+  + parent_g_group:Expanded G_GROUP;
+            
+Section Public
+    
+  + elevator_v:G_ELEVATOR;
+  
+  + elevator_h:G_ELEVATOR;
+  
+  //
+  // Creation.
+  //
+  
+  - make elt:G_EXPR <-
+  (
+    root := elt;  
+    elevator_h := G_ELEVATOR.create_horizontal Self;
+    elevator_v := G_ELEVATOR.create_vertical Self;
+  );
+  
+  //
+  // Fix position.
+  //
+  
+  - set_top <- 
+  (
+    elevator_v.set_min;
+  );
+    
+  - set_bottom <- 
+  (
+    elevator_v.set_max;
+  );
+    
+  - set_right <-
+  (
+    elevator_h.set_min;
+  );
+
+  - set_left <-
+  (
+    elevator_h.set_max;
+  );
+  
+  //
+  // Update position.
+  //
+  
+  - set_position rac:AREA at (x,y:INTEGER) size (w,h:INTEGER) <-
+  [ 
+    // Nothing.
+  ]
+  ( + new_w,new_h:INTEGER;
+            
+    (w < root.width_min).if {
+      new_h := h - elevator_h.height_min;
+    } else {
+      new_h := h;
+    };
+    (h < root.height_min).if {
+      new_w := w - elevator_v.width_min;
+    } else {
+      new_w := w;
+    };    
+    (new_w != w).if {
+      elevator_v.update rac from (x + new_w,y) size (elevator_v.width_min,new_h);
+    } else {
+      elevator_v.delete;
+    };
+    (new_h != h).if {
+      elevator_h.update rac from (x,y + new_h) size (new_w,elevator_v.height_min);
+    } else {
+      elevator_h.delete;
+    };      
+    update rac from (x,y) size (new_w,new_h);    
+    update_intern;
+  );
+  
+  - update_intern <-
+  ( + wn,hn:INTEGER;
+    
+    wn := (root.width_min.max width).min (root.width_max);
+    hn := (root.height_min.max height).min (root.height_max);
+    root.set_position Self at (elevator_h.position,elevator_v.position) 
+    size (wn,hn);
+  );
+  
+  //
+  // Display.
+  //
+  
+  - draw_slave bmp:ABSTRACT_BITMAP from (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  (
+    bmp.rectangle_fill (x0,y0) to (x1,y1) color color_back;
+  );
+  

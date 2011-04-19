@@ -1,0 +1,16 @@
+(
+    default(
+        call(lib)
+        rename(
+            prefix: XML_
+        )
+    )
+    entry(lib
+        path(
+        public:
+            "src"
+        private:
+            "src/private")
+        cflags(-lexpat)
+    )
+)

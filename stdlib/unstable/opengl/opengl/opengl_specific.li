@@ -1,0 +1,94 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := OPENGL_SPECIFIC;
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  //
+  // OpenGL Extensions
+  //
+  
+  - arb_multitexture:ARB_MULTITEXTURE;
+  - arb_vertex_buffer_object:ARB_VERTEX_BUFFER_OBJECT;
+  
+  - arb_shader_object:ARB_SHADER_OBJECT;
+  - arb_vertex_shader:ARB_VERTEX_SHADER;
+  - arb_fragment_shader:ARB_FRAGMENT_SHADER;
+  - arb_shading_language_100:ARB_SHADING_LANGUAGE_100;
+  
+  
+  - use_arb_multitexture:BOOLEAN <-
+  (
+    arb_multitexture := ARB_MULTITEXTURE.create;
+    arb_multitexture != NULL
+  );
+  
+  - use_arb_vertex_buffer_object:BOOLEAN <-
+  (
+    arb_vertex_buffer_object := ARB_VERTEX_BUFFER_OBJECT.create;
+    arb_vertex_buffer_object != NULL
+  );
+  
+  - use_arb_shader_object:BOOLEAN <-
+  (
+    arb_shader_object := ARB_SHADER_OBJECT.create;
+    arb_shader_object != NULL
+  );
+  
+  - use_arb_vertex_shader:BOOLEAN <-
+  (
+    arb_vertex_shader := ARB_VERTEX_SHADER.create;
+    arb_vertex_shader != NULL
+  );
+   
+  - use_arb_fragment_shader:BOOLEAN <-
+  (
+    arb_fragment_shader := ARB_FRAGMENT_SHADER.create;
+    arb_fragment_shader != NULL
+  );
+  
+  - use_arb_shading_language_100:BOOLEAN <-
+  (
+    arb_shading_language_100 := ARB_SHADING_LANGUAGE_100.create;
+    arb_shading_language_100 != NULL
+  );
+  
+  - use_shaders:BOOLEAN <-
+  (
+    use_arb_shader_object && {use_arb_vertex_shader} && {use_arb_fragment_shader} && {use_arb_shading_language_100}
+  );
+  
+  - use_extensions <-
+  // load everything
+  (
+    use_arb_vertex_buffer_object;
+    use_arb_multitexture;
+    
+    use_shaders;
+    //...
+  );

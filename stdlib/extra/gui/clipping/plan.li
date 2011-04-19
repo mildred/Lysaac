@@ -1,0 +1,184 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name    := PLAN;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment := "Sub structure for WINDOW.";
+  
+  - version := 1;
+  
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public  
+  
+  // +--------------------+
+  // |    (x0,y0)         |
+  // |       X------------|.........+
+  // |       | / / / / / /|         :
+  // |       |/ / / / / / |         :
+  // |       | /  PLAN / /|         :
+  // |       |/ / / / / / |         :
+  // |       | / / / / / /|         :
+  // |       +------------X.........+
+  // |                 (x1,y1)
+  // |                    |
+  // +--------------------+
+  
+  + is_x:BOOLEAN;
+  + is_y:BOOLEAN;
+  
+  + level:INTEGER;
+  + window:AREA;
+  
+  // Limit.
+  + x0:LIMIT_X;
+  + x1:LIMIT_X;
+  + y0:LIMIT_Y;
+  + y1:LIMIT_Y;
+  
+  // Link.
+  + next:PLAN;
+  + prev:PLAN;
+  
+Section Public 
+  
+  - make win:AREA <-
+  (
+    window:=win;
+  );
+  
+  - create win:AREA :PLAN <- 
+  ( + result:PLAN;
+    
+    result:=PLAN.clone;
+    result.make win;
+    result
+  );
+  
+  - remove old_root:PLAN :PLAN <-
+  ( + new_root:PLAN;
+    
+    (prev=NULL).if {
+      new_root:=next;
+    } else {
+      prev.set_next next;
+      new_root:=old_root;
+    };
+    (next!=NULL).if {
+      next.set_prev prev;
+    };
+    // Update level:
+    (next!=NULL).if {
+      next.dec_level;
+    };
+    new_root
+  );
+
+  - display <-
+  (
+    '['.print;
+    level.print;
+    ']'.print;
+  );
+  
+  - dec_level <-
+  (
+    level:=level-1;
+    (next!=NULL).if {
+      next.dec_level; // Terminal recursivity
+    };
+  );
+
+  - inc_level <-
+  (
+    level:=level+1;
+    (next!=NULL).if {
+      next.inc_level; // Terminal recursivity
+    };
+  );
+  
+  - set_x0 new:LIMIT_X <-
+  (
+    x0:=new;
+  );
+
+  - set_y0 new:LIMIT_Y <-
+  (
+    y0:=new;
+  );
+
+  - set_x1 new:LIMIT_X <-
+  (
+    x1:=new;
+  );
+
+  - set_y1 new:LIMIT_Y <-
+  (
+    y1:=new;
+  );
+  
+  - set_level new:INTEGER <-
+  (
+    level:=new;
+  );
+  
+  - set_next new:PLAN <-
+  (
+    next:=new;
+  );
+
+  - set_prev new:PLAN <-
+  (
+    prev:=new;
+  );
+
+  - active_y <-
+  (
+    is_y:=TRUE;
+  );
+
+  - desactive_y <-
+  (
+    is_y:=FALSE;
+  );
+
+  - active_x <-
+  (
+    is_x:=TRUE;
+  );
+
+  - desactive_x <-
+  (
+    is_x:=FALSE;
+  );
+
+
+
+
+
+
+

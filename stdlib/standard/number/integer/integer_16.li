@@ -1,0 +1,54 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := Expanded INTEGER_16;
+
+  - export  := INTEGER, INTEGER_64, INTEGER_32;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag, 2007 Xavier Oswald";
+
+  - comment := "Signed 16 bits integer.";
+
+  - type    := `signed short`;
+  - default := (0.to_raw_integer_16);
+
+Section Insert
+
+  - parent_signed_integer:SIGNED_INTEGER := SIGNED_INTEGER;
+
+Section Public
+
+  - object_size:INTEGER := 2;
+
+  //
+  // Range
+  //
+
+  - maximum:UINTEGER_64 <- 32767.to_raw_uinteger_64;
+
+  - minimum:INTEGER_64 <- - 32767.to_raw_integer_64;
+
+  //
+  // Conversion with test.
+  //
+
+  - to_integer_16:INTEGER_16     <- Self;

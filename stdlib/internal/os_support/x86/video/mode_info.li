@@ -1,0 +1,226 @@
+///////////////////////////////////////////////////////////////////////////////
+//                          Isaac Operating System                           //
+// 									     //
+//   This program is free software; you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation; version 3 of the License.  		     //
+// 									     //
+//   This program is distributed in the hope that it will be useful, 	     //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of 	     //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 	     //
+//   GNU General Public License for more details. 			     //
+// 									     //
+// 			    http://www.lisaac.org			     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := MODE_INFO;
+  
+  - comment     := "Mapping mode info structure";
+  
+  - bibliography:= "http://www.lisaac.org";
+  - author      := "Benoit Sonntag (benoit.sonntag@lisaac.org), Jerome Boutet (pisteur@free.fr)";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Mapping
+  
+  + map_mode_attributes:UINTEGER_16;       
+  + win_a_attributes:UINTEGER_8;
+  + win_b_attributes:UINTEGER_8;
+  + win_granularity:UINTEGER_16;
+  + win_size:UINTEGER_16;
+  + win_a_segment:UINTEGER_16;   
+  + win_b_segment:UINTEGER_16;
+  + win_func_ptr:UINTEGER_32;
+  + map_bytes_per_scan_line:UINTEGER_16;
+  + map_x_resolution:UINTEGER_16;
+  + map_y_resolution:UINTEGER_16;
+  + x_char_size:UINTEGER_8;
+  + y_char_size:UINTEGER_8; 
+  + map_number_of_planes:UINTEGER_8; 
+  + map_bits_per_pixel:UINTEGER_8;
+  + number_of_banks:UINTEGER_8;
+  + map_memory_model:UINTEGER_8;
+  + bank_size:UINTEGER_8;
+  + number_of_image_pages:UINTEGER_8;  
+  + reserved_page:UINTEGER_8;
+  + map_red_mask_size:UINTEGER_8;
+  + map_red_mask_pos:UINTEGER_8;
+  + map_green_mask_size:UINTEGER_8;
+  + map_green_mask_pos:UINTEGER_8;
+  + map_blue_mask_size:UINTEGER_8;
+  + map_blue_mask_pos:UINTEGER_8;
+  + reserved_mask_size:UINTEGER_8;
+  + reserved_mask_pos:UINTEGER_8;
+  + direct_color_mode_info:UINTEGER_8;
+  // VBE 2.0 extensions
+  + map_phys_base_ptr:UINTEGER_32;
+  + off_screen_mem_offset:UINTEGER_32;
+  + off_screen_mem_size:UINTEGER_16;
+  // VBE 3.0 extensions
+  + lin_bytes_per_scan_line:UINTEGER_16;
+  + bnk_number_of_pages:UINTEGER_8;
+  + lin_number_of_pages:UINTEGER_8;
+  + lin_red_mask_size:UINTEGER_8;
+  + lin_red_field_pos:UINTEGER_8;
+  + lin_green_mask_size:UINTEGER_8;
+  + lin_green_field_pos:UINTEGER_8;
+  + lin_blue_mask_size:UINTEGER_8;
+  + lin_blue_field_pos:UINTEGER_8;
+  + lin_rsvd_mask_size:UINTEGER_8;
+  + lin_rsvd_field_pos:UINTEGER_8;
+  + max_pixel_clock:UINTEGER_32;
+  
+  + reserved_00:UINTEGER_64;    // char[190]
+  + reserved_01:UINTEGER_64;
+  + reserved_02:UINTEGER_64;
+  + reserved_03:UINTEGER_64;
+  + reserved_04:UINTEGER_64;
+  + reserved_05:UINTEGER_64;
+  + reserved_06:UINTEGER_64;
+  + reserved_07:UINTEGER_64;
+  + reserved_08:UINTEGER_64;
+  + reserved_09:UINTEGER_64;
+  + reserved_10:UINTEGER_64;
+  + reserved_11:UINTEGER_64;
+  + reserved_12:UINTEGER_64;
+  + reserved_13:UINTEGER_64;
+  + reserved_14:UINTEGER_64;
+  + reserved_15:UINTEGER_64;
+  + reserved_16:UINTEGER_64;
+  + reserved_17:UINTEGER_64;
+  + reserved_18:UINTEGER_64;
+  + reserved_19:UINTEGER_64;
+  + reserved_20:UINTEGER_64;
+  + reserved_21:UINTEGER_64;
+  + reserved_22:UINTEGER_64;
+  + reserved_23:UINTEGER_32;
+  + reserved_24:UINTEGER_16;
+  
+Section Public
+
+  - make buf:NATIVE_ARRAY(UINTEGER_8) <-
+  ( + tab:NATIVE_ARRAY(UINTEGER_8);
+    ? {object_size<=512};
+    
+    tab := CONVERT(MODE_INFO,NATIVE_ARRAY(UINTEGER_8)).on Self;
+    tab.copy buf to 0 until (object_size);
+  );
+
+  - mode_attributes:UINTEGER_16 <- map_mode_attributes;
+  - number_of_planes:UINTEGER_8 <- map_number_of_planes; 
+  - bits_per_pixel:UINTEGER_8 <- map_bits_per_pixel;
+  - x_resolution:UINTEGER_16 <- map_x_resolution;
+  - memory_model:UINTEGER_8 <- map_memory_model;
+  - y_resolution:UINTEGER_16 <- map_y_resolution;
+  - phys_base_ptr:UINTEGER_32 <- map_phys_base_ptr;
+  - bytes_per_scan_line:UINTEGER_16 <- map_bytes_per_scan_line;
+  - red_mask_size:UINTEGER_8 <- map_red_mask_size;
+  - red_mask_pos:UINTEGER_8 <- map_red_mask_pos;
+  - green_mask_size:UINTEGER_8 <- map_green_mask_size;
+  - green_mask_pos:UINTEGER_8 <- map_green_mask_pos;
+  - blue_mask_size:UINTEGER_8 <- map_blue_mask_size;
+  - blue_mask_pos:UINTEGER_8 <- map_blue_mask_pos;
+  
+  - print <-
+  (
+		"mode attributes\t:".print;
+		map_mode_attributes.print; '\n'.print; 
+		"win a attributes\t:".print;
+		win_a_attributes.print; '\n'.print; 
+		"win_b_attributes\t".print;
+		win_b_attributes.print; '\n'.print; 
+		"win_granularity\t".print;
+		win_granularity.print; '\n'.print; 
+		"win_size\t".print;
+		win_size.print; '\n'.print;
+		"win_a_segment\t".print; 
+		win_a_segment.print; '\n'.print;
+		"win_b_segment\t".print;
+		win_b_segment.print; '\n'.print;
+		"win_func_ptr\t".print; 
+		win_func_ptr.print; '\n'.print; 
+		"map_bytes_per_scan_line\t".print; 
+		map_bytes_per_scan_line.print; '\n'.print;
+		"map_x_resolution\t".print; 
+		map_x_resolution.print; '\n'.print;
+    KEYBOARD.wait_key;
+		"map_y_resolution\t".print; 
+		map_y_resolution.print; '\n'.print;
+		"x_char_size\t".print; 
+		x_char_size.print; '\n'.print; 
+		"y_char_size\t".print; 
+		y_char_size.print; '\n'.print;  
+		"map_number_of_planes\t".print; 
+		map_number_of_planes.print; '\n'.print;  
+		"map_bits_per_pixel\t".print; 
+		map_bits_per_pixel.print; '\n'.print; 
+		"number_of_banks\t".print; 
+		number_of_banks.print; '\n'.print; 
+		"map_memory_model\t".print; 
+		map_memory_model.print; '\n'.print; 
+		"bank_size\t".print;
+		KEYBOARD.wait_key;
+		bank_size.print; '\n'.print;
+		"number_of_image_pages\t".print;  
+		number_of_image_pages.print; '\n'.print;   
+		"reserved_page\t".print; 
+		reserved_page.print; '\n'.print; 
+		"map_red_mask_size\t".print; 
+		map_red_mask_size.print; '\n'.print; 
+		"map_red_mask_pos\t".print; 
+		map_red_mask_pos.print; '\n'.print; 
+		"map_green_mask_size\t".print; 
+		map_green_mask_size.print; '\n'.print; 
+		"map_green_mask_pos\t".print; 
+		map_green_mask_pos.print; '\n'.print; 
+		"map_blue_mask_size\t".print; 
+		map_blue_mask_size.print; '\n'.print; 
+		"map_blue_mask_pos\t".print; 
+		map_blue_mask_pos.print; '\n'.print; 
+		KEYBOARD.wait_key;
+		"reserved_mask_size\t".print; 
+		reserved_mask_size.print; '\n'.print; 
+		"reserved_mask_pos\t".print; 
+		reserved_mask_pos.print; '\n'.print; 
+		"direct_color_mode_info\t".print; 
+		direct_color_mode_info.print; '\n'.print; 
+		// VBE 2.0 extensions
+		"map_phys_base_ptr\t".print; 
+		map_phys_base_ptr.print; '\n'.print; 
+		"off_screen_mem_offset\t".print; 
+		off_screen_mem_offset.print; '\n'.print; 
+		"off_screen_mem_size\t".print; 
+		off_screen_mem_size.print; '\n'.print; 
+		// VBE 3.0 extensions
+		"lin_bytes_per_scan_line\t".print; 
+		lin_bytes_per_scan_line.print; '\n'.print; 
+		"bnk_number_of_pages\t".print; 
+		bnk_number_of_pages.print; '\n'.print; 
+		"lin_number_of_pages\t".print; 
+		lin_number_of_pages.print; '\n'.print; 
+		KEYBOARD.wait_key;
+		"lin_red_mask_size\t".print; 
+		lin_red_mask_size.print; '\n'.print; 
+		"lin_red_field_pos\t".print; 
+		lin_red_field_pos.print; '\n'.print; 
+		"lin_green_mask_size\t".print; 
+		lin_green_mask_size.print; '\n'.print; 
+		"lin_green_field_pos\t".print; 
+		lin_green_field_pos.print; '\n'.print; 
+		"lin_blue_mask_size\t".print; 
+		lin_blue_mask_size.print; '\n'.print; 
+		"lin_blue_field_pos\t".print; 
+		lin_blue_field_pos.print; '\n'.print; 
+		"lin_rsvd_mask_size\t".print; 
+		lin_rsvd_mask_size.print; '\n'.print; 
+		"lin_rsvd_field_pos\t".print; 
+		lin_rsvd_field_pos.print; '\n'.print; 
+		"max_pixel_clock\t".print; 
+		max_pixel_clock.print; '\n'.print; 
+
+);

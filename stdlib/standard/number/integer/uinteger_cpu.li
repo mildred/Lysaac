@@ -1,0 +1,52 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := Expanded UINTEGER_CPU;
+
+  - export  := UINTEGER_64, POINTER;
+
+  - comment := "Unsigned integer (variable size according to CPU word).";
+
+  - type    := `unsigned long`;
+  - default := (0.to_raw_uinteger_cpu);
+
+Section Insert
+
+  - parent_unsigned_integer:UNSIGNED_INTEGER := UNSIGNED_INTEGER;
+
+Section Public
+
+  - object_size:INTEGER <- `sizeof(unsigned long)`:INTEGER;
+
+  //
+  // Range.
+  //
+
+  - maximum:UINTEGER_64 := (~ 0.to_uinteger_cpu).to_raw_uinteger_64;
+
+  //
+  // Conversion with test.
+  //
+
+  - to_uinteger_64:UINTEGER_64 <- to_raw_uinteger_64;
+
+  - to_pointer:POINTER <- to_raw_pointer;

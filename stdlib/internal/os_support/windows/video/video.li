@@ -1,0 +1,205 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        := VIDEO;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     := "Video Driver for Windows";
+
+  - lip      <-
+  (
+    add_lib "-lgdi32";
+  );
+
+  - external :=
+`
+#include <windows.h>
+#define main main_std
+
+#define __BEGIN_INTERRUPT__
+#define __END_INTERRUPT__
+
+#define lstat stat
+
+HWND hwnd_glob;
+MSG msg_glob;
+WNDCLASS wc_glob;
+HPEN pen;
+
+HDC hdcbmp;
+HBITMAP Bmp;
+BITMAP bm;
+
+HINSTANCE hInstance_glob;
+int nCmdShow_glob;
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+LPSTR lpCmdLine, int nCmdShow)
+{
+  hInstance_glob = hInstance;
+  nCmdShow_glob  = nCmdShow;
+  main(0,NULL);
+  return 0;
+};
+`;
+
+Section Inherit
+
+  + parent_bitmap:Expanded BITMAP(PIXEL_24);
+
+Section Public
+  // Section VIDEO
+
+  - line_tmp:ABSTRACT_BMP_LINE;
+
+Section Public
+
+  - message str:ABSTRACT_STRING <-
+  ( + msg:NATIVE_ARRAY(CHARACTER);
+    msg := str.to_external;
+    `MessageBox(hwnd_glob,@msg, "Message", MB_OK)`;
+  );
+
+  - is_active:BOOLEAN;
+
+  - planes:UINTEGER_32;
+
+  - size_pixel:INTEGER;
+
+  - make_size (w,h:INTEGER) <-
+  (
+    // Init BITMAP:
+    width  := w;
+    height := h;
+
+    EVENT_SYSTEM.make;
+    `
+    wc_glob.style = 0;
+    wc_glob.lpfnWndProc = MainWndProc;
+    wc_glob.cbClsExtra = 0;
+    wc_glob.cbWndExtra = 0;
+    wc_glob.hInstance = NULL;
+    wc_glob.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+    wc_glob.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc_glob.hbrBackground = (HBRUSH)(1 + COLOR_BTNFACE);
+    wc_glob.lpszMenuName =  NULL;
+    wc_glob.lpszClassName = "IsaacClass";
+
+    RegisterClass(&wc_glob);
+
+    hwnd_glob = CreateWindow("IsaacClass", "Win-Isaac", WS_OVERLAPPEDWINDOW,
+                                   CW_USEDEFAULT, CW_USEDEFAULT, @w+8, @h+34,
+                                                   NULL, NULL, hInstance_glob, NULL);
+    hdc_glob = GetDC(hwnd_glob);
+    ShowWindow(hwnd_glob, nCmdShow_glob);
+    UpdateWindow(hwnd_glob);
+
+    //pen = CreatePen(PS_SOLID,1,0x151515);
+    //SelectObject(hdc_glob,pen);
+
+
+    hdcbmp = CreateCompatibleDC(hdc_glob);
+    `;
+
+    planes := `GetDeviceCaps(hdc_glob, BITSPIXEL) * GetDeviceCaps(hdc_glob, PLANES)`:UINTEGER_32;
+
+    planes
+    .when 15 then {
+      size_pixel := 2;
+      line_tmp := BMP_LINE(PIXEL_15).create w;
+      `Bmp = CreateBitmap(@w, 1, 1, 15, NULL)`;
+    }
+    .when 16 then {
+      size_pixel := 2;
+      line_tmp := BMP_LINE(PIXEL_16).create w;
+      `Bmp = CreateBitmap(@w, 1, 1, 16, NULL)`;
+    }
+    .when 24 then {
+      size_pixel := 3;
+      line_tmp := BMP_LINE(PIXEL_24).create w;
+      `Bmp = CreateBitmap(@w, 1, 1, 24, NULL)`;
+    }
+    .when 32 then {
+      size_pixel := 4;
+      line_tmp := BMP_LINE(PIXEL_32).create w;
+      `Bmp = CreateBitmap(@w, 1, 1, 32, NULL)`;
+    };
+    `SelectObject(hdcbmp, Bmp)`;
+    is_active := TRUE;
+  );
+
+  - auto_make <-
+  (
+    make_size (800,600);
+  );
+
+  - close <-
+  (
+    ? {is_active};
+    is_active := FALSE;
+    ? {! is_active};
+  );
+
+Section Public
+
+  //
+  // Redefine Low level Bitmap.
+  //
+
+  - pixel_hard (x,y:INTEGER) color col:UINTEGER_32 <-
+  ( + real_col:UINTEGER_32;
+    real_col := ((col>>16) & 0000FFh) | ((col<<16) & 0FF0000h) | (col & 00FF00h);
+    `SetPixel(hdc_glob,@x,@y,@real_col)`;
+  );
+
+  - line_h_hard (x0,y0:INTEGER) until x1:INTEGER color col:UINTEGER_32 <-
+  ( + real_col:UINTEGER_32;
+    + pen:UINTEGER_32;
+    real_col := ((col>>16) & 0000FFh) | ((col<<16) & 0FF0000h) | (col & 00FF00h);
+    pen := `CreatePen(PS_SOLID,1,@real_col)`:UINTEGER_32;
+    `SelectObject(hdc_glob,(HPEN)@pen)`;
+    `MoveToEx(hdc_glob,@x0,@y0,NULL)`;
+    `LineTo(hdc_glob,@x1+1,@y0)`;
+    `DeleteObject((HPEN)@pen)`;
+  );
+
+  - line_h_hard (x0,y0:INTEGER) until x1:INTEGER
+  image line:ABSTRACT_BMP_LINE offset ofs:INTEGER <-
+  ( + len:INTEGER;
+    + data:NATIVE_ARRAY(UINTEGER_8);
+    + sz_pix:INTEGER;
+    len := x1 - x0;
+    VIDEO.line_tmp.put line offset ofs from 0 to len;
+
+    sz_pix := VIDEO.size_pixel;
+    data := VIDEO.line_tmp.get_storage;
+    `SetBitmapBits(Bmp,(@len+1)*@sz_pix,@data)`;
+    `BitBlt(hdc_glob, @x0, @y0,@len+1,1, hdcbmp, 0, 0, SRCCOPY)`;
+  );
+
+  - get_pixel_hard (x,y:INTEGER) :PIXEL <-
+  (
+    not_yet_implemented;
+  );
+
+
+

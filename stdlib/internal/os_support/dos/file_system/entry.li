@@ -1,0 +1,111 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        := ENTRY;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - bibliography:= "http://IsaacOS.com";
+
+  - author      := "Benoit Sonntag (bsonntag@loria.fr), Jerome Boutet (boutet@loria.fr)";
+
+  - comment     := "Entry ANSI";
+
+Section Inherit
+
+  + parent_abstract_entry:Expanded ABSTRACT_ENTRY;
+
+Section Public
+
+  //
+  // Physical implementation.
+  //
+
+  - physical_make:BOOLEAN <-
+  ( + pe:NATIVE_ARRAY(CHARACTER);
+    + tt:POINTER;
+    + result:BOOLEAN;
+
+    pe := path.to_external;
+    `{ struct stat t`;
+      result := `stat(@pe,&t)`:INTEGER = 0;
+      (result).if {
+	is_directory := `S_ISDIR(t.st_mode)`:BOOLEAN(TRUE,FALSE);
+	tt := `localtime(&(t.st_atime))`:POINTER;
+	access_date := to_date tt;
+	access_time := to_time tt;
+	tt := `localtime(&(t.st_mtime))`:POINTER;
+	update_date := to_date tt;
+	update_time := to_time tt;
+	size := `t.st_size`:UINTEGER;
+      };
+    `}`;
+    result
+  );
+
+  - physical_remove_directory:BOOLEAN <-
+  ( + p:NATIVE_ARRAY(CHARACTER);
+    p := path.to_external;
+    `rmdir(@p)`:(INTEGER) = 0
+  );
+
+  - physical_remove_file:BOOLEAN <-
+  ( + p:NATIVE_ARRAY(CHARACTER);
+    p := path.to_external;
+    `remove(@p)`:(INTEGER) = 0
+  );
+
+  - physical_rename old_path:ABSTRACT_STRING with new_path:ABSTRACT_STRING :BOOLEAN <-
+  ( + old_p,new_p:NATIVE_ARRAY(CHARACTER);
+    old_p := old_path.to_external;
+    new_p := new_path.to_external;
+    `rename(@old_p,@new_p)`:(INTEGER) = 0
+  );
+
+  //
+  // Time / Date: Unix -> Lisaac
+  //
+
+  - to_date t:POINTER :DATE <-
+  ( + result:DATE;
+    + wd,md,m:UINTEGER_8;
+    + y:UINTEGER_16;
+
+    y  := `((struct tm *)@t)->tm_year`:UINTEGER_16 + 1900;
+    m  := `((struct tm *)@t)->tm_mon` :UINTEGER_8 + 1;
+    md := `((struct tm *)@t)->tm_mday`:UINTEGER_8;
+    wd := `((struct tm *)@t)->tm_wday`:UINTEGER_8;
+    (! wd.in_range 1 to 7).if { // Bug in UNIX ?
+      wd := 1;
+    };
+    result := DATE.create (y,m,md,wd)
+  );
+
+  - to_time t:POINTER :TIME <-
+  (
+    TIME.create
+    ((`((struct tm *)@t)->tm_hour`:UINTEGER_8),
+    (`((struct tm *)@t)->tm_min` :UINTEGER_8),
+    (`((struct tm *)@t)->tm_sec` :UINTEGER_8),
+    0)
+  );
+

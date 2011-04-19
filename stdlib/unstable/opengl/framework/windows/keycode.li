@@ -1,0 +1,132 @@
+///////////////////////////////////////////////////////////////////////////////
+//                           Lisaac-SDL Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := KEYCODE;
+  - comment  := "win32 key mapping";
+  
+Section Inherit
+  
+  - parent_keycode: Expanded ABSTRACT_KEYCODE;
+  
+Section Public
+  
+  - make <-
+  (
+    keys := HASHED_DICTIONARY(INTEGER,INTEGER).create;
+    
+    keys.add k_backspace to (`VK_BACK`:INTEGER);
+    keys.add k_tab to (`VK_TAB`:INTEGER);
+    keys.add k_clear to (`VK_CLEAR`:INTEGER);
+    keys.add k_return to (`VK_RETURN`:INTEGER);
+    keys.add k_pause to (`VK_PAUSE`:INTEGER);
+    keys.add k_escape to (`VK_ESCAPE`:INTEGER);
+    keys.add k_space to (`VK_SPACE`:INTEGER);
+    
+    //
+    // key 33 to 127: win32 uses ASCII code
+    //
+    
+    keys.add k_delete to (`VK_DELETE`:INTEGER);
+    
+    keys.add kp_0 to (`VK_NUMPAD0`:INTEGER);
+    keys.add kp_1 to (`VK_NUMPAD1`:INTEGER);
+    keys.add kp_2 to (`VK_NUMPAD2`:INTEGER);
+    keys.add kp_3 to (`VK_NUMPAD3`:INTEGER);
+    keys.add kp_4 to (`VK_NUMPAD4`:INTEGER);
+    keys.add kp_5 to (`VK_NUMPAD5`:INTEGER);
+    keys.add kp_6 to (`VK_NUMPAD6`:INTEGER);
+    keys.add kp_7 to (`VK_NUMPAD7`:INTEGER);
+    keys.add kp_8 to (`VK_NUMPAD8`:INTEGER);
+    keys.add kp_9 to (`VK_NUMPAD9`:INTEGER);
+    //keys.add kp_period to (`SDLK_KP_PERIOD`:INTEGER);
+    keys.add kp_divide to (`VK_DIVIDE`:INTEGER);
+    keys.add kp_multiply to (`VK_MULTIPLY`:INTEGER);
+    keys.add kp_minus to (`VK_SUBTRACT`:INTEGER);
+    keys.add kp_plus to (`VK_ADD`:INTEGER);
+    // keys.add kp_enter to (`SDLK_KP_ENTER`:INTEGER);
+    //keys.add kp_equals to (`SDLK_KP_EQUALS`:INTEGER);
+    
+    keys.add k_up to (`VK_UP`:INTEGER);
+    keys.add k_down to (`VK_DOWN`:INTEGER);
+    keys.add k_right to (`VK_RIGHT`:INTEGER);
+    keys.add k_left to (`VK_LEFT`:INTEGER);
+    keys.add k_insert to (`VK_INSERT`:INTEGER);
+    keys.add k_home to (`VK_HOME`:INTEGER);
+    keys.add k_end to (`VK_END`:INTEGER);
+    keys.add k_pageup to (`VK_PRIOR`:INTEGER);
+    keys.add k_pagedown to (`VK_NEXT`:INTEGER);
+    
+    keys.add k_f1 to (`VK_F1`:INTEGER);
+    keys.add k_f2 to (`VK_F2`:INTEGER);
+    keys.add k_f3 to (`VK_F3`:INTEGER);
+    keys.add k_f4 to (`VK_F4`:INTEGER);
+    keys.add k_f5 to (`VK_F5`:INTEGER);
+    keys.add k_f6 to (`VK_F6`:INTEGER);
+    keys.add k_f7 to (`VK_F7`:INTEGER);
+    keys.add k_f8 to (`VK_F8`:INTEGER);
+    keys.add k_f9 to (`VK_F9`:INTEGER);
+    keys.add k_f10 to (`VK_F10`:INTEGER);
+    keys.add k_f11 to (`VK_F11`:INTEGER);
+    keys.add k_f12 to (`VK_F12`:INTEGER);
+    keys.add k_f13 to (`VK_F13`:INTEGER);
+    keys.add k_f14 to (`VK_F14`:INTEGER);
+    keys.add k_f15 to (`VK_F15`:INTEGER);
+    
+    keys.add k_numlock to (`VK_NUMLOCK`:INTEGER);
+    keys.add k_capslock to (`VK_CAPITAL`:INTEGER);
+    keys.add k_scrollock to (`VK_SCROLL`:INTEGER);
+    keys.add k_rshift to (`VK_RSHIFT`:INTEGER);
+    keys.add k_lshift to (`VK_LSHIFT`:INTEGER);
+    keys.add k_rctrl to (`VK_RCONTROL`:INTEGER);
+    keys.add k_lctrl to (`VK_LCONTROL`:INTEGER);
+   ////////////////// keys.add k_ralt to (`SDLK_LALT`:INTEGER); ///////
+    keys.add k_lalt to (`VK_MENU`:INTEGER);
+    
+    //keys.add k_rmeta to (`SDLK_RMETA`:INTEGER);
+    //keys.add k_lmeta to (`SDLK_LMETA`:INTEGER);
+    //keys.add k_lsuper to (`SDLK_LSUPER`:INTEGER);
+    //keys.add k_rsuper to (`SDLK_RSUPER`:INTEGER);
+    //keys.add k_mode to (`SDLK_MODE`:INTEGER);
+    //keys.add k_compose to (`SDLK_COMPOSE`:INTEGER);
+    
+    keys.add k_help to (`VK_HELP`:INTEGER);
+    keys.add k_print to (`VK_PRINT`:INTEGER);
+    //keys.add k_sysreq to (`SDLK_SYSREQ`:INTEGER);
+    //keys.add k_break to (`SDLK_BREAK`:INTEGER);
+    //keys.add k_menu to (`VK_MENU`:INTEGER); 
+    //keys.add k_power to (`SDLK_POWER`:INTEGER);
+    //keys.add k_euro to (`SDLK_EURO`:INTEGER);
+    //keys.add k_undo to (`SDLK_UNDO`:INTEGER);
+  );
+  
+  - get_key key:INTEGER :INTEGER <-
+  (
+    + result:INTEGER;
+    
+    keys.fast_has key.if {
+      result := keys.fast_at key;
+    } else {
+      result := key;
+    };    
+    result
+  );

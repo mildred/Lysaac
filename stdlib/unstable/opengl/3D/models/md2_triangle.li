@@ -1,0 +1,65 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Application                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := MD2_TRIANGLE;
+  
+  - comment  := "Quake2' md2 model format";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public //Mapping
+  
+  + vertex_index1:INTEGER_16;
+  + vertex_index2:INTEGER_16;
+  + vertex_index3:INTEGER_16;
+  
+  + texel_index1:INTEGER_16;
+  + texel_index2:INTEGER_16;
+  + texel_index3:INTEGER_16;
+  
+Section Public
+  
+  - index1:(INTEGER_16,INTEGER_16) <- (vertex_index1,texel_index1);
+  - index2:(INTEGER_16,INTEGER_16) <- (vertex_index2,texel_index2);
+  - index3:(INTEGER_16,INTEGER_16) <- (vertex_index3,texel_index3);
+  
+  - create (v1,v2,v3,t1,t2,t3:INTEGER_16) :SELF<-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make (v1,v2,v3,t1,t2,t3);
+    result
+  );
+
+  - make (v1,v2,v3,t1,t2,t3:INTEGER_16) <-
+  ( 
+    vertex_index1 := v1;
+    vertex_index2 := v2;
+    vertex_index3 := v3;
+    
+    texel_index1 := t1;
+    texel_index2 := t2;
+    texel_index3 := t3;
+  );
+

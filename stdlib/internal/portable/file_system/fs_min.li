@@ -1,0 +1,101 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name     := FS_MIN;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment  := "File system minimum";
+
+  - external := `#include <unistd.h>`;
+
+Section Inherit
+
+  - parent_object:OBJECT <- OBJECT;
+
+Section Private
+
+  - string_tmp:STRING := STRING.create 128;
+
+Section Public
+
+  //
+  // Independance File System
+  //
+
+  - open_read n:ABSTRACT_STRING :POINTER <-
+  ( + buf:NATIVE_ARRAY(CHARACTER);
+    string_tmp.copy n;
+    buf := string_tmp.to_external;
+    `fopen((char*)@buf,"rb")`:(POINTER)
+  );
+
+  - open_write n:ABSTRACT_STRING :POINTER <-
+  ( + buf:NATIVE_ARRAY(CHARACTER);
+    string_tmp.copy n;
+    buf := string_tmp.to_external;
+    `fopen((char*)@buf,"wb")`:(POINTER)
+  );
+
+  - read f:POINTER in buf:STRING size sz:INTEGER :INTEGER <-
+  ( + ptr:NATIVE_ARRAY(CHARACTER);
+    + result:INTEGER;
+    ptr := buf.to_external;
+    result := `fread((void *)(@ptr),(size_t)(1), (size_t)(@sz),(FILE*)(@f))`:(INTEGER);
+    ptr.put '\0' to sz;
+    buf.from_external ptr;
+    result
+  );
+
+  - write f:POINTER with buf:STRING size sz:INTEGER :INTEGER <-
+  ( + ptr:NATIVE_ARRAY(CHARACTER);
+    + result:INTEGER;
+    ptr := buf.to_external;
+    result := `fwrite((void *)(@ptr),(size_t)(1), (size_t)(@sz),(FILE*)(@f))`:(INTEGER);
+    result
+  );
+
+  - close p:POINTER <- `fclose((FILE*)(@p))`;
+
+  - file_size p:POINTER :INTEGER <-
+  ( + result:INTEGER;
+    `fseek((FILE*)(@p),0,SEEK_END)`;
+    result := `ftell((FILE *)@p)`:INTEGER;
+    `fseek((FILE*)(@p),0,SEEK_SET)`;
+    result
+  );
+
+  - make_file new_path:ABSTRACT_STRING :BOOLEAN <-
+  ( + p:NATIVE_ARRAY(CHARACTER);
+    + stream:POINTER;
+    + result:BOOLEAN;
+
+    string_tmp.copy new_path;
+    p := string_tmp.to_external;
+    stream := `fopen((char*)@p,"w+b")`:POINTER;
+    (result := (stream != NULL)).if {
+      close stream;
+    };
+    result
+  );
+

@@ -1,0 +1,101 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        := ENVIRONMENT;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     := "Execute system command and to get/set environment variables.";
+
+Section Public
+
+  - get_environment_variable variable:ABSTRACT_STRING :STRING <-
+  // Try to get the value of the system environment `variable' or some
+  // `variable' in the system registry. Gives NULL when no information
+  // about the `variable' is available. Under UNIX like system, this is in
+  // fact the good way to know about some system environment variable.
+  // Under Windows, this function also look in the system registery.
+  (
+    + result:STRING;
+    + p:NATIVE_ARRAY(CHARACTER);
+    ? { variable != NULL };
+
+    p := basic_getenv(variable.to_external);
+    (p != NULL).if {
+      result := STRING.clone;
+      result.from_external p;
+    };
+    result
+  );
+
+  - set_environment_variable (variable,value:ABSTRACT_STRING) <-
+  // Try to assign the system environment `variable' with `value'.
+  (
+    ? { variable != NULL };
+    ? { value != NULL };
+    basic_putenv (variable,value);
+  );
+
+  - execute_command system_command_line:ABSTRACT_STRING :INTEGER <-
+  // To execute a `system_command_line' as for example, "ls -l" on UNIX.
+  // The `Result' depends of the actual operating system. As an exemple,
+  // this `execute' feature is under UNIX the equivalent of a `system' call.
+  ( 
+    ? { system_command_line != NULL};
+     system_command_line.println;
+    basic_system_execute_command (system_command_line.to_external)
+  );
+
+  - execute_command_line system_command_line:ABSTRACT_STRING <-
+  // The equivalent of `execute_command' without `Result'.
+  (
+    execute_command (system_command_line);
+  );
+
+Section Private
+
+  - basic_getenv environment_variable:NATIVE_ARRAY(CHARACTER) :NATIVE_ARRAY(CHARACTER) <-
+  // To implement `get_environment_variable'.
+  (
+    `getenv((char*)@environment_variable)`:NATIVE_ARRAY(CHARACTER){NATIVE_ARRAY(CHARACTER),NULL}
+  );
+
+  - basic_putenv (variable,value:ABSTRACT_STRING) <-
+  // To implement `set_environment_variable'.
+  (
+    + v:NATIVE_ARRAY(CHARACTER);
+
+    v := NATIVE_ARRAY(CHARACTER).calloc (variable.count + value.count + 2);
+    v.copy_from (variable.to_external) until (variable.upper);
+    v.put '=' to (variable.count);
+    v.copy (value.to_external) to (variable.count + 1) until (value.capacity);
+    v.put '\0' to (variable.count + 1 + value.count);
+    `putenv((char*)@v)`;
+  );
+
+  - basic_system_execute_command system_command_line:NATIVE_ARRAY(CHARACTER) :INTEGER <-
+  (
+    `system(((char*)(@system_command_line)))`:(INTEGER)
+  );
+
+
+

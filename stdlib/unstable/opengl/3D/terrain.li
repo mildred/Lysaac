@@ -1,0 +1,256 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Application                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := TERRAIN;
+  
+  - comment  := "Height map";
+  
+Section Inherit
+  
+  - parent_framework:FRAMEWORK_ANY := FRAMEWORK_ANY;
+  
+Section Public
+  
+  + width:INTEGER;
+  + height:INTEGER;
+  
+  + w_step:REAL_32 := 2;
+  + h_step:REAL_32 := 2;
+  
+  + height_factor:REAL_32 :=  2.5;
+  
+  + heights:FAST_ARRAY(REAL_32);
+  + normals:FAST_ARRAY(VECTOR3(REAL_32));
+  
+  + texture:TEXTURE;
+  
+  - is_textured:BOOLEAN <- texture != NULL;
+  
+  
+  //
+  // Creation.
+  //
+  
+  - create map:IMAGE texture tex:TEXTURE :SELF <-
+  ( + result:SELF;
+    result := clone;
+    result.make (map,tex);
+    result
+  );
+  
+  - make (image:IMAGE, tex:TEXTURE) <-
+  // build the terrain
+  ( 
+    + map:IMAGE;
+    + h:REAL_32;
+    
+    (image.channels = 3).if {
+      // we need an alpha channel or a greyscale image
+      
+      map := image.to_greyscale;
+    } else {
+      map := image;
+    };
+    
+    texture := tex;
+    width := map.width;
+    height := map.height;
+    
+    heights := FAST_ARRAY(REAL_32).create (width*height);
+    normals := FAST_ARRAY(VECTOR3(REAL_32)).create_with_capacity (width*height);  
+ 
+    // fill data with heights
+    0.to (height-1) do { j:INTEGER;
+      0.to (width-1) do { i:INTEGER;
+        (image.channels = 4).if {
+          h := map.get_alpha_value (i,j).to_real / 256.0;
+        } else {
+          h := map.get_value (i,j).to_real / 256.0;
+        };
+        heights.put (h*height_factor) to (i*width+j);
+      };
+    };
+    compute_normals;
+  );
+  
+  - render vb:VERTEX_BUFFER at (xpos,ypos,zpos:REAL_32) <-
+  (
+    + index:INTEGER;
+
+    is_textured.if {
+      texture.enable;
+      texture.bind;
+    };
+    
+    0.to (height-2) do { i:INTEGER;
+      // generate n-1 strips
+      
+      vb.new_triangle_strip {
+        0.to (width-1) do { j:INTEGER;
+          
+          // first point of strip
+          index := 3*((i+1)*width+j);
+          
+          is_textured.if {
+            vb.add_texel2f ((i+1).to_real/256.0, j.to_real/256.0);
+          };
+          
+          vb.add_vertex3f (xpos+j.to_real*w_step,ypos+ heights.item ((i+1)*width+j),zpos+(i+1).to_real*h_step);
+          
+          // second point
+          index := 3*(i*width+j);
+          
+          is_textured.if {
+            vb.add_texel2f (i.to_real/256.0, j.to_real/256.0);
+          };
+          (normals != NULL).if {
+            vb.add_normal (normals.item (i*width+j));
+          };
+          
+          vb.add_vertex3f (xpos+j.to_real*w_step, ypos+heights.item (i*width+j),zpos+i.to_real*h_step);
+        };
+      };
+    };
+  );
+  
+  - rescale (min,max:REAL_32) <-
+  (
+    + amplitude,h_min,h_max,h:REAL_32;
+    + n:INTEGER;
+    
+    amplitude := max - min;
+    n := width * height;
+    
+    // find actual amplitude
+    h_min := heights.item 0;
+    h_max := heights.item 0;
+    1.to (n-1) do { i:INTEGER;
+      (heights.item i > h_max).if {
+        h_max := heights.item i;
+      };
+      (heights.item i < h_min).if {
+        h_min := heights.item i;
+      };
+    };
+    // re-scale terrain
+    0.to (n-1) do { i:INTEGER;
+      h := (heights.item i - h_min) / (h_max-h_min);
+      heights.put (h * amplitude - min) to i;
+    };
+    
+    // re-compute normals
+    compute_normals;
+  );
+  
+  - cross_product_p1 (x1,z1:INTEGER) p2 (x2,z2:INTEGER) p3 (x3,z3:INTEGER) :VECTOR3(REAL_32) <-
+  // compute normal unit vector of the (p1,p2,p3) triangle
+  (
+    + v1,v2:VECTOR3(REAL_32);
+    
+    // vector between p1 & p2
+    v1 := VECTOR3(REAL_32).create ((x2-x1).to_real*w_step, heights.item (z2*width+x2) - heights.item (z1*width+x1), (z2-z1).to_real*h_step);
+    
+    // vector between p1 & p3
+    v2 := VECTOR3(REAL_32).create ((x3-x1).to_real*w_step, heights.item (z3*width+x3) - heights.item (z1*width+x1), (z3-z1).to_real*h_step);
+    
+    (v1.cross v2).normalized
+  );
+  
+  - compute_normals <-
+  (
+    + v1,v2:VECTOR3(REAL_32);
+    
+    normals.clear;
+    
+    0.to (height-1) do { z:INTEGER;
+      0.to (width-1) do { x:INTEGER;
+        //
+        // normals of the corners
+        //
+        ((x = 0) && {z = 0}).if {
+          // bottom left
+          v1 := cross_product_p1 (0,0) p2 (0,1) p3 (1,0);
+        }.elseif {(z = height-1) && {x = width-1}} then {
+          // top right
+          v1 := cross_product_p1 (x,z) p2 (x,z-1) p3 (x-1,z);
+        }.elseif {(x = 0) && {z = height-1}} then {
+          // top left
+          v1 := cross_product_p1 (x,z) p2 (x,z-1) p3 (x+1,z);
+        }.elseif {(x = width-1) && {z = 0}} then {
+          // bottom right
+          v1 := cross_product_p1 (x,z) p2 (x,z+1) p3 (x-1,z); 
+        }.elseif {z = 0} then {
+          //
+          // normals of the borders
+          //
+          v1 := cross_product_p1 (x,0) p2 (x-1,0) p3 (x,1); 
+          v2 := cross_product_p1 (x,0) p2 (x,1) p3 (x+1,0); 
+          
+          v1 := v1 + v2;
+        }.elseif {x = 0} then {
+          // left border
+          v1 := cross_product_p1 (0,z) p2 (1,z) p3 (0,z-1); 
+          v2 := cross_product_p1 (0,z) p2 (0,z+1) p3 (1,z); 
+          
+          v1 := v1 + v2;
+        }.elseif {z = height-1} then {
+          // top border
+          v1 := cross_product_p1 (x,z) p2 (x,z-1) p3 (x+1,z); 
+          v2 := cross_product_p1 (x,z) p2 (x+1,z) p3 (x,z-1); 
+          
+          v1 := v1 + v2;
+        }.elseif {x = width-1} then {
+          // right border
+          v1 := cross_product_p1 (x,z) p2 (x,z-1) p3 (x-1,z); 
+          v2 := cross_product_p1 (x,z) p2 (x-1,z) p3 (x,z+1); 
+          
+          v1 := v1 + v2;
+        } else {
+          //
+          // inner point: sum the 8 neighbours normals
+          //
+          v1 := cross_product_p1 (x,z) p2 (x-1,z) p3 (x-1,z+1); 
+          v2 := cross_product_p1 (x,z) p2 (x-1,z+1) p3 (x,z+1); 
+          v1 := v1 + v2;
+          
+          v2 := cross_product_p1 (x,z) p2 (x,z+1) p3 (x+1,z+1); 
+          v1 := v1 + v2;
+          v2 := cross_product_p1 (x,z) p2 (x+1,z+1) p3 (x+1,z); 
+          v1 := v1 + v2;  
+          v2 := cross_product_p1 (x,z) p2 (x+1,z) p3 (x+1,z-1); 
+          v1 := v1 + v2;
+          v2 := cross_product_p1 (x,z) p2 (x+1,z-1) p3 (x,z-1); 
+          v1 := v1 + v2;
+          v2 := cross_product_p1 (x,z) p2 (x,z-1) p3 (x-1,z-1); 
+          v1 := v1 + v2;
+          v2 := cross_product_p1 (x,z) p2 (x-1,z-1) p3 (x-1,z); 
+          v1 := v1 + v2;
+        };
+        v1.normalize;
+        v1.set_z (-v1.z);
+         
+        // add normal
+        normals.add_last v1;
+      };
+    };
+  );

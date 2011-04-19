@@ -1,0 +1,135 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Math-Library                                  //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := VECTOR2(E);
+  
+  - comment  := "(x,y) vector";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  + x:E;
+  + y:E;
+  
+  - create (a,b:E) :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make (a,b);
+    result
+  );
+  
+  - make (a,b:E) <-
+  (
+    x := a;
+    y := b;
+  );
+  
+  - copy :SELF <-
+  (
+    create (x,y)
+  );
+  
+  - zero:SELF <- create (E.zero,E.zero);
+  
+  - set_x v:E <- 
+  (
+    x := v;
+  );
+  - set_y v:E <- 
+  (
+    y := v;
+  );
+  
+  - get :(E,E) <-
+  (
+    x, y
+  );
+  
+  - getv:FAST_ARRAY(E) <-
+  (
+    + result:FAST_ARRAY(E);
+    
+    result := FAST_ARRAY(E).create 2;
+    result.put x to 0;
+    result.put y to 1;
+    result
+  );
+  
+  - Self:SELF '-' :SELF <- 
+  (
+    create (-x, -y)
+  );
+  
+  - Self:SELF '+' Left 80 other:SELF :SELF <-
+  (
+    create (x + other.x, y + other.y)
+  );
+
+  - Self:SELF '-' Left 80 other:SELF :SELF <-
+  (
+    create (x - other.x, y - other.y)
+  );
+  
+  - Self:SELF '*' Left 100 scalar:E :SELF <-
+  (
+    create (scalar * x, scalar * y)
+  );
+  
+  - Self:SELF '/' Left 100 scalar:E :SELF <-
+  (
+    ? {scalar != 0};
+    create (x / scalar, y / scalar)
+  );
+  
+  - magnitude:E <- 
+  // magnitude = sqrt(x^2 + y^2)
+  (
+    (x*x + y*y).sqrt
+  );
+  
+  - normalize <-
+  // normalize self vector (of length 1) 
+  ( + m:E;
+    
+    m := magnitude;
+    make (x/m, y/m); 
+  );
+  
+  - normalized :SELF <-
+  // return a normalized vector (of length 1) from self
+  (
+    Self / magnitude
+  );
+
+  - dot other:SELF :E <-
+  (
+    x*other.x + y*other.y
+  );
+  
+  - print <-
+  (
+    "(".print; x.print;", ".print; y.print; ")".print;
+  );

@@ -1,0 +1,97 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Application                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := MODEL;
+  
+  - comment  := "Animated 3d model";
+  
+Section Inherit
+  
+  - parent_framework:FRAMEWORK_ANY := FRAMEWORK_ANY;
+  
+Section Public
+  
+  + name:STRING;
+  
+  + texture:TEXTURE;
+  + material:MATERIAL;
+  
+  + lerp:REAL_32;
+  
+  + current_frame:INTEGER;
+  + old_frame:INTEGER;
+  + nb_frames:INTEGER;
+  
+  - create s:ABSTRACT_STRING with tex:TEXTURE :SELF <-
+  (
+    + result:SELF;
+    result := SELF.clone;
+    result.make (s,tex);
+    result
+  );
+  
+  - create s:ABSTRACT_STRING :SELF <-
+  (
+    + result:SELF;
+    result := SELF.clone;
+    result.make (s,NULL);
+    result
+  );
+  
+  - make (s:ABSTRACT_STRING, tex:TEXTURE) <-
+  (
+    name := STRING.create_from_string s;
+    texture := tex;
+    load;
+  );
+  
+  - set_material m:MATERIAL <- 
+  (
+    material := m;
+  );
+  
+  - render <-
+  (
+    deferred;
+  );
+  
+  - render_with tex:TEXTURE <-
+  (
+    deferred;
+  );
+  
+  - load <- deferred;
+  
+  - update time:REAL_32 <-
+  (
+    lerp := lerp + time;
+    (lerp >= 1.0).if {
+      lerp := 0.0;
+      old_frame := current_frame;
+      current_frame := current_frame + 1;
+      
+      (current_frame >= nb_frames).if {
+        current_frame := 0;
+      };
+    };
+  );

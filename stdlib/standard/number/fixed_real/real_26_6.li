@@ -1,0 +1,94 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := Expanded REAL_26_6;
+
+  - export  := REAL_32, REAL_64;
+
+  - comment := "signed 26.6 fixed float.";
+
+  - type    := `unsigned long`;
+  - default := (0.to_raw_real_26_6);
+
+Section Insert
+
+  - parent_signed_fixed_real:SIGNED_FIXED_REAL := SIGNED_FIXED_REAL;
+
+Section SELF
+
+  - shift_bits:INTEGER <- 6;
+
+Section Public
+
+  //
+  // Range.
+  //
+
+  - minimum:INTEGER_64  <- - 1FF_FFFFh.to_raw_integer_64;
+
+  - maximum:UINTEGER_64 <- 1FF_FFFFh.to_raw_uinteger_64;
+
+  //
+  // Convertion format with test.
+  //
+
+  - to_real_26_6:REAL_26_6 <- Self;
+
+  //
+  // Convertion
+  //
+
+  - append_in buffer:STRING <-
+  // Append in the `buffer' the equivalent of `to_string'. No new STRING
+  // creation during the process.
+  ( + val:INTEGER_32;
+    + old_count,new_count:INTEGER;
+    ? {buffer!=NULL};
+
+    val := to_raw_integer;
+
+    (val < 0).if {
+      val := - val;
+      buffer.extend '-';
+    };
+    (val >> 6).append_in buffer;
+    buffer.extend '.';
+
+    old_count:=buffer.count;
+    //     1/64 = 0.015625 => 6 digit.
+    (((val & 63) * 1000000)>>6).append_in buffer;
+    new_count:=old_count+6;
+    {buffer.count!=new_count}.while_do {
+      buffer.insert '0' to old_count;
+    };
+
+  );
+
+
+
+
+
+
+
+
+
+

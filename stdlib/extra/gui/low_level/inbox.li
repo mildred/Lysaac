@@ -1,0 +1,72 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := INBOX;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Sonntag Benoit (bsonntag@loria.fr)";
+  - comment     :="Message.";
+
+  - version :=1;  
+  - date    :="2003/04";
+  
+Section Inherit  
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Private  
+  
+  - gui_buffer_event:FAST_ARRAY(EVENT_GUI) := 
+  ( + result:FAST_ARRAY(EVENT_GUI);
+    + new_evt:EVENT_GUI;
+    
+    result := FAST_ARRAY(EVENT_GUI).create 16; 
+    0.to 15 do { j:INTEGER;
+      new_evt := EVENT_GUI.clone;
+      result.put new_evt to j;
+    };
+    result
+  );
+  
+  - gui_p_beg:UINTEGER_8;  // Pointer on the buffer (beginning)
+  - gui_p_end:UINTEGER_8;  // Pointer on the buffer (end)
+  
+Section Public
+  
+  - receive msg:EVENT <-
+  (
+    // Nothing.
+  );
+
+  - send dst:INBOX <-
+  ( + tmp:UINTEGER_8;
+    tmp:=(gui_p_end+1) & 0Fh;
+    (tmp != gui_p_beg).if {
+      gui_buffer_event.item gui_p_end.make Self at dst;
+      gui_p_end:=tmp;
+      dst.receive (gui_buffer_event.item gui_p_beg);
+      gui_p_beg := (gui_p_beg+1) & 0Fh;
+    };
+  );

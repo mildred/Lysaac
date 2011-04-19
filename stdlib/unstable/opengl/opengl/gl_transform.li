@@ -1,0 +1,215 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_TRANSFORM;
+  
+  - comment  := "3 types of transformation: modelview, projection, viewport";
+  
+Section Inherit
+  
+  - parent_transform:TRANSFORM := TRANSFORM;
+  
+Section Public
+  
+  - load_identity <-
+  // clear transformation
+  (
+    `glLoadIdentity()`;
+  );
+  
+  - push_matrix <- 
+  (
+    `glPushMatrix()`;
+  );
+  
+  - pop_matrix <- 
+  (
+    `glPopMatrix()`;
+  );
+  
+  - load_matrix m:MATRIX4(REAL_32) <- 
+  ( + p:POINTER;
+    
+    p := m.to_external;
+    `glLoadMatrixf(@p)`;
+  );
+  
+  - mult_matrix_by m:MATRIX4(REAL_32) <- 
+  ( + p:POINTER;
+    
+    p := m.to_external;
+    `glMultMatrixf(@p)`;
+  );
+  
+  //
+  // Viewing & Modeling transformations
+  //
+  
+  - set_modelview_mode <- 
+  (
+    `glMatrixMode(GL_MODELVIEW)`;
+  );
+  
+  - translatef (x,y,z:REAL_32) <-
+  (
+    `glTranslatef (@x,@y,@z)`;
+  );
+  
+  - rotatef (val,x,y,z:REAL_32) <-
+  (
+    `glRotatef (@val,@x,@y,@z)`;
+  );
+  
+  - scalef (x,y,z:REAL_32) <-
+  (
+    `glScalef (@x,@y,@z)`;
+  );
+  
+  - get_modelview matrix:MATRIX4(REAL_32) <-
+  ( + p:POINTER;
+    
+    p := matrix.to_external;
+    `glGetFloatv(GL_MODELVIEW_MATRIX, @p)`;
+  );
+  
+  //
+  // Projection transformations
+  //
+  
+  - set_projection_mode <- 
+  (
+    `glMatrixMode(GL_PROJECTION)`;
+  );
+  
+  - get_projection matrix:MATRIX4(REAL_32) <-
+  ( + p:POINTER;
+    
+    p := matrix.to_external;
+    `glGetFloatv(GL_PROJECTION_MATRIX, @p)`;
+  );
+  
+  - perspective (fovy,aspect,near,far:REAL_32) <-
+  (
+    `gluPerspective(@fovy, @aspect, @near, @far)`;
+  );
+  
+  - frustum (left,right,bottom,top,near,far:REAL_32) <-
+  (
+    `glFrustum(@left,@right,@bottom,@top,@near,@far)`;
+  );
+  
+  - orthographic (left,right,bottom,top,near,far:REAL_32) <-
+  (
+    `glOrtho(@left,@right,@bottom,@top,@near,@far)`;
+  );
+  
+  - orthographic2d (left,right,bottom,top:REAL_32) <-
+  (
+    `gluOrtho2D(@left,@right,@bottom,@top)`;
+  );
+  
+  - pickmatrix (x,y,w,h:UINTEGER_32) in v:VIEWPORT <-
+  (
+    + p:POINTER;
+    
+    p := v.getv.to_external;
+    `gluPickMatrix(@x, @y, @w, @h, @p)`;
+  );
+  
+  //
+  // Viewport transformations
+  //
+  
+  - set_viewport v:VIEWPORT <-
+  (
+    + x,y,w,h:UINTEGER_32;
+    
+    x := v.x0;
+    y := v.y0;
+    w := v.width;
+    h := v.height;
+    `glViewport(@x,@y,@w,@h)`;
+  );
+  
+  - set_viewport4i (x,y,width,height:UINTEGER_32) <-
+  (
+    `glViewport(@x,@y,@width,@height)`;
+  );
+  
+  - get_viewport viewport:VIEWPORT <- // ?????
+  (
+    + p:POINTER;
+    
+    p := viewport.getv.to_external;
+    `glGetIntegerv(GL_VIEWPORT, @p)`;
+  );
+  
+  //
+  //  Tranformation utility
+  //
+  
+  - begin_ortho (w,h:INTEGER) <-
+  (
+    // define viewport
+    set_viewport4i (0, 0, w, h);
+    
+    // modify projection
+    set_projection_mode;
+    
+    // save old projection
+    push_matrix;
+    
+    // clear our ortho projection
+    load_identity;
+    
+    // set viewing volume
+    orthographic (0, w, h, 0, -99999, 99999);
+    
+    // restore modelview mode
+    set_modelview_mode;
+    
+    // clear tranformations
+    load_identity;
+    
+    // disable states not suited for ortho mode
+    `glDisable (GL_DEPTH_TEST); // fixme
+    glDisable (GL_CULL_FACE);
+    glDisable (GL_BLEND);
+    glEnable (GL_ALPHA_TEST);
+    glColor4f (1,1,1,1);`
+  );
+  
+  - end_ortho <-
+  (
+    // modify projection
+    set_projection_mode;
+    
+    // restore the previous matrix
+    pop_matrix;
+    
+    // go back to normal mode
+    set_modelview_mode;  
+  );
+
+
+  

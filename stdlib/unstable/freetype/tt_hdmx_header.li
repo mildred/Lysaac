@@ -1,0 +1,49 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name        := TT_HDMX_HEADER;
+  - comment     :="Hdmx header .";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Mapping
+  
+  + version:USHORTINT;
+  
+  + number_device:SHORTINT;
+  
+  + size_record:INTEGER;
+  
+Section Public  
+  
+  - to_big_endian <-
+  (
+    version := PROCESSOR.to_motorola_ushort version;
+    number_device := PROCESSOR.to_motorola_short number_device;
+    size_record := PROCESSOR.to_motorola_int size_record;
+  );
+  
+  - print <-
+  (
+    "\n     Version: ".print;
+    version.print;
+    "\n   Number device: ".print;
+    number_device.print;
+    "\n   Size record: ".print;
+    size_record.print;
+  );

@@ -1,0 +1,168 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := INPUT_KEYBOARD;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     :="X11 - Keyboard Driver";
+
+  - version := 1;  
+  - date    :="2003/04";
+  
+Section Inherit
+
+  + parent_input:Expanded INPUT;
+
+Section Private
+  
+  - buffer_event:FAST_ARRAY(EVENT_KEYBOARD); 
+  - p_beg:UINTEGER_8;  // Pointer on the buffer (beginning)
+  - p_end:UINTEGER_8;  // Pointer on the buffer (end)
+    
+  - bin_code:FAST_ARRAY(UINTEGER_8); // Binary array of keys (102+7)/8
+
+  - cmd:UINTEGER_8;    // 0:CTRL 1:AltGr 2:Alt 3:Cmd 4:Shift 5:Cap 6:NumLock 7:Scrolllock
+
+  - ascii_code:UINTEGER_8; // For <Alt>+<NbAscII>
+      
+Section Public
+  
+  //
+  // Get Character (Interrupt #21)
+  //
+  
+  - key key:UINTEGER_8 press p:BOOLEAN <-
+  ( + cu,tmp:UINTEGER_8;
+    
+    p.if {
+      cu := keydown key;
+    } else {
+      cu := keyup key;
+    };
+    (cu != 0).if {
+      // Routine Pour Reboot Violant : CTRL+(ALT | ALT Gr)+Suppr
+      ((cu = 'S'.to_uinteger_8) && { ((cmd&0Fh) = 0Dh) || {(cmd&0Fh) = 0Bh} }).if {
+	"Reboot ...\n".print;
+	die_with_code exit_failure_code;
+      };
+      
+      tmp:=(p_end+1)&003h;
+      buffer_event.item p_end.make ((cmd.to_uinteger_16<<8)|cu);
+      (((tmp+2)&3)!=p_beg).if {
+	p_end:=tmp;
+      };      
+      get_event;
+    };
+  );
+   
+Section Private
+  
+  - keyup cu:UINTEGER_8 :UINTEGER_8 <-
+  ( 
+    deferred;
+    0
+  );
+
+  - keydown cu:UINTEGER_8 :UINTEGER_8 <-
+  ( 
+    deferred;
+    0
+  );
+    
+Section Public   
+  
+  - make <-
+  // Install keyboard.
+  ( + new_event:EVENT_KEYBOARD;
+    is_actif := TRUE;
+    bin_code := FAST_ARRAY(UINTEGER_8).create 14;
+    
+    buffer_event := FAST_ARRAY(EVENT_KEYBOARD).create 4;
+    0.to 3 do { j:INTEGER;
+      new_event := EVENT_KEYBOARD.clone;
+      buffer_event.put new_event to j;
+      (j != 0).if {
+	new_event.set_prev (buffer_event.item (j-1));
+      };
+    };
+    buffer_event.first.set_prev new_event;
+    cmd := 40h;
+  );
+    
+  - get_event <-
+  ( + p:INTEGER;
+    p := p_beg;
+    { p != p_end }.while_do {
+      (list_client.lower).to (list_client.upper) do { j:INTEGER;
+	list_client.item j.receive (buffer_event.item p);
+      };
+      p := (p + 1) & 03h;
+    };    
+  );
+  
+  - get_key:UINTEGER_16 <-
+  // Use without interface running: text mode
+  ( + result:UINTEGER_16;
+    {p_beg = p_end}.while_do {};
+    result := buffer_event.item p_beg.key;
+    p_beg := (p_beg + 1) & 03h;
+    result
+  );
+  
+  //
+  // Guru section.
+  //
+
+  - acknowledge <-
+  (
+    p_beg := (p_beg+1) & 03h;
+  );
+  
+  //
+  // Key code generate.
+  //
+  
+  // 0:CTRL 1:AltGr 2:Alt 3:Cmd 4:Shift 5:Cap 6:NumLock 7:Scrolllock
+
+  - key_ctrl  :UINTEGER_16 := 0100h;
+  - key_alt_gr:UINTEGER_16 := 0200h;
+  - key_alt   :UINTEGER_16 := 0400h;
+  - key_of c:CHARACTER :UINTEGER_16 <- c.to_uinteger_8;
+  
+  - key_to_string k:UINTEGER_16 :STRING <-
+  ( + result:STRING;
+    
+    result := STRING.create 10;
+    ((k & key_ctrl) != 0).if {
+      result.append "Ctrl+";
+    };
+    ((k & key_alt_gr) != 0).if {
+      result.append "AltGr+";
+    };
+    ((k & key_alt) != 0).if {
+      result.append "Alt+";
+    };
+    result.add_last ((k & 0FFh).to_character);
+    result
+  );

@@ -1,0 +1,51 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_CMAP_SUBTABLE0;
+  - comment     :="Format 0: Byte encoding table";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent_tt_cmap_subtable:TT_CMAP_SUBTABLE := TT_CMAP_SUBTABLE;
+  
+Section Public
+  
+  + header:TT_CMAP_SUBTABLE_HEADER;
+  
+  + glyph_id_array:FIXED_ARRAY(UINTEGER_16);
+  
+  - make file:STD_FILE <-
+  (
+    header := TT_CMAP_SUBTABLE_HEADER.clone;
+    file.read header;
+    header.to_big_endian;
+    
+    glyph_id_array := FIXED_ARRAY(UINTEGER_16).create_with_capacity 256;
+    file.read glyph_id_array size 256;
+  );
+  
+  - print <-
+  (
+    "\n     Format 0: byte encoding table\n".print;
+    header.print;
+    0.to 255 do { i:INTEGER;
+      "\n      Char ".print;      
+      i.print;
+      " --> Index ".print;
+      glyph_id_array.item i.print;      
+    };
+  );

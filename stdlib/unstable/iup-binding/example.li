@@ -1,0 +1,35 @@
+Section Header
+
+  + name := EXAMPLE;
+
+Section Inherit
+
+  - parent:OBJECT := OBJECT;
+
+Section Public
+
+  - main <-
+  ( + dlg:DIALOG;
+    + main_box:HORIZONTAL_BOX;
+    + hello, goodbye:BUTTON;
+    
+    IUP.open;
+    
+    hello := BUTTON.make "Say Hello";
+    hello.set_expand "HORIZONTAL";
+    hello.set_action { "Hello, World!".println; IUP.cb_default };
+
+    goodbye := BUTTON.make "Say Goodbye";
+    goodbye.set_action { "Goodbye, World!".println; IUP.cb_close };
+    
+    main_box := HORIZONTAL_BOX.make;
+    main_box.add hello;
+    main_box.add goodbye;
+
+    
+    dlg := DIALOG.make "Simple" child main_box;
+    dlg.show;
+
+    IUP.main_loop;
+    IUP.close;
+  );

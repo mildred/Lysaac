@@ -1,0 +1,144 @@
+///////////////////////////////////////////////////////////////////////////////
+//                           Lisaac-SDL Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := KEYCODE;
+  - comment  := "X11 key mapping";
+  
+Section Inherit
+  
+  - parent_keycode: Expanded ABSTRACT_KEYCODE;
+  
+Section Public
+   
+  - make <-
+  (
+    keys := HASHED_DICTIONARY(INTEGER,INTEGER).create;
+ 
+    bind k_backspace to (`XK_BackSpace`:INTEGER);
+    bind k_tab to (`XK_Tab`:INTEGER);
+   // bind k_clear to (`VK_CLEAR`:INTEGER); ???
+    bind k_return to (`XK_Return`:INTEGER);
+    bind k_pause to (`XK_Pause`:INTEGER); 
+    bind k_escape to (`XK_Escape`:INTEGER);
+    bind k_space to (`XK_space`:INTEGER);
+    
+    //
+    // key 33 to 127:  ASCII code ???
+    //
+    
+    bind k_delete to (`XK_Delete`:INTEGER);
+    
+    bind kp_0 to (`XK_KP_0`:INTEGER);
+    bind kp_1 to (`XK_KP_1`:INTEGER);
+    bind kp_2 to (`XK_KP_2`:INTEGER);
+    bind kp_3 to (`XK_KP_3`:INTEGER);
+    bind kp_4 to (`XK_KP_4`:INTEGER);
+    bind kp_5 to (`XK_KP_5`:INTEGER);
+    bind kp_6 to (`XK_KP_6`:INTEGER);
+    bind kp_7 to (`XK_KP_7`:INTEGER);
+    bind kp_8 to (`XK_KP_8`:INTEGER);
+    bind kp_9 to (`XK_KP_9`:INTEGER);
+    //bind kp_period to (`SDLK_KP_PERIOD`:INTEGER);
+    bind kp_divide to (`XK_KP_Divide`:INTEGER);
+    bind kp_multiply to (`XK_KP_Multiply`:INTEGER);
+    bind kp_minus to (`XK_KP_Subtract`:INTEGER);
+    bind kp_plus to (`XK_KP_Add`:INTEGER);
+    // bind kp_enter to (`SDLK_KP_ENTER`:INTEGER);
+    //bind kp_equals to (`SDLK_KP_EQUALS`:INTEGER);
+    
+    bind k_up to (`XK_Up`:INTEGER);
+    bind k_down to (`XK_Down`:INTEGER);
+    bind k_right to (`XK_Right`:INTEGER);
+    bind k_left to (`XK_Left`:INTEGER);
+    bind k_insert to (`XK_Insert`:INTEGER);
+    bind k_home to (`XK_Home`:INTEGER);
+    bind k_end to (`XK_End`:INTEGER);
+    //bind k_pageup to (`VK_PRIOR`:INTEGER);
+    //bind k_pagedown to (`VK_NEXT`:INTEGER);
+    
+    bind k_f1 to (`XK_F1`:INTEGER);
+    bind k_f2 to (`XK_F2`:INTEGER);
+    bind k_f3 to (`XK_F3`:INTEGER);
+    bind k_f4 to (`XK_F4`:INTEGER);
+    bind k_f5 to (`XK_F5`:INTEGER);
+    bind k_f6 to (`XK_F6`:INTEGER);
+    bind k_f7 to (`XK_F7`:INTEGER);
+    bind k_f8 to (`XK_F8`:INTEGER);
+    bind k_f9 to (`XK_F9`:INTEGER);
+    bind k_f10 to (`XK_F10`:INTEGER);
+    bind k_f11 to (`XK_F11`:INTEGER);
+    bind k_f12 to (`XK_F12`:INTEGER);
+    bind k_f13 to (`XK_F13`:INTEGER);
+    bind k_f14 to (`XK_F14`:INTEGER);
+    bind k_f15 to (`XK_F15`:INTEGER);
+    
+    //bind k_numlock to (`VK_NUMLOCK`:INTEGER);
+    //bind k_capslock to (`VK_CAPITAL`:INTEGER);
+    //bind k_scrollock to (`VK_SCROLL`:INTEGER);
+    bind k_rshift to (`XK_Shift_R`:INTEGER);
+    bind k_lshift to (`XK_Shift_L`:INTEGER);
+    bind k_rctrl to (`XK_Control_R`:INTEGER);
+    bind k_lctrl to (`XK_Control_L`:INTEGER);
+   ////////////////// bind k_ralt to (`SDLK_LALT`:INTEGER); ///////
+    //bind k_lalt to (`VK_MENU`:INTEGER);
+    
+    //bind k_rmeta to (`SDLK_RMETA`:INTEGER);
+    //bind k_lmeta to (`SDLK_LMETA`:INTEGER);
+    //bind k_lsuper to (`SDLK_LSUPER`:INTEGER);
+    //bind k_rsuper to (`SDLK_RSUPER`:INTEGER);
+    //bind k_mode to (`SDLK_MODE`:INTEGER);
+    //bind k_compose to (`SDLK_COMPOSE`:INTEGER);
+    
+    //bind k_help to (`VK_HELP`:INTEGER);
+    //bind k_print to (`VK_PRINT`:INTEGER);
+    //bind k_sysreq to (`SDLK_SYSREQ`:INTEGER);
+    //bind k_break to (`SDLK_BREAK`:INTEGER);
+    //bind k_menu to (`VK_MENU`:INTEGER); 
+    //bind k_power to (`SDLK_POWER`:INTEGER);
+    //bind k_euro to (`SDLK_EURO`:INTEGER);
+    //bind k_undo to (`SDLK_UNDO`:INTEGER);
+  );
+  
+  - get_key key:INTEGER :INTEGER <-
+  (
+    + result:INTEGER;
+    
+    keys.fast_has key.if {
+      result := keys.fast_at key;
+    } else {
+      result := `*keybuf`:INTEGER;// conversions...
+      result.in_range ('A'.to_integer) to ('Z'.to_integer).if {
+	result := result - 'A'.to_integer + 'a'.to_integer;
+      }.elseif {result.in_range 1 to 26} then {
+	result := result + 'a'.to_integer - 1;
+      };
+    };   
+    result
+  );
+  
+Section Private
+  
+  - bind key1:INTEGER to key2:INTEGER <-
+  (
+    keys.fast_put key2 to key1; // add and put to not work
+  );

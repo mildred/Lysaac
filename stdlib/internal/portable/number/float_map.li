@@ -1,0 +1,64 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := FLOAT_MAP;
+
+  - comment := "Mapping for REAL_xx.";
+
+Section Private
+
+  - deferred <- crash_with_message "Slot deferred.";
+
+Section REAL, REAL_32, REAL_64, REAL_80
+
+  - get_map f:SELF <-
+  (
+    deferred;
+  );
+
+  - sign:BOOLEAN         <- deferred; // TRUE if positif, FALSE else.
+
+  - exponent:UINTEGER_32 <- deferred;
+
+  - mantissa:UINTEGER_64 <- deferred;
+
+  //
+  // Consultation.
+  //
+
+  - is_infinite:BOOLEAN <-
+  (exponent = ((1 << exponent_bits) - 1)) && {(mantissa >> (mantissa_bits-1)) = 0};
+
+  - is_nan:BOOLEAN <-
+  (exponent = ((1 << exponent_bits) - 1)) && {(mantissa >> (mantissa_bits-1)) != 0};
+
+  - is_zero:BOOLEAN <- (exponent = 0) && {mantissa = 0};
+
+Section Public
+
+  //
+  // Format.
+  //
+
+  - mantissa_bits:INTEGER_8 <- deferred;
+
+  - exponent_bits:INTEGER_8 <- deferred;

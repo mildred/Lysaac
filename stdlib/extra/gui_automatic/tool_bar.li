@@ -1,0 +1,145 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name      := TOOL_BAR;
+
+  - copyright := "Jonathan Ponte, Maxime Audrin, Benoit Sonntag";
+
+  - comment   := "Tool bar for GUII.";
+  
+Section Inherit
+  
+  + menu_parent:MENU_H:=MENU_H;
+  
+Section Public
+  
+ 
+  - representation:STRING_CONSTANT := "TOOL_BAR";
+
+  - print <-
+  (
+    "TOOL_BAR".print;
+  );
+
+/*  - get_menu_parent:INTERNAL_INODE <- 
+  ( + is_menu_bar:TOOL_BAR;
+
+    is_menu_bar ?= Self;
+    is_menu_bar.menu_parent
+  );*/
+
+  //
+  // Evaluation.
+  //
+
+- semantic_evaluation (w,h:REAL_32) :BOOLEAN <-
+/*  [ +is_menu_h:MENU_H;
+    +is_menu_v:MENU_V;
+
+    is_menu_h ?= get_menu_parent;
+    is_menu_v ?= get_menu_parent;
+    ? {(is_menu_h!=NULL) || {is_menu_v!=NULL}};
+  ]*/
+  (
+    bugw_screen:=w;
+    bugh_screen:=h;
+
+    !list.is_empty && {
+      browse_group { 
+        i:INODE;
+        (i.operator != '&')
+      }
+    } && {
+      +nb:INTEGER;
+      list.foreach {
+        i:INODE;
+        +tmp:REAL_32;
+        +best_prc:REAL_32;
+/*        +is_menu_h:MENU_H;
+        +is_menu_v:MENU_V;
+
+        is_menu_h ?= get_menu_parent;
+        is_menu_v ?= get_menu_parent;*/
+        (!i.list.is_empty).if {
+          tmp:=MENU_V_OUT.evaluate i width bugw_screen height bugh_screen;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            i.set_representation MENU_V_OUT;
+          };
+          tmp:=WINDOW.evaluate i width bugw_screen height bugh_screen;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            i.set_representation WINDOW;
+          };
+//        (is_menu_h!=NULL).if {
+          tmp:=DROP_DOWN_MENU.evaluate i width bugw_screen height bugh_screen;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            i.set_representation DROP_DOWN_MENU;
+          };
+//        };
+/*        (is_menu_v!=NULL).if {
+          tmp:=MENU_H_OUT.evaluate i width bugw_screen height bugh_screen;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            i.set_representation MENU_H_OUT;
+          };
+        };*/
+        } else {
+          tmp:=CHECK.evaluate i width bugw_screen height bugh_screen;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            i.set_representation CHECK;
+          };
+          tmp:=ACTION.evaluate i width bugw_screen height bugh_screen;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            i.set_representation ACTION;
+          };
+        };
+        (best_prc > 0).if {
+          nb:=nb+1;
+        };
+      };
+      nb=list.count
+    }
+  );
+
+  - evaluate n:INODE width w:REAL_32 height h:REAL_32 : REAL_32<-
+  (
+    + result:REAL_32;
+
+    // changer le parent de n pour pouvoir utiliser les méthodes spécifiques à MENU_BAR
+    n.set_representation TOOL_BAR;
+
+    // Semantic evaluation && Space evaluation.
+    "TOOL_BAR semantic evaluation of ".print;n.name.print;"\n".print;
+    (n.semantic_evaluation (w,h)).if {
+      "TOOL_BAR space evaluation of ".print;n.name.print;"\n".print;
+      result:=n.space_evaluation (w,h);
+    } else {
+       result:=0;
+    };
+    "TOOL_BAR result for ".print;n.name.print;"= ".print;result.print;"%\n".print;
+    result
+  )
+  [ ? {Result.in_range 0 to 100}; ];

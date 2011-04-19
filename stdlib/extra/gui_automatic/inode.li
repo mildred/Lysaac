@@ -1,0 +1,371 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name    := INODE;
+  
+  
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment := "Interface Node for GUII.";
+  
+Section Inherit
+  
+  + parent_guii:INTERNAL_INODE := INTERNAL_INODE;
+
+Section Public
+  //
+  // Data.
+  //
+  + name:STRING_CONSTANT;
+  + operator:CHARACTER;
+  + priority:INTEGER_8;
+  + bitmap:ABSTRACT_STRING;
+  + list:LINKED_LIST(INODE);
+  + content:G_EXPR;
+  + covering:INTEGER;		//take items whose are over this pourcentage
+  + height:INTEGER;
+  + width:INTEGER;
+  + min_height:INTEGER;
+  + min_width:INTEGER;
+  + depth:INTEGER;
+  + action:BLOCK;
+  + win_out:G_WIN_OUT;
+  + dimensions:LINKED_LIST(DIMENSION);
+  - screen_width:INTEGER;
+  - screen_height:INTEGER;
+  + connector_width:INTEGER;
+  + connector_height:INTEGER;
+  - used_height:INTEGER;
+  - used_width:INTEGER;
+  + dimensions_nb:INTEGER;
+  + width_win_in:INTEGER;
+  + height_win_in:INTEGER;
+  
+  
+  //bug compilo 0.13
+  + bugw_screen:INTEGER;
+  + bugh_screen:INTEGER;
+  
+  //
+  // Creation.
+  //
+  - create_xor n:STRING_CONSTANT priority p:INTEGER_8 :SELF <-
+  (
+    internal_create n priority p operator '^'
+  );
+  
+  - create_or n:STRING_CONSTANT priority p:INTEGER_8 :SELF <-
+  (
+    internal_create n priority p operator '|'
+  );
+  
+  - create_and n:STRING_CONSTANT priority p:INTEGER_8 :SELF <-
+  (
+    internal_create n priority p operator '&'
+  );
+  
+  - create_or n:STRING_CONSTANT priority p:INTEGER_8 width w:INTEGER height h:INTEGER :SELF <-
+  (
+    internal_create n priority p operator '|' width w height h
+  );
+  
+  - create_and n:STRING_CONSTANT priority p:INTEGER_8 width w:INTEGER height h:INTEGER :SELF <-
+  (
+    internal_create n priority p operator '&' width w height h
+  );
+  
+  - create_xor n:STRING_CONSTANT priority p:INTEGER_8 action b:BLOCK :SELF<-
+  (
+    +result:SELF;
+    
+    result := clone;
+    result.make n priority p operator '^' action b;
+    result
+  );
+  
+  - create_or n:STRING_CONSTANT priority p:INTEGER_8 action b:BLOCK :SELF<-
+  (
+    +result:SELF;
+    
+    result := clone;
+    result.make n priority p operator '|' action b;
+    result
+  );
+  
+  - create_and n:STRING_CONSTANT priority p:INTEGER_8 action b:BLOCK :SELF<-
+  (
+    +result:SELF;
+    
+    result := clone;
+    result.make n priority p operator '&' action b;
+    result
+  );
+  
+  - create_and n:STRING_CONSTANT priority p:INTEGER_8 action b:BLOCK picture filename:ABSTRACT_STRING :SELF<-
+  (
+    +result:SELF;
+    
+    result := clone;
+    result.make n priority p operator '&' action b picture filename;
+    result
+  );
+  
+  - create_or n:STRING_CONSTANT priority p:INTEGER_8 action b:BLOCK picture filename:ABSTRACT_STRING :SELF<-
+  (
+    +result:SELF;
+    
+    result := clone;
+    result.make n priority p operator '|' action b picture filename;
+    result
+  );
+  
+  - create_xor n:STRING_CONSTANT priority p:INTEGER_8 action b:BLOCK picture filename:ABSTRACT_STRING :SELF<-
+  (
+    +result:SELF;
+    
+    result := clone;
+    result.make n priority p operator '^' action b picture filename;
+    result
+  );
+  
+  - create_and n:STRING_CONSTANT priority p:INTEGER_8 picture filename:ABSTRACT_STRING :SELF<-
+  (
+    +result:SELF;
+    
+    result := clone;
+    result.make n priority p operator '&' picture filename;
+    result
+  );
+  
+  - create_or n:STRING_CONSTANT priority p:INTEGER_8 picture filename:ABSTRACT_STRING :SELF<-
+  (
+    +result:SELF;
+    
+    result := clone;
+    result.make n priority p operator '|' picture filename;
+    result
+  );
+  
+  - create_xor n:STRING_CONSTANT priority p:INTEGER_8 picture filename:ABSTRACT_STRING :SELF<-
+  (
+    +result:SELF;
+    
+    result := clone;
+    result.make n priority p operator '^' picture filename;
+    result
+  );
+  
+  //
+  // Flags.
+  //
+  
+  - is_xor:BOOLEAN <- operator = '^';
+  - is_and:BOOLEAN <- operator = '&';
+  - is_or:BOOLEAN  <- operator = '|';
+  
+  
+  //
+  //method
+  //
+  - Self:SELF '+' other:INODE :INODE <-
+  (
+    +j:INTEGER;
+    j:=0;
+    list.add_last other;
+    Self
+  );
+  
+  - set_representation new_parent:INTERNAL_INODE <-
+  (
+    parent_guii:=new_parent;
+    content:=NULL;
+    covering:=0;
+    width:=0;
+    height:=0;
+    win_out:=NULL;
+    bugh_screen:=0;
+    bugw_screen:=0;
+    connector_width:=0;
+    connector_height:=0;
+  );
+  
+
+  - set_representation_win_in new_parent:INTERNAL_INODE <-
+  (
+    parent_guii:=new_parent;
+  );
+  
+  - set_depth dpth:INTEGER <-
+  (	
+    depth:=dpth;
+  );
+  
+  - get_parent:INTERNAL_INODE <- 
+  ( 
+    parent_guii
+  );      
+  
+  - reset_size <-
+  (
+    width:=0;
+    height:=0;
+    connector_width:=0;
+    connector_height:=0;
+  );
+
+  - set_screen_width width:INTEGER <-
+  (
+    screen_width:=width;
+  );
+  
+  - set_screen_height height:INTEGER <-
+  (
+    screen_height:=height;
+  );
+
+  - set_height h:INTEGER <-
+  (
+    height:=h;
+  );
+
+  - set_width w:INTEGER <-
+  (
+    width:=w;
+  );
+
+  - set_connector_w w:INTEGER <-
+  (
+    connector_width:=w;
+  );
+
+  - set_connector_h h:INTEGER <-
+  (
+    connector_height:=h;
+  );
+
+  - set_used_width w:INTEGER <-
+  (
+    used_width:=w;
+  );
+
+  - set_used_height h:INTEGER <-
+  (
+    used_height:=h;
+  );
+
+  - set_dimensions_nb d:INTEGER <-
+  (
+    dimensions_nb:=d;
+  );
+
+  - set_width_win_in w:INTEGER <-
+  (
+    width_win_in:=w;
+  );
+
+
+  - set_height_win_in h:INTEGER <-
+  (
+    height_win_in:=h;
+  );
+Section Private
+  
+  - internal_create n:STRING_CONSTANT priority p:INTEGER_8 operator op:CHARACTER :SELF <-
+  (
+    + result:SELF;
+    
+    result := clone;
+    result.make n priority p operator op;
+    result
+  );
+  
+  - internal_create n:STRING_CONSTANT priority p:INTEGER_8 operator op:CHARACTER width w:INTEGER height h:INTEGER :SELF <-
+  (
+    + result:SELF;
+    
+    result := clone;
+    result.make n priority p operator op width w height h;
+    result
+  );
+  
+  - internal_create n:STRING_CONSTANT priority p:INTEGER_8 operator op:CHARACTER action b:BLOCK :SELF <-
+  (
+    + result:SELF;
+    
+    result := clone;
+    result.make n priority p operator op action b;
+    result
+  );
+  
+  - make n:STRING_CONSTANT priority p:INTEGER_8 operator op:CHARACTER <-
+  (
+    operator := op;
+    name := n;
+    priority := p;
+    list := LINKED_LIST(INODE).create;
+    dimensions := LINKED_LIST(DIMENSION).create;
+  );
+  
+  - make n:STRING_CONSTANT priority p:INTEGER_8 operator op:CHARACTER width w:INTEGER height h:INTEGER <-
+  (
+    operator := op;
+    name := n;
+    priority := p;
+    min_width := w;
+    min_height := h;
+    list := LINKED_LIST(INODE).create;
+    dimensions := LINKED_LIST(DIMENSION).create;
+  );
+  
+  - make n:STRING_CONSTANT priority p:INTEGER_8 operator op:CHARACTER action b:BLOCK <-
+  (
+    operator := op;
+    name := n;
+    priority := p;
+    action := b;
+    list := LINKED_LIST(INODE).create;
+    dimensions := LINKED_LIST(DIMENSION).create;
+  );
+  
+  - make n:STRING_CONSTANT priority p:INTEGER_8 operator op:CHARACTER action b:BLOCK picture filename:ABSTRACT_STRING <-
+  (
+    operator := op;
+    name := n;
+    priority := p;
+    action := b;
+    bitmap := filename;
+    list := LINKED_LIST(INODE).create;
+    dimensions := LINKED_LIST(DIMENSION).create;
+  );
+  
+  - make n:STRING_CONSTANT priority p:INTEGER_8 operator op:CHARACTER picture filename:ABSTRACT_STRING <-
+  (
+    operator := op;
+    name := n;
+    priority := p;
+    bitmap := filename;
+    list := LINKED_LIST(INODE).create;
+    dimensions := LINKED_LIST(DIMENSION).create;
+  );
+  
+Section INTERNAL_INODE
+  

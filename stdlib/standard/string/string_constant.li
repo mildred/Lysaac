@@ -1,0 +1,150 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := Strict STRING_CONSTANT;
+
+  - import := NATIVE_ARRAY(CHARACTER),
+              NATIVE_ARRAY(INTEGER_8),
+              NATIVE_ARRAY(UINTEGER_8);
+  - export := NATIVE_ARRAY(CHARACTER),
+              NATIVE_ARRAY(INTEGER_8),
+              NATIVE_ARRAY(UINTEGER_8);
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := "String built in.";
+
+Section Inherit
+
+  - inherit_abstract_string:ABSTRACT_STRING := ABSTRACT_STRING;
+
+Section Public
+
+  + storage:NATIVE_ARRAY(CHARACTER);
+
+  + count:INTEGER;
+
+Section Public
+
+  - to_string:STRING <-
+  ( + new:Strict STRING;
+    new := STRING.create capacity;
+    new.copy Self;
+    new
+  );
+
+Section Public
+
+  - capacity:INTEGER <- count;
+
+  //
+  // Aliasing String.
+  //
+
+  - bucket:SET(STRING_CONSTANT) := SET(STRING_CONSTANT).make;
+
+  //
+  // The Guru section: The Compiler consideration.
+  //
+
+  - set_storage p:NATIVE_ARRAY(CHARACTER) count nb_char:INTEGER <-
+  // Do not use directly.
+  (
+    storage := p;
+    count   := nb_char;
+  );
+
+  - new_intern p:NATIVE_ARRAY(CHARACTER) count nb_char:INTEGER :STRING_CONSTANT<-
+  // Do not use directly. WARNING: Use by c_string and c_argument (COMMAND_LINE).
+  ( + result:STRING_CONSTANT;
+
+    result := clone;
+    result.set_storage p count nb_char;
+    //bucket.add result;
+    result
+  );
+
+  - from_external p:NATIVE_ARRAY(CHARACTER) :STRING_CONSTANT <-
+  ( + i:INTEGER;
+    {n.item i = '\0'}.until_do { i := i + 1; };
+    new_intern n count i
+  );
+
+  - to_external:NATIVE_ARRAY(CHARACTER) <-
+  // Gives C access to the internal `storage' (may be dangerous).
+  // To be compatible with C, a null character is added at the end
+  // of the internal `storage'. This extra null character is not
+  // part of the Lisaac STRING.
+  (
+    storage
+  );
+
+  - create_copy other:ABSTRACT_STRING :SELF <-
+  ( + result:SELF;
+
+    result := clone;
+    result.make_copy other;
+    result
+  );
+
+  - make_copy other:ABSTRACT_STRING <-
+  ( + c:INTEGER;
+
+    c := other.count;
+    (c != 0).if {
+      storage := NATIVE_ARRAY(CHARACTER).create (c+1);
+      storage.copy_from (other.storage) until (c-1);
+      storage.put '\0' to c;
+      count := c;
+    };
+  );
+
+  - println <-
+  [
+    -? {storage.item count = '\0'};
+  ]
+  (
+    to_external.println;
+  );
+
+  //
+  // Debug: Require / Ensure / Check
+  //
+
+  - Self:SELF '?'  test:{BOOLEAN} <- test ? Self;
+
+  - Self:SELF '-?' test:{BOOLEAN} <- test -? Self;
+
+  - Self:SELF '+?' test:{BOOLEAN} <- test +? Self;
+
+  //
+  // Import NATIVE_ARRAY
+  //
+
+  - from_native_array_of_character p:NATIVE_ARRAY(CHARACTER) :STRING_CONSTANT <-
+    from_external p;
+
+  - from_native_array_of_integer_8 p:NATIVE_ARRAY(INTEGER_8) :STRING_CONSTANT <-
+    from_external(CONVERT(NATIVE_ARRAY(INTEGER_8),NATIVE_ARRAY(CHARACTER)).on p);
+
+  - from_native_array_of_uinteger_8 p:NATIVE_ARRAY(UINTEGER_8) :STRING_CONSTANT <-
+    from_external(CONVERT(NATIVE_ARRAY(UINTEGER_8),NATIVE_ARRAY(CHARACTER)).on p);

@@ -1,0 +1,96 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        := STD_INPUT;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     :=" To use the standard input file. As for UNIX, the default standard input is the keyboard.";
+
+Section Inherit
+
+  - inherit_input_stream:INPUT_STREAM := INPUT_STREAM;
+
+Section Private
+
+  - memory:CHARACTER;
+  // Memory of the last available user's value.
+
+Section Public
+
+  - is_connected:BOOLEAN := TRUE;
+
+  - read_character :CHARACTER <-
+  // Read character from stdin
+  (
+    push_back_flag.if {
+      push_back_flag := FALSE;
+    } else {
+      memory := basic_io_getc;
+    };
+    last_character
+  );
+
+
+  - unread_character <-
+  (
+    push_back_flag := TRUE;
+  );
+
+
+  - last_character:CHARACTER <-
+  // Return last character from stdin
+  (
+    memory
+  );
+
+
+  - end_of_input:BOOLEAN <-
+  // Return TRUE if end of input
+  (
+    + result:BOOLEAN;
+    (! push_back_flag).if {
+      result := (memory = basic_io_eof);
+    };
+    result
+  );
+
+  - read_line_in buffer:STRING <-
+  // Real all character until \n (so read a line)
+  (
+    + mem:CHARACTER;
+    read_character;
+    ( (last_character != '\n') && { memory != basic_io_eof } ).if {
+      buffer.extend memory;
+      mem := basic_io_getc;
+
+      { (mem = basic_io_eof) || {mem = '\n'} }.until_do {
+	buffer.extend mem;
+	mem := basic_io_getc;
+      };
+      memory := mem;
+    };
+  );
+
+
+

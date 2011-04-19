@@ -1,0 +1,250 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := OPENGL_ABSTRACT;
+  
+Section Inherit
+  
+  + parent_renderer:Expanded RENDERER;
+  
+  - parent_opengl_specific:OPENGL_SPECIFIC := OPENGL_SPECIFIC;
+
+Section Public
+
+  //
+  // Renderer Modules
+  //
+  
+  - transform:TRANSFORM <- GL_TRANSFORM;
+  - texture1d:TEXTURE <- GL_TEXTURE1D;
+  - texture2d:TEXTURE <- GL_TEXTURE2D;
+  - font:FONT <- GL_FONT;
+  - light:LIGHT <- GL_LIGHT;
+  - material:MATERIAL <- GL_MATERIAL;
+  - plane:PLANE <- GL_PLANE;
+  - quadrics:QUADRICS <- GL_QUADRICS;
+  - blending:BLENDING <- GL_BLENDING;
+  - culling:CULLING <- GL_CULLING;
+  - fog:FOG := GL_FOG; 
+  
+  //
+  // Renderer features
+  //
+  
+  - vb:VERTEX_BUFFER := GL_VERTEX_BUFFER; // renderer current Vertex Buffer
+  - vertex_array:VERTEX_BUFFER <- GL_VERTEX_ARRAY;
+  - vertex_buffer:VERTEX_BUFFER <- GL_VERTEX_BUFFER;
+  - index_buffer:INDEX_BUFFER <- GL_INDEX_BUFFER;
+  - display_list:DISPLAY_LIST <- GL_DISPLAY_LIST;
+  
+  - color_buffer:COLOR_BUFFER <- GL_COLOR_BUFFER;
+  - depth_buffer:DEPTH_BUFFER <- GL_DEPTH_BUFFER;
+  - stencil_buffer:STENCIL_BUFFER <- GL_STENCIL_BUFFER;
+  - accum_buffer:ACCUM_BUFFER <- GL_ACCUM_BUFFER;
+  - alpha_test:ALPHA_TEST <- GL_ALPHA_TEST;
+  - scissor:SCISSOR <- GL_SCISSOR;
+  
+  - evaluator1d:EVALUATOR1D <- GL_EVALUATOR1D;
+  - evaluator2d:EVALUATOR2D <- GL_EVALUATOR2D;
+  
+  - shader:SHADER <- GL_SHADER;
+  
+  - name_stack:NAME_STACK <- GL_NAME_STACK;
+  
+  - error:ERROR <- GL_ERROR;
+  
+
+  - initialize <-
+  (   
+    reshape.set_render_system Self;
+    
+    `glClearColor(0, 0, 0, 1)`;
+  );
+  
+  - begin_frame <-
+  // pre rendering
+  (
+    clear_screen;
+    
+    // reset world matrix 
+    `glLoadIdentity()`;
+    //transform.load_identity;
+  );
+  
+  - end_frame <-
+  // post rendering
+  (
+    swap_buffers;
+  );
+  
+  - new_frame body:BLOCK <-
+  (
+    begin_frame;
+    body.value;
+    end_frame;
+  );
+  
+  - clear_screen <- 
+  (    
+    `glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);`;
+  );
+  
+  - active_vertex_array sizemax:INTEGER <- 
+  (
+    vb := GL_VERTEX_ARRAY.create sizemax;
+  );
+  
+  - enable_shading <- 
+  (
+    `glShadeModel (GL_SMOOTH)`;
+  );
+  
+  - disable_shading <- 
+  (
+    `glShadeModel (GL_FLAT)`;
+  );
+  
+  - enable_lighting <- 
+  (
+    `glEnable(GL_LIGHTING)`;
+  );
+  
+  - disable_lighting <- 
+  (
+    `glDisable(GL_LIGHTING)`;
+  );
+  
+  
+  - wireframe_mode on:BOOLEAN <-
+  (
+    on.if {
+      `glPolygonMode(GL_FRONT, GL_LINE)`;
+      `glPolygonMode(GL_BACK, GL_LINE)`;
+    } else {
+      `glPolygonMode(GL_FRONT, GL_FILL)`;
+      `glPolygonMode(GL_BACK, GL_FILL)`;
+    };
+  );
+  
+  - enable_auto_normal <-
+  (
+    `glEnable(GL_AUTO_NORMAL)`;
+  );
+  
+  - disable_auto_normal <-
+  (
+    `glDisable(GL_AUTO_NORMAL)`;
+  );
+  
+  
+  - set_point_size sz:REAL_32 <-
+  (
+    `glPointSize(@sz)`;
+  );
+  
+  - set_line_width w:REAL_32 <-
+  (
+    `glLineWidth(@w)`;
+  );
+  
+  - set_fog f:FOG <-
+  (
+    fog := f;
+  );
+  
+  - set_quality q:INTEGER <- 
+  (
+    + mode:INTEGER;
+    
+    q
+    .when nicest_quality then {
+      mode := `GL_NICEST`:INTEGER;
+    }
+    .when fastest_quality then {
+      mode := `GL_FASTEST`:INTEGER;  
+    }
+    .when default_quality then {
+      mode := `GL_DONT_CARE`:INTEGER;
+    };
+    `glHint(GL_PERSPECTIVE_CORRECTION_HINT, @mode)`;
+  );
+  
+  //
+  // Render modes (GL_RENDER (default), GL_SELECT, GL_FEEDBACK)
+  //
+  
+  - begin_selection_in buffer:FAST_ARRAY(UINTEGER_32) size sz:INTEGER <-
+  (
+    + p:POINTER;
+    
+    p := buffer.to_external;
+    `glSelectBuffer (@sz, @p);`;
+    
+    `(void) glRenderMode (GL_SELECT)`;
+  );
+  
+  - end_selection:INTEGER <- 
+  (
+    `glRenderMode (GL_RENDER)`:INTEGER
+  );
+  
+  
+  - set_fullscreen <-
+  (
+    is_fullscreeen  := TRUE;
+  );
+  
+  //
+  // Renderer informations
+  //
+  
+  - video_card_name buf:STRING <- 
+  (
+    get_value (`GL_RENDERER`:INTEGER) on buf;
+  );
+  - video_card_vendor buf:STRING <- 
+  (
+    get_value (`GL_VENDOR`:INTEGER) on buf;
+  );
+  - video_card_version buf:STRING <-
+  (
+    get_value (`GL_VERSION`:INTEGER) on buf;
+  );
+  
+ 
+  
+Section Private
+  
+  - get_value val:INTEGER on str:STRING <-
+  (
+    + tmp:NATIVE_ARRAY(CHARACTER);
+    + i:INTEGER;
+    
+    tmp := `glGetString(@val)`:NATIVE_ARRAY(CHARACTER);
+    {tmp.item i != '\0'}.while_do {
+      // string copy
+      str.add_last (tmp.item i);
+      i := i+1;
+    };
+  );
+ 

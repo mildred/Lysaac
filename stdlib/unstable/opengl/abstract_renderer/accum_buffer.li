@@ -1,0 +1,67 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                             //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := ACCUM_BUFFER;
+  
+  - comment  := "Abstract Accumulation buffer";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  // accumulation functions
+  - accum:INTEGER <- 1;  // accum_buffer = accum_buffer + val * color_buffer
+  - load:INTEGER <- 2;  // accum_buffer =  val * color_buffer
+  - return:INTEGER <- 3;  // color_buffer = val * accum_buffer
+  - add:INTEGER <- 4;  // accum_buffer = accum_buffer + val
+  - mult:INTEGER <- 5;  // accum_buffer = val * accum_buffer
+  
+  - set_function f:INTEGER value val:REAL_32 <- deferred;
+  
+  
+  // different way to use functions 
+  - accumulate_with coef:REAL_32 <- 
+  (
+    set_function accum value coef;
+  );
+  - load_with coef:REAL_32 <- 
+  (
+    set_function load value coef;
+  );
+  - return_with coef:REAL_32 <-
+  (
+    set_function return value coef;
+  );
+  - add_with val:REAL_32 <- 
+  (
+    set_function add value val;
+  );
+  - mult_with val:REAL_32 <- 
+  (
+    set_function mult value val;
+  );
+  
+  - clear <- deferred;
+  

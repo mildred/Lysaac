@@ -1,0 +1,122 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_FONT_ABSTRACT;
+  
+  - comment  := "OpenGl rendered font";
+  
+Section Inherit
+  
+  + parent_font:Expanded FONT;
+  
+Section Public
+  
+  + base:UINTEGER_32; // GL base display list
+  + text_mode:GL_DISPLAY_LIST;
+  
+  - unload <-
+  (
+    + b:UINTEGER_32;
+    + n:INTEGER;
+    
+    b := base;
+    n := nb_chars;
+    `glDeleteLists(@b, @n)`;
+    
+    text_mode.destroy;
+  );
+  
+  - enable <-
+  (
+    + b:INTEGER;
+    + w,h:INTEGER;
+    
+    (text_mode = NULL).if {
+      // not loaded
+      
+      b := base;
+      w := OPENGL.viewport.width;
+      h := OPENGL.viewport.height;
+      
+      text_mode := GL_DISPLAY_LIST.create {
+        `glListBase(@b-32)`;
+        
+        `glPushAttrib(GL_ENABLE_BIT)`;// push states flags
+        
+        //Set projection matrix
+        `glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+        gluOrtho2D(0.0f, @w, @h, 0.0f);`;
+        
+        //Set modelview matrix
+        `glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadIdentity();`;
+        
+        //Set states
+        `glDisable(GL_DEPTH_TEST)`;
+        `glDisable(GL_BLEND)`;
+        `glDisable(GL_TEXTURE_2D)`;
+        `glDisable (GL_CULL_FACE)`;
+      };
+    };
+    text_mode.call;
+  );
+  
+  - disable <-
+  (
+    //restore matrices
+    `glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();`;
+    
+    //reset other states
+    `glListBase(0)`;
+    `glPopAttrib()`;
+  );
+  
+  - print text:ABSTRACT_STRING at (x,y:INTEGER) <- 
+  (
+    + b:UINTEGER_32;
+    + n:INTEGER;
+    + txt:NATIVE_ARRAY(CHARACTER);
+    + xx,yy:INTEGER;
+    
+    txt := text.to_external;
+    n := text.count;
+    b := base;
+    xx := x + OPENGL.viewport.x0;
+    yy := y + OPENGL.viewport.y0;
+        
+    //Print the text
+    `#ifndef GLBINDING__USE_GUI // FIXME: raster bug with gui
+    glListBase(@b - 32);
+
+    glRasterPos2i(@xx, @yy);
+    glCallLists(@n, GL_UNSIGNED_BYTE, @txt);
+    #endif
+    `;
+  );
+  

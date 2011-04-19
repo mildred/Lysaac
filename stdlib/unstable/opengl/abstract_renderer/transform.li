@@ -1,0 +1,102 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := TRANSFORM;
+  
+  - comment  := "3 types of transformation: modelview, projection, viewport";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  - load_identity <- deferred;
+  
+  - push_matrix <- deferred;
+  - pop_matrix <- deferred;
+  - new_matrix body:{} <- 
+  (
+    push_matrix;
+    body.value;
+    pop_matrix;
+  );
+  
+  // operations on current matrix
+  - load_matrix m:MATRIX4(REAL_32) <- deferred;
+  - mult_matrix_by m:MATRIX4(REAL_32) <- deferred;
+  
+  
+  //
+  // Viewing & Modeling transformations
+  //
+  
+  - set_modelview_mode <- deferred; 
+  
+  - translatef (x,y,z:REAL_32) <- deferred;
+  - rotatef (val,x,y,z:REAL_32) <- deferred;
+  - scalef (x,y,z:REAL_32) <- deferred;
+  
+  - get_modelview matrix:MATRIX4(REAL_32) <- deferred;
+  
+  //
+  // Projection transformations
+  //
+  
+  - set_projection_mode <- deferred;
+  - new_projection body:{} <- 
+  (
+    set_projection_mode;
+    body.value;
+    set_modelview_mode;
+  );
+  
+  - perspective (fovy,aspect,near,far:REAL_32) <- deferred;
+  - frustum (left,right,bottom,top,near,far:REAL_32) <- deferred;
+  
+  - orthographic (left,right,bottom,top,near,far:REAL_32) <- deferred;
+  - orthographic2d (left,right,bottom,top:REAL_32) <- deferred;
+  
+  - pickmatrix (x,y,w,h:UINTEGER_32) in v:VIEWPORT <- deferred;
+  
+  //
+  // Viewport transformations
+  //
+  
+  - set_viewport v:VIEWPORT <- deferred;
+  - set_viewport4i (x,y,width,height:UINTEGER_32) <- deferred;
+  - get_viewport viewport:VIEWPORT <- deferred;
+  
+  //
+  //  Tranformation utility
+  //
+   
+  - begin_ortho (w,h:INTEGER) <- deferred; 
+  - end_ortho <- deferred;
+  - ortho_mode (w,h:INTEGER) do body:{} <-
+  (
+    begin_ortho (w,h);
+    body.value;
+    end_ortho;
+  );
+  

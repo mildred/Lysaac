@@ -1,0 +1,72 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_HDMX;
+  - comment     :=" hdmx: Horizontal Devie Metrics .";
+  
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Public
+  
+  + header:TT_HDMX_HEADER;
+  
+  + device_record:FIXED_ARRAY(TT_HDMX_DATA);
+    
+  - create (n:NUMERIC,buf:NATIVE_ARRAY(UINTEGER_16)) :SELF <-
+  // n: number of Glyph
+  ( + result:SELF;
+    
+    result := SELF.clone;
+    result.make (n,buf);
+    result
+  );
+  
+  - make (n:NUMERIC,buf:NATIVE_ARRAY(UINTEGER_16)) <-
+  ( + tmp_data:TT_HDMX_DATA;
+    header := TT_HDMX_HEADER.force_conversion buf;
+    header.to_big_endian;
+    
+    buf := buf + TT_HDMX_HEADER.object_size;
+    device_record := FIXED_ARRAY(TT_HDMX_DATA).create (header.number_device);
+    0.to (header.number_device - 1) do { i:INTEGER;      
+      tmp_data := TT_HDMX_DATA.create (n,buf);
+      device_record.put tmp_data to i;
+      buf := buf + (header.size_record);
+    };
+  );
+  
+  - print <-
+  (
+    "\n********* HDMX TABLE *********\n".print;
+    header.print;
+    0.to (header.number_device - 1) do { i:INTEGER;
+      "\n   ".print;
+      i.print;
+      '\n'.print;
+      device_record.print;
+    };
+    "\n".print;
+  );
+  
+  
+  
+  
+  
+  

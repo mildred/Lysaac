@@ -1,0 +1,71 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := FONT;
+ 
+  - comment  := "rendered font";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  + name:STRING;
+  
+  + font_height:UINTEGER_32 := 24;
+  + nb_chars:INTEGER := 96;
+ 
+  
+  - create s:ABSTRACT_STRING :SELF <-
+  (
+    + result:SELF;
+    result := SELF.clone;
+    result.make s;
+    result
+  );
+  
+  - make s:ABSTRACT_STRING <-
+  (
+    name := STRING.create_from_string s;
+    
+    load;
+  );
+  
+  - enable <- deferred;
+  - disable <- deferred;
+  
+  - print_zone body:{} <-
+  (
+    enable;
+    body.value;
+    disable;
+  );
+  
+  - load <- deferred;
+  - unload <- deferred;
+  
+  - print text:ABSTRACT_STRING at (x,y:INTEGER) <- deferred;
+  
+  // get default font
+  - default:FONT <- (deferred;NULL);

@@ -1,0 +1,559 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name := NUMERIC;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag, 2007 Xavier Oswald";
+
+  - comment     :="Generic number.";
+
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Public
+
+  //
+  // Features
+  //
+
+  - one:SELF  <- 1; // Neutral element for `*' and `/'.
+
+  - zero:SELF <- 0; // Neutral element for `+' and `-'.
+
+  //
+  // Functions
+  //
+
+  - in_range low:SELF to up:SELF :BOOLEAN <-
+  (low <= Self) && {up >= Self};
+
+  - sign:INTEGER <-
+  // Sign of Current (0 -1 or 1).
+  ( + result:INTEGER;
+
+    (Self > 0).if {
+      result := 1;
+    }.elseif {Self < 0} then {
+      result := -1;
+    };
+    result
+  )
+  [
+    +? {-1 <= result};
+    +? {result <= 1};
+  ];
+
+  //
+  // binary operator :
+  //
+
+  - Self:SELF '-'  Left 80  other:SELF :SELF <- `3`;
+
+  - Self:SELF '*'  Left 100 other:SELF :SELF <- `4`;
+
+  - Self:SELF '/'  Left 100 other:SELF :SELF <- `5`; // ? {other/=0}
+
+  - Self:SELF '+'  Left 80  other:SELF :SELF <- Self - -other;
+
+  //
+  // Unary operator
+  //
+
+  - '+' Self:SELF :SELF <- Self;
+
+  - '-' Self:SELF :SELF <- SELF.zero - Self;
+
+  //
+  // Compatibility Binary operator
+  //
+
+  - Self:SELF '-#'  Left 80  other:INTEGER :SELF    <- Self - other;
+
+  - Self:SELF '*#'  Left 100 other:INTEGER :SELF    <- Self * other;
+
+  - Self:SELF '/#'  Left 100 other:INTEGER :SELF    <- Self / other;
+
+  - Self:SELF '+#'  Left 80  other:INTEGER :SELF    <- Self + other;
+
+  - Self:SELF '>#'  Right 60 other:INTEGER :BOOLEAN <- Self > other;
+
+  - Self:SELF '<#'  Right 60 other:INTEGER :BOOLEAN <- ! (Self >=# other);
+
+  - Self:SELF '<=#' Right 60 other:INTEGER :BOOLEAN <- ! (Self ># other);
+
+  - Self:SELF '>=#' Right 60 other:INTEGER :BOOLEAN <- (Self ># other) | (Self ==# other);
+
+  - Self:SELF '==#' Right 60 other:INTEGER :BOOLEAN <- (Self = other);
+
+  //
+  // Test binary operator :
+  //
+
+  - Self:SELF '>'   Right 60 other:SELF :BOOLEAN <- `2`;
+
+  - Self:SELF '<'   Right 60 other:SELF :BOOLEAN <- ! (Self >= other);
+
+  - Self:SELF '<='  Right 60 other:SELF :BOOLEAN <- ! (Self > other);
+
+  - Self:SELF '>='  Right 60 other:SELF :BOOLEAN <- (Self > other) | (Self = other);
+
+  - Self:SELF '=='  Right 60 other:E :BOOLEAN <-
+  ( + my_other:SELF;
+
+    my_other := other;
+    Self = my_other
+  );
+
+  //
+  // Switch case :
+  //
+
+  - when value:SELF then block:{} :SELF <-
+  // when `value' equals `Self', execute `block'
+  // You can chain "when ... then ..." between them like : <br/>
+  // bar.when 1 then { // code }.when 2 then { // code 2 }
+  (
+    (Self = value).if block;
+    Self
+  );
+
+  - when value1:SELF or value2:SELF then block:{} :SELF <-
+  // when `value1' or `value2' equal `Self', execute `block'
+  (
+    ((Self = value1) || {Self = value2}).if block;
+    Self
+  );
+
+  - when first_value:SELF to last_value:SELF then block:{} :SELF <-
+  // Execute `block' when  `Self' is in range of `first_value' to `last_value'
+  (
+    ? {first_value <= last_value};
+    ((Self >= first_value) && {Self <= last_value}).if block;
+    Self
+  );
+
+  - else   block:{} <-
+  (
+    block;
+  );
+  //
+  // Looping.
+  //
+  - to limit_up:SELF do blc:{SELF;} <-
+  // Classical loop from `Self' to `limit_up'
+  (
+    (Self <= limit_up).if {
+      blc.value Self;
+      (Self + 1).to limit_up do blc;
+    };
+  );
+
+  - downto limit_down:SELF do blc:{SELF;} <-
+  // Classical backward loop from `Self' to `limit_up'
+  (
+    (Self >= limit_down).if {
+      blc.value Self;
+      (Self-1).downto limit_down do blc;
+    };
+  );
+
+  - to limit_up:SELF by step:SELF do blc:{SELF;} <-
+  // Classical loop from `Self' to `limit_up' stepping `step'
+  (
+    (Self <= limit_up).if {
+      blc.value Self;
+      (Self + step).to limit_up by step do blc;
+    };
+  );
+
+  - downto limit_down:SELF by step:SELF do blc:{SELF;} <-
+  // Classical backward loop from `Self' to `limit_up' stepping `step'
+  (
+    (Self >= limit_down).if {
+      blc.value Self;
+      (Self - step).downto limit_down by step do blc;
+    };
+  );
+
+  - to limit_up:SELF until test:{BOOLEAN} do blc:{SELF;} <-
+  // Classical loop from `Self' to `limit_up' until `test' is TRUE
+  (
+    ((Self <= limit_up) && {!test.value}).if {
+      blc.value Self;
+      (Self + 1).to limit_up until test do blc;
+    };
+  );
+
+
+
+
+  //
+  // Function :
+  //
+
+  - abs:SELF <-
+  // Absolute value of `Self'.
+  ( + result:SELF;
+
+    (Self < 0).if {
+      result := - Self;
+    } else {
+      result := Self;
+    };
+    result
+  );
+
+  - min other:SELF :SELF <-
+  // Minimum between value of `Self' and `other'
+  ( + result:SELF;
+
+    (Self > other).if {
+      result := other;
+    } else {
+      result := Self;
+    };
+    result
+  );
+
+  - max other:SELF :SELF <-
+  // Maximum between value of `Self' and `other'
+  ( + result:SELF;
+
+    (Self > other).if {
+      result := Self;
+    } else {
+      result := other;
+    };
+    result
+  );
+
+  //
+  // Conversion for other type.
+  //
+
+  - to_string:STRING <-
+  // Convert the decimal view of `self' into a new allocated STRING.
+  // For example, if `self' is -1 the new STRING is -1.
+  // * See:  `append_in' to save memory.
+  ( + result:STRING;
+
+    result := STRING.create 11;
+    append_in result;
+    result
+  );
+
+  - to_boolean:BOOLEAN <-
+  // TRUE if `Self' not zero
+  Self != 0;
+
+  - append_in buffer:STRING <- deferred;
+  // Append in the `buffer' the equivalent of `to_string'. No new STRING
+  // creation during the process.
+
+  - to_string_format s:SELF :STRING <-
+  // Same as `to_string' but the result is on `s' character and the
+  // number is right aligned.
+  // * Require: s size large enough for `Self'
+  // * Ensure: `s' >= of size of stringed `Self'
+  // * See:  `append_in_format' to save memory.
+  [
+    -? {to_string.count <= s};
+  ]
+  ( + result:STRING;
+
+    result := to_string;
+    result.precede_multiple ' ' by (s.to_integer - result.count);
+
+    result
+  )
+  [
+    +? {Result.count = s};
+  ];
+
+  - append_in str:STRING format s:INTEGER <-
+  // Append the equivalent of `to_string_format' at the end of
+  // `str'. Thus you can save memory because no other
+  // STRING is allocate for the job.
+  (
+    append_in str format s with ' ';
+  );
+
+  - append_in str:STRING format s:INTEGER with char:CHARACTER <-
+  // Append the equivalent of `to_string_format' at the end of
+  // `str'. Thus you can save memory because no other
+  // STRING is allocate for the job.
+  // * Require: str not null
+  // * Require: `s' >= of size of stringed `Self'
+  // * Ensure: size of `str' is equal to former `str' size plus `s'
+  [
+    -? {str != NULL};
+    -? {to_string.count <= s};
+  ]
+  ( + old_count:INTEGER;
+
+    old_count := str.count;
+    append_in str;
+    str.insert char to old_count on (s - (str.count - old_count));
+  )
+  [
+    +? {str.count = (Old str.count + s)};
+  ];
+
+  //
+  // Print
+  //
+
+  - print <-
+  // Print
+  (
+    string_tmp.clear;
+    append_in string_tmp;
+    string_tmp.print;
+  );
+
+  - print_format s:SELF <-
+ // Print with format size `s'
+  (
+    string_tmp.clear;
+    append_in string_tmp format s;
+    string_tmp.print;
+  );
+
+  - print_format s:SELF with c:CHARACTER <-
+  // Print with format size `s' replacing blank character by `c'
+  (
+    string_tmp.clear;
+    append_in string_tmp format s with c;
+    string_tmp.print;
+  );
+
+  //
+  // Conversions with tests
+  //
+
+  - bound_test low:INTEGER_64 to up:UINTEGER_64 :BOOLEAN <-
+  (
+    deferred;
+    FALSE
+  );
+
+  //
+  // - To unsigned integers
+  //
+
+  - to_uinteger_8:UINTEGER_8     <-
+ // [ -? {bound_test (UINTEGER_8.minimum) to (UINTEGER_8.maximum)}; ]
+  (
+    to_raw_uinteger_8
+  );
+
+  - to_uinteger_16:UINTEGER_16   <-
+  [ -? {bound_test (UINTEGER_16.minimum) to (UINTEGER_16.maximum)}; ]
+  (
+    to_raw_uinteger_16
+  );
+
+  - to_uinteger_32:UINTEGER_32   <-
+  [ -? {bound_test (UINTEGER_32.minimum) to (UINTEGER_32.maximum)}; ]
+  (
+    to_raw_uinteger_32
+  );
+
+  - to_uinteger_64:UINTEGER_64   <-
+  [ -? {bound_test (UINTEGER_64.minimum) to (UINTEGER_64.maximum)}; ]
+  (
+    to_raw_uinteger_64
+  );
+
+  - to_uinteger_big:UINTEGER_BIG <-
+  (
+    UINTEGER_BIG.create Self
+  );
+
+  - to_uinteger:UINTEGER <-
+  [ -? {Self >= 0}; ]
+  (
+    to_raw_uinteger
+  );
+
+  - to_uinteger_cpu:UINTEGER_CPU <-
+  [ -? {Self >= 0}; ]
+  (
+    to_raw_uinteger_cpu
+  );
+
+  //
+  // - To signed integers
+  //
+
+  - to_integer:INTEGER <- to_raw_integer;
+
+  - to_integer_8:INTEGER_8   <-
+  [ -? {bound_test (INTEGER_8.minimum) to (INTEGER_8.maximum)}; ]
+  (
+    to_raw_integer_8
+  );
+
+  - to_integer_16:INTEGER_16 <-
+  [ -? {bound_test (INTEGER_16.minimum) to (INTEGER_16.maximum)}; ]
+  (
+    to_raw_integer_16
+  );
+
+  - to_integer_32:INTEGER_32 <-
+  [ -? {bound_test (INTEGER_32.minimum) to (INTEGER_32.maximum)}; ]
+  (
+    to_raw_integer_32
+  );
+
+  - to_integer_64:INTEGER_64 <-
+  //[ -? {bound_test (INTEGER_64.minimum) to (INTEGER_64.maximum)}; ]
+  (
+    to_raw_integer_64
+  );
+
+  - to_integer_big:UINTEGER_BIG <-
+  (
+    deferred;
+    NULL
+  );
+
+  //
+  // - To unsigned fixed reals
+  //
+
+  - to_ureal_16_16:UREAL_16_16 <-
+  [ -? {bound_test (UREAL_16_16.minimum) to (UREAL_16_16.maximum)}; ]
+  (
+    (Self *# 1_0000h).to_raw_ureal_16_16
+  );
+
+  - to_ureal_24_8:UREAL_24_8   <-
+  [ -? {bound_test (UREAL_24_8.minimum) to (UREAL_24_8.maximum)}; ]
+  (
+    (Self *# 1_00h).to_raw_ureal_24_8
+  );
+
+  - to_ureal_26_6:UREAL_26_6   <-
+  [ -? {bound_test (UREAL_26_6.minimum) to (UREAL_26_6.maximum)}; ]
+  (
+    (Self *# 100_0000b).to_raw_ureal_26_6
+  );
+
+  //
+  // - To signed fixed reals
+  //
+
+  - to_real_16_16:REAL_16_16 <-
+  [ -? {bound_test (REAL_16_16.minimum) to (REAL_16_16.maximum)}; ]
+  (
+    (Self *# 1_0000h).to_raw_real_16_16
+  );
+
+  - to_real_24_8:REAL_24_8   <-
+  [ -? {bound_test (REAL_24_8.minimum) to (REAL_24_8.maximum)}; ]
+  (
+    (Self *# 1_00h).to_raw_real_24_8
+  );
+
+  - to_real_26_6:REAL_26_6 <-
+  [ -? {bound_test (REAL_26_6.minimum) to (REAL_26_6.maximum)}; ]
+  (
+    (Self *# 100_0000b).to_raw_real_26_6
+  );
+
+  //
+  // - To float reals
+  //
+
+  - to_real:REAL <- to_raw_real;
+
+  - to_real_32:REAL_32 <-
+  (
+    to_raw_real_32
+  );
+
+  - to_real_64:REAL_64 <-
+  (
+    to_raw_real_64
+  );
+
+  - to_real_80:REAL_80 <-
+  (
+    to_raw_real_80
+  );
+
+
+Section Public
+
+  //
+  // Convertion format without test.
+  //
+
+  - to_raw_integer:INTEGER          <- CONVERT(SELF,INTEGER     ).on Self;
+
+  - to_raw_uinteger:UINTEGER        <- CONVERT(SELF,UINTEGER    ).on Self;
+
+  - to_raw_uinteger_8:UINTEGER_8    <- CONVERT(SELF,UINTEGER_8  ).on Self;
+
+  - to_raw_uinteger_16:UINTEGER_16  <- CONVERT(SELF,UINTEGER_16 ).on Self;
+
+  - to_raw_uinteger_32:UINTEGER_32  <- CONVERT(SELF,UINTEGER_32 ).on Self;
+
+  - to_raw_uinteger_64:UINTEGER_64  <- CONVERT(SELF,UINTEGER_64 ).on Self;
+
+  - to_raw_uinteger_cpu:UINTEGER_CPU<- CONVERT(SELF,UINTEGER_CPU).on Self;
+
+  - to_raw_integer_8:INTEGER_8      <- CONVERT(SELF,INTEGER_8   ).on Self;
+
+  - to_raw_integer_16:INTEGER_16    <- CONVERT(SELF,INTEGER_16  ).on Self;
+
+  - to_raw_integer_32:INTEGER_32    <- CONVERT(SELF,INTEGER_32  ).on Self;
+
+  - to_raw_integer_64:INTEGER_64    <- CONVERT(SELF,INTEGER_64  ).on Self;
+
+  - to_raw_real:REAL                <- CONVERT(SELF,REAL        ).on Self;
+
+  - to_raw_ureal_16_16:UREAL_16_16  <- CONVERT(SELF,UREAL_16_16 ).on Self;
+
+  - to_raw_ureal_24_8:UREAL_24_8    <- CONVERT(SELF,UREAL_24_8  ).on Self;
+
+  - to_raw_ureal_26_6:UREAL_26_6    <- CONVERT(SELF,UREAL_26_6  ).on Self;
+
+  - to_raw_real_16_16:REAL_16_16    <- CONVERT(SELF,REAL_16_16  ).on Self;
+
+  - to_raw_real_24_8:REAL_24_8      <- CONVERT(SELF,REAL_24_8).on Self;
+
+  - to_raw_real_26_6:REAL_26_6      <- CONVERT(SELF,REAL_26_6).on Self;
+
+  - to_raw_real_32:REAL_32          <- CONVERT(SELF,REAL_32).on Self;
+
+  - to_raw_real_64:REAL_64          <- CONVERT(SELF,REAL_64).on Self;
+
+  - to_raw_real_80:REAL_80          <- CONVERT(SELF,REAL_80).on Self;
+
+Section Private
+
+  - string_tmp:STRING := STRING.create 32;
+
+

@@ -1,0 +1,80 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        := VIDEO;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     := "Generic Driver video - Text mode -";
+
+  - bibliography:= "http://IsaacOS.com";
+  - author      := "Benoit Sonntag (bsonntag@loria.fr), Jerome Boutet (boutet@loria.fr)";
+
+Section Inherit
+
+  + parent_bitmap:Expanded BITMAP_ASCII;
+
+Section Public
+
+  - is_active:BOOLEAN;
+
+  - create <-
+  (
+    make (190,80);
+    is_active := TRUE;
+  );
+
+  - display_screen <-
+  (
+    0.to (height-1) do { y:INTEGER;
+      '|'.print;
+      0.to (width-1) do { x:INTEGER;
+	image.item y.item x.print;
+      };
+      '|'.print;
+      '\n'.print;
+    };
+  );
+
+  - display_screen low:INTEGER to up:INTEGER <-
+  (
+    low.to up do { y:INTEGER;
+      '|'.print;
+      0.to (width-1) do { x:INTEGER;
+	image.item y.item x.print;
+      };
+      '|'.print;
+      '\n'.print;
+    };
+  );
+
+  - close <-
+  (
+    ? {is_active};
+    is_active := FALSE;
+    ? {! is_active};
+  );
+
+
+
+
+

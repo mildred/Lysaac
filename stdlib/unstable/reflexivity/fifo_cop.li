@@ -1,0 +1,107 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+ 
+  + name     := FIFO_COP;
+
+    
+  - comment  :="FIFO call for COP.";
+  
+  - external := 
+  `pthread_mutex_t fifo_mutex;`;
+  
+Section Inherit 
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Private
+  
+  - storage:FAST_ARRAY(INTEGER_32) := FAST_ARRAY(INTEGER_32).create 8;
+  // WARNING: Always power 2 for storage capacity.
+  
+  - first:INTEGER;
+  
+  - last:INTEGER;
+    
+Section Public
+  
+  //
+  // Stat.
+  //
+  
+  - is_empty:BOOLEAN <- first = last;  
+  
+  //
+  // Push.
+  //
+  
+  - add verrou:INTEGER_32 <-
+  ( + old_count:INTEGER;
+    + old_is_empty:BOOLEAN;
+    
+    lock;
+    //
+    old_is_empty := is_empty;
+    storage.put verrou to last;
+    last := (last + 1) & storage.upper;
+    (last = first).if {
+      // Resize FIFO.
+      old_count := storage.count;
+      storage.resize (storage.count * 2);
+      0.to (first-1) do { i:INTEGER;
+	storage.put (storage.item i) to (old_count + i);
+      };
+      last := old_count + first;
+    };	
+    
+    (! old_is_empty).if {
+      wait verrou;
+    };
+    //
+    unlock;   
+  );
+  
+  // 
+  // Pop.  
+  //
+  
+  - next <-
+  (
+    lock;
+    //
+    first := (first + 1) & storage.upper;    
+    (! is_empty).if {
+      wake_up (storage.item first);
+    };
+    //
+    unlock;
+  );
+  
+Section Private
+  
+  - lock   <- `pthread_mutex_lock(&fifo_mutex)`;
+  
+  - unlock <- `pthread_mutex_unlock(&fifo_mutex)`;
+  
+  - wait verrou:INTEGER_32 <- `pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex)`;
+  
+  - wake_up verrou:INTEGER_32 <- `pthread_cond_broadcast(pthread_cond_t *cond)`;
+  

@@ -1,0 +1,95 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name        := ABSTRACT_BMP_LINE;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment     := "Generic bitmap line";
+  
+Section Inherit
+  
+  - parent_arrayed:ARRAYED := ARRAYED;
+    
+Section Public
+  
+  - lower:INTEGER := 0;
+  
+  + upper:INTEGER;
+  
+  + capacity:INTEGER;
+  
+  - count:INTEGER <- (upper + 1);
+    
+  //
+  // Modification
+  //
+  
+  - clear <-
+  (
+    upper := -1;
+  );
+   
+  //
+  // Put.
+  //
+  
+  - put col:UINTEGER_32 to n:INTEGER <-
+  ( 
+    deferred;
+  );
+  
+  - put col:UINTEGER_32 from idx_begin:INTEGER to idx_end:INTEGER <-   
+  (  
+    deferred;
+  );
+  
+  - put bmp:ABSTRACT_BMP_LINE offset ofs:INTEGER from idx_begin:INTEGER to idx_end:INTEGER <-
+  ( 
+    deferred;
+  );
+  
+  //
+  // Get.
+  //
+  
+  - get_color n:INTEGER :UINTEGER_32 <-
+  ( 
+    deferred;
+  );
+  
+  - item_8  n:INTEGER :PIXEL_8  <- ( deferred; PIXEL_8);
+  
+  - item_15 n:INTEGER :PIXEL_15 <- ( deferred; PIXEL_15);
+
+  - item_16 n:INTEGER :PIXEL_16 <- ( deferred; PIXEL_16);
+
+  - item_24 n:INTEGER :PIXEL_24 <- ( deferred; PIXEL_24);
+
+  - item_32 n:INTEGER :PIXEL_32 <- ( deferred; PIXEL_32);
+  
+  //
+  // Arrayed consideration.
+  //
+  
+  - get_storage:NATIVE_ARRAY(UINTEGER_8) <- ( deferred; NULL); 

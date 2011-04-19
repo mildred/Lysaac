@@ -1,0 +1,67 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                  Lisaac                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name      := SDL_PIXEL_FORMAT;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>";
+  - comment   := "Pixel format";
+  - type      := `SDL_PixelFormat`; 
+
+Section Inherit
+
+  + parent:OBJECT := OBJECT;
+
+Section Public
+
+//  - palette: SDL_PALETTE        <- `@Self->palette`:SDL;
+  - bits_per_pixel  :UINTEGER_8 <- `@Self->BitsPerPixel` :UINTEGER_8;
+  - bytes_per_pixel :UINTEGER_8 <- `@Self->BytesPerPixel`:UINTEGER_8;
+
+//
+// LOSS:
+//
+
+  - rloss:UINTEGER_8;
+  - gloss:UINTEGER_8;
+  - bloss:UINTEGER_8;
+  - aloss:UINTEGER_8;
+
+//
+// SHIFT:
+//
+  - rshift:UINTEGER_8;
+  - gshift:UINTEGER_8;
+  - bshift:UINTEGER_8;
+  - ashift:UINTEGER_8;
+
+//
+// MASK:
+//
+
+  - rmask:UINTEGER_8;
+  - gmask:UINTEGER_8;
+  - bmask:UINTEGER_8;
+  - amask:UINTEGER_8;
+
+	- colorkey:UINTEGER_32; // RGB color key information.
+  - alpha:UINTEGER_8;     // Alpha value information (per-surface alpha).

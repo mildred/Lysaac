@@ -1,0 +1,60 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_TABLE_DIR;
+  - comment     := "True type table directory type .";
+  
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Mapping
+  
+  + version:UINTEGER_32;        // should be 0x10000
+  + numtables:USHORTINT;    // number of tables
+  
+  + search_range:USHORTINT; // used for a dichotomy search in the directory
+  + entry_selector:USHORTINT;
+  + range_shift:USHORTINT;
+  
+Section Public  
+  
+  - to_big_endian <-
+  (
+    version := PROCESSOR.to_motorola_uint version;
+    numtables := PROCESSOR.to_motorola_ushort numtables;
+    search_range := PROCESSOR.to_motorola_ushort search_range;
+    entry_selector := PROCESSOR.to_motorola_ushort entry_selector;
+    range_shift := PROCESSOR.to_motorola_ushort range_shift;        
+  );
+  
+  - print <-
+  (
+    "\nVersion: ".print;
+    (version >> 16).to_hexadecimal.print;
+    '.'.print;
+    (version & 0FFFFh).to_hexadecimal.print;
+    "\nNum_tables: ".print;
+    numtables.print;
+    "\nSrange: ".print;
+    search_range.print;
+    "\nEntry sel: ".print;
+    entry_selector.print;
+    "\nRange shift: ".print;
+    range_shift.print;
+  );

@@ -1,0 +1,447 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_DRAW;
+  
+  - comment     := "Draw TT Font";
+    
+  - bibliography:= "http://IsaacOS.com";
+  - author      := "Benoit Sonntag (bsonntag@loria.fr), Jerome Boutet (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+  
+Section Private  
+  
+  - trace b:BITMAP <-
+  ( + px1,py1,wx1,wy1,wx2,wy2,x,y:INTEGER;
+    + prev_on_curve:BOOLEAN; // TRUE if previous point on curve 
+    + j,start,begin_contour:INTEGER;
+    + count:INTEGER;
+    + n_pts:INTEGER;
+    
+    begin_contour := 0;
+    0.to (n_contour - 1) do { i:INTEGER;
+      start := begin_contour;
+      count := 0;
+      n_pts := -begin_contour + end_contour.item i + 1;
+      { flags.item start.is_curve }.until_do {
+	start := start + 1;
+      };
+      prev_on_curve := TRUE; // on curve
+      j := 1;
+      px1 := pt_glyph.item start.x;
+      py1 := pt_glyph.item start.y;
+      b.move_to (px1,py1);
+      { count <= n_pts}.while_do {
+	x := pt_glyph.item (j + start).x;
+	y := pt_glyph.item (j + start).y;
+	(flags.item (j + start).is_curve).if {	  
+	  // Point is on curve.
+	  prev_on_curve.if {    
+	    // Previous is on curve: we draw a line
+	    b.line_to (x,y);
+	    px1:=x;
+	    py1:=y;
+	    wx1:=x;
+	    wy1:=y;
+	  } else {
+	    // Previous is not on curve
+	    // We draw a bspline
+	    b.spline_w1 (wx1,wy1) w2 (wx2,wy2) to (x,y);
+	    b.move_to (wx1,wy1);
+	    px1 := wx1;
+	    py1 := wy1;	    
+	    b.spline_w1 (wx2,wy2) w2 (x,y) to (x,y);
+	    b.move_to (x,y);
+	    px1 := x;
+	    py1 := y;
+	    prev_on_curve := TRUE;
+	  };	  
+	} else {
+	  // Point is not on curve.
+	  prev_on_curve.if {
+	    // Previous is on curve
+	    // We save the current coordinates
+	    wx1:=px1;
+	    wy1:=py1;
+	    wx2:=x;
+	    wy2:=y;
+	    prev_on_curve := FALSE;
+	  } else {
+	    // Previous is not on curve
+	    // We draw a b-spline
+	    b.spline_w1 (wx1,wy1) w2 (wx2,wy2) to (x,y);
+	    b.move_to (wx1,wy1);
+	    px1:=wx1; py1:=wy1;	    
+	    wx1:=wx2; wy1:=wy2;
+	    wx2:=x;   wy2:=y;
+	  };
+	};
+	j:=(j+1)%n_pts;
+	count := count + 1;
+      };
+      begin_contour := end_contour.item i + 1;
+      //STD_INPUT.read_character;
+    };
+  );
+  
+   - trace_color b:BITMAP <-
+  ( + px1,py1,wx1,wy1,wx2,wy2,x,y:INTEGER;
+    + prev_on_curve:BOOLEAN; // TRUE if previous point on curve 
+    + j,start,begin_contour:INTEGER;
+    + count:INTEGER;
+    + n_pts:INTEGER;
+    
+    begin_contour := 0;
+    0.to (n_contour - 1) do { i:INTEGER;
+      start := begin_contour;
+      count := 0;
+      n_pts := -begin_contour + end_contour.item i + 1;
+      { flags.item start.is_curve }.until_do {
+	start := start + 1;
+      };
+      prev_on_curve := TRUE; // on curve
+      j := 1;
+      px1 := pt_glyph.item start.x;
+      py1 := pt_glyph.item start.y;
+      b.move_to (px1,py1);
+      { count <= n_pts}.while_do {
+	x := pt_glyph.item (j + start).x;
+	y := pt_glyph.item (j + start).y;
+	(flags.item (j + start).is_curve).if {	  
+	  b.rectangle ((x-1),(y-1)) to ((x+1),(y+1)) color (b.green);
+	  b.move_to (px1,py1);
+	  // Point is on curve.
+	  prev_on_curve.if {    
+	    // Previous is on curve: we draw a line
+	    b.color (b.red);
+	    b.line_to (x,y);
+	    px1:=x;
+	    py1:=y;
+	    wx1:=x;
+	    wy1:=y;
+	  } else {
+	    // Previous is not on curve
+	    // We draw a bspline
+	    b.color (b.yellow);
+	    b.spline_w1 (wx1,wy1) w2 (wx2,wy2) to (x,y);
+	    b.move_to (wx1,wy1);
+	    px1 := wx1;
+	    py1 := wy1;	    
+	    b.spline_w1 (wx2,wy2) w2 (x,y) to (x,y);
+	    b.move_to (x,y);
+	    px1 := x;
+	    py1 := y;
+	    prev_on_curve := TRUE;
+	  };	  
+	} else {
+	  b.rectangle ((x-1),(y-1)) to ((x+1),(y+1)) color (b.blue);
+	  b.move_to (px1,py1);
+	  // Point is not on curve.
+	  prev_on_curve.if {
+	    // Previous is on curve
+	    // We save the current coordinates
+	    wx1:=px1;
+	    wy1:=py1;
+	    wx2:=x;
+	    wy2:=y;
+	    prev_on_curve := FALSE;
+	  } else {
+	    // Previous is not on curve
+	    // We draw a b-spline
+	    b.color (b.yellow);
+	    b.spline_w1 (wx1,wy1) w2 (wx2,wy2) to (x,y);
+	    b.move_to (wx1,wy1);
+	    px1:=wx1; py1:=wy1;	    
+	    wx1:=wx2; wy1:=wy2;
+	    wx2:=x;   wy2:=y;
+	  };
+	};
+	j:=(j+1)%n_pts;
+	count := count + 1;
+      };
+      begin_contour := end_contour.item i + 1;
+      //STD_INPUT.read_character;
+    };
+  );
+  
+  - aff_pt_debug (x,y:INTEGER) <-
+  (
+    ' '.print;
+    x.print;
+    '/'.print;
+    y.print;
+  );
+  
+  - aff_line_debug (a,b:INTEGER) <-
+  (
+    "\n---> LINE #".print;
+    a.print;
+    " #".print;
+    b.print;
+  );
+  
+   - aff_bspline_debug (a,b,c,d:INTEGER) <-
+  (
+    "\n---> BSPLINE #".print;
+    a.print;
+    " #".print;
+    b.print;
+    " #".print;
+    c.print;
+    " #".print;
+    d.print;
+  );
+
+  - trace_debug b:BITMAP <-
+  // text
+  ( + px1,py1,wx1,wy1,wx2,wy2,x,y:INTEGER;
+    + w1,w2,c,p:INTEGER;
+    + prev_on_curve:BOOLEAN; // TRUE if previous point on curve 
+    + j,start,begin_contour:INTEGER;
+    + count:INTEGER;
+    + n_pts:INTEGER;
+    
+    begin_contour := 0;
+    0.to (n_contour - 1) do { i:INTEGER;
+      "\n\n#################".print;
+      "\nContour #".print;
+      i.print;
+      start := begin_contour;
+      count := 0;
+      n_pts := - begin_contour + end_contour.item i + 1;
+      "\nNb points: ".print;
+      n_pts.print;
+      { flags.item start.is_curve }.until_do {
+	start := start + 1;
+      };
+      prev_on_curve := TRUE; // on curve
+      j := 1; // JBJB start + 1;
+      "\nFirst_point #".print;
+      start.print;
+      p := start;
+      "\n P = #".print;
+      px1 := pt_glyph.item p.x;
+      py1 := pt_glyph.item p.y;
+      aff_pt_debug (px1,py1);
+      b.move_to (px1,py1);
+      p.print;
+      { count <= n_pts}.while_do {	
+	"\n*****************".print;
+	"\nCurrent #".print;
+	(j + start).print;
+	c := j + start;
+	x := pt_glyph.item c.x;
+	y := pt_glyph.item c.y;
+	"\n C = #".print;
+	c.print;
+	aff_pt_debug (x,y);
+
+	(flags.item c.is_curve).if {
+	  // Point is on curve.
+	  "\n On curve".print;
+	  b.rectangle ((x-1),(y-1)) to ((x+1),(y+1)) color (b.green);
+	  b.move_to (px1,py1);
+	  prev_on_curve.if {    
+	    // Previous is on curve: we draw a line
+	    "\n Prev on curve".print;
+	    aff_line_debug (p,c);
+	    "\n P = #".print;
+	    b.line_to (x,y);
+	    p := c;
+	    px1 := x;
+	    py1 := y;
+	    p.print;
+	    aff_pt_debug (px1,py1);
+	    w1 := c;
+	    wx1:=x;
+	    wy1:=y;
+	    "\nW1 = #".print;
+	    w1.print;
+	    aff_pt_debug (wx1,wy1);
+	  } else {
+	    // Previous is not on curve
+	    // We draw a bspline
+	    "\n Prev not on curve".print;
+	    aff_bspline_debug (p,w1,w2,c);
+	    b.spline_w1 (wx1,wy1) w2 (wx2,wy2) to (x,y);
+	    b.move_to (wx1,wy1);
+	    "\n P = #".print;
+	    p := w1;
+	    px1 := wx1;
+	    py1 := wy1;
+	    p.print;
+	    aff_pt_debug (px1,py1);
+	    aff_bspline_debug (p,w2,c,c);	    
+	    b.spline_w1 (wx2,wy2) w2 (x,y) to (x,y);
+	    b.move_to (x,y);
+	    "\n P = #".print;
+	    p := c;
+	    px1 := x;
+	    py1 := y;
+	    p.print;
+	    aff_pt_debug (px1,py1);
+	    prev_on_curve := TRUE;
+	  };
+	} else {
+	  // Point is not on curve.
+	  "\n Not On curve".print;
+	  b.rectangle ((x-1),(y-1)) to ((x+1),(y+1)) color (b.blue);
+	  b.move_to (px1,py1);
+	  prev_on_curve.if {
+	    // Previous is on curve
+	    // We save the current coordinates
+	    "\n Prev on curve".print;
+	    w1:=p;
+	    wx1 := px1;
+	    wy1 := py1;
+	    "\n W1 = #".print;
+	    w1.print;
+	    aff_pt_debug (wx1,wy1);
+	    w2 := c;
+	    wx2:=x;
+	    wy2:=y;
+	    "\n W2 = #".print;
+	    w2.print;
+	    aff_pt_debug (wx2,wy2);
+	    prev_on_curve := FALSE;
+	  } else {
+	    // Previous is not on curve
+	    // We draw a b-spline
+	    "\n Prev not on curve".print;
+	    aff_bspline_debug (p,w1,w2,c);
+	    b.spline_w1 (wx1,wy1) w2 (wx2,wy2) to (x,y);
+	    b.move_to (wx1,wy1);
+	    "\n P = #".print;
+	    p := w1;
+	    px1 := wx1;
+	    py1 := wy1;
+	    p.print;
+	    aff_pt_debug (px1,py1);
+	    wx1:=wx2; wy1:=wy2;
+	    w1 := w2;
+	    wx2:=x;   wy2:=y;
+	    w2 := c;
+	    "\n W1 = #".print;
+	    w1.print;
+	    aff_pt_debug (wx1,wy1);
+	    "\n W2 = #".print;
+	    w2.print;
+	    aff_pt_debug (wx2,wy2);
+	  };
+	};
+	j:=(j+1)%n_pts;
+	count := count + 1;
+      };
+      begin_contour := end_contour.item i + 1;
+    };
+  );
+  
+Section Public
+  
+  + n_contour:INTEGER;
+  
+  + pt_glyph:FIXED_ARRAY(POINT_INT);
+  
+  + end_contour:FIXED_ARRAY(USHORTINT);
+  
+  + flags:FIXED_ARRAY(TT_FLAG_GLYPH);
+  
+  - make glyph:TT_GLYPH bitmap b:BITMAP <- 
+  ( + n_point:INTEGER;
+    + scale:INTEGER;
+    + xmin,xmax,ymin,ymax:INTEGER;
+    + origx,origy:INTEGER;
+    + start,begin_contour,end:INTEGER;
+    
+    scale := 10;
+    origx := 40;
+    origy := 40;
+    
+    // Read Datas
+
+    n_contour := glyph.header.number_of_contours;
+    end_contour := glyph.end_pts_of_contours;    
+    n_point := end_contour.item (n_contour - 1) + 1;
+    xmin := glyph.header.xmin;    
+    xmax := glyph.header.xmax;
+    ymin := glyph.header.ymin;
+    ymax := glyph.header.ymax;
+    
+    (xmin < 0).if {
+      (origx < xmin.abs).if {
+	origx = xmin.abs / scale + 1;
+      };
+    };
+    
+    (ymin < 0).if {
+      (origy < ymin.abs).if {
+	origy = ymin.abs / scale + 1;
+      };
+    };
+
+    pt_glyph := FIXED_ARRAY(POINT_INT).create n_point;
+    
+    0.to (n_point - 1) do { i:INTEGER;      
+      pt_glyph.put (POINT_INT.create ((glyph.x_coordinate.item i.to_integer / scale + origx),(glyph.y_coordinate.item i.to_integer / scale + origy))) to i;
+    };
+    
+    flags := glyph.flags;
+
+    // Display
+    /*
+    // JBJB Affichage coordonnées
+    begin_contour := 0;
+    0.to (n_contour - 1) do { i:INTEGER;      
+      "\nContour:".print;
+      i.print;
+      ' '.print;
+      begin_contour.print;
+      " to ".print;
+      end_contour.item i.print;
+      '\n'.print;
+      begin_contour.print;
+      ' '.print;
+      (pt_glyph.item begin_contour.x).print;
+      '/'.print;
+      (pt_glyph.item begin_contour.y).print;
+      (flags.item begin_contour.is_curve).if {
+	"  On".print;
+      } else {
+	" Off".print;
+      };
+      (begin_contour + 1).to (end_contour.item i) do { j:INTEGER;	
+	'\n'.print;
+	j.print;
+	' '.print;
+	(pt_glyph.item j.x).print;
+	'/'.print;
+	(pt_glyph.item j.y).print;
+	(flags.item j.is_curve).if {
+	  "  On".print;
+	} else {
+	  " Off".print;
+	};
+      };
+      begin_contour := end_contour.item i + 1;
+    };
+    */
+    trace_debug b;
+    
+    //trace_color b;   
+    
+  );  

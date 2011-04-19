@@ -1,0 +1,53 @@
+SDL BINDING 
+by Xavier Oswald <xoswald@debian.org>
+
+=================================================
+ SDL HEADER              >> Lisaac Binding Status
+=================================================
+CON_console.h            >>
+DT_drawtext.h            >>
+SDL_active.h             >> 100%  sdl_active.li
+SDL_audio.h              >>
+SDL_cdrom.h              >> 90%   sdl_cdrom.li
+SDL_cpuinfo.h            >> 100%  sdl_cpuinfo.li
+SDL_error.h              >> 90%   sdl_error.li
+SDL_events.h             >> 90%   sdl_events.li
+SDL_framerate.h          >>
+SDL_getenv.h             >>
+SDL_gfxBlitFunc.h        >>
+SDL_gfxPrimitives_font.h >>
+SDL_gfxPrimitives.h      >>
+SDL.h                    >> 100%  sdl.li
+SDL_imageFilter.h        >>
+SDL_image.h              >>
+SDL_joystick.h           >> 100%  sdl_joystick.li
+SDL_keyboard.h           >> 100%  sdl_keyboard.li
+SDL_keysym.h             >> 100%  sdl_keysym.li
+SDL_loadso.h             >>
+SDL_main.h               >>
+SDL_mixer.h              >>
+SDL_mouse.h              >> 50%   sdl_mouse.li
+                                  sdl_cursor.li
+SDL_mutex.h              >>
+
+SDL_opengl.h             >>
+SDL_rotozoom.h           >>
+SDL_rwops.h              >>
+SDL_stdinc.h             >>
+SDL_syswm.h              >>
+SDL_thread.h             >>
+SDL_timer.h              >>
+SDL_ttf.h                >>
+SDL_version.h            >> 100%  sdl_version.li
+SDL_video.h              >> 50 %  sdl_surface.li
+                                  sdl_video.li
+=================================================
+SDL_endian.h             >> SDL INTERNAL
+SDL_quit.h               >> SDL INTERNAL
+begin_code.h             >> SDL INTERNAL
+close_code.h             >> SDL INTERNAL
+SDL_byteorder.h          >> SDL INTERNAL
+SDL_config.h             >> SDL INTERNAL
+SDL_platform.h           >> SDL INTERNAL
+SDL_types.h              >> SDL INTERNAL
+SDL_name.h               >> SDL INTERNAL

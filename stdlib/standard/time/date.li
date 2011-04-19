@@ -1,0 +1,160 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        := Expanded  DATE;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     := "Date";
+
+  - type        := `unsigned long`;
+
+  - default     := `0`:DATE;
+
+Section Insert
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Private
+
+  - to_raw:UINTEGER_32 <-
+  (
+    CONVERT(SELF,UINTEGER_32).on Self
+  );
+
+  - from_raw i:UINTEGER_32 :SELF <-
+  (
+    CONVERT(UINTEGER_32,SELF).on i
+  );
+
+Section Public
+
+  - Self:SELF '>' Right 60 other:SELF :BOOLEAN <- to_raw > other.to_raw;
+
+  - Self:SELF '<' Right 60 other:SELF :BOOLEAN <- to_raw < other.to_raw;
+
+  - Self:SELF '>=' Right 60 other:SELF :BOOLEAN <- to_raw >= other.to_raw;
+
+  - Self:SELF '<=' Right 60 other:SELF :BOOLEAN <- to_raw <= other.to_raw;
+
+  - year :UINTEGER_16 <-
+  (
+    (to_raw >> 16).to_uinteger_16
+  );
+
+  - month:UINTEGER_8 <-
+  (
+    ((to_raw & 0FF00h)>>8).to_uinteger_8
+  );
+
+  - day  :UINTEGER_8 <-
+  (
+    (to_raw & 01Fh).to_uinteger_8
+  );
+
+  - week_day :UINTEGER_8 <-
+  (
+    ((to_raw >> 5) & 0111b).to_uinteger_8
+  );
+
+
+Section Public
+
+  - create (y:UINTEGER_16,m,d,wd:UINTEGER_8) :DATE <-
+  ( + date:UINTEGER_32;
+    ? { m.in_range 1 to 12};
+    ? { d.in_range 1 to 31};
+    ? { wd.in_range 1 to 7};
+    date := y.to_uinteger_32 << 16;
+    date := date | (m.to_uinteger_32 << 8);
+    date := date | d;
+    date := date | (wd << 5);
+    CONVERT(UINTEGER_32,SELF).on date
+  );
+
+  - to_string:STRING <-
+  ( + result:STRING;
+    result := STRING.create 13;
+    append_in result;
+    result
+  );
+
+  - append_in str:STRING <-
+  (
+    week_day
+    .when 1 then {
+      str.append "Mo";
+    }
+    .when 2 then {
+      str.append "Tu";
+    }
+    .when 3 then {
+      str.append "We";
+    }
+    .when 4 then {
+      str.append "Th";
+    }
+    .when 5 then {
+      str.append "Fr";
+    }
+    .when 6 then {
+      str.append "Sa";
+    }
+    .when 7 then {
+      str.append "Su";
+    };
+    (week_day != 0).if {
+      str.add_last ' ';
+    };
+    day.append_in str format 2 with '0';
+    str.add_last '/';
+    month.append_in str format 2 with '0';
+    str.add_last '/';
+    year.append_in str format 4;
+  );
+
+  - append_short_in str:STRING <-
+  (
+    day.append_in str format 2 with '0';
+    str.add_last '/';
+    month.append_in str format 2 with '0';
+    str.add_last '/';
+    (year % 100).append_in str format 2 with '0';
+  );
+
+  - append_short2_in str:STRING <-
+  (
+    day.append_in str format 2 with '0';
+    str.add_last '/';
+    month.append_in str format 2 with '0';
+    str.add_last '/';
+    year.append_in str format 4 with '0';
+  );
+
+  - print <-
+  (
+    to_string.print;
+  );
+
+  - encode :UINTEGER_32 <- to_raw;
+
+  - decode i:UINTEGER_32 :SELF <- from_raw i;

@@ -1,0 +1,50 @@
+///////////////////////////////////////////////////////////////////////////////
+//                           Lisaac-OpenGL library                           //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := DEPTH_BUFFER;
+  
+  - comment  := "abstract pixel buffer";
+  
+Section Inherit
+  
+  + parent_state:Expanded STATE;
+
+Section Public
+  
+    // pixel test functions
+  - always:INTEGER <- 0; // test always sucess
+  - never:INTEGER <- 1; // test always fails
+  - less:INTEGER <- 2; // pixel drawn if its Z-value is lesser than the corresponding depth buffer pixel
+  - lequal:INTEGER <- 3; // lesser or equal: (pixelDepth <= bufferDepth) => draw pixel else don't
+  - equal:INTEGER <- 4;
+  - gequal:INTEGER <- 5; // greater or equal
+  - greater:INTEGER <- 6;
+  - notequal:INTEGER <- 7; // not equal
+
+  - set_clear_value val:REAL_32 <- deferred;
+  - clear <- deferred;
+  
+  - lock <- deffered;
+  - unlock <- deffered;
+  
+  - set_function f:INTEGER <- deferred;

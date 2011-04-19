@@ -1,0 +1,67 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := CULLING;
+  
+  - comment  := "Abstract Culling Mode";
+  
+Section Inherit
+  
+  + parent_state:Expanded STATE;
+  
+Section Public
+  
+  // culling modes
+  - front:INTEGER <- 1;
+  - back:INTEGER <- 2;
+  
+  // culling function
+  - clockwise:INTEGER <- 3;
+  - counter_clockwise:INTEGER <- 4;
+  
+  
+  - apply mode:INTEGER <- deferred;
+  - set_orientation o:INTEGER <- deferred;
+  
+  
+  // aliases
+  - apply_front <- 
+  (
+    apply front;
+  );
+  
+  - apply_back <- 
+  (
+    apply back;
+  );
+  
+  - set_clockwise <-
+  (
+    set_orientation clockwise;
+  );
+  
+  - set_counter_clockwise <-
+  (
+    set_orientation counter_clockwise;
+  );
+  

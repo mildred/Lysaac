@@ -1,0 +1,67 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Application                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := CONE;
+  
+  - comment  := "3D cone";
+  
+Section Inherit
+  
+  - parent_framework:FRAMEWORK_ANY := FRAMEWORK_ANY;
+  
+Section Public
+  
+  + radius_base:REAL_32;
+  + cone_height:REAL_32;
+  + slices:REAL_32;
+
+  + position:VECTOR3(REAL_32);
+  
+  
+  - create (p:VECTOR3(REAL_32),r,h,sl:REAL_32) :SELF <-
+  (
+    + result:SELF;
+    result := SELF.clone;
+    result.make (p,r,h,sl);
+    result
+  );
+  
+  - make (p:VECTOR3(REAL_32),r,h,sl:REAL_32) <-
+  (
+    radius_base := r;
+    cone_height := h;
+    slices := sl;
+    position := p;
+  );
+  
+  - render <-
+  ( 
+    renderer.transform.push_matrix;
+    
+    renderer.transform.translatef (position.x, position.y, position.z);
+    
+    renderer.quadrics.new_quadric {
+      renderer.quadrics.draw_cylinder (radius_base,0,cone_height,slices,1);
+    };
+    renderer.transform.pop_matrix;
+  );

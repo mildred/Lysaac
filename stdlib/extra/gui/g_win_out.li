@@ -1,0 +1,494 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := G_WIN_OUT;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+      
+  - author  := "Sonntag Benoit (bsonntag@loria.fr)";
+  - comment := "Group elements for GUI.";
+
+Section Inherit  
+  
+  + parent_g_group:Expanded G_GROUP;
+  
+Section Public  
+  
+  - margin_resize_button:INTEGER := 4;
+  - length_resize_button:INTEGER := 12;
+  
+  - is_resizable:BOOLEAN <- (! root.is_fix_width) || {! root.is_fix_height};
+  
+  + title_len:INTEGER;
+  
+  + title:ABSTRACT_STRING;
+  
+  + stat:INTEGER_8;
+    
+  - is_open:BOOLEAN <- (stat & 1) != 0;
+  
+  - open_by src:G_GROUP <-
+  ( + px,py,w,h:INTEGER;
+    + p:AREA;
+    
+    (stat = 0).if {	
+      ((title = NULL) && {src != NULL}).if {	
+	w := width_min;
+	h := height_min;
+	(src.is_horizontal).if {
+	  px := src.x_window;
+	  py := src.y_window + src.height;
+	  ((px + w) > DESK.x_max).if {
+	    px := DESK.x_max - w;
+	  };
+	  ((py + h) > DESK.y_max).if {
+	    py := src.y_window - h;
+	  };
+	} else {
+	  px := src.x_window + src.width;
+	  py := src.y_window;
+	  ((px + w) > DESK.x_max).if {
+	    px := src.x_window - w;
+	  };
+	  ((py + h) > DESK.y_max).if {
+	    py := DESK.y_max - h;
+	  };
+        };	  	  
+        p := src.parent;
+        {(p != NULL) && {p != DESK.virtual_screen}}.while_do {
+          p := p.parent;
+        };
+        (p = NULL).if {
+          set_position DESK at (px,py);
+        } else {
+          set_position (DESK.virtual_screen) at 
+          (px-DESK.virtual_screen.x_window,py-DESK.virtual_screen.y_window);
+        };
+      } else {
+	px := (DESK.width  - width_min ) / 2;
+        py := (DESK.height - height_min) / 2;
+        set_position (DESK.virtual_screen) at 
+        (px-DESK.virtual_screen.x_window,py-DESK.virtual_screen.y_window);
+      };      
+      stat := 01b;	
+    };       
+  );
+    
+  - close <-
+  (
+    delete;
+    stat := 0;
+  );
+  
+  //
+  // Creation.
+  //
+  
+  - create t:ABSTRACT_STRING with elt:G_EXPR :SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make t with elt;
+    result
+  );
+  
+  - make t:ABSTRACT_STRING with elt:G_EXPR <-
+  (
+    title_len := BITMAP(PIXEL_32).font_width t + 2 + 12;
+    title := t;
+    root := elt;
+  );
+  
+  //
+  // Size.
+  //
+  
+  - predict_size (w,h:INTEGER) with_title t:BOOLEAN :(INTEGER,INTEGER) <-
+  ( + rw,rh:INTEGER;
+    
+    (t).if {
+      rw := w +  2 + margin_resize_button;
+      rh := h + 18 + margin_resize_button;
+    } else {
+      rw := w + 2;
+      rh := h + 2;
+    };
+    rw , rh
+  );  
+  
+  - width_min:INTEGER <-
+  ( + result:INTEGER;
+    
+    result := parent_g_group.width_min + 2;
+    ((title != NULL) && {is_resizable}).if {
+      result := result + margin_resize_button;
+    };
+    result
+  );
+  
+  - height_min:INTEGER <-
+  ( + result:INTEGER;
+    
+    result := parent_g_group.height_min;
+    (title = NULL).if {
+      result := result + 2;
+    } else {
+      result := result + 17 + 1;
+      (is_resizable).if {
+        result := result + margin_resize_button;
+      };
+    };    
+    result
+  );
+
+  //
+  // Update position.
+  //
+    
+  - set_position rac:AREA at (x,y:INTEGER) size (w,h:INTEGER) <-
+  ( + px,py,pw,ph:INTEGER;
+    update rac from (x,y) size (w,h);
+    px := 1;
+    pw := w-2;
+    (title = NULL).if {
+      py := 1;      
+      ph := h-2;      
+    } else {
+      py := 17;
+      ph := h-18;
+      (is_resizable).if {
+        pw := pw - margin_resize_button;
+        ph := ph - margin_resize_button;
+      };
+    };    
+    root.set_position Self at (px,py) size (pw,ph);
+  );
+  
+  //
+  // Display.
+  //
+  
+  - draw_slave bmp:ABSTRACT_BITMAP from (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  (    
+    // Nothing.
+  );
+  
+  - draw (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  ( + xm,ym:INTEGER;
+    clipping (x0,y0) to (x1,y1);    
+    
+    (title = NULL).if {      
+      rectangle (0,0) to (x_max,y_max) color black;
+      draw_slave Self from (1,1) to (x_max-1,y_max-1);      
+    } else {
+      color 646496h;
+      line_v (0,15) until 0;
+      line_h_until (title_len+1);
+      line_to (title_len+1+15,15);
+        
+      // Border out.
+      (is_resizable).if {
+        xm := x_max - margin_resize_button;        
+        ym := y_max - margin_resize_button;
+        color 646496h;                
+        line_v (xm-length_resize_button,ym+1) until y_max;
+        line_h_until x_max;
+        line_v_until (ym-length_resize_button);
+        line_h_until (xm+1);
+        rectangle_fill (xm-length_resize_button+1,ym+1) to (x_max-1,y_max-1) color 0C8C8FFh;
+        rectangle_fill (xm+1,ym-length_resize_button+1) to (x_max-1,ym);
+      } else {
+        xm := x_max;
+        ym := y_max;
+      };      
+      rectangle (0,16) to (xm,ym) color black;      
+                        
+      // Title background.
+      color 0C8C8FFh;
+      poly_move_to (1,1);
+      poly_line_to ((title_len+1),1);
+      poly_line_to ((title_len+15),15);
+      poly_line_to (1,15);
+      poly_line_to (1,1);
+      poly_rectangle (2,3) to (4+9,3+9);      
+      poly_trace;
+            
+      draw_border_in (3,3) to (3+9,3+9);
+      rectangle_fill (4,4) to (3+8,3+8) color color_back;
+      
+      // Title.
+      //((stat & 10b) = 0).if {
+      color black;
+      //} else {
+	//color red;
+      //};    
+      print title to (3+12,(-1));    
+    };
+  );
+  
+  - slave_pixel_hard (x,y:INTEGER) color col:UINTEGER_32 <- 
+  ( + xm,ym:INTEGER;
+    (title != NULL).if {
+      (y < 16).if {
+        (x > (title_len+1+y)).if {
+          pixel_hard (x,y) color col;
+        };
+      } else {
+        (is_resizable).if {
+          xm := x_max - margin_resize_button;
+          ym := y_max - margin_resize_button;
+          (
+            (
+              (y.in_range 17 to (ym-1)) && 
+              {x.in_range  1 to (xm-1)}
+            ) || {
+              (y > ym) &&
+              {x < xm-length_resize_button}
+            } || {
+              (y < ym-length_resize_button) &&
+              {x > xm}
+            }
+          ).if {
+            pixel_hard (x,y) color col;
+          };
+        } else {
+          ((y != 16) && {y != y_max} && {x != 0} && {x != x_max}).if {
+            pixel_hard (x,y) color col;
+          };
+        };
+      };
+    };
+  );
+  
+  - slave_line_h_hard (x1,y:INTEGER) until x2:INTEGER color col:UINTEGER_32 <- 
+  ( + new_x1,new_x2,xm,ym:INTEGER;
+    
+    (title != NULL).if {            
+      (y < 16).if {
+        (x2 > (title_len+1+y)).if {
+          new_x1:=x1.max (title_len+2+y);
+          line_h_hard (new_x1,y) until x2 color col;
+        };
+      } else {
+        (is_resizable).if {
+          xm := x_max - margin_resize_button;
+          ym := y_max - margin_resize_button;
+          (y = 16).if {              
+            (x2 > xm).if {
+              new_x1 := x1.max (xm+1);
+              line_h_hard (new_x1,y) until x2 color col;
+            };
+          }.elseif {y < ym - length_resize_button} then {            
+            (x2 > xm).if {
+              new_x1 := x1.max (xm+1);
+              line_h_hard (new_x1,y) until x2 color col;              
+            };
+            (x1 < xm).if {
+              new_x1 := x1.max 1;
+              new_x2 := x2.min (xm-1);
+              (new_x1 <= new_x2).if {
+                line_h_hard (new_x1,y) until new_x2 color col;
+              };
+            };
+          }.elseif {y < ym} then {
+            new_x1 := x1.max 1;
+            new_x2 := x2.min (xm-1);
+            (new_x1 <= new_x2).if {
+              line_h_hard (new_x1,y) until new_x2 color col;
+            };
+          }.elseif {y > ym} then {
+            (x1 < xm-length_resize_button).if {
+              new_x2 := x2.min (xm-length_resize_button-1);
+              line_h_hard (x1,y) until new_x2 color col;
+            };
+          };            
+        } else {
+          ((y != 16) && {y != y_max} && {x2 > 0} && {x1 < x_max}).if {
+            new_x1:=x1.max 1;
+            new_x2:=x2.min (x_max-1);            
+            line_h_hard (new_x1,y) until new_x2 color col;
+          };
+        };
+      };
+    };
+  );
+
+  - slave_line_h_hard (x1,y:INTEGER) until x2:INTEGER 
+  image line:ABSTRACT_BMP_LINE offset ofs:INTEGER <-
+  ( + new_x1,new_x2,new_ofs,xm,ym:INTEGER;
+    
+    (title != NULL).if {            
+      (y < 16).if {
+        (x2 > (title_len+1+y)).if {
+          new_x1:=x1.max (title_len+2+y);
+          new_ofs := ofs + new_x1 - x1;
+          line_h_hard (new_x1,y) until x2 image line offset new_ofs;
+        };
+      } else {
+        (is_resizable).if {
+          xm := x_max - margin_resize_button;
+          ym := y_max - margin_resize_button;
+          (y = 16).if {              
+            (x2 > xm).if {
+              new_x1 := x1.max (xm+1);
+              new_ofs := ofs + new_x1 - x1;
+              line_h_hard (new_x1,y) until x2 image line offset new_ofs;
+            };
+          }.elseif {y < ym - length_resize_button} then {            
+            (x2 > xm).if {
+              new_x1 := x1.max (xm+1);
+              new_ofs := ofs + new_x1 - x1;
+              line_h_hard (new_x1,y) until x2 image line offset new_ofs;
+            };
+            (x1 < xm).if {
+              new_x1 := x1.max 1;
+              new_x2 := x2.min (xm-1);
+              (new_x1 <= new_x2).if {
+                new_ofs := ofs + new_x1 - x1;
+                line_h_hard (new_x1,y) until new_x2 image line offset new_ofs;
+              };
+            };
+          }.elseif {y < ym} then {
+            new_x1 := x1.max 1;
+            new_x2 := x2.min (xm-1);
+            (new_x1 <= new_x2).if {
+              new_ofs := ofs + new_x1 - x1;
+              line_h_hard (new_x1,y) until new_x2 image line offset new_ofs;
+            };
+          }.elseif {y > ym} then {
+            (x1 < xm-length_resize_button).if {
+              new_x2 := x2.min (xm-length_resize_button-1);
+              line_h_hard (x1,y) until new_x2 image line offset ofs;
+            };
+          };            
+        } else {
+          ((y != 16) && {y != y_max} && {x2 > 0} && {x1 < x_max}).if {
+            new_x1:=x1.max 1;
+            new_x2:=x2.min (x_max-1);            
+            new_ofs := ofs + new_x1 - x1;
+            line_h_hard (new_x1,y) until new_x2 image line offset new_ofs;
+          };
+        };
+      };
+    };    
+  );
+
+  //
+  // Event.
+  //
+    
+  - receive msg:EVENT <-  
+  ( + mouse:EVENT_MOUSE;
+    + timer:EVENT_TIMER;
+    + win:AREA;    
+    + xr,yr,new_width,new_height:INTEGER;
+    + new_stat:INTEGER_8;
+
+    mouse ?= msg;        
+    timer ?= msg;
+    (mouse != NULL).if {             
+      xr := mouse.x_relative;
+      yr := mouse.y_relative;
+      (
+        (xr.in_range 4 to (3+8)) &&
+        {yr.in_range 4 to (3+8)}
+      ).if {
+        // Cancel.
+        new_stat := 0011b;
+      }.elseif {yr < 16} then {
+        // Move / First.
+        new_stat := 0101b;
+      } else {
+        // Resize.
+        new_stat := 1001b;
+      };
+      (mouse.left_up).if {
+        stat := new_stat;
+      }.elseif {mouse.left_down} then {
+        ((stat = new_stat) && {new_stat = 0011b}).if {
+          close;
+        } else {
+          (stat = 1001b).if {
+            set_position parent at (get_x_window,get_y_window) size (width,height);
+          };
+          stat := 0001b;        
+        };
+      }.elseif {(mouse.left) && {mouse.is_moving_only}} then {
+        (stat = 0101b).if {
+          move (mouse.dx,mouse.dy);
+        }.elseif {stat = 1001b} then {          
+          (root.is_fix_width).if {
+            new_width := width;
+          } else {
+            new_width  := (xr+1).max width_min;
+          };
+          (root.is_fix_height).if {
+            new_height := height;
+          } else {
+            new_height := (yr+1).max height_min;
+          };
+          resize (new_width,new_height);
+          //
+        };
+      }.elseif {(mouse.right_down) && {new_stat = 0101b}} then {
+        first;
+      } else {
+        win := DESK.get_object ((mouse.x_current),(mouse.y_current));
+        (win != Self).if {	  
+          DESK.receive msg;
+        };
+      };      
+    }.elseif {timer != NULL} then {
+      (stat = 1001b).if {
+        set_position parent at (get_x_window,get_y_window) size (width,height);
+      };
+    };
+  );
+    
+  - get_object (x,y:INTEGER) :AREA <-
+  ( + result:AREA;
+    + rel_x,rel_y:INTEGER;
+    
+    result := parent_g_group.get_object (x,y);
+    
+    (result = Self).if {
+      (title != NULL).if {
+	rel_x := x - x_window;
+        rel_y := y - y_window;
+        ((rel_y >= 16) || {rel_x > (title_len+1+rel_y)}).if {
+          (is_resizable).if {
+            (
+              (rel_y < y_max-margin_resize_button-length_resize_button) ||
+              {rel_x < x_max-margin_resize_button-length_resize_button}
+            ).if {
+              result := NULL;
+            };            
+          } else {
+            result := NULL;
+          };	  
+	};
+      };
+    };
+    result
+  );
+

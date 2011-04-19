@@ -1,0 +1,58 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                             //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := SHADER;
+  
+  - comment  := "Abstract Shader Object";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  - create (vertex_shader,fragment_shader:ABSTRACT_STRING) :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make (vertex_shader,fragment_shader);
+    result
+  );
+  
+  - make (vertex_shader,fragment_shader:ABSTRACT_STRING) <- deferred;
+  
+  - has_compiled:BOOLEAN <- deferred;
+  - get_infolog buffer:STRING <- deferred;
+  
+  - enable <- deferred;
+  - disable <- deferred;
+  
+  - get_uniform_location varname:ABSTRACT_STRING :INTEGER <- deferred;
+  
+  - set_uniform1f loc:INTEGER to val:REAL_32 <- deferred;
+  - set_uniform2f loc:INTEGER to (v0,v1:REAL_32) <- deferred;
+  - set_uniform3f loc:INTEGER to (v0,v1,v2:REAL_32) <- deferred;
+  - set_uniform4f loc:INTEGER to (v0,v1,v2,v3:REAL_32) <- deferred;
+  
+  - bind_sampler tex:TEXTURE unit u:INTEGER location loc:INTEGER <- deferred;
+  
+  - delete <- deferred;

@@ -1,0 +1,45 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_HMTX_DATA;
+  - comment     :=" hmtx: Long Horizontal Metrics type .";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Mapping
+  
+  + advance_width:UINTEGER_8;
+  
+  + lsb:INTEGER_8;
+  
+Section Public
+  
+  - to_big_endian <-
+  (
+    advance_width := PROCESSOR.to_motorola_ushort advance_width;
+    lsb := PROCESSOR.to_motorola_short lsb;
+  );
+  
+  - print <-
+  (
+    "\n     Advance width:".print;
+    advance_width.print;
+    " ,    Lsb:".print;
+    lsb.print;
+  );

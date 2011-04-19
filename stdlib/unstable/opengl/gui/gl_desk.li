@@ -1,0 +1,144 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name    := GL_DESK;
+  
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Sonntag Benoit (bsonntag@loria.fr)";
+  - comment     :="User Interface and Events managment.";
+  
+Section Inherit  
+  
+  - parent_desk:DESK := DESK;
+  
+  - parent_platform:PLATFORM := PLATFORM;
+  
+Section Private  
+  
+  - current_time:UINTEGER_32; 
+  - prev_time:UINTEGER_32;
+  - time_per_frame:UINTEGER_32;
+  
+Section Public
+  
+  //   Video.width
+  // +----------+
+  // | Physical |
+  // |  Screen  | Video.height
+  // +----------+
+  //   /      \
+  // |\     +----------+
+  //  L     |   Desk   |  <-- double-buffered GL Desk
+  // Mouse  |          |
+  //        +----------+
+  //             |
+  //             |  Video.width * w
+  //        +-----------------------+
+  //        |   Virtual Screen      | Video.height * h
+  //        |                       |
+  //        +-----------------------+
+  
+  
+  - make bmp:ABSTRACT_BITMAP scale (w,h:INTEGER) with elt:G_EXPR <-
+  [
+    -? {w > 0};
+    -? {h > 0};
+  ]
+  ( + msg:EVENT;    
+    + input:INPUT;
+    + frame_time:UINTEGER_32;
+    
+    set_video_support bmp;
+    physical_screen := AREA.clone;
+    physical_screen.make NULL from (0,0) size (bmp.width,bmp.height);    
+    //
+    root := elt;
+    //
+    (GL_DRIVER.is_initialized).if {
+      GL_EVENT_SYSTEM.make;
+    } else {
+      EVENT_SYSTEM.make;
+    };    
+    focus := Self;    
+    //    
+    set_position physical_screen at (0,0) 
+    size (physical_screen.width,physical_screen.height);
+    
+    virtual_screen := VIRTUAL_SCREEN.create Self scale (w,h);
+    connect_to MOUSE;    
+    connect_to KEYBOARD;      
+    connect_to TIMER;
+
+    // Timer
+    init_time;
+    set_fps 60;
+    current_time := get_milliseconds;
+    
+    {      
+      (GL_DRIVER.is_initialized).if {
+        GL_EVENT_SYSTEM.get_event;
+      } else {
+        EVENT_SYSTEM.get_event;
+      };
+      
+      {storage_message.is_empty}.until_do {
+        msg := storage_message.first;
+        storage_message.remove_first;
+        msg.set_destination focus;
+        focus.receive msg;	
+        input ?= msg.source;
+        input.acknowledge;
+      };
+      
+      (GL_DRIVER.is_initialized).if {
+        
+        // update timer
+        prev_time := current_time;
+        current_time := get_milliseconds;
+        frame_time := current_time - prev_time;
+        (frame_time <= 0).if {
+          frame_time := 1;
+        };
+
+        //
+        GL_DRIVER.render (frame_time.to_real/1000.0);
+        //
+        
+        // sleep to keep constant framerate
+        (time_per_frame > 0).if {
+          (frame_time < time_per_frame).if { 
+            delay (time_per_frame - frame_time);
+          };
+        };
+      };
+    }.do_while {`1`:BOOLEAN(TRUE,FALSE)}; // Infinity Loop     
+    
+    // unreachable !!!
+    VIDEO.close;	
+  );
+  
+  - set_fps n:INTEGER <-
+  (
+    time_per_frame := 1000/n;
+  );

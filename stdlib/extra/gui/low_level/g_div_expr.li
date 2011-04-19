@@ -1,0 +1,117 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name        := G_DIV_EXPR;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment     := "Frame representation base";
+    
+  - author      := "Benoit Sonntag (bsonntag@loria.fr)";
+  
+Section Inherit
+  
+  + parent_g_binary_expr:Expanded G_BINARY_EXPR;
+  
+Section Public
+  
+  - make l:G_EXPR and r:G_EXPR <-
+  (
+    left  := l;
+    right := r;    
+    left .set_attribute_bit vertical_bit; 
+    right.set_attribute_bit vertical_bit; 
+  );
+  
+  //
+  // Size.
+  //
+  
+  - predict_size (lw,lh:INTEGER) and (rw,rh:INTEGER) :(INTEGER,INTEGER) <-
+  (
+    lw.max rw, lh + rh
+  );
+
+  - width_min:INTEGER <-
+  (
+    left.width_min.max (right.width_min)
+  );
+  
+  - height_min:INTEGER <-
+  (
+    left.height_min + right.height_min
+  );
+  
+  - width_max:INTEGER <- 
+  ( + result:INTEGER;
+    
+    (is_fix_width).if {
+      result := width_min;
+    } else {
+      result := left.width_max.max (right.width_max);
+    };
+    result
+  );
+  
+  - height_max:INTEGER <- 
+  ( + result:INTEGER;
+    
+    (is_fix_height).if {
+      result := height_min;
+    } else {
+      result := left.height_max + right.height_max;
+    };
+    result
+  );
+  
+  //
+  // Update position.
+  //
+  
+  - set_position rac:AREA at (x,y:INTEGER) size (w,h:INTEGER) <-
+  ( + h_min:INTEGER;
+    + h_left,h_left_min,h_left_max:INTEGER;
+    + h_right,h_right_max:INTEGER;
+    
+    h_min  := height_min;
+    //
+    h_left_min := left.height_min;
+    h_left_max := left.height_max;
+    //
+    h_right_max := right.height_max;
+    //
+    h_left := `(int)(((float)@h) / @h_min * @h_left_min)`:INTEGER; // BSBS: REAL !!!
+    h_right := h - h_left;
+    //
+    (h_right > h_right_max).if {
+      h_right := h_right_max;
+      h_left  := (h - h_right).min h_left_max;      
+    }.elseif {h_left > h_left_max} then {
+      h_left := h_left_max;
+      h_right := (h - h_left).min h_right_max;      
+    };
+    //
+    left .set_position rac at (x,y)        size (w.min (left.width_max),h_left );
+    right.set_position rac at (x,y+h_left) size (w.min (right.width_max),h_right);
+  );
+

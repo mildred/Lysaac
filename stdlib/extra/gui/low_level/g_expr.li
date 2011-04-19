@@ -1,0 +1,181 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name        := G_EXPR;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment     := "Frame representation base";
+    
+  - author      := "Benoit Sonntag (bsonntag@loria.fr)";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  + attribute:UINTEGER_8;
+  
+  - fix_width_bit :UINTEGER_8 := 0001b;
+  - fix_height_bit:UINTEGER_8 := 0010b;
+  
+  - horizontal_bit:UINTEGER_8 := 0100b;
+  - vertical_bit  :UINTEGER_8 := 1000b; 
+  
+  - is_fix_width:BOOLEAN  <- (attribute & fix_width_bit ) != 0;
+  - is_fix_height:BOOLEAN <- (attribute & fix_height_bit) != 0;
+  
+  - is_horizontal:BOOLEAN <- (attribute & horizontal_bit) != 0;
+  - is_vertical  :BOOLEAN <- (attribute & vertical_bit  ) != 0;
+  
+  - set_attribute_bit flag:UINTEGER_8 <-
+  (
+    attribute := attribute | flag;
+  );
+  
+  - fix_width:SELF <-
+  (
+    set_attribute_bit fix_width_bit;
+    Self
+  );
+  
+  - fix_height:SELF <-
+  (
+    set_attribute_bit fix_height_bit;
+    Self
+  );
+  
+  //
+  // Dimension.
+  //  
+  
+  - width_min:INTEGER <-
+  (
+    deferred;
+    0
+  )
+  [
+    +? {Result >= 0};
+  ];
+  
+  - height_min:INTEGER <-
+  (
+    deferred;
+    0
+  )
+  [
+    +? {Result >= 0};
+  ];
+  
+  - width_max:INTEGER <-
+  ( + result:INTEGER;
+    
+    (is_fix_width).if {
+      result := width_min;
+    } else {
+      result := 100_000;
+    };
+    result
+  )
+  [
+    +? {Result >= width_min};
+  ];
+  
+  - height_max:INTEGER <-
+  ( + result:INTEGER;
+    
+    (is_fix_height).if {
+      result := height_min;
+    } else {
+      result := 100_000;
+    };
+    result
+  )
+  [
+    +? {Result >= height_min};
+  ];
+  
+  //
+  // Operator position.
+  //
+    
+  - Self:SELF '|' Right 40 other:G_EXPR :G_EXPR <-
+  ( 
+    G_OR_EXPR.create Self and other
+  );
+
+  - Self:SELF '/' Right 40 other:G_EXPR :G_EXPR <-
+  ( 
+    G_DIV_EXPR.create Self and other
+  );
+  
+  //
+  // Update position.
+  //
+  
+  - set_position rac:AREA at (x,y:INTEGER) size (w,h:INTEGER) <-
+  [
+    -? {w >= width_min};
+    -? {h >= height_min};
+  ]
+  (
+    deferred;
+  );
+  
+  - refresh <- deferred;
+    
+  //
+  // Style...
+  //
+  
+  - color_dark:UINTEGER_32      := 01E527Fh;
+  - color_light:UINTEGER_32     := 0D0E1EFh;
+  
+  - color_back:UINTEGER_32      := 083AAD3h;  
+  - color_back_light:UINTEGER_32:= color_back + 101010h;  
+
+  - draw_border_in (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  (
+    color color_dark;
+    move_to (x0,y1);
+    line_v_until y0;
+    line_h_until x1;
+    color color_light;
+    line_v_until y1;
+    line_h_until x0;
+  );
+  
+  - draw_border_out (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  (
+    color color_light;
+    move_to (x0,y1);
+    line_v_until y0;
+    line_h_until x1;
+    color color_dark;
+    line_v_until y1;
+    line_h_until x0;
+  );
+
+  
+  

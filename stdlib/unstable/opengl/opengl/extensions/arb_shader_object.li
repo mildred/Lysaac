@@ -1,0 +1,223 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := ARB_SHADER_OBJECT;
+  
+  - comment  := "GL_ARB_shader_object extension";
+  
+  - external := `
+  
+  #define GL_OBJECT_COMPILE_STATUS_ARB      0x8B81
+  #define GL_OBJECT_INFO_LOG_LENGTH_ARB     0x8B84
+
+  typedef GLuint (APIENTRY * LIGLCREATESHADERARBPROC) (GLenum target);
+  typedef void (APIENTRY * LIGLSHADERSOURCEARBPROC) (GLuint shader, int numOfStrings, char** strings, int* lenOfStrings);
+  typedef void (APIENTRY * LIGLCOMPILESHADERARBPROC) (GLuint shader);
+  typedef GLuint (APIENTRY * LIGLCREATEPROGRAMARBPROC) (void);
+  typedef void (APIENTRY * LIGLATTACHOBJECTARBPROC) (GLuint program, GLuint shader);
+  typedef void (APIENTRY * LIGLLINKPROGRAMARBPROC) (GLuint program);
+  typedef void (APIENTRY * LIGLUSEPROGRAMARBPROC) (GLuint program);
+  typedef void (APIENTRY * LIGLDELETEOBJECTBPROC) (GLuint object);
+  
+  typedef void (APIENTRY * LIGLGETINFOLOGARBPROC) (GLuint obj, GLint sz, GLint* len, char* infolog);
+   typedef void (APIENTRY * LIGLPARAMARBPROC) (GLuint obj, GLenum name, GLint* params);
+  
+  typedef GLint (APIENTRY * LIGLGETUNIFORMLOCATIONARBPROC) (GLuint pgm, char* name);
+  typedef void (APIENTRY * LIGLUNIFORM1FARBPROC) (GLint loc,GLfloat v0);
+  typedef void (APIENTRY * LIGLUNIFORM2FARBPROC) (GLint loc,GLfloat v0,GLfloat v1);
+  typedef void (APIENTRY * LIGLUNIFORM3FARBPROC) (GLint loc,GLfloat v0,GLfloat v1,GLfloat v2);
+  typedef void (APIENTRY * LIGLUNIFORM4FARBPROC) (GLint loc,GLfloat v0,GLfloat v1,GLfloat v2,GLfloat v3);
+  
+  LIGLCREATESHADERARBPROC    liglCreateShaderARB = NULL;
+  LIGLSHADERSOURCEARBPROC    liglShaderSourceARB = NULL;
+  LIGLCOMPILESHADERARBPROC   liglCompileShaderARB = NULL;
+  LIGLCREATEPROGRAMARBPROC   liglCreateProgramObjectARB = NULL;
+  LIGLATTACHOBJECTARBPROC    liglAttachObjectARB = NULL;
+  LIGLLINKPROGRAMARBPROC     liglLinkProgramARB = NULL;
+  LIGLUSEPROGRAMARBPROC      liglUseProgramObjectARB = NULL;
+  LIGLDELETEOBJECTBPROC      liglDeleteObjectARB = NULL;
+  LIGLGETINFOLOGARBPROC      liglGetInfoLogARB = NULL;   
+  LIGLPARAMARBPROC           liglGetParameterivARB = NULL;
+  
+  LIGLGETUNIFORMLOCATIONARBPROC liglGetUniformLocationARB = NULL;
+  LIGLUNIFORM1FARBPROC  liglUniform1fARB = NULL;
+  LIGLUNIFORM2FARBPROC  liglUniform2fARB = NULL;
+  LIGLUNIFORM3FARBPROC  liglUniform3fARB = NULL;
+  LIGLUNIFORM4FARBPROC  liglUniform4fARB = NULL;
+  int GL_ARB_shader_object_dummy;
+  `;
+  
+Section Inherit
+  
+  - parent_gl_extension:GL_EXTENSION := GL_EXTENSION;
+  
+Section Public
+  
+  - name:STRING_CONSTANT := "GL_ARB_shader_object";
+  
+  - make <-
+  (
+    `liglCreateShaderARB = (LIGLCREATESHADERARBPROC) GPA("glCreateShaderObjectARB")`;
+    `liglShaderSourceARB = (LIGLSHADERSOURCEARBPROC) GPA("glShaderSourceARB")`;
+    `liglCompileShaderARB = (LIGLCOMPILESHADERARBPROC) GPA("glCompileShaderARB")`;
+    `liglCreateProgramObjectARB = (LIGLCREATEPROGRAMARBPROC) GPA("glCreateProgramObjectARB")`;
+    `liglAttachObjectARB = (LIGLATTACHOBJECTARBPROC) GPA("glAttachObjectARB")`;
+    `liglLinkProgramARB = (LIGLLINKPROGRAMARBPROC) GPA("glLinkProgramARB")`;
+    `liglUseProgramObjectARB = (LIGLUSEPROGRAMARBPROC) GPA("glUseProgramObjectARB")`;
+    `liglDeleteObjectARB = (LIGLDELETEOBJECTBPROC) GPA("glDeleteObjectARB")`;
+    `liglGetInfoLogARB = (LIGLGETINFOLOGARBPROC) GPA("glGetInfoLogARB")`; 
+    `liglGetParameterivARB = (LIGLPARAMARBPROC) GPA("glGetObjectParameterivARB")`;
+    
+    `liglGetUniformLocationARB = (LIGLGETUNIFORMLOCATIONARBPROC) GPA("glGetUniformLocationARB")`;
+    `liglUniform1fARB = (LIGLUNIFORM1FARBPROC) GPA("glUniform1fARB")`;
+    `liglUniform2fARB = (LIGLUNIFORM2FARBPROC) GPA("glUniform2fARB")`;
+    `liglUniform3fARB = (LIGLUNIFORM3FARBPROC) GPA("glUniform3fARB")`;
+    `liglUniform4fARB = (LIGLUNIFORM4FARBPROC) GPA("glUniform4fARB")`;
+  );
+  
+  - create_program:UINTEGER_32 <-
+  (
+    `liglCreateProgramObjectARB()`:UINTEGER_32
+  );
+  
+  - attach_object (program,shader:UINTEGER_32) <- 
+  (
+    `liglAttachObjectARB(@program, @shader)`;
+  );
+  
+  - link_program program:UINTEGER_32 <-
+  (
+    `liglLinkProgramARB(@program)`;
+  );
+  
+  - use_program program:UINTEGER_32 <-
+  (
+    `liglUseProgramObjectARB(@program)`;
+  );
+  
+  - create_vertex_shader:UINTEGER_32 <-
+  (
+    `liglCreateShaderARB(GL_VERTEX_SHADER_ARB)`:UINTEGER_32
+  );
+  
+  - create_fragment_shader:UINTEGER_32 <-
+  (
+    `liglCreateShaderARB(GL_FRAGMENT_SHADER_ARB)`:UINTEGER_32
+  );
+  /*
+  - shader_source shader:INTEGER strings src:FAST_ARRAY[STRING] size sz:FAST_ARRAY[INTEGER]<-
+  (
+    + n:INTEGER;
+    + p,p2:POINTER;
+    
+    n := src.count;
+    p := src.to_external;
+    p2 := sz.to_external;
+    `liglShaderSourceARB(@shader, @n, @p, @p2)`;
+  );
+  */
+  - shader_source shader:INTEGER string src:STRING <-
+  (
+    + p:NATIVE_ARRAY(CHARACTER);
+    
+    p := src.to_external;
+    `liglShaderSourceARB(@shader, 1, (char**)(&@p), NULL)`;
+  );
+  /*
+  - shader_source shader:INTEGER string src:STRING size n:INTEGER <-
+  (
+    + p:NATIVE_ARRAY[CHARACTER];
+    
+    p := src.to_external;
+    `liglShaderSourceARB(@shader, 1, (char**)(&@p), @n)`;
+  );
+  */
+  - compile shader:UINTEGER_32 <-
+  (
+    `liglCompileShaderARB(@shader)`;
+  );
+  
+  - delete_object obj:UINTEGER_32 <-
+  (
+    `liglDeleteObjectARB(@obj)`;
+  );
+  
+  - get_parameteri (obj,pname:UINTEGER_32) :INTEGER <-
+  ( 
+    `liglGetParameterivARB(@obj, @pname, &GL_ARB_shader_object_dummy)`;
+    `GL_ARB_shader_object_dummy`:INTEGER
+  );
+  
+  - get_parameteriv (obj,pname:UINTEGER_32) in buf:FAST_ARRAY(INTEGER) <- // ??
+  ( + p:POINTER;
+    
+    p := buf.to_external;
+    `liglGetParameterivARB(@obj, @pname, @p)`;
+  );
+  
+  - get_infolog_status obj:UINTEGER_32 :INTEGER <-
+  (
+    get_parameteri (obj,`GL_OBJECT_COMPILE_STATUS_ARB`:UINTEGER_32)
+  );
+    
+  - get_infolog_length obj:UINTEGER_32 :INTEGER <-
+  (
+    get_parameteri (obj,`GL_OBJECT_INFO_LOG_LENGTH_ARB`:UINTEGER_32)
+  );
+  
+  - get_infolog obj:UINTEGER_32 in buffer:FAST_ARRAY(CHARACTER) size sz:INTEGER <-
+  ( + p:POINTER;
+
+    p := buffer.to_external;
+    `liglGetInfoLogARB(@obj, @sz, &GL_ARB_shader_object_dummy, @p)`;
+  );
+  
+  - get_uniform_location (program:UINTEGER_32, name:ABSTRACT_STRING) :INTEGER <-
+  ( + p:NATIVE_ARRAY(CHARACTER);
+    
+    p := name.to_external;
+    `liglGetUniformLocationARB(@program, @p)`:INTEGER
+  );
+  
+  - uniform1f (location:INTEGER, v0:REAL_32) <-
+  (
+    `liglUniform1fARB(@location, @v0)`;
+  );
+  
+  - uniform2f (location:INTEGER, v0,v1:REAL_32) <-
+  (
+    `liglUniform2fARB(@location, @v0, @v1)`;
+  );
+  
+  - uniform3f (location:INTEGER, v0,v1,v2:REAL_32) <-
+  (
+    `liglUniform3fARB(@location, @v0, @v1, @v2)`;
+  );
+  
+  - uniform4f (location:INTEGER, v0,v1,v2,v3:REAL_32) <-
+  (
+    `liglUniform4fARB(@location, @v0, @v1, @v2, @v3)`;
+  );
+  
+  
+  

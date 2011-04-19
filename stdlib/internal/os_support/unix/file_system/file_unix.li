@@ -1,0 +1,120 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := FILE_UNIX;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := "File management";
+
+Section Inherit
+
+  + parent_entry_unix:Expanded ENTRY_UNIX;
+
+  + parent_file:Expanded FILE;
+
+Section Private
+
+  + stream:POINTER; // Unix file pointer (FILE *).
+
+Section Public
+
+  //
+  // Physical implementation.
+  //
+
+  - is_open:BOOLEAN <- stream != NULL;
+
+  - size:UINTEGER_32 <-
+  ( + pe:NATIVE_ARRAY(CHARACTER);
+    + result:UINTEGER_32;
+    pe := path.to_external;
+    `{ struct stat t; stat(@pe,&t)`;
+      result := `t.st_size`:UINTEGER_32;
+    `}`;
+    result
+  );
+
+  - cursor:UINTEGER_32 <-
+  ( + str:POINTER;
+    str := stream;
+    `ftell((FILE *)@str)`:UINTEGER_32
+  );
+
+  - set_cursor n:UINTEGER_32 <-
+  [
+    ...
+    -? {stream != NULL};
+    -? {n <= size};
+  ]
+  ( + str:POINTER;
+    str := stream;
+    `fseek((FILE*)(@str),@n,SEEK_SET)`;
+  );
+
+  - open:BOOLEAN <-
+  [
+    -? {stream = NULL};
+  ]
+  ( + pa:NATIVE_ARRAY(CHARACTER);
+
+    pa := path.to_external;
+    stream := `fopen((char*)@pa,"r+b")`:(POINTER);
+    stream != NULL
+  );
+
+  - open_read_only:BOOLEAN <-
+  ( + pa:NATIVE_ARRAY(CHARACTER);
+    pa := path.to_external;
+    stream := `fopen((char*)@pa,"rb")`:(POINTER);
+    stream != NULL
+  );
+
+  - close <-
+  [
+    -? {stream != NULL};
+  ]
+  ( + str:POINTER;
+
+    str := stream;
+    `fclose((FILE*)(@str))`;
+    stream := NULL;
+  );
+
+Section FILE
+
+  - physical_read buf:NATIVE_ARRAY(UINTEGER_8) size s:INTEGER :INTEGER <-
+  // return size read or 0 if end of input (-1 on error => exception ?)
+  ( + str:POINTER;
+    str := stream;
+    `fread((void *)(@buf),(size_t)(1), (size_t)(@s),(FILE*)(@str))`:(INTEGER)
+  );
+
+  - physical_write buf:NATIVE_ARRAY(UINTEGER_8) size s:INTEGER :INTEGER <-
+  // return size read or 0 if end of input (-1 on error => exception ?)
+  ( + str:POINTER;
+    str := stream;
+    `fwrite((void *)(@buf),(size_t)(1), (size_t)(@s),(FILE*)(@str))`:(INTEGER)
+  );
+
+
+

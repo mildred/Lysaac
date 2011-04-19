@@ -1,0 +1,205 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                  Lisaac                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name      := SDL_EVENT;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>";
+  - comment   := "SDL events handling";
+  - type      := `SDL_Event`;
+
+Section Inherit
+
+  + parent_object:OBJECT := OBJECT;
+
+Section Public
+
+//
+// EVENT TYPE:
+//
+  - active_event      :UINTEGER_8 := `SDL_ACTIVEEVENT`     :UINTEGER_8; // Application loses/gains visibility
+  - key_down          :UINTEGER_8 := `SDL_KEYDOWN`         :UINTEGER_8; // Keys pressed
+  - key_up            :UINTEGER_8 := `SDL_KEYUP`           :UINTEGER_8; // Keys released 
+  - mouse_motion      :UINTEGER_8 := `SDL_MOUSEMOTION`     :UINTEGER_8; // Mouse moved
+  - mouse_button_down :UINTEGER_8 := `SDL_MOUSEBUTTONDOWN` :UINTEGER_8; // Mouse button pressed
+  - mouse_button_up   :UINTEGER_8 := `SDL_MOUSEBUTTONUP`   :UINTEGER_8; // Mouse button released
+  - joy_axis_motion   :UINTEGER_8 := `SDL_JOYAXISMOTION`   :UINTEGER_8; // Joystick axis motion
+  - joy_ball_motion   :UINTEGER_8 := `SDL_JOYBALLMOTION`   :UINTEGER_8; // Joystick trackball motion
+  - joy_hat_motion    :UINTEGER_8 := `SDL_JOYHATMOTION`    :UINTEGER_8; // Joystick hat position change
+  - joy_button_down   :UINTEGER_8 := `SDL_JOYBUTTONDOWN`   :UINTEGER_8; // Joystick button pressed
+  - joy_button_up     :UINTEGER_8 := `SDL_JOYBUTTONUP`     :UINTEGER_8; // Joystick button released
+  - sdl_quit          :UINTEGER_8 := `SDL_QUIT`            :UINTEGER_8; // User-requested quit
+  - sys_wm_event      :UINTEGER_8 := `SDL_SYSWMEVENT`      :UINTEGER_8; // System specific event
+  - video_resize      :UINTEGER_8 := `SDL_VIDEORESIZE`     :UINTEGER_8; // User resized video mode
+  - video_expose      :UINTEGER_8 := `SDL_VIDEOEXPOSE`     :UINTEGER_8; // Screen needs to be redrawn
+  - user_event        :UINTEGER_8 := `SDL_USEREVENT`       :UINTEGER_8; 
+  // Events SDL_USEREVENT through SDL_MAXEVENTS-1 are for your use */
+
+//
+// EVENT STATE:
+//
+  - state_query   :INTEGER := `SDL_QUERY`  :(INTEGER);
+  - state_ignore  :INTEGER := `SDL_IGNORE` :(INTEGER);
+  - state_disable :INTEGER := `SDL_DISABLE`:(INTEGER);
+  - state_enable  :INTEGER := `SDL_ENABLE` :(INTEGER);
+
+//
+// EVENT ACTION:
+//
+  - action_add  :INTEGER := `SDL_ADDEVENT`  :(INTEGER);
+  - action_peek :INTEGER := `SDL_PEEKEVENT` :(INTEGER);
+  - action_get  :INTEGER := `SDL_GETEVENT`  :(INTEGER);
+
+//
+// GENERAL KEYBOARD/MOUSE STATE
+//
+  - released :UINTEGER_8 <- `SDL_RELEASED` :(UINTEGER_8);
+  - pressed  :UINTEGER_8 <- `SDL_PRESSED`  :(UINTEGER_8);
+
+//
+// INTERNAL EVENT ACCESS
+//
+  - create       :SELF        <- SELF.clone;                         // Create the SDL_Event pointer
+  - type         :UINTEGER_8  <-`@Self->type`        :(UINTEGER_8);  // Get the event type
+  
+  // EVENT
+  - active_type  :UINTEGER_8  <-`@Self->active.type`  :(UINTEGER_8);  // `active_event'
+  - active_gain  :UINTEGER_8  <-`@Self->active.gain`  :(UINTEGER_8);  // Whether given states were gained or lost (1/0)
+  - active_state :UINTEGER_8  <-`@Self->active.state` :(UINTEGER_8);  // A mask of the focus states
+
+  // KEYBOARD
+  - key_type     :UINTEGER_8  <-`@Self->key.type`     :(UINTEGER_8);  // `key_down' or `key_up'
+  - key_which    :UINTEGER_8  <-`@Self->key.which`    :(UINTEGER_8);  // The keyboard device index
+  - key_state    :UINTEGER_8  <-`@Self->key.state`    :(UINTEGER_8);  // SDL_PRESSED or SDL_RELEASED
+  - key_keysym   :SDL_KEYSYM  <-`@Self->key.keysym`   :(SDL_KEYSYM);
+
+  // MOUSE MOTION
+  - motion_type  :UINTEGER_8  <-`@Self->motion.type`  :(UINTEGER_8);  // `mouse_motion'
+  - motion_which :UINTEGER_8  <-`@Self->motion.which` :(UINTEGER_8);  // The mouse device index
+  - motion_state :UINTEGER_8  <-`@Self->motion.state` :(UINTEGER_8);  // The current button state
+  - motion_x     :UINTEGER_16 <-`@Self->motion.x`     :(UINTEGER_16); // The X coordinate of the mouse
+  - motion_y     :UINTEGER_16 <-`@Self->motion.y`     :(UINTEGER_16); // The Y coordinate of the mouse
+  - motion_xrel  :INTEGER_16  <-`@Self->motion.xrel`  :(INTEGER_16);  // The relative motion in the X direction
+  - motion_yrel  :INTEGER_16  <-`@Self->motion.yrel`  :(INTEGER_16);  // The relative motion in the Y direction
+  
+  // MOUSE BUTTON
+  - button_type  :UINTEGER_8  <-`@Self->button.type`  :(UINTEGER_8);  // `mouse_button_down' or `mouse_button_up' 
+  - button_which :UINTEGER_8  <-`@Self->button.which` :(UINTEGER_8);  // The mouse device index
+  - button_button:UINTEGER_8  <-`@Self->button.button`:(UINTEGER_8);  // The mouse button index
+  - button_state :UINTEGER_8  <-`@Self->button.state` :(UINTEGER_8);  // `pressed' or `released'
+
+//TODO
+/*
+	SDL_JoyAxisEvent jaxis;
+	SDL_JoyBallEvent jball;
+	SDL_JoyHatEvent jhat;
+	SDL_JoyButtonEvent jbutton;
+	SDL_ResizeEvent resize;
+	SDL_ExposeEvent expose;
+	SDL_QuitEvent quit;
+	SDL_UserEvent user;
+	SDL_SysWMEvent syswm;
+*/
+
+//
+// GLOBAL EVENT MANAGEMENT
+//
+  - poll :INTEGER <-
+  // Polls for currently pending events, and returns `1' if there are any
+  // pending events, or `0' if there are none available.  If `event' is not
+  // NULL, the next event is removed from the queue and stored in that area.
+  (
+    `SDL_PollEvent(@Self)`:(INTEGER)
+  );
+
+  - wait :INTEGER <-
+  // Waits indefinitely for the next available event, returning `1', or
+  // `0' if there was an error while waiting for events.  If `event' is not
+  // NULL, the next event is removed from the queue and stored in that area.
+  (
+    `SDL_WaitEvent(@Self)`:(INTEGER)
+  );
+
+  - push :INTEGER <-
+  // Add an event to the event queue. This function returns 0 on success, or
+  // -1 if the event queue was full or there was some other error.
+  (
+    `SDL_PushEvent(@Self)`:(INTEGER)
+  );
+  
+  //
+  // EVENT handling:
+  //
+
+  - peep (numevents:INTEGER, action:UINTEGER_8, mask:UINTEGER_32) :INTEGER <-
+  // Checks the event queue for messages and optionally returns them.
+  //
+  // If `action' is `SDL_EVENT.action_add', up to `numevents' events will be
+  // added to the back of the event queue.  If `action' is
+  // `SDL_EVENT.action_peek', up to `numevents' events at the front of the event
+  // queue, matching `mask', will be returned and will not be removed from the
+  // queue.  If `action' is `SDL_EVENT.action_get', up to `numevents' events at
+  // the front of the event queue, matching 'mask', will be returned and will
+  // be removed from the queue.
+  //
+  // This function returns the number of events actually stored, or `-1' if
+  // there was an error.
+  // 
+  // This function is thread-safe.
+  (
+    `SDLCALL SDL_PeepEvents(@Self, @numevents, @action, @mask)`:(INTEGER)
+  );
+
+  - state_handle type:UINTEGER_8 to state:INTEGER :UINTEGER_8<-
+  // This function allows you to set the state of processing certain events.
+  // If `state' is set to `state_ignore', that event will be automatically dropped
+  // from the event queue and will not event be filtered.
+  // If `state' is set to `state_enable', that event will be processed normally.
+  // If `state' is set to `state_query', `state_handle to' will return the 
+  // current processing state of the specified event.
+  (
+    `SDL_EventState(@type,@state)`:(UINTEGER_8)
+  );
+
+  - pump_events <-
+  // Pumps the event loop, gathering events from the input devices.
+  // This function updates the event queue and internal input device state.
+  // This should only be run in the thread that sets the video mode.
+  (
+    `SDL_PumpEvents()`;
+  );
+
+  - event_state (type:UINTEGER_8, state:INTEGER) :UINTEGER_8<-
+  // This function allows you to set the state of processing certain events.
+  // If `state' is set to `SDL_EVENT.state_ignore', that event will be
+  // automatically dropped from the event queue and will not event be filtered.
+  // If `state' is set to `SDL_EVENT.state_enable', that event will be
+  // processed normally.  If `state' is set to `SDL_EVENT.state_query',
+  // `event_state' will return the current processing state of the specified
+  // event.
+  (
+    `SDL_EventState(@type, @state)`:UINTEGER_8
+  );
+  
+  // TODO:
+  //extern DECLSPEC void SDLCALL SDL_SetEventFilter(SDL_EventFilter filter);
+  //extern DECLSPEC SDL_EventFilter SDLCALL SDL_GetEventFilter(void);

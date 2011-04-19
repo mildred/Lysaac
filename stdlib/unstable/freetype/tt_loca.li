@@ -1,0 +1,55 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_LOCA;
+  - comment     :=" loca: Index Of Location.";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Public
+  
+  - max_loca:USHORTINT;
+  
+  - create nglyph:NUMERIC my_file f:STD_FILE :SELF<-
+  // nglyph: number of glyph (maxp table)
+  ( + result:SELF;
+    
+    result := clone;
+    result.make nglyph my_file f;
+    result
+  );
+
+  - make nglyph:NUMERIC my_file f:STD_FILE <- deferred;
+  
+  - value index:NUMERIC :UINTEGER <- deferred;
+  
+  - print <-
+  (
+    "\n********* LOCA TABLE *********\n".print;
+    0.to (max_loca - 1) do { i:INTEGER;
+      "\n      [".print;
+      i.print;      
+      "] Ox".print;
+      value i.to_hexadecimal.print;
+    };
+    '\n'.print;
+  );
+  
+  
+  

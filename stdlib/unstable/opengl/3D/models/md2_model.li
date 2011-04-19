@@ -1,0 +1,321 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Application                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := MD2_MODEL;
+  
+  - comment  := "Quake2' md2 model format";
+  
+Section Inherit
+  
+  + parent_model:Expanded MODEL;
+  
+  - parent_md2_normals:MD2_NORMALS := MD2_NORMALS;
+  
+Section Public
+  
+  - md2_magic:INTEGER <- 0;
+  - md2_version:INTEGER <- 1;
+  
+  - md2_skin_width:INTEGER <- 2;
+  - md2_skin_height:INTEGER <- 3;
+  
+  - md2_nb_vertex:INTEGER <- 6;
+  - md2_nb_texels:INTEGER <- 7;
+  - md2_nb_triangles:INTEGER <- 8;
+  - md2_nb_frames:INTEGER <- 10;
+  
+  - md2_offset_texels:INTEGER <- 12;
+  - md2_offset_tris:INTEGER <- 13;
+  - md2_offset_frames:INTEGER <- 14;
+  
+  
+  // texture coordinates
+  + texels:FAST_ARRAY(VECTOR2(INTEGER_16)); 
+  
+  // model geometry
+  + triangles:FAST_ARRAY(MD2_TRIANGLE);
+  
+  // model frames for animation
+  + frames:FAST_ARRAY(MD2_FRAME);
+  
+  // re-scaling model
+  + scale:REAL_32;
+  
+  // frame start of each animation
+  + anim_index:FAST_ARRAY(INTEGER);
+  
+  // skin texture dimensions
+  + skin_width:REAL_32;
+  + skin_height:REAL_32;
+  
+  - load <-
+  (
+    + header:FAST_ARRAY(UINTEGER_32);
+    + buffer_16:FAST_ARRAY(INTEGER_16);
+    + nb_texels,nb_tris,nb_vertex:INTEGER;
+    + v:VECTOR2(INTEGER_16);
+    + t:MD2_TRIANGLE;
+    + x:INTEGER;
+    
+    + e:ENTRY;
+    + file:FILE;
+    
+    e := FILE_SYSTEM.get_entry name;
+    (e != NULL).if {
+      file ?= e;
+      file.open;
+      
+      // md2 header size = 17*4 bytes
+      header := FAST_ARRAY(UINTEGER_32).create_with_capacity 17;
+      
+      (file.read header size (17)  > 0).if {
+        // read header
+        
+        ((header.item md2_magic != 844121161) || {header.item md2_version != 8}).if {
+          error "Bad model file";
+        };
+        
+        nb_texels := header.item md2_nb_texels;
+        nb_tris := header.item md2_nb_triangles;
+        nb_frames := header.item md2_nb_frames;
+        nb_vertex := header.item md2_nb_vertex;
+        
+        /*   "\nNb texels: ".print;nb_texels.print; 
+        "\nNb tris: ".print;nb_tris.print;
+        "\nNb verts: ".print;nb_vertex.print;
+        "\nNb frames: ".print;nb_frames.print;      
+        */ 
+        texels := FAST_ARRAY(VECTOR2(INTEGER_16)).create_with_capacity nb_texels;
+        triangles := FAST_ARRAY(MD2_TRIANGLE).create_with_capacity nb_tris;
+        
+        frames := FAST_ARRAY(MD2_FRAME).create_with_capacity nb_frames;
+        
+        skin_width := header.item md2_skin_width.to_real;
+        skin_height := header.item md2_skin_height.to_real;
+        
+        // coord texture
+        buffer_16 := FAST_ARRAY(INTEGER_16).create_with_capacity (nb_texels*2);
+        file.set_cursor (header.item md2_offset_texels);
+        (file.read buffer_16 size (nb_texels*2) <= 0).if {
+          error "load model: read error";
+        };
+        
+        // read texels
+        x := 0;
+        {x < nb_texels*2}.while_do {
+          v := VECTOR2(INTEGER_16).create (buffer_16.item (x),buffer_16.item (x+1));
+          texels.add_last v;
+          x := x+2;
+        };
+        
+        // triangles	
+        buffer_16 := FAST_ARRAY(INTEGER_16).create_with_capacity (nb_tris*6);
+        file.set_cursor (header.item md2_offset_tris);
+        (file.read buffer_16 size (nb_tris*6) <= 0).if {
+          error "load model: read error";
+        };
+        
+        x := 0;
+        {x < nb_tris*6}.while_do {
+          t := MD2_TRIANGLE.create (buffer_16.item x,buffer_16.item (x+1),buffer_16.item (x+2),buffer_16.item (x+3),buffer_16.item (x+4),buffer_16.item (x+5));
+          triangles.add_last t;
+          
+          x := x + 6;
+        }; 
+        
+        // frames
+        file.set_cursor (header.item md2_offset_frames);
+        1.to nb_frames do { i:INTEGER;
+          frames.add_last (load_frame (file, nb_vertex));
+        };
+        
+        scale := 3.0;
+        current_frame := 1;
+      };
+    };
+  );
+  
+  - load_frame (file:FILE, nb_vertex:INTEGER) :MD2_FRAME <-
+  (
+    + scale,translate:VECTOR3(REAL_32);
+    + vertex:FAST_ARRAY(MD2_VERTEX);
+    + buffer:FAST_ARRAY(REAL_32);
+    + buffer_8:FAST_ARRAY(UINTEGER_8);
+    + x,y,z:REAL_32;
+    + name:FAST_ARRAY(CHARACTER);
+    + v:MD2_VERTEX;
+    + i:INTEGER;
+    
+    vertex := FAST_ARRAY(MD2_VERTEX).create_with_capacity nb_vertex;
+    
+    // read transformation vectors
+    buffer := FAST_ARRAY(REAL_32).create_with_capacity 7;
+    (file.read buffer size 6 <= 0).if {
+      error "load model: read error (trans)";
+    };
+    
+    x := buffer.item 0;
+    y := buffer.item 1;
+    z := buffer.item 2;
+    
+    scale := VECTOR3(REAL_32).create (x,y,z);
+    
+    x := buffer.item 3;
+    y := buffer.item 4;
+    z := buffer.item 5;
+    
+    translate := VECTOR3(REAL_32).create (x,y,z);
+    
+    // read frame name
+    name := FAST_ARRAY(CHARACTER).create_with_capacity 16;
+    (file.read name size 16 <= 0).if {
+      error "load model: read error (name)";
+    };
+    
+    buffer_8 := FAST_ARRAY(UINTEGER_8).create_with_capacity (4*nb_vertex);
+    (file.read buffer_8 size (4*nb_vertex) <= 0).if {
+      error "load model: read error";
+    };
+    i := 0;
+    {i < nb_vertex*4}.while_do {
+      
+      v := MD2_VERTEX.create (buffer_8.item i,buffer_8.item (i+1),buffer_8.item (i+2),buffer_8.item (i+3));
+      
+      vertex.add_last v;
+      i := i + 4;
+    };
+    
+    MD2_FRAME.create (CONVERT(FAST_ARRAY(CHARACTER),STRING).on (name), scale, translate, vertex)
+  );
+  
+  - render_with tex:TEXTURE <-
+  (
+    texture := tex;
+    render;
+  );
+  
+  - n:VERTEX := VERTEX.clone;// avoid multiple cloning
+  - n1:VERTEX := VERTEX.clone;
+  - n2:VERTEX := VERTEX.clone;
+  - v:VERTEX := VERTEX.clone;
+  - v1:VERTEX := VERTEX.clone;
+  - v2:VERTEX := VERTEX.clone;
+  
+  - render  <-
+  (
+    + frame1,frame2:MD2_FRAME;
+    + poly:MD2_TRIANGLE;
+    + verts1,verts2:MD2_VERTEX;
+    + vertex_index,texel_index:INTEGER_16;
+    + texel:VECTOR2(INTEGER_16);
+    //+ n,n1,n2,v,v1,v2:VERTEX;
+    + x,y,z:REAL_32;
+    
+    frame1 := frames.item old_frame;
+    frame2 := frames.item current_frame;
+    
+    
+    (material != NULL).if {
+      material.apply (MATERIAL.mode_front);
+    };
+    (texture != NULL).if {
+      texture.bind;
+    };
+    
+    renderer.vb.begin_triangles;
+    
+    // draw each triangle
+    triangles.lower.to (triangles.upper) do { i:INTEGER;
+      poly := triangles.item i;
+      
+      // draw each vertex of triangle
+      0.to 2 do { k:INTEGER;
+        
+        (k = 0).if {
+          (vertex_index,texel_index) := poly.index1;
+        }.elseif {k = 1} then {
+          (vertex_index,texel_index) := poly.index2;
+        } else {
+          (vertex_index,texel_index) := poly.index3;
+        };
+        
+        // get current vertex from the two frames
+        verts1 := frame1.vertex.item vertex_index;
+        verts2 := frame2.vertex.item vertex_index;
+        
+        // coordonnees texture
+        texel := texels.item texel_index;
+        
+        renderer.vb.add_texel2f (texel.x.to_real / skin_width, texel.y.to_real / skin_height);
+        
+        // normale
+        get_normal (verts1.light_index) in n1;
+        get_normal (verts2.light_index) in n2;
+        
+        (x,y,z) := lerp_vertex (n1, n2) lerp lerp scale 1.0; 
+        
+        renderer.vb.add_normal3f (x, y, z);
+        
+        // decompression des vertex (byte -> float)
+        
+        x := verts1.index1 * frame1.scale.x + frame1.translate.x;
+        y := verts1.index2 * frame1.scale.y + frame1.translate.y;
+        z := verts1.index3 * frame1.scale.z + frame1.translate.z;
+        
+        v1.make (x,y,z);
+        
+        x := verts2.index1 * frame2.scale.x + frame2.translate.x;
+        y := verts2.index2 * frame2.scale.y + frame2.translate.y;
+        z := verts2.index3 * frame2.scale.z + frame2.translate.z;
+        
+        v2.make (x,y,z);
+        
+        (x,y,z) := lerp_vertex (v1, v2) lerp lerp scale scale;
+        
+        renderer.vb.add_vertex3f (x,y,z);
+      };
+    };
+    
+    renderer.vb.end;
+  ); 
+  
+  - render_outlines  <-
+  (
+    outlines := TRUE;
+    render;
+    outlines := FALSE;
+  );
+  
+  - lerp_vertex (u,v:VERTEX) lerp t:REAL_32 scale s:REAL_32 :(REAL_32,REAL_32,REAL_32) <- 
+  // linear interpolation
+  (
+    + x,y,z:REAL_32;
+    
+    x := (u.x + t * (v.x - u.x)) * s;
+    y := (u.y + t * (v.y - u.y)) * s;
+    z := (u.z + t * (v.z - u.z)) * s;
+    
+   (x,y,z)
+  );
+
+  

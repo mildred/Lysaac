@@ -1,0 +1,86 @@
+Section Header
+
+  + name := TEST;
+
+  - copyright := "2009 Jeremy Cowgar";
+
+  - comment := "Unit test for PCRE";
+
+Section Public
+
+  - main <-
+  (
+    + regex:PCRE;
+    + name:STRING_CONSTANT;
+    + tmp:STRING;
+
+    UNIT_TEST.suite "PCRE";
+    UNIT_TEST.section "Creation";
+
+    regex := PCRE.create "([A-Z]+";
+    (regex.error_code = 0).if {
+      UNIT_TEST.test_failed "PCRE.create invalid pattern";
+    } else {
+      UNIT_TEST.test_passed "PCRE.create invalid pattern";
+      UNIT_TEST.test "PCRE.error_code" integer (regex.error_code) equals 14;
+      UNIT_TEST.test "PCRE.error_offset" integer (regex.error_offset) equals 8;
+      UNIT_TEST.test "PCRE.error_message" string (regex.error_message) equals "missing )";
+    };
+
+    regex := PCRE.create "([A-Za-z]+) ([A-Za-z]+)";
+    (regex.error_code = 0).if {
+      UNIT_TEST.test_passed "PCRE.create";
+    } else {
+      UNIT_TEST.test_failed "PCRE.create";
+    };
+
+    name := "John Doe";
+
+    UNIT_TEST.section "Basic Matching";
+    regex := PCRE.create "[a-z]+";
+    UNIT_TEST.test "PCRE.match" integer (regex.match name) equals 1;
+    UNIT_TEST.test "PCRE.matches count" integer (regex.matches.count) equals 2;
+    UNIT_TEST.test "PCRE.matches #1" integer (regex.matches.item 0) equals 2;
+    UNIT_TEST.test "PCRE.matches #2" integer (regex.matches.item 1) equals 4;
+    UNIT_TEST.test "PCRE.item #1" string (regex.item 0 on name) equals "ohn";
+
+    UNIT_TEST.test "PCRE.match #2" integer (regex.match name since 5) equals 1;
+    UNIT_TEST.test "PCRE.matches count #2" integer (regex.matches.count) equals 2;
+    UNIT_TEST.test "PCRE.matches #1" integer (regex.matches.item 0) equals 7;
+    UNIT_TEST.test "PCRE.matches #2" integer (regex.matches.item 1) equals 8;
+    UNIT_TEST.test "PCRE.item #1" string (regex.item 0 on name) equals "oe";
+
+    UNIT_TEST.section "Group Matching";
+    regex := PCRE.create "([A-Za-z]+) ([A-Za-z]+)";
+    UNIT_TEST.test "PCRE.match" integer (regex.match name) equals 3;
+    UNIT_TEST.test "PCRE.matches count" integer (regex.matches.count) equals 6;
+    UNIT_TEST.test "PCRE.matches #1" integer (regex.matches.item 0) equals 1;
+    UNIT_TEST.test "PCRE.matches #2" integer (regex.matches.item 1) equals 8;
+    UNIT_TEST.test "PCRE.matches #3" integer (regex.matches.item 2) equals 1;
+    UNIT_TEST.test "PCRE.matches #4" integer (regex.matches.item 3) equals 4;
+    UNIT_TEST.test "PCRE.matches #5" integer (regex.matches.item 4) equals 6;
+    UNIT_TEST.test "PCRE.matches #6" integer (regex.matches.item 5) equals 8;
+    UNIT_TEST.test "PCRE.item #1" string (regex.item 0 on name) equals "John Doe";
+    UNIT_TEST.test "PCRE.item #2" string (regex.item 1 on name) equals "John";
+    UNIT_TEST.test "PCRE.item #3" string (regex.item 2 on name) equals "Doe";
+
+    UNIT_TEST.section "Replacement";
+
+    regex := PCRE.create "([A-Za-z]+) ([A-Za-z]+)";
+    tmp := regex.replace "John Doe" with "\\2, \\1";
+    UNIT_TEST.test "PCRE.replace #1" string tmp equals "Doe, John";
+
+    tmp := regex.replace "john doe" with "\\U\\1\\e \\2";
+    UNIT_TEST.test "PCRE.replace #2" string tmp equals "JOHN doe";
+
+    tmp := regex.replace "john doe" with "\\u\\1 \\u\\2";
+    UNIT_TEST.test "PCRE.replace #3" string tmp equals "John Doe";
+
+    tmp := regex.replace "JOHN DOE" with "\\L\\1\\e \\2";
+    UNIT_TEST.test "PCRE.replace #4" string tmp equals "john DOE";
+
+    tmp := regex.replace "JOHN DOE" with "\\l\\1 \\l\\2";
+    UNIT_TEST.test "PCRE.replace #5" string tmp equals "jOHN dOE";
+
+    UNIT_TEST.test_results;
+  );

@@ -1,0 +1,99 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_CMAP_SUBTABLE4;
+  - comment     :="Format 4: Segment mapping to delta values";
+  
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  - comment     :="Microsoft Standard";
+  
+Section Inherit
+
+  - parent_tt_cmap_subtable:TT_CMAP_SUBTABLE := TT_CMAP_SUBTABLE; 
+  
+Section Public
+  
+  + header:TT_CMAP_SUBTABLE4_HEADER;
+  
+  + end_count:FAST_ARRAY(UINTEGER_8);
+  
+  + reserved_pad:UINTEGER_8;
+  
+  + start_count:FAST_ARRAY(UINTEGER_8);
+  
+  + id_delta:FAST_ARRAY(UINTEGER_8);
+  
+  + id_range_offset:FAST_ARRAY(UINTEGER_8);
+  
+  + glyph_id_array:FAST_ARRAY(UINTEGER_8);
+   
+  - make file:STD_FILE <-
+  ( + seg_count:UINTEGER_32;    
+    header := TT_CMAP_SUBTABLE4_HEADER.clone;
+    file.read header;
+    header.to_big_endian;
+    
+    seg_count := header.seg_countx2 / 2;
+    end_count := FAST_ARRAY(UINTEGER_8).create_with_capacity seg_count;
+    file.read end_count size (header.seg_countx2);
+    to_big_endian end_count;
+    
+    file.set_cursor (file.cursor + 2);
+    
+    start_count := FAST_ARRAY(UINTEGER_8).create_with_capacity seg_count;    
+    file.read start_count size (header.seg_countx2);
+    to_big_endian start_count;
+    
+    id_delta := FAST_ARRAY(UINTEGER_8).create_with_capacity seg_count;
+    file.read id_delta size (header.seg_countx2);
+    to_big_endian id_delta;
+    
+    id_range_offset := FAST_ARRAY(UINTEGER_8).create_with_capacity seg_count; 
+    file.read id_range_offset size (header.seg_countx2);
+    to_big_endian id_range_offset;
+    
+    // JBJB A VOIR GLYPDHID_ARRAY (p 40)
+  );
+  
+  - to_big_endian buf:FAST_ARRAY(UINTEGER_8) <-
+  (
+    0.to (buf.upper) do { i:INTEGER;
+      buf.put (PROCESSOR.to_motorola_ushort (buf.item i)) to i;
+    };
+  );
+  
+  - print <-
+  (
+     "\n     Format 4: segment mapping to delta values\n".print;
+    header.print;
+    "\n         End Count: ".print;
+    0.to (header.seg_countx2 / 2 - 1) do { i:INTEGER;
+      end_count.item i.print;      
+    };
+    "\n         Start Count: ".print;
+    0.to (header.seg_countx2 / 2 - 1) do { i:INTEGER;
+      start_count.item i.print;      
+    };
+    "\n         Id_delta: ".print;
+    0.to (header.seg_countx2 / 2 - 1) do { i:INTEGER;
+      id_delta.item i.print;      
+    };
+    "\n         Id_range_offset: ".print;
+    0.to (header.seg_countx2 / 2 - 1) do { i:INTEGER;
+      id_range_offset.item i.print;      
+    };
+  );
+

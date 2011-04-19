@@ -1,0 +1,88 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Application                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := POINT_FORCE;
+  
+  - comment  := "part of particle engine";
+  
+Section Inherit
+  
+  - parent_constraint:CONSTRAINT := CONSTRAINT;
+  
+Section Public
+  
+  //
+  // Particle properties
+  //
+  
+  + position:VECTOR3(REAL_32);
+  
+  + strength:REAL_32;
+  + linear_attenuation:REAL_32;
+  + quadratic_attenuation:REAL_32;
+  
+  
+  //
+  // Creation.
+  //
+
+  - create (p:VECTOR3(REAL_32),s,la,qa:REAL_32) :SELF <-
+  ( + result:SELF;
+    result := clone;
+    result.make (p,s,la,qa);
+    result
+  );
+
+  - make (p:VECTOR3(REAL_32),s,la,qa:REAL_32) <-
+  ( 
+    position := p;
+    strength := s;
+    linear_attenuation := la;
+    quadratic_attenuation := qa;
+  );
+
+
+  
+  - apply_to p:PARTICLE time t:REAL_32 <-
+  (
+    + dir:VECTOR3(REAL_32);
+    + dist:REAL_32;
+    
+    dir := position - p.position;
+    dist := dir.magnitude;
+    
+    dir := dir * (strength / (1.0 + dist.sqrt*linear_attenuation + dist*quadratic_attenuation));
+    
+    p.set_direction (p.dir + (dir*t));
+  );
+  
+  - set_strength str:REAL_32 <-
+  (
+    strength := str;
+  );
+ 
+  
+  
+  
+  
+  

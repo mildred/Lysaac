@@ -1,0 +1,112 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name      := WIN_IN;
+
+  - copyright := "Jonathan Ponte, Maxime Audrin, Benoit Sonntag";
+
+  - comment   := "Window_in for GUII.";
+  
+Section Inherit
+  
+  - parent_internal_inode:INTERNAL_INODE := INTERNAL_INODE;
+  
+Section Public
+
+  - representation:STRING_CONSTANT := "WIN_IN";
+
+  + win_in:G_WIN_IN;
+
+  - print <-
+  (
+	"WIN_IN".print;
+  );
+	
+  - make_representation <-
+  (
+    (content=NULL).if{
+	"connard \n".print;
+    };
+    content:=G_WIN_IN.create (width_win_in,height_win_in) with content;
+  );
+
+- semantic_evaluation_win_in n:INODE width w:INTEGER height h:INTEGER :BOOLEAN<-
+  (
+    +tmp:REAL_32;
+    +best_prc:REAL_32;
+    +parent:INTERNAL_INODE;
+    +width:INTEGER;
+    +height:INTEGER;
+
+      tmp:=PAGE.evaluate n width (G_PAGE.width_min) height (G_PAGE.height_min);
+      (tmp > best_prc).if {
+        best_prc:=tmp;
+	width:=n.width;
+	height:=n.height;
+	parent:=PAGE;
+      };
+      tmp:=MENU_V.evaluate n width (n.screen_width) height (3*n.screen_height);
+      (tmp > best_prc).if {
+        best_prc:=tmp;
+	width:=n.width;
+	height:=n.height;
+	parent:=MENU_V;
+      };
+    (best_prc > 0).if {
+	n.set_representation parent;
+	n.make_representation;
+	n.set_width width;
+	n.set_height height;
+    };
+    best_prc>0
+  );
+
+
+- evaluate n:INODE width w:INTEGER height h:INTEGER : REAL_32 <-
+  (
+     + result:REAL_32;
+     + a,b,c,d:REAL_32;
+
+     n.set_representation WIN_IN;
+     "WIN_IN semantic evaluation of ".print;n.name.print;"\n".print;
+     (n.semantic_evaluation_win_in n width 0 height 0).if {
+	a:=w;
+    	b:=h;
+    	c:=n.width;
+    	d:=n.height;
+	((c>a)&&{d>b}).if {
+		result:=(a*b)/(c*d)*100
+	};
+	((c>a)&&{d<b}).if {
+		result:=(a*d)/(c*d)*100
+	};
+	
+	((c<a)&&{d>b}).if {
+		result:=(c*b)/(c*d)*100
+	};
+       "WIN_IN result of ".print;n.name.print;"= ".print;result.print;"% \n".print;
+       n.set_width_win_in w;
+       n.set_height_win_in h;
+       n.set_representation_win_in WIN_IN;
+     };
+     result
+  );

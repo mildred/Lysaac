@@ -1,0 +1,79 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac-SDL Library                             //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name      := SDL_QUICK_FPS;
+
+  - comment   := "SDL quick fps handling";
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <x.oswald@debian.org>";
+
+Section Public
+
+  - next          :UINTEGER_32 := 0;
+  - now           :UINTEGER_32 := 0;
+  - fps           :UINTEGER_8  := 50;
+  - tick_interval :UINTEGER_16 := 20;
+
+  - set value:UINTEGER_8 <- 
+  (
+	  fps := value;
+    tick_interval := 1000 / fps;
+  );
+
+  - print <-
+  (
+    "FPS was :".print;
+    fps.println;
+  );
+
+  - new_time <-
+  (
+    next := SDL_TIMER.get_ticks + tick_interval;
+  );
+
+  - get :INTEGER <-
+  (
+    fps
+  );
+
+  - fps_ok :BOOLEAN <-
+  ( + ok:BOOLEAN;
+
+    ok := TRUE;
+    now := SDL_TIMER.get_ticks;
+
+    (now < next).if {
+      /*frame rate is met*/
+      SDL_TIMER.delay(next - now);
+    } else {
+      /* frame rate is too high, lower it */
+      set(fps-1);
+      ok := FALSE;
+    };
+    ok
+  );
+
+  - init_timer <-
+  (
+    SDL.set_timer;
+  );

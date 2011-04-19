@@ -1,0 +1,282 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_ABSTRACT_TEXTURE;
+  
+  - comment  := "OpenGL rendered image";
+  
+  - external := `unsigned int texture_id;`;
+  
+Section Inherit
+  
+  - parent_texture:Expanded TEXTURE;
+  
+Section Public
+  
+  - decal:INTEGER <- `GL_DECAL`:INTEGER;
+  - replace:INTEGER <- `GL_REPLACE`:INTEGER;
+  - modulate:INTEGER <- `GL_MODULATE`:INTEGER;
+  - blend:INTEGER <- `GL_BLEND`:INTEGER;
+  
+  - clamp:INTEGER <- `GL_CLAMP`:INTEGER;
+  - repeat:INTEGER <- `GL_REPEAT`:INTEGER;
+  
+  - clamp_to_edge:INTEGER <- `0x812F`:INTEGER; //GL_CLAMP_TO_EDGE`:INTEGER; 
+  //-> not supported on every cards & GL implementations !!
+  
+  
+  + id:UINTEGER_32; // OpenGL id  
+  
+  - make_from image:IMAGE <-
+  (
+    + type,env_mode,mode:INTEGER;
+    + data:POINTER;
+    
+    set_image image;
+    
+    (channels = 4).if {
+      type := `GL_RGBA`:INTEGER;
+    }.elseif {channels = 3} then {
+      type := `GL_RGB`:INTEGER;
+    }.elseif {channels = 1} then {  
+      type := `GL_LUMINANCE`:INTEGER;
+    };
+    
+    mode := target;
+    data := image_data.to_external;
+    
+    // create OpenGL texture
+    `glGenTextures(1, &texture_id)`;
+    id := `texture_id`:INTEGER;
+    
+    // set pixel aligment
+    `glPixelStorei (GL_UNPACK_ALIGNMENT, 1)`;
+    
+    // select new texture
+    `glBindTexture(@mode, texture_id)`;
+    
+    //--- OpenGL texture parameters
+    filter
+    .when filter_mipmap then {
+      
+      `glTexParameteri(@mode,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST)`;
+      `glTexParameteri(@mode,GL_TEXTURE_MAG_FILTER,GL_LINEAR_MIPMAP_LINEAR)`;
+      raw_create_mipmap (channels,width,height,type) data data;
+      
+    }.when filter_linear then {
+      `glTexParameteri(@mode,GL_TEXTURE_MIN_FILTER,GL_LINEAR)`;
+      `glTexParameteri(@mode,GL_TEXTURE_MAG_FILTER,GL_LINEAR)`;
+      
+      raw_create (channels,width,height,type) data data;
+      
+    }.when filter_nearest then {  
+      `glTexParameteri(@mode,GL_TEXTURE_MIN_FILTER,GL_NEAREST)`;
+      `glTexParameteri(@mode,GL_TEXTURE_MAG_FILTER,GL_NEAREST)`;
+      
+      raw_create (channels,width,height,type) data data;
+    };
+    //---
+    
+    // set texture function
+    env_mode := drawing_mode;
+    `glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, @env_mode)`;
+    
+    // wrapping function (clamp or repeat)
+    env_mode := wrapping_mode;
+    `glTexParameteri(@mode, GL_TEXTURE_WRAP_S, @env_mode)`; 
+    `glTexParameteri(@mode, GL_TEXTURE_WRAP_T, @env_mode)`;
+  );
+  
+  - make_from_data pixels:FAST_ARRAY(UINTEGER_8) size (w,h:INTEGER) type t:INTEGER <-
+  (
+    + image:IMAGE;
+    
+    image := IMAGE.create_empty "" size (w,h) type t allocate FALSE;
+    image.set_data pixels;
+    
+    make_from image; 
+  );
+  
+  - make_from_framebuffer (x,y,w,h:INTEGER) type t:INTEGER <-
+  (
+    + env_mode,mode:INTEGER;
+    + image:IMAGE;
+    
+    image := IMAGE.create_empty "" size (w,h) type t allocate FALSE;
+    set_image image;
+    
+    mode := target;
+  
+    
+    // create OpenGL texture
+    `glGenTextures(1, &texture_id)`;
+    id := `texture_id`:INTEGER;
+    
+    // set pixel aligment
+    `glPixelStorei (GL_UNPACK_ALIGNMENT, 1)`;
+    
+    // select new texture
+    `glBindTexture(@mode, texture_id)`;
+    
+    //--- OpenGL texture parameters
+    filter
+    .when filter_mipmap then {  
+      `glTexParameteri(@mode,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST)`;
+      `glTexParameteri(@mode,GL_TEXTURE_MAG_FILTER,GL_LINEAR_MIPMAP_LINEAR)`;      
+    }.when filter_linear then {
+      `glTexParameteri(@mode,GL_TEXTURE_MIN_FILTER,GL_LINEAR)`;
+      `glTexParameteri(@mode,GL_TEXTURE_MAG_FILTER,GL_LINEAR)`; 
+    }.when filter_nearest then {  
+      `glTexParameteri(@mode,GL_TEXTURE_MIN_FILTER,GL_NEAREST)`;
+      `glTexParameteri(@mode,GL_TEXTURE_MAG_FILTER,GL_NEAREST)`;
+    };
+    raw_copy (x,y,w,h) type t;
+    //---
+    
+    // set texture function
+    env_mode := drawing_mode;
+    `glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, @env_mode)`;
+    
+    // wrapping function (clamp or repeat)
+    env_mode := wrapping_mode;
+    `glTexParameteri(@mode, GL_TEXTURE_WRAP_S, @env_mode)`; 
+    `glTexParameteri(@mode, GL_TEXTURE_WRAP_T, @env_mode)`;
+  );
+  
+  - make_empty (w,h:INTEGER) type t:INTEGER <-
+  // slow...
+  (
+    + mode,type:INTEGER;
+    + image:IMAGE;
+    + p:POINTER;
+    
+    image := IMAGE.create_empty "" size (w,h) type t allocate TRUE;
+    set_image image;
+    
+    mode := target;
+     
+    (channels = 4).if {
+      type := `GL_RGBA`:INTEGER;
+    }.elseif {channels = 3} then {
+      type := `GL_RGB`:INTEGER;
+    }.elseif {channels = 1} then {  
+      type := `GL_LUMINANCE`:INTEGER;
+    };
+    
+    // create OpenGL texture
+    `glGenTextures(1, &texture_id)`;
+    id := `texture_id`:INTEGER;
+    
+    // set pixel aligment
+    `glPixelStorei (GL_UNPACK_ALIGNMENT, 1)`;
+    
+    // select new texture
+    `glBindTexture(@mode, texture_id)`;
+    
+    //--- OpenGL texture parameters
+    filter
+    .when filter_mipmap then {  
+      `glTexParameteri(@mode,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST)`;
+      `glTexParameteri(@mode,GL_TEXTURE_MAG_FILTER,GL_LINEAR_MIPMAP_LINEAR)`;      
+    }.when filter_linear then {
+      `glTexParameteri(@mode,GL_TEXTURE_MIN_FILTER,GL_LINEAR)`;
+      `glTexParameteri(@mode,GL_TEXTURE_MAG_FILTER,GL_LINEAR)`; 
+    }.when filter_nearest then {  
+      `glTexParameteri(@mode,GL_TEXTURE_MIN_FILTER,GL_NEAREST)`;
+      `glTexParameteri(@mode,GL_TEXTURE_MAG_FILTER,GL_NEAREST)`;
+    };
+    p := image_data.to_external;
+    `glTexImage2D(GL_TEXTURE_2D, 0, @t, @w, @h, 0, @type, GL_UNSIGNED_BYTE, @p)`;
+    //---  
+  );
+  
+  
+  - draw (x,y:INTEGER) <- deferred;
+  - draw_strech (x,y,w,h:INTEGER) <- deferred;
+  
+  
+  - push_attrib <-
+  (
+    `glPushAttrib(GL_TEXTURE_BIT)`;
+  );
+  
+  - pop_attrib <-
+  (
+    `glPopAttrib()`;
+  );
+  
+  - enable <-
+  (
+    parent_state.enable;
+    enable_unit 0;
+  );
+  
+  - disable <-
+  (
+    parent_state.disable;
+    disable_unit 0;
+  );
+  
+  - enable_unit n:INTEGER <-
+  ( + mode:INTEGER;
+    (OPENGL.arb_multitexture != NULL).if {
+      OPENGL.arb_multitexture.active_texture n;
+    };
+    mode := target;
+    `glEnable (@mode)`;
+  );
+  
+  - disable_unit n:INTEGER <-
+  ( + mode:INTEGER;
+    
+    (OPENGL.arb_multitexture != NULL).if {
+      OPENGL.arb_multitexture.active_texture n;
+    };
+    mode := target;
+    `glDisable (@mode)`;
+  );
+  
+  - bind <- 
+  (
+    bind_unit 0;
+  );
+  
+  - bind_unit n:INTEGER <- 
+  (
+    + id_tex,mode:INTEGER;
+    
+    enable_unit n;
+    
+    id_tex := id;
+    mode := target;
+    `glBindTexture(@mode, @id_tex)`;
+  );
+  
+Section GL_ABSTRACT_TEXTURE
+  
+  - target:INTEGER <- deferred;
+  
+  - raw_create (ch,w,h,type:INTEGER) data p:POINTER <- deferred;
+  - raw_create_mipmap (ch,w,h,type:INTEGER) data p:POINTER <- deferred;
+  
+  - raw_copy (x,y,w,h:INTEGER) type t:INTEGER <- deferred;

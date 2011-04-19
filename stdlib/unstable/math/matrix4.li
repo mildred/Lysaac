@@ -1,0 +1,61 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Math-Library                                  //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := MATRIX4(E);
+  
+  - comment  := "4x4 matrix";
+  
+Section Inherit
+  
+  + parent_matrix:Expanded ABSTRACT_MATRIX(E);
+  
+Section Public   
+  
+  - lines:INTEGER <- 4;
+  - columns:INTEGER <- 4;
+  
+  //
+  // Creation.
+  //
+
+  - create:SELF <-
+  ( + result:SELF;
+    result := clone;
+    result.make (4,4);
+    result
+  );
+  
+  - create_value val:INTEGER :SELF <-
+  ( + result:SELF;
+    result := clone;
+    result.make (4,4);
+    result.set_all_with val;
+    result
+  );
+
+  //
+  //
+  //
+  
+ 
+ 

@@ -1,0 +1,159 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        := SYSTEM;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     := "Generic System Object (methods).";
+
+  - external    := `#include <time.h>`;
+
+Section Public
+
+  - get_current_date:DATE <-
+  ( + wd,d,mo:UINTEGER_8;
+    + y:UINTEGER_16;
+
+    `{
+      struct tm *t; time_t tt;
+      tt = time(NULL);
+      t = localtime(&tt)`;
+      wd := `t->tm_wday`:UINTEGER_8 + 1;
+      d  := `t->tm_mday`:UINTEGER_8;
+      mo := `t->tm_mon` :UINTEGER_8 + 1;
+      y  := `t->tm_year`:UINTEGER_16 + 1900;
+    `}`;
+    DATE.create (y,mo,d,wd)
+  );
+
+  - get_current_time:TIME <-
+  ( + s,m,h:UINTEGER_8;
+
+    `{
+      struct tm *t; time_t tt;
+      tt = time(NULL);
+      t = localtime(&tt)`;
+      h := `t->tm_hour`:UINTEGER_8;
+      m := `t->tm_min` :UINTEGER_8;
+      s := `t->tm_sec` :UINTEGER_8;
+    `}`;
+    TIME.create (h,m,s,0)
+  );
+
+  //
+  //
+  //
+
+  - is_ansi:BOOLEAN := TRUE;
+
+  - exit code:INTEGER <- `exit(@code)`;
+
+  - putb value:UINTEGER_8 to port:UINTEGER_16 <-
+  // Write in port
+  (
+    `{ unsigned short val;
+      val = @value;
+      asm
+      (
+	"movw %0,%%dx \n\
+	movw %1,%%ax     \n\
+	outb %%al,%%dx  "
+	: /* No output */
+	:"r"(@port), "r"(val)
+	:"%ax","%dx"
+      );
+    }`;
+  );
+
+  - itemb port:UINTEGER_16 :UINTEGER_8 <-
+  // Read in port
+  ( + result:UINTEGER_8;
+    `{ unsigned short res;
+      asm
+      (
+	"movw %1,%%dx \n\
+	inb %%dx,%%al \n\
+	movw %%ax,%0  "
+	:"=r"(res)
+	:"r"(@port)
+	:"%ax","%dx"
+      )`;
+      result := `res`:UINTEGER_8;
+    `}`;
+    result
+  );
+
+  - get_universal_time:UINTEGER_64 <-
+  (
+    `(unsigned long long)time(NULL)`:UINTEGER_64
+  );
+
+  // Memory Management
+
+  - memory:MEMORY := MEMORY;
+
+  - get_begin_memory:POINTER;
+
+    - get_memory_capacity:UINTEGER_CPU <-
+  ( + cap:UINTEGER_CPU;
+    + mem,new_mem:POINTER;
+    cap := 32.mb;
+    {
+      cap := cap * 2;
+      mem := new_mem;
+      new_mem := `realloc(@mem,@cap)`:POINTER;
+    }.do_until {(new_mem = NULL) || {(cap >> 20) = 2048}}; // BSBS: BUG COMPILO 0.13
+    (new_mem = NULL).if {
+      cap := cap / 2;
+    } else {
+      mem := new_mem;
+    };
+    get_begin_memory := mem;
+    //
+    cap
+  );
+
+Section SYSTEM,MEMORY
+
+  - realloc_c (beg:UINTEGER_32,nb:INTEGER) :UINTEGER_32 <-
+  ( + result:UINTEGER_32;
+    result := `(unsigned long)realloc((void *)@beg,@nb+15)`:UINTEGER_32;
+    ((beg != 0) && {result != beg}).if {
+      MEMORY.print_nbx beg;
+      '\n'.print;
+      MEMORY.print_nbx result;
+      '\n'.print;
+      exit 1;
+    };
+    ? {(beg != 0) ->> {beg = result}};
+    ? {result != 0};
+    result
+  );
+
+Section Public // ISAAC
+
+  - make <-
+  // Isaac compatibility.
+  (
+    // Nothing.
+  );

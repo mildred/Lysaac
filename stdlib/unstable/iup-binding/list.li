@@ -1,0 +1,25 @@
+Section Header
+  // List
+
+  + name      := LIST;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP List";
+
+Section Inherit
+
+  + parent:Expanded CONTROL := CONTROL;
+
+Section Public
+  
+  - make :SELF <-
+  ( + result:SELF;
+    + h:POINTER;
+
+    h := `IupList(NULL)`:POINTER;
+
+    result := SELF.clone;
+    result.set_handle h;
+    result
+  );

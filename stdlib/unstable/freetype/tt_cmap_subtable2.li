@@ -1,0 +1,42 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_CMAP_SUBTABLE2;
+  - comment     :="Format 2: High-Byte mapping through table";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent_tt_cmap_subtable:TT_CMAP_SUBTABLE := TT_CMAP_SUBTABLE;
+
+Section Public
+  
+  + header:TT_CMAP_SUBTABLE_HEADER;
+  
+  // JBJB A VOIR CAR POUR CARACTERES KOREENS, CHINOIS ET JAPONAIS...
+  
+  - make file:STD_FILE <-
+  (
+    header := TT_CMAP_SUBTABLE_HEADER.clone;
+    file.read header;
+    header.to_big_endian;
+  );
+  
+  - print <-
+  ( 
+    "\n     Format 2: high-byte mapping through table\n".print;
+    header.print;
+  );

@@ -1,0 +1,89 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := Expanded POINTER;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := "References to objects (POINTER is mapped as C type 'void *')";
+
+  - export  := UINTEGER_CPU;
+
+  - type    := `void *`;
+
+  - default := `NULL`:POINTER;
+
+Section Insert
+
+  - parent_unsigned_integer:UNSIGNED_INTEGER := UNSIGNED_INTEGER;
+
+Section Public
+
+  - in_range low:SELF to up:SELF :BOOLEAN <- TRUE; // BSBS: A revoir.
+
+
+  - object_size:INTEGER <- `sizeof(void *)`:INTEGER;
+
+  - is_null:BOOLEAN <- (Self = NULL);
+  // Is the external POINTER a NULL pointer ?
+
+  - is_not_null:BOOLEAN <- ! is_null;
+  // Is the external POINTER a non-NULL pointer ?
+
+  - to_native_array:NATIVE_ARRAY(UINTEGER_8) <- NATIVE_ARRAY(UINTEGER_8).force_conversion Self;
+  // Convert `pointer' into 'native_array' type.
+
+//  - to_uinteger_32:UINTEGER_32 <- `(unsigned int)@Self`:UINTEGER_32;
+  // convert `pointer' into uinteger type (adress of the pointer)
+
+//  - from_uinteger p:UINTEGER_32 :POINTER <- CONVERT(UINTEGER_32,POINTER).on p;
+  // create POINTER from an adress
+
+//  - to_integer:INTEGER <- to_raw_integer;
+
+  - to_string :STRING <- to_uinteger_cpu.to_hexadecimal;
+
+  //
+  // Convertion format without test.
+  //
+
+  - to_raw_uinteger_cpu:UINTEGER_CPU <- CONVERT(SELF,UINTEGER_CPU).on Self;
+
+  - to_raw_integer:INTEGER           <- CONVERT(UINTEGER_CPU,INTEGER).on to_raw_uinteger_cpu;
+
+  - to_raw_uinteger:UINTEGER         <- CONVERT(UINTEGER_CPU,UINTEGER).on to_raw_uinteger_cpu;
+
+  - to_raw_uinteger_8:UINTEGER_8     <- CONVERT(UINTEGER_CPU,UINTEGER_8 ).on to_raw_uinteger_cpu;
+
+  - to_raw_uinteger_16:UINTEGER_16   <- CONVERT(UINTEGER_CPU,UINTEGER_16).on to_raw_uinteger_cpu;
+
+  - to_raw_uinteger_32:UINTEGER_32   <- CONVERT(UINTEGER_CPU,UINTEGER_32).on to_raw_uinteger_cpu;
+
+  - to_raw_uinteger_64:UINTEGER_64   <- CONVERT(UINTEGER_CPU,UINTEGER_64).on to_raw_uinteger_cpu;
+
+  - to_raw_integer_8:INTEGER_8       <- CONVERT(UINTEGER_CPU,INTEGER_8 ).on to_raw_uinteger_cpu;
+
+  - to_raw_integer_16:INTEGER_16     <- CONVERT(UINTEGER_CPU,INTEGER_16).on to_raw_uinteger_cpu;
+
+  - to_raw_integer_32:INTEGER_32     <- CONVERT(UINTEGER_CPU,INTEGER_32).on to_raw_uinteger_cpu;
+
+  - to_raw_integer_64:INTEGER_64     <- CONVERT(UINTEGER_CPU,INTEGER_64).on to_raw_uinteger_cpu;

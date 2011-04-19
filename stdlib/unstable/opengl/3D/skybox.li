@@ -1,0 +1,180 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Application                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := SKYBOX;
+  
+  - comment  := "render cube with sky effect";
+  
+Section Inherit
+
+  - parent_framework:FRAMEWORK_ANY := FRAMEWORK_ANY;  
+
+Section Public
+  
+  // position in 3d world
+  + position:VECTOR3(REAL_32); 
+  
+  // 3d cube
+  + vertex:FAST_ARRAY(VERTEX);
+  
+  // skybox textures
+  + textures:FAST_ARRAY(TEXTURE);
+ 
+  
+  - create (pos,dim:VECTOR3(REAL_32),tex:FAST_ARRAY(TEXTURE)) :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make (pos,dim,tex);
+    result
+  );
+  
+  - make (pos,dim:VECTOR3(REAL_32),tex:FAST_ARRAY(TEXTURE)) <-
+  ( 
+    + v:VERTEX;
+    ? {tex.count = 5};
+   
+    
+    position := pos;
+    textures := tex;
+    
+    vertex := FAST_ARRAY(VERTEX).create_with_capacity 8;
+    
+    // top
+    v := VERTEX.create (pos.x - dim.x, pos.y + dim.y, pos.z + dim.z);
+    vertex.add_last v;
+    v := VERTEX.create (pos.x + dim.x, pos.y + dim.y, pos.z + dim.z);
+    vertex.add_last v;
+    v := VERTEX.create (pos.x + dim.x, pos.y + dim.y, pos.z - dim.z);
+    vertex.add_last v;
+    v := VERTEX.create (pos.x - dim.x, pos.y + dim.y, pos.z - dim.z);
+    vertex.add_last v;
+    
+    // bottom
+    v := VERTEX.create (pos.x - dim.x, pos.y - dim.y, pos.z + dim.z);
+    vertex.add_last v;
+    v := VERTEX.create (pos.x + dim.x, pos.y - dim.y, pos.z + dim.z);
+    vertex.add_last v;
+    v := VERTEX.create (pos.x + dim.x, pos.y - dim.y, pos.z - dim.z);
+    vertex.add_last v;
+    v := VERTEX.create (pos.x - dim.x, pos.y - dim.y, pos.z - dim.z);
+    vertex.add_last v;
+  );
+  
+  - render <-
+  (
+    //
+    textures.item 0.bind;
+    renderer.vb.begin_quads;
+    
+    renderer.vb.add_texel2f (1, 0);
+    renderer.vb.add_vertex (vertex.item 7);
+    
+    renderer.vb.add_texel2f (0, 0);
+    renderer.vb.add_vertex (vertex.item 6);
+    
+    renderer.vb.add_texel2f (0, 1);
+    renderer.vb.add_vertex (vertex.item 2);
+    
+    renderer.vb.add_texel2f (1, 1);
+    renderer.vb.add_vertex (vertex.item 3);
+    
+    renderer.vb.end;
+    
+    //
+    textures.item 1.bind;
+    renderer.vb.begin_quads;
+    
+    renderer.vb.add_texel2f (0, 1);
+    renderer.vb.add_vertex (vertex.item 1);
+    
+    renderer.vb.add_texel2f (1, 1);
+    renderer.vb.add_vertex (vertex.item 2);
+    
+    renderer.vb.add_texel2f (1, 0);
+    renderer.vb.add_vertex (vertex.item 6);
+    
+    renderer.vb.add_texel2f (0, 0);
+    renderer.vb.add_vertex (vertex.item 5);
+    
+    renderer.vb.end; 
+    
+     //
+    textures.item 2.bind;
+    renderer.vb.begin_quads;
+    
+    renderer.vb.add_texel2f (0, 1);
+    renderer.vb.add_vertex (vertex.item 0);
+    
+    renderer.vb.add_texel2f (1, 1);
+    renderer.vb.add_vertex (vertex.item 1);
+    
+    renderer.vb.add_texel2f (1, 0);
+    renderer.vb.add_vertex (vertex.item 5);
+    
+    renderer.vb.add_texel2f (0, 0);
+    renderer.vb.add_vertex (vertex.item 4);
+    
+    renderer.vb.end;
+    
+     //
+    textures.item 3.bind;
+    renderer.vb.begin_quads;
+    
+    renderer.vb.add_texel2f (1, 0);
+    renderer.vb.add_vertex (vertex.item 4);
+    
+    renderer.vb.add_texel2f (0, 0);
+    renderer.vb.add_vertex (vertex.item 7);
+    
+    renderer.vb.add_texel2f (0, 1);
+    renderer.vb.add_vertex (vertex.item 3);
+    
+    renderer.vb.add_texel2f (1, 1);
+    renderer.vb.add_vertex (vertex.item 0);
+    
+    renderer.vb.end;
+    
+     //
+    textures.item 4.bind;
+    renderer.vb.begin_quads;
+    
+    renderer.vb.add_texel2f (0, 1);
+    renderer.vb.add_vertex (vertex.item 3);
+    
+    renderer.vb.add_texel2f (1, 1);
+    renderer.vb.add_vertex (vertex.item 2);
+    
+    renderer.vb.add_texel2f (1, 0);
+    renderer.vb.add_vertex (vertex.item 1);
+    
+    renderer.vb.add_texel2f (0, 0);
+    renderer.vb.add_vertex (vertex.item 0);
+    
+    renderer.vb.end;
+  );
+  
+  - set_position p:VECTOR3(REAL_32) <-
+  (
+    position := p;
+  );
+  

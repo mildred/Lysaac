@@ -1,0 +1,323 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := DIRECTORY;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := "Basic Directory management";
+
+Section Inherit
+
+  - parent_entry:ENTRY := ENTRY;
+
+Section DIRECTORY
+
+  + list:LINKED_LIST(ENTRY);
+
+  - alias:HASHED_DICTIONARY(ENTRY,ABSTRACT_STRING) :=
+  HASHED_DICTIONARY(ENTRY,ABSTRACT_STRING).create;
+
+Section Public
+
+  //
+  // Manager.
+  //
+
+  - remove_me <- remove_path ".";
+
+  - remove p:ABSTRACT_STRING :BOOLEAN <-
+  // Remove file or directory (WARNING: delete recursive)
+  ( + dir:DIRECTORY;
+    + i:INTEGER;
+    + result:BOOLEAN;
+    + e:ENTRY;
+
+    e := get_entry p;
+    (e != NULL).if {
+      (e.is_directory).if {
+        dir ?= e;
+        result := dir.open;
+        (result).if {
+          i := dir.lower;
+          {(i > dir.upper) || {! result}}.until_do {
+            result := remove (dir.item i.path);
+            i := i + 1;
+          };
+          result.if {
+            result := physical_remove (e.path);
+          };
+        };
+      } else {
+        result := physical_remove (e.path);
+      };
+      (result).if {
+        // Remove Alias.
+        alias.remove (e.path);
+      };
+    };
+    result
+  );
+
+  - move old_path:ABSTRACT_STRING to new_path:ABSTRACT_STRING :BOOLEAN <-
+  ( + result:BOOLEAN;
+    + e:ENTRY;
+
+    "WARNING : Et les alias des sous répertoires, fichiers, ...\n".print;
+
+    string_tmp.copy path;
+    string_tmp.add_last '/';
+    string_tmp.append old_path;
+    reduce_path string_tmp;
+    string_tmp2.copy path;
+    string_tmp2.add_last '/';
+    string_tmp2.append new_path;
+    reduce_path string_tmp2;
+    e := alias.reference_at string_tmp;
+    ((result := physical_move string_tmp to string_tmp2) && {e != NULL}).if {
+      alias.remove string_tmp;
+      e.set_path string_tmp2;
+      alias.add e to (e.path);
+    };
+    result
+  );
+
+  - get_entry p:ABSTRACT_STRING :ENTRY <-
+  ( + result:ENTRY;
+    + idx:INTEGER;
+    string_tmp2.copy path;
+    string_tmp2.add_last '/';
+    string_tmp2.append p;
+    reduce_path string_tmp2;
+    string_tmp3.copy string_tmp2;
+    {
+      result := alias.reference_at string_tmp2; // with { (e1,e2:ABSTRACT_STRING); e1 ~= e2 };
+      (result = NULL).if {
+        idx := string_tmp2.fast_last_index_of '/';
+        (idx > 0).if {
+          string_tmp2.keep_head (idx-1);
+        } else {
+          string_tmp2.clear;
+        };
+      };
+    }.do_while {(result = NULL) && {! string_tmp2.is_empty}};
+    (result = NULL).if {
+      result := FILE_SYSTEM.physical_get_entry string_tmp3;
+    }.elseif {string_tmp3.count != string_tmp2.count} then {
+      + dir:DIRECTORY;
+
+      dir ?= result;
+      result := dir.physical_get_entry string_tmp3;
+    };
+    result
+  );
+
+  //
+  // Indexing.
+  //
+
+  - open:BOOLEAN <-
+  (
+    deferred;
+  )
+  [
+    +? {list != NULL};
+  ];
+
+  - is_open:BOOLEAN <- list != NULL;
+
+  - lower:INTEGER := 1;
+  // Minimum index.
+
+  - upper:INTEGER <-
+  [
+    {is_open} -? "Directory not open.";
+  ]
+  (
+    list.upper
+  );
+
+  // Maximum index.
+
+  - valid_index index:INTEGER :BOOLEAN <-
+  // True when `index' is valid (ie. inside actual
+  // bounds of the collection).
+  [
+    {is_open} -? "Directory not open.";
+  ]
+  (
+    index.in_range lower to upper
+  )
+  [
+    +? {Result = index.in_range lower to upper};
+    +? {list.count = Old list.count};
+  ];
+
+  //
+  // Counting.
+  //
+
+  - count:INTEGER <- (upper - lower + 1);
+  // Number of available indices.
+
+  - is_empty:BOOLEAN <- count = 0;
+  // Is collection empty ?
+
+  //
+  // Accessing.
+  //
+
+  - item i:INTEGER :ENTRY <-
+  // Item at the corresponding index `i'.
+  [
+    -? {valid_index i};
+    {is_open} -? "Directory not open.";
+  ]
+  (
+    list.item i
+  );
+
+  - first:ENTRY <-
+  // The very `first' item.
+  [
+    {is_open} -? "Directory not open.";
+    -? {! is_empty};
+  ]
+  (
+    item lower
+  );
+
+
+  - last:ENTRY <-
+  // The `last' item.
+  [
+    {is_open} -? "Directory not open.";
+    -? {! is_empty};
+  ]
+  (
+    item upper
+  );
+
+  - parent:ENTRY <-
+  (
+    get_entry ".."
+  );
+
+  //
+  // Writing:
+  //
+
+  - make_directory p:ABSTRACT_STRING :DIRECTORY <-
+  ( + result:DIRECTORY;
+    string_tmp.copy path;
+    string_tmp.add_last '/';
+    string_tmp.append p;
+    reduce_path string_tmp;
+    (physical_make_directory string_tmp).if {
+      result ?= get_entry string_tmp;
+      ? {result != NULL};
+    };
+    result
+  );
+
+  - make_file p:ABSTRACT_STRING :FILE <-
+  ( + result:FILE;
+    string_tmp.copy path;
+    string_tmp.add_last '/';
+    string_tmp.append p;
+    reduce_path string_tmp;
+    (physical_make_file string_tmp).if {
+      result ?= get_entry string_tmp;
+      ? {result != NULL};
+    };
+    result
+  );
+
+  - create_file p:ABSTRACT_STRING :FILE <-
+  (
+    make_file p
+  );
+
+  //
+  // Display.
+  //
+
+  - print <-
+  (
+    lower.to upper do { j:INTEGER;
+      string_tmp.copy (item j.path);
+      (item j.is_directory).if {
+        string_tmp.append " D ";
+      } else {
+        string_tmp.append "   ";
+      };
+      {string_tmp.count % 20 != 0}.while_do {
+        string_tmp.add_last ' ';
+      };
+      string_tmp.print;
+    };
+    '\n'.print;
+  );
+
+Section DIRECTORY
+
+  //
+  // Physical implementation.
+  //
+
+  - physical_get_entry new_path:ABSTRACT_STRING :ENTRY <-
+  ( + result:ENTRY;
+
+    ((! is_open) && {open}).if {
+      result := get_entry new_path;
+    };
+    result
+  );
+
+  - physical_make_directory new_path:ABSTRACT_STRING :BOOLEAN <-
+  (
+    deferred;
+    FALSE
+  );
+
+  - physical_make_file new_path:ABSTRACT_STRING :BOOLEAN <-
+  (
+    deferred;
+    FALSE
+  );
+
+  - physical_remove p:ABSTRACT_STRING :BOOLEAN <-
+  (
+    deferred;
+    FALSE
+  );
+
+  - physical_move old_path:ABSTRACT_STRING to new_path:ABSTRACT_STRING :BOOLEAN <-
+  (
+    deferred;
+    FALSE
+  );
+
+Section Private
+
+  - string_tmp3:STRING  := STRING.create 255;

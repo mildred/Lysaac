@@ -1,0 +1,83 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header	
+  
+  + name        := TT_NAME;
+  
+  - comment     :="Naming Table.";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  + header:TT_NAME_HEADER;
+  
+  + record:MAP_FIXED_ARRAY(TT_NAME_RECORD);
+  
+  + data:FIXED_ARRAY(FIXED_ARRAY(UINTEGER_16));
+  
+  - create file:STD_FILE :SELF <-
+  ( + result:SELF;
+    ? { file != NULL };
+    result := clone;
+    result.make file;
+    result
+  );
+  
+  - make file:STD_FILE <-
+  ( + cursor:UINTEGER;
+    + tmp_data:FIXED_ARRAY(UINTEGER_16);
+    cursor := file.cursor;
+    header := TT_NAME_HEADER.clone;
+    file.read header;
+    header.to_big_endian;
+    
+    record := MAP_FIXED_ARRAY(TT_NAME_RECORD).create_with_capacity (header.num_name_records);
+    file.read record size (TT_NAME_RECORD.object_size * header.num_name_records);
+    
+    cursor := cursor + header.storage_offset;
+    data := FIXED_ARRAY(FIXED_ARRAY(UINTEGER_16)).create (header.num_name_records);
+    0.to (header.num_name_records - 1) do { i:INTEGER;
+      // Init of records
+      record.item i.to_big_endian;
+      // Init of datas
+      tmp_data := FIXED_ARRAY(UINTEGER_16).create_with_capacity (record.item i.string_length);
+      file.set_cursor (cursor + record.item i.string_offset);
+      file.read tmp_data size (record.item i.string_length);
+      data.put tmp_data to i;
+    };
+
+  );
+  
+  - print <-
+  (
+    "\n********* NAME TABLE *********\n".print;
+    header.print;
+    0.to (header.num_name_records - 1) do { i:INTEGER;
+      "\n     ".print;
+      i.print;
+      '.'.print;
+      record.item i.print;
+      "\n       Data: ".print;
+      0.to (data.item i.upper) do { j:INTEGER;
+	data.item i.item j.to_character.print;
+      };
+      '\n'.print;
+    };
+    '\n'.print;
+  );

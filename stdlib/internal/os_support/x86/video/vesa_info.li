@@ -1,0 +1,142 @@
+///////////////////////////////////////////////////////////////////////////////
+//                          Isaac Operating System                           //
+// 									     //
+//   This program is free software; you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation; version 3 of the License.  		     //
+// 									     //
+//   This program is distributed in the hope that it will be useful, 	     //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of 	     //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 	     //
+//   GNU General Public License for more details. 			     //
+// 									     //
+// 			    http://www.lisaac.org			     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := VESA_INFO;
+  
+  - comment     := "Mapping vesa info structure";
+  
+  - bibliography:= "http://www.lisaac.org";
+  - author      := "Benoit Sonntag (benoit.sonntag@lisaac.org), Jerome Boutet (pisteur@free.fr)";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Mapping
+  
+  + vesa_signature:UINTEGER_32; // char[4]
+  + map_vesa_version:UINTEGER_16;
+  + oem_string_ptr:UINTEGER_32;
+  + capabilities:UINTEGER_32;   // char [4]
+  + map_video_mode_ptr:UINTEGER_32;
+  + total_memory:UINTEGER_16;  // En Bloc de 64Ko.
+  + oem_software_rev:UINTEGER_16;
+  + oem_vendor_name_ptr:UINTEGER_32;
+  + oem_product_name_ptr:UINTEGER_32;
+  + oem_product_rev_ptr:UINTEGER_32;
+
+  + reserved_00:UINTEGER_64;    // char[222]
+  + reserved_01:UINTEGER_64;
+  + reserved_02:UINTEGER_64;
+  + reserved_03:UINTEGER_64;
+  + reserved_04:UINTEGER_64;
+  + reserved_05:UINTEGER_64;
+  + reserved_06:UINTEGER_64;
+  + reserved_07:UINTEGER_64;
+  + reserved_08:UINTEGER_64;
+  + reserved_09:UINTEGER_64;
+  + reserved_10:UINTEGER_64;
+  + reserved_11:UINTEGER_64;
+  + reserved_12:UINTEGER_64;
+  + reserved_13:UINTEGER_64;
+  + reserved_14:UINTEGER_64;
+  + reserved_15:UINTEGER_64;
+  + reserved_16:UINTEGER_64;
+  + reserved_17:UINTEGER_64;
+  + reserved_18:UINTEGER_64;
+  + reserved_19:UINTEGER_64;
+  + reserved_20:UINTEGER_64;
+  + reserved_21:UINTEGER_64;
+  + reserved_22:UINTEGER_64;
+  + reserved_23:UINTEGER_64;
+  + reserved_24:UINTEGER_64;
+  + reserved_25:UINTEGER_64;
+  + reserved_26:UINTEGER_64;
+  + reserved_27:UINTEGER_32;
+  + reserved_28:UINTEGER_16;
+
+  + oem_data_00:UINTEGER_64;    // char[256]
+  + oem_data_01:UINTEGER_64;
+  + oem_data_02:UINTEGER_64;
+  + oem_data_03:UINTEGER_64;
+  + oem_data_04:UINTEGER_64;
+  + oem_data_05:UINTEGER_64;
+  + oem_data_06:UINTEGER_64;
+  + oem_data_07:UINTEGER_64;
+  + oem_data_08:UINTEGER_64;
+  + oem_data_09:UINTEGER_64;
+  + oem_data_10:UINTEGER_64;
+  + oem_data_11:UINTEGER_64;
+  + oem_data_12:UINTEGER_64;
+  + oem_data_13:UINTEGER_64;
+  + oem_data_14:UINTEGER_64;
+  + oem_data_15:UINTEGER_64;
+  + oem_data_16:UINTEGER_64;
+  + oem_data_17:UINTEGER_64;
+  + oem_data_18:UINTEGER_64;
+  + oem_data_19:UINTEGER_64;
+  + oem_data_20:UINTEGER_64;
+  + oem_data_21:UINTEGER_64;
+  + oem_data_22:UINTEGER_64;
+  + oem_data_23:UINTEGER_64;
+  + oem_data_24:UINTEGER_64;
+  + oem_data_25:UINTEGER_64;
+  + oem_data_26:UINTEGER_64;
+  + oem_data_27:UINTEGER_64;
+  + oem_data_28:UINTEGER_64;
+  + oem_data_29:UINTEGER_64;
+  + oem_data_30:UINTEGER_64;
+  + oem_data_31:UINTEGER_64;
+  
+Section Public
+
+  - make buf:NATIVE_ARRAY(UINTEGER_8) <-
+  ( + tab:NATIVE_ARRAY(UINTEGER_8);
+    ? {object_size<=512};
+    
+    tab := CONVERT(VESA_INFO,NATIVE_ARRAY(UINTEGER_8)).on Self;
+    tab.copy buf to 0 until object_size;
+  );
+    
+  - vesa_version:UINTEGER_16 <- map_vesa_version;
+  - video_mode_ptr:UINTEGER_32 <- map_video_mode_ptr;
+
+
+	- print <-
+	(
+		"vesa_signature\t".print;
+		vesa_signature.print;'\n'.print; // char[4]
+		"map_vesa_version\t".print;
+		map_vesa_version.print;'\n'.print;
+		"oem_string_ptr\t".print;
+		oem_string_ptr.print;'\n'.print;
+		"capabilities\t".print;
+		capabilities.print;'\n'.print;
+		"map_video_mode_ptr\t".print;
+		map_video_mode_ptr.print;'\n'.print;
+		"total_memory\t".print;
+		total_memory.print;'\n'.print;
+		"oem_software_rev\t".print;
+		oem_software_rev.print;'\n'.print;
+		"oem_vendor_name_ptr\t".print;
+		oem_vendor_name_ptr.print;'\n'.print;
+		"oem_product_name_ptr\t".print;
+		oem_product_name_ptr.print;'\n'.print;
+		"oem_product_rev_ptr\t".print;
+		oem_product_rev_ptr.print;'\n'.print;
+	
+	);

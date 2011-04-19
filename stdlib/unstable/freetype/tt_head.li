@@ -1,0 +1,128 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_HEAD;
+  
+  - comment     :="Font header Truetype prototype.";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Mapping
+  
+  + table_version:UINTEGER_32;
+  + font_revision:UINTEGER_32;
+  
+  + checksum_adjust:UINTEGER_32;
+  + magic_number:UINTEGER_32;
+  
+  + flags:UINTEGER_8;
+  + units_per_em:UINTEGER_8;
+  
+  + created:ULONGINT;
+  + modified:ULONGINT;
+    
+  + xmin:INTEGER_8;
+  + ymin:INTEGER_8;
+  + xmax:INTEGER_8;
+  + ymax:INTEGER_8;
+  
+  + mac_style:UINTEGER_8;
+  + lowest_rec_ppem:UINTEGER_8;
+  
+  + font_direction:INTEGER_8;
+  + index_to_loc_format:INTEGER_8;
+  + glyph_data_format:INTEGER_8;
+  
+Section Public
+  
+  - to_big_endian <-
+  (
+    table_version := PROCESSOR.to_motorola_uint table_version;
+    font_revision := PROCESSOR.to_motorola_uint font_revision;
+    
+    checksum_adjust := PROCESSOR.to_motorola_uint checksum_adjust;
+    magic_number := PROCESSOR.to_motorola_uint magic_number;
+    
+    flags := PROCESSOR.to_motorola_ushort flags;
+    units_per_em := PROCESSOR.to_motorola_ushort units_per_em;
+    
+    created := PROCESSOR.to_motorola_ulong created;
+    modified := PROCESSOR.to_motorola_ulong modified;
+    
+    xmin := PROCESSOR.to_motorola_short xmin;
+    ymin := PROCESSOR.to_motorola_short ymin;
+    xmax := PROCESSOR.to_motorola_short xmax;
+    ymax := PROCESSOR.to_motorola_short ymax;
+    
+    mac_style := PROCESSOR.to_motorola_ushort mac_style;
+    lowest_rec_ppem := PROCESSOR.to_motorola_ushort lowest_rec_ppem;
+    
+    font_direction := PROCESSOR.to_motorola_short font_direction;
+    index_to_loc_format := PROCESSOR.to_motorola_short index_to_loc_format;
+    glyph_data_format := PROCESSOR.to_motorola_short glyph_data_format;    
+  );
+  
+  - print <-
+  (
+    "\n********* HEAD TABLE *********\n".print;
+    "\n     table_version:".print;
+    (table_version >> 16).to_hexadecimal.print;
+    '.'.print;
+    (table_version & 0FFFFh).to_hexadecimal.print;
+    "\n     font_revision:".print;
+    (font_revision >> 16).to_hexadecimal.print;
+    '.'.print;
+    (font_revision & 0FFFFh).to_hexadecimal.print;
+    "\n     checksum_adjust: 0x".print;
+    checksum_adjust.to_hexadecimal.print;
+    "\n     magic_number: 0x".print;
+    magic_number.to_hexadecimal.print;    
+
+    "\n     flags: 0x".print;
+    flags.to_hexadecimal.print;
+    "\n     units_per_em:".print;
+    units_per_em.print;
+    
+    "\n     created:".print;
+    created.print;
+    "\n     modified:".print;
+    modified.print;
+    
+    "\n     xmin:".print;
+    xmin.print;
+    "\n     ymin:".print;
+    ymin.print;
+    "\n     xmax:".print;
+    xmax.print;
+    "\n     ymax:".print;
+    ymax.print;
+    
+    "\n     mac_style: 0x".print;
+    mac_style.to_hexadecimal.print;
+    "\n     lowest_rec_ppem:".print;
+    lowest_rec_ppem.print;
+    
+    "\n     font_direction:".print;
+    font_direction.print;
+    "\n     index_to_loc_format:".print;
+    index_to_loc_format.print;
+    "\n     glyph_data_format:".print;
+    glyph_data_format.print;    
+  );
+  

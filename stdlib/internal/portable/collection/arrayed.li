@@ -1,0 +1,90 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := ARRAYED;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := "Generic collection";
+
+  // BSBS: A revoir cela doit rentrer ARRAYED_COLLECTION (mais il faut voir avec STRING)
+
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Public
+
+  - lower:INTEGER <- deferred;
+  - upper:INTEGER <- deferred;
+  - count:INTEGER <- deferred;
+
+  - capacity:INTEGER <- deferred;
+
+  - element_sizeof:INTEGER <-
+  // The size in number of bytes for type `E'.
+  (
+    deferred;
+    0
+  );
+
+  - add_last_buffer buf:FAST_ARRAY(UINTEGER_8) from beg:INTEGER to end:INTEGER <-
+  (
+    deferred;
+  );
+
+  - item_byte idx:INTEGER offset ofs:INTEGER :UINTEGER_8 <-
+  (
+    deferred;
+  );
+
+  - set_capacity new_capacity:INTEGER <-
+  (
+    deferred;
+  );
+
+  - set_count new_count:INTEGER <-
+  (
+    deferred;
+  );
+
+  - to_native_array_uinteger_8:NATIVE_ARRAY(UINTEGER_8) <-
+  (
+    deferred;
+    NULL
+  );
+
+  - get_buffer_from_byte i:INTEGER size_bytes s:INTEGER :FAST_ARRAY(UINTEGER_8) <-
+  [
+    -? { i >= 0 };
+    -? { s >= 0 };
+    -? { i < capacity * element_sizeof };
+    -? { i+s < capacity * element_sizeof };
+  ]
+  (
+    deferred;
+  )
+  [
+    +? { Result.count = s };
+  ];
+

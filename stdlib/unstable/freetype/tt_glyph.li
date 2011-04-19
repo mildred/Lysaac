@@ -1,0 +1,245 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header	
+  
+  + name        := TT_GLYPH;
+  - comment     :="Glyph Datas.";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  + header:TT_GLYPH_HEADER;
+    
+  + end_pts_of_contours:FAST_ARRAY(UINTEGER_8);
+  
+  + instruction:FAST_ARRAY(UINTEGER_16);
+  
+  + n_points:UINTEGER_8;
+  
+  + flags:FAST_ARRAY(TT_FLAG_GLYPH);
+  
+  + x_coordinate:FAST_ARRAY(INTEGER_8);
+  
+  + y_coordinate:FAST_ARRAY(INTEGER_8);
+  
+  + with_contour:BOOLEAN;
+  
+  + composite:BOOLEAN;
+  
+  - create_no_contour :SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make_no_contour;
+    result    
+  );
+  
+  - make_no_contour <-
+  (
+    with_contour := FALSE;
+  );
+  
+  - create file:STD_FILE :SELF <-
+  ( + result:SELF;
+    ? { file != NULL };
+    result := clone;
+    result.make file;
+    result
+  );
+    
+  - make file:STD_FILE <-
+  ( + i:INTEGER;
+    + tmp_flag:TT_FLAG_GLYPH;
+    + v,old:INTEGER_8;
+    + offset,cursor:UINTEGER_32;
+    + tmp_buf_short:FAST_ARRAY(UINTEGER_8);
+    + tmp_buf_small:FAST_ARRAY(UINTEGER_16);
+    + inst_length:UINTEGER_8;
+    with_contour := TRUE;
+    header := TT_GLYPH_HEADER.clone;
+    file.read header;
+    header.to_big_endian;
+    (header.number_of_contours > 0).if {
+      composite := FALSE;
+      end_pts_of_contours := FAST_ARRAY(UINTEGER_8).create_with_capacity (header.number_of_contours);
+      file.read end_pts_of_contours size (header.number_of_contours * 2);
+      to_big_endian end_pts_of_contours;
+      n_points := end_pts_of_contours.item (header.number_of_contours - 1) + 1;
+      
+      tmp_buf_short := FAST_ARRAY(UINTEGER_8).create_with_capacity 1;
+      file.read tmp_buf_short size 2;    
+      inst_length := PROCESSOR.to_motorola_ushort (tmp_buf_short.item 0);
+      
+      instruction := FAST_ARRAY(UINTEGER_16).create_with_capacity inst_length;
+      file.read instruction size inst_length;
+      
+      flags := FAST_ARRAY(TT_FLAG_GLYPH).create n_points;
+      cursor := file.cursor;
+      tmp_buf_small :=  FAST_ARRAY(UINTEGER_16).create_with_capacity n_points;
+      file.read tmp_buf_small size n_points;
+      // There can be less than n_points*2 bytes but it's the max    
+      { i < n_points }.while_do {
+	tmp_flag := TT_FLAG_GLYPH.create (tmp_buf_small.item offset);
+	offset := offset + 1;
+	flags.put tmp_flag to i;
+	i := i + 1;
+	(tmp_flag.is_repeat).if {
+	  // Repeat next byte time
+	  0.to (tmp_buf_small.item offset - 1) do { j:INTEGER;
+	    flags.put tmp_flag to i;
+	    i := i + 1;
+	  };
+	  offset := offset + 1;
+	};
+      };
+      
+      x_coordinate := FAST_ARRAY(INTEGER_8).create n_points;
+      file.set_cursor (cursor + offset);
+      cursor := file.cursor;
+      tmp_buf_small :=  FAST_ARRAY(UINTEGER_16).create_with_capacity (n_points*2);
+      file.read tmp_buf_small size (n_points*2);
+      offset := 0;
+      // There can be less than n_points*2 bytes but it's the max
+      0.to (n_points - 1) do { j:INTEGER;
+	(flags.item j.is_x_short).if { 
+	  // Bit X_Short set: 1 byte long
+	  (flags.item j.is_x_same).if {
+	    // Bit X_Same set: positive
+	    v := old + tmp_buf_small.item offset;  
+	  } else {
+	    v := old - tmp_buf_small.item offset;
+	  };
+	  x_coordinate.put v to j;
+	  old := v;
+	  offset := offset + 1;
+	} else {
+	  // Bit X_Short not set: 2 byte long
+	  (flags.item j.is_x_same).if {
+	    // Bit X_Same set: same coordinate as previous
+	    v := old;
+	  } else {
+	    // Bit X_Same not set: short value for vector
+	    v := old + ((tmp_buf_small.item offset.to_INTEGER_8 << 8) | tmp_buf_small.item (offset + 1));
+	    offset := offset + 2;
+	  };
+	  old := v;
+	  x_coordinate.put v to j;
+	};
+      };
+      
+      y_coordinate := FAST_ARRAY(INTEGER_8).create n_points;
+      file.set_cursor (cursor + offset);
+      cursor := file.cursor;
+      tmp_buf_small :=  FAST_ARRAY(UINTEGER_16).create_with_capacity (n_points*2);
+      file.read tmp_buf_small size (n_points*2);
+      offset := 0;
+      old := 0;
+      // There can be less than n_points*2 bytes but it's the max
+      0.to (n_points - 1) do { j:INTEGER;
+	(flags.item j.is_y_short).if { 
+	  // Bit Y_Short set: 1 byte long
+	  (flags.item j.is_y_same).if {
+	    // Bit Y_Same set: positive
+	    v := old + tmp_buf_small.item offset;
+	  } else {
+	    v := old - tmp_buf_small.item offset;
+	  };
+	  y_coordinate.put v to j;
+	  old := v;
+	  offset := offset + 1;
+	} else {
+	  // Bit Y_Short not set: 2 byte long
+	  (flags.item j.is_y_same).if {
+	    // Bit Y_Same set: same coordinate as previous
+	    v := old;
+	  } else {
+	    // Bit Y_Same not set: short value for vector
+	    //v := (buf.item (offset + 1).to_INTEGER_8 << 8) | buf.item offset;
+	    v := old + ((tmp_buf_small.item offset.to_INTEGER_8 << 8) | tmp_buf_small.item (offset + 1));
+	    offset := offset + 2;
+	  };
+	  old := v;
+	  y_coordinate.put v to j;
+	};
+      };
+      file.set_cursor (cursor + offset);
+    } else {
+      // Composite Glyph
+      composite := TRUE;
+    };      
+  );
+
+  - to_big_endian buf:FAST_ARRAY(UINTEGER_8) <-
+  (
+    0.to (buf.upper) do { i:INTEGER;
+      buf.put (PROCESSOR.to_motorola_ushort (buf.item i)) to i;
+    };
+  );
+  
+  - print <-
+  (        
+    with_contour.if {
+      header.print;
+      composite.if {
+	"\n     Composite Glyph".print;
+      } else {
+	
+	"\n     End pts of contours:".print;      
+	0.to (header.number_of_contours - 1) do { i:INTEGER;
+	  end_pts_of_contours.item i.print;
+	  ' '.print;
+	};
+	
+	"\n     Instruction_length:".print;
+	instruction.count.print;
+	"\n     Instructions:".print;
+	0.to (instruction.upper) do { i:INTEGER;
+	  "0x".print;
+	  instruction.item i.to_hexadecimal.print;
+	  ' '.print;
+	};
+	
+	"\n     Flags:".print;
+	0.to (n_points - 1) do { i:INTEGER;
+	  "\n     (".print;
+	  i.print;
+	  ')'.print;
+	  flags.item i.print;
+	};
+	
+	"\n     Coordinates:".print;
+	0.to (n_points - 1) do { i:INTEGER;
+	  "\n     (".print;
+	  i.print;
+	  ")  ".print;
+	  x_coordinate.item i.print;
+	  '/'.print;
+	  y_coordinate.item i.print;
+	  ' '.print;
+	};
+      };
+    } else {
+      "\n No contour Glyph".print;
+    };
+  );
+
+
+
+
+

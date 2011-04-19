@@ -1,0 +1,70 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_ALPHA_TEST;
+  
+  - comment  := "Alpha Testing (only in RGBA mode)";
+  
+Section Inherit
+  
+  - parent_alpha_test:ALPHA_TEST := ALPHA_TEST;
+ 
+Section Public
+  
+  // pixel test functions
+  - always:INTEGER <- `GL_ALWAYS`:INTEGER;
+  - never:INTEGER <- `GL_NEVER`:INTEGER;
+  - less:INTEGER <-  `GL_LESS`:INTEGER;
+  - lequal:INTEGER <- `GL_LEQUAL`:INTEGER;
+  - equal:INTEGER <- `GL_EQUAL`:INTEGER;
+  - gequal:INTEGER <- `GL_GEQUAL`:INTEGER;
+  - greater:INTEGER <- `GL_GREATER`:INTEGER;
+  - notequal:INTEGER <- `GL_NOTEQUAL`:INTEGER;
+  
+  
+  - enable <-
+  (
+    parent_state.enable;
+    `glEnable(GL_ALPHA_TEST)`;
+  );
+  
+  - disable <-
+  ( 
+    parent_state.disable;
+    `glDisable(GL_ALPHA_TEST)`;
+  );
+  
+  - push_attrib <-
+  (
+    `glPushAttrib(GL_ENABLE_BIT)`;
+  );
+  
+  - pop_attrib <-
+  (
+    `glPopAttrib()`;
+  );
+  
+  - apply f:INTEGER with val:REAL_32 <-
+  (
+    `glAlphaFunc(@f, @val)`;
+  );

@@ -1,0 +1,139 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name    := AI_ALIAS;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment     :="Alias for Adobe Illustrator format.";
+  
+  - version := 1;  
+  
+Section Inherit  
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  - list:HASHED_SET(ABSTRACT_STRING);
+  
+  //
+  // Aliases keywords
+  //
+  
+  // Symbol
+  
+  - start_comment:STRING_CONSTANT      := "%%";
+  
+  - start_comment_more:STRING_CONSTANT := "%%+";
+    
+  - prefix_file:STRING_CONSTANT        := "%!PS-Adobe-2.0 EPSF-1.2";
+
+  - bounding_box:STRING_CONSTANT       := "%%BoundingBox:";
+
+  - end_prolog:STRING_CONSTANT         := "%%EndProlog";
+  
+  - end_comments:STRING_CONSTANT       := "%%EndComments";  
+  
+  - begin_procset:STRING_CONSTANT      := "%%BeginProcset:";
+  
+  - begin_setup:STRING_CONSTANT        := "%%BeginSetup";
+  
+  - end_setup:STRING_CONSTANT          := "%%EndSetup";
+  
+  - adobe_illustrator:STRING_CONSTANT  := "Adobe_Illustrator_";
+  
+  - begin:STRING_CONSTANT              := "begin";
+  
+  - begin_encoding:STRING_CONSTANT     := "%%BeginEncoding:";
+  
+  - end_encoding:STRING_CONSTANT       := "%%EndEncoding";
+  
+  - begin_pattern:STRING_CONSTANT      := "%%BeginPattern";
+  
+  - end_pattern:STRING_CONSTANT        := "%%EndPattern";
+  
+  - note:STRING_CONSTANT               := "%%Note:";
+  
+  - include_file:STRING_CONSTANT       := "%%IncludeFile:";
+  
+  - trailer:STRING_CONSTANT            := "%%Trailer";
+  
+  - initialize:STRING_CONSTANT         := "/initialize get exec";
+  
+  - terminate:STRING_CONSTANT          := "/terminate get exec";
+  
+  - end:STRING_CONSTANT                := "_E end";
+    
+  //
+  // Function
+  //
+  
+  - make <-
+  (
+    list := HASHED_SET(ABSTRACT_STRING).create;
+    // Symbol    
+    list.add start_comment;      
+    list.add start_comment_more; 
+    //
+    list.add prefix_file;
+    list.add bounding_box;    
+    list.add end_prolog;            
+    list.add end_comments;      
+    list.add begin_procset;    
+    list.add begin_setup;      
+    list.add end_setup;        
+    list.add adobe_illustrator;
+    list.add begin;            
+    list.add begin_encoding;   
+    list.add end_encoding;     
+    list.add begin_pattern;    
+    list.add end_pattern;      
+    list.add note;             
+    list.add include_file;     
+    list.add trailer;          
+    list.add initialize;  
+    list.add terminate;        
+    list.add end;
+  );
+  
+  - get str:ABSTRACT_STRING :STRING_CONSTANT <-
+  ( + result:STRING_CONSTANT;
+    + tmp:ABSTRACT_STRING;
+    ? {str != NULL};
+    
+    tmp := list.reference_at str;
+    (tmp = NULL).if {
+      result := STRING_CONSTANT.create_copy str;
+      list.add result;
+    } else {
+      result ?= tmp;
+    };
+    result
+  );
+  
+  
+  
+
+
+

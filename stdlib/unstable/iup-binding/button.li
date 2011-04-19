@@ -1,0 +1,99 @@
+Section Header
+  // Button
+
+  + name      := BUTTON;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP Button";
+
+Section Inherit
+
+  + parent:Expanded CONTROL := CONTROL;
+
+Section Private
+
+  + action_block:{INTEGER};
+
+Section External
+
+  - perform_action h:POINTER :INTEGER <-
+  ( + b:BUTTON;
+    + obj:POINTER;
+    
+    obj := `IupGetCallback(@h, "LISAAC_OBJ")`:POINTER;
+    b := CONVERT(POINTER, BUTTON).on obj;
+    b.action_block.value
+  );
+
+Section Public
+  // Creation
+  
+  - make title:ABSTRACT_STRING :SELF <-
+  ( + result:SELF;
+    + h:POINTER;
+    + n_title:NATIVE_ARRAY(CHARACTER);
+    
+    n_title := title.to_external;
+
+    h := `IupButton(@n_title, NULL)`:POINTER;
+
+    result := SELF.clone;
+    result.set_handle h;
+    `IupSetCallback(@h, "LISAAC_OBJ", (void *) @result)`;
+    result
+  );
+  
+Section Public
+  // Callbacks
+  
+  - set_action b:{INTEGER} <-
+  ( + h:POINTER;
+    
+    h := handle;
+    `IupSetCallback(@h, IUP_ACTION, (Icallback) perform_action)`;
+    
+    action_block := b;
+  );
+
+Section Public
+  // Attributes
+  
+  - set_alignment v:ABSTRACT_STRING <- store "ALIGNMENT" value v;
+  - alignment :ABSTRACT_STRING <- get "ALIGNMENT";
+
+  - set_canfocus v:BOOLEAN <- store "CANFOCUS" boolean v;
+  - canfocus :BOOLEAN <- (get "CANFOCUS") = "YES";
+  
+  - set_flat v:BOOLEAN <- store "FLAT" boolean v;
+  - flat :BOOLEAN <- (get "FLAT") = "YES";
+
+  - set_focusonclick v:BOOLEAN <- store "FOCUSONCLICK" boolean v;
+  - focus_on_click <- (get "FOCUSONCLICK") = "YES";
+  
+  - set_image v:ABSTRACT_STRING <- store "IMAGE" value v;
+  - image :ABSTRACT_STRING <- get "IMAGE";
+  
+  - set_inactive_image v:ABSTRACT_STRING <- store "IMINACTIVE" value v;
+  - inactive_image :ABSTRACT_STRING <- get "IMINACTIVE";
+  
+  - set_press_image v:ABSTRACT_STRING <- store "IMPRESS" value v;
+  - press_image :ABSTRACT_STRING <- get "IMPRESS";
+  
+  - set_press_border_image v:ABSTRACT_STRING <- store "IMPRESSBORDER" value v;
+  - press_border_image :ABSTRACT_STRING <- get "IMPRESSBORDER";
+  
+  - set_image_position v:ABSTRACT_STRING <- store "IMAGEPOSITION" value v;
+  - image_position :ABSTRACT_STRING <- get "IMAGEPOSITION";
+  
+  - set_markup v:ABSTRACT_STRING <- store "MARKUP" value v;
+  - markup :ABSTRACT_STRING <- get "MARKUP";
+
+  - set_padding v:ABSTRACT_STRING <- store "PADDING" value v;
+  - padding :ABSTRACT_STRING <- get "PADDING";
+
+  - set_spacing v:ABSTRACT_STRING <- store "SPACING" value v;
+  - spacing :ABSTRACT_STRING <- get "SPACING";
+
+  - set_title v:ABSTRACT_STRING <- store "TITLE" value v;
+  - title :ABSTRACT_STRING <- get "TITLE";

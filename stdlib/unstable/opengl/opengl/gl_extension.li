@@ -1,0 +1,72 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_EXTENSION;
+  
+  - comment  := "OpenGL ARB extensions manager";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  - extension_names:STRING;
+  
+  - name:STRING_CONSTANT <- STRING_CONSTANT;
+  
+  
+  - create :SELF <- 
+  // dont clone prototype
+  (  + result:SELF;
+    (SELF.is_supported).if {
+      result := SELF;
+      result.make;
+    };
+    result
+  );
+  
+  - make <- deferred;
+  
+  - is_supported:BOOLEAN <-
+  (
+    + extensions:NATIVE_ARRAY(CHARACTER);
+    + i:INTEGER;
+    + result:BOOLEAN;
+    
+    (extension_names = NULL).if {
+      extensions := `glGetString(GL_EXTENSIONS)`:NATIVE_ARRAY(CHARACTER);
+      extension_names := STRING.create 256;
+      
+      {extensions.item i != '\0'}.while_do {
+	// copy names of supported extensions
+	
+	extension_names.add_last (extensions.item i);
+	i := i+1;
+      };
+    };
+    (extension_names.has_substring name).if {
+      result := TRUE;
+    };
+    result
+  );

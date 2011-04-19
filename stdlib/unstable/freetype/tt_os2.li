@@ -1,0 +1,220 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_OS2;
+  - comment     :=" os2 table .";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Mapping
+  
+  + version:UINTEGER_16;               // 0x0001
+  + x_avg_char_width:INTEGER_8;
+  + weight_class:UINTEGER_16;
+  + width_class:UINTEGER_16;
+  + fs_type:INTEGER_8;
+  
+  + y_subscript_x_size:INTEGER_8;
+  + y_subscript_y_size:INTEGER_8;
+  + y_subscript_x_offset:INTEGER_8;
+  + y_subscript_y_offset:INTEGER_8;
+  + y_superscript_x_size:INTEGER_8;
+  + y_superscript_y_size:INTEGER_8;
+  + y_superscript_x_offset:INTEGER_8;
+  + y_superscript_y_offset:INTEGER_8;
+  + y_strikeout_size:INTEGER_8;
+  + y_strikeout_position:INTEGER_8;
+  
+  + family_class:INTEGER_8;
+  
+  // Panose: 10 bytes
+  + family_type:UINTEGER_16;
+  + serif_style:UINTEGER_16;
+  + weight:UINTEGER_16;
+  + proportion:UINTEGER_16;
+  + contrast:UINTEGER_16;
+  + stroke_variation:UINTEGER_16;
+  + arm_style:UINTEGER_16;
+  + letter_form:UINTEGER_16;
+  + midline:UINTEGER_16;
+  + xheight:UINTEGER_16;
+  
+  + unicode_range1:UINTEGER_32;       // Bits 0-31
+  + unicode_range2:UINTEGER_32;       // Bits 32-63
+  + unicode_range3:UINTEGER_32;       // Bits 64-95
+  + unicode_range4:UINTEGER_32;       // Bits 96-127
+  
+  + ach_vend_id1:INTEGER_16;
+  + ach_vend_id2:INTEGER_16;
+  + ach_vend_id3:INTEGER_16;
+  + ach_vend_id4:INTEGER_16;
+  
+  + fs_selection:UINTEGER_16;
+  + first_char_index:UINTEGER_16;
+  + last_char_index:UINTEGER_16;
+  + typo_ascender:INTEGER_8;
+  + typo_descender:INTEGER_8;
+  + typo_line_gap:INTEGER_8;
+  + win_ascent:UINTEGER_16;
+  + win_descent:UINTEGER_16;
+  
+  // only version 1 tables:
+  
+  + code_page_range1:UINTEGER_32;      // Bits 0-31
+  + code_page_range2:UINTEGER_32;      // Bits 32-63
+  
+Section Public
+  
+  - to_big_endian <-
+  (
+    version := PROCESSOR.to_motorola_ushort version;
+    x_avg_char_width := PROCESSOR.to_motorola_short x_avg_char_width;
+    weight_class := PROCESSOR.to_motorola_ushort weight_class;
+    width_class := PROCESSOR.to_motorola_ushort width_class;
+    fs_type := PROCESSOR.to_motorola_short fs_type;
+    
+    y_subscript_x_size := PROCESSOR.to_motorola_short y_subscript_x_size;
+    y_subscript_y_size := PROCESSOR.to_motorola_short y_subscript_y_size;
+    y_subscript_x_offset := PROCESSOR.to_motorola_short y_subscript_x_offset;
+    y_subscript_y_offset := PROCESSOR.to_motorola_short y_subscript_y_offset;
+    y_superscript_x_size := PROCESSOR.to_motorola_short y_superscript_x_size;
+    y_superscript_y_size := PROCESSOR.to_motorola_short y_superscript_y_size;
+    y_superscript_x_offset := PROCESSOR.to_motorola_short y_superscript_x_offset;
+    y_superscript_y_offset := PROCESSOR.to_motorola_short y_superscript_y_offset;
+    y_strikeout_size := PROCESSOR.to_motorola_short y_strikeout_size;
+    y_strikeout_position := PROCESSOR.to_motorola_short y_strikeout_position;
+    
+    family_class := PROCESSOR.to_motorola_short family_class;
+    
+    unicode_range1 := PROCESSOR.to_motorola_uint unicode_range1;
+    unicode_range2 := PROCESSOR.to_motorola_uint unicode_range2;
+    unicode_range3 := PROCESSOR.to_motorola_uint unicode_range3;
+    unicode_range4 := PROCESSOR.to_motorola_uint unicode_range4;
+    
+    fs_selection := PROCESSOR.to_motorola_ushort fs_selection;
+    first_char_index := PROCESSOR.to_motorola_ushort first_char_index;
+    last_char_index := PROCESSOR.to_motorola_ushort last_char_index;
+    typo_ascender := PROCESSOR.to_motorola_short typo_ascender;
+    typo_descender := PROCESSOR.to_motorola_short typo_descender;
+    typo_line_gap := PROCESSOR.to_motorola_short typo_line_gap;
+    win_ascent := PROCESSOR.to_motorola_ushort win_ascent;
+    win_descent := PROCESSOR.to_motorola_ushort win_descent;
+    
+    code_page_range1 := PROCESSOR.to_motorola_uint code_page_range1;
+    code_page_range2 := PROCESSOR.to_motorola_uint code_page_range2;
+  );
+  
+  - print <-
+  ( 
+    "\n********* OS/2 TABLE *********\n".print;
+    "\n       version: ".print;
+    version.print;
+
+    "\n       x_avg_char_width: ".print;
+    x_avg_char_width.print;
+    "\n       weight_class: ".print;
+    weight_class.print;
+    "\n       width_class: ".print;
+    width_class.print;
+    "\n       fs_type: 0x".print;
+    fs_type.print;
+  
+    "\n       y_subscript_x_size: ".print;
+    y_subscript_x_size.print;
+    "\n       y_subscript_y_size: ".print;
+    y_subscript_y_size.print;
+    "\n       y_subscript_x_offset: ".print;
+    y_subscript_x_offset.print;
+    "\n       y_subscript_y_offset: ".print;
+    y_subscript_y_offset.print;
+    "\n       y_superscript_x_size: ".print;
+    y_superscript_x_size.print;
+    "\n       y_superscript_y_size: ".print;
+    y_superscript_y_size.print;
+    "\n       y_superscript_x_offset: ".print;
+    y_superscript_x_offset.print;
+    "\n       y_superscript_y_offset: ".print;
+    y_superscript_y_offset.print;
+    "\n       y_strikeout_size: ".print;
+    y_strikeout_size.print;
+    "\n       y_strikeout_position: ".print;
+    y_strikeout_position.print;
+  
+    "\n       family_class: ".print;
+    family_class.print;
+        
+    "\n         family_type: ".print;
+    family_type.print;
+    "\n         serif_style: ".print;
+    serif_style.print;
+    "\n         weight: ".print;
+    weight.print;
+    "\n         proportion: ".print;
+    proportion.print;
+    "\n         contrast: ".print;
+    contrast.print;
+    "\n         stroke_variation: ".print;
+    stroke_variation.print;
+    "\n         arm_style: ".print;
+    arm_style.print;
+    "\n         letter_form: ".print;
+    letter_form.print;
+    "\n         midline: ".print;
+    midline.print;
+    "\n         xheight: ".print;
+    xheight.print;
+  
+    "\n       unicode_range1: ".print;
+    unicode_range1.print;
+    "\n       unicode_range2: ".print;
+    unicode_range2.print;
+    "\n       unicode_range3: ".print;
+    unicode_range3.print;
+    "\n       unicode_range4: ".print;
+    unicode_range4.print;
+  
+    "\n       ach_vend: ".print;
+    ach_vend_id1.to_character.print;
+    ach_vend_id2.to_character.print;
+    ach_vend_id3.to_character.print;
+    ach_vend_id4.to_character.print;
+    
+    "\n       fs_selection: 0x".print;
+    fs_selection.to_hexadecimal.print;
+    "\n       first_char_index: 0x".print;
+    first_char_index.to_hexadecimal.print;
+    "\n       last_char_index: 0x".print;
+    last_char_index.to_hexadecimal.print;
+    "\n       typo_ascender: ".print;
+    typo_ascender.print;
+    "\n       typo_descender: ".print;
+    typo_descender.print;
+    "\n       typo_line_gap: ".print;
+    typo_line_gap.print;
+    "\n       win_ascent: ".print;
+    win_ascent.print;
+    "\n       win_descent: ".print;
+    win_descent.print;
+    
+    "\n       code_page_range1: ".print;
+    code_page_range1.print;
+    "\n       code_page_range2: ".print;
+    code_page_range2.print;    
+    '\n'.print;
+  );

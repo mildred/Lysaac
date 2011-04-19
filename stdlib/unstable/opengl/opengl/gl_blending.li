@@ -1,0 +1,77 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_BLENDING;
+  
+  - comment  := "Opengl Blending Mode";
+  
+Section Inherit
+  
+  - parent_blending:BLENDING := BLENDING;
+  
+Section Public
+  
+  // factors values
+  - zero:INTEGER <- `GL_ZERO`:INTEGER;
+  - one:INTEGER <- `GL_ONE`:INTEGER;
+  - dst_color:INTEGER <- `GL_DST_COLOR`:INTEGER;
+  - one_minus_dst_color:INTEGER <- `GL_ONE_MINUS_DST_COLOR`:INTEGER;
+  - src_color:INTEGER <- `GL_SRC_COLOR`:INTEGER;
+  - one_minus_src_color:INTEGER <- `GL_ONE_MINUS_SRC_COLOR`:INTEGER;
+  - src_alpha:INTEGER <- `GL_SRC_ALPHA`:INTEGER;
+  - one_minus_src_alpha:INTEGER <- `GL_ONE_MINUS_SRC_ALPHA`:INTEGER;
+  - dst_alpha:INTEGER <- `GL_DST_ALPHA`:INTEGER;
+  - one_minus_dst_alpha:INTEGER <- `GL_ONE_MINUS_DST_ALPHA`:INTEGER;
+  - src_alpha_saturate:INTEGER <- `GL_SRC_ALPHA_SATURATE`:INTEGER;
+  
+  - enable <-
+  (
+    parent_state.enable;
+    `glEnable(GL_BLEND)`;
+  );
+  
+  - disable <-
+  ( 
+    parent_state.disable;
+    `glDisable(GL_BLEND)`;
+  );
+  
+  - push_attrib <-
+  (
+    `glPushAttrib(GL_ENABLE_BIT)`;
+  );
+  
+  - pop_attrib <-
+  (
+    `glPopAttrib()`;
+  );
+  
+  - apply (src_factor,dst_factor:INTEGER) <-
+  (   
+    `glBlendFunc(@src_factor, @dst_factor)`;
+  );
+  
+  - set_alpha_value alpha:REAL_32 <-
+  (
+    `glColor4f(1.0f, 1.0f, 1.0f, @alpha)`; 
+  );

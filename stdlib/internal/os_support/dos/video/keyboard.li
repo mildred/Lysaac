@@ -1,0 +1,271 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := KEYBOARD;
+
+  - copyright   := "2003-2005 J√©rome Boutet, 2003-2007 Benoit Sonntag";
+
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr),Sonntag Benoit (bsonntag@loria.fr)";
+  - comment     :="Keyboard for DOS - AZERTY";
+
+  - version := 1;
+  - date    :="2003/04";
+
+Section Inherit
+
+  + parent_input_keyboard:Expanded INPUT_KEYBOARD;
+
+Section Private
+
+  + e_code:BOOLEAN;   // TRUE If extended mode
+
+  // Lower case.
+  - cmin:STRING_CONSTANT := "\0d\&Ç\"\39d\(-ä_áÖ)=\1d\\2d\azertyuiop^$\3d\^qsdfghjklmó˝^*wxcvbn,;:!^*^ ";
+  // Upper case.
+  - cmaj:STRING_CONSTANT := "\0d\1234567890¯+\1d\\2d\AZERTYUIOP˘ú\3d\^QSDFGHJKLM%˝^ÊWXCVBN?./^*^ ";
+
+  - cmm:STRING_CONSTANT  := "\27d\\8d\\9d\\13d\"; // 0:Echap 1:Del 2:Tab 3:Enter
+  - caltgr:STRING_CONSTANT  := "'ê~#{[|`\\^@]}";
+
+  // Num keyb.
+  - keynum0:STRING_CONSTANT := "789-456+1230."; // from 70-82
+  - keynum1:STRING_CONSTANT := "BUA\0d\LMR\0d\ELZIS"; // Without NumLock
+
+  // Extended keyboard from 88 to 102
+  - ext_key:STRING_CONSTANT := "\55d\\28d\\52d\\27d\\70d\\78d\\81d\\82d\\76d\\74d\\71d\\79d\\80d\\72d\\54d\";
+  - buf_extk:STRING_CONSTANT := "\13d\BEISRLUDZAH";
+
+Section Public
+
+  - old_scan:UINTEGER_8;
+
+  //
+  // Get Character (Interrupt #21)
+  //
+
+  - get_scan <-
+  ( + cu,scancode,tmp:UINTEGER_8;
+
+    scancode:=SYSTEM.itemb 60h;
+    (scancode != old_scan).if {
+      old_scan := scancode;
+      cu:=getcode (scancode-1);
+      (cu!=0).if {
+	// Routine Pour Reboot Violant : CTRL+(ALT | ALT Gr)+Suppr
+	((cu=='S'.to_uinteger_8) && { ((cmd&0Fh)==0Dh) || {(cmd&0Fh)==0Bh} }).if {
+	  "Reboot ...\n".print;
+	  die_with_code exit_failure_code;
+	};
+
+	tmp:=(p_end+1)&003h;
+	buffer_event.item p_end.make ((cmd.to_uinteger_16<<8)|cu);
+	(((tmp+2)&3)!=p_beg).if {
+	  p_end:=tmp;
+	};
+	get_event;
+      };
+    };
+  );
+
+Section Private
+
+  - send_cmd (comm,dta:UINTEGER_8) <-
+  // Send a command to keyboard
+  (
+    // Empty buffer
+    { ((SYSTEM.itemb 64h) & 2) != 0}.while_do {
+      SYSTEM.itemb 60h;
+    };
+    // Send command
+    SYSTEM.putb comm to 60h;
+    // Waiting for answer
+    { ((SYSTEM.itemb 64h) & 1) == 0}.while_do {};
+    // Read answer
+    SYSTEM.itemb 60h;
+    // Send data
+    SYSTEM.putb dta to 60h;
+    // Waiting for answer
+    { ((SYSTEM.itemb 64h) & 1) == 0}.while_do {};
+    // Read answer
+    SYSTEM.itemb 60h;
+  );
+
+  - light <-
+  (
+    send_cmd (0EDh,(((cmd & 80h)>>7)|((cmd & 40h)>>5)|((cmd & 20h)>>3)));
+  );
+
+  - keyup cu:UINTEGER_8 :UINTEGER_8 <-
+  ( + result:UINTEGER_8;
+    cmd := cmd & 0F7h; // Deactivate the cmd bit
+    bin_code.put ((bin_code.item (cu>>3)) & ~(1<<(cu&7))) to (cu>>3);
+    // Analyze: for deactivate the cmd
+    ((cu == 28) || {cu == 89}).if {
+      //CTRL 1 or CTRL2
+      cmd := cmd & (~01h);
+    }.elseif { cu == 88 } then {
+      // Alt Gr
+      cmd := cmd & (~02h);
+    }.elseif { cu == 55 } then {
+      // Alt
+      cmd := cmd & (~04h);
+      result := ascii_code;
+      ascii_code := 0;
+    }.elseif { (cu == 41) || { cu == 53} } then {
+      // Shift 1 or Shift 2
+      cmd := cmd & (~10h);
+    };
+    result
+  );
+
+  - keydown cu:UINTEGER_8 :UINTEGER_8 <-
+  ( + cu2,result:UINTEGER_8;
+    bin_code.put ((bin_code.item (cu>>3)) | (~(1<<(cu&7)))) to (cu>>3); // Activate key
+    // Analyze: for activate the cmd
+    ((cu == 28) || {cu == 89}).if {
+      //CTRL 1 or CTRL2
+      cmd := cmd | 01h;
+    }.elseif { cu == 88 } then {
+      // Alt Gr
+      cmd := cmd | 02h;
+    }.elseif { cu == 55 } then {
+      // Alt
+      cmd := cmd | 04h;
+    }.elseif { (cu == 41) || { cu == 53} } then {
+      // Shift 1 or Shift 2
+      cmd := cmd | 10h;
+      ((cmd & 20h)!=0).if {
+	cmd := cmd & (~20h);
+	light;
+      };
+    }.elseif { cu == 57 } then {
+      // Cap
+      cmd := cmd ^ 20h;
+      light;
+    }.elseif { cu == 68 } then {
+      // Num Lock
+      cmd := cmd ^ 40h;
+      light;
+    }.elseif { cu == 69 } then {
+      // Scroll Lock
+      cmd := cmd ^ 80h;
+      light;
+    }.elseif { cu<=56 } then {
+      (cu == 0).if {
+	// Esc
+	cmd :=  cmd | 08h;
+	result := cmm.item 1.to_uinteger_8;
+      }.elseif {((cmd&2)!=0) && {cu<=12}} then {
+	cmd :=  cmd & (~02h);
+	result := caltgr.item cu.to_uinteger_8;
+      } else {
+	((cmd & 30h)==0).if {
+	  cu2 := cmin.item (cu+1).to_uinteger_8;
+	} else {
+	  cu2 := cmaj.item (cu+1).to_uinteger_8;
+	};
+	((cu2 & 0FCh)!=0).if {
+	  result := cu2;
+	} else {
+	  cmd := cmd | 08h;
+	  result := cmm.item (cu2+1).to_uinteger_8;
+	};
+      };
+    }.elseif {cu <= 67} then {
+      cmd :=  cmd | 08h;      // F1 to F10 = cmd
+      result :=  cu+39;  // 'a' to 'j'
+    }.elseif {cu < 85} then {
+      cu2 := keynum0.item (cu-69).to_uinteger_8;
+      (cu2 < 46).if {
+	result := cu2;
+      }.elseif {(cmd & 40h)!=0} then {
+	((cmd & 04h)==0).if {
+	  result := cu2;
+	} else {
+	  ascii_code := (ascii_code*10)+(cu2-48);
+	};
+      } else {
+	cmd := cmd | 08h;      // cmd
+	result := cu2;
+      };
+    }.elseif {cu==85} then {
+      ((cmd & 30h)==0).if {
+	result := '<'.to_uinteger_8;
+      } else {
+	result := '>'.to_uinteger_8;
+      };
+    }.elseif {cu<=87} then {
+      cmd := cmd |08h;    // 'k' to 'l'
+      result := cu+21;
+    }.elseif {cu==90} then {
+      result := '/'.to_uinteger_8;
+    } else {
+      cmd := cmd | 08h;
+      result := buf_extk.item (cu-90).to_uinteger_8;
+    };
+    result
+  );
+
+  - getcode cu:UINTEGER_8 :UINTEGER_8 <-
+  // Translate Scan Code -> cmd.ASCII
+  ( + j:INTEGER;
+    + result:UINTEGER_8;
+    (! e_code).if {
+      // Non extended keys
+      (cu==(0E0h-1)).if {
+	e_code := TRUE;  // Extended Code
+      } else {
+	((cu & 80h)==0).if {
+	  result :=  keydown cu.to_uinteger_8;
+	} else {
+	  result := keyup (cu & 07Fh).to_uinteger_8;
+	};
+      };
+    } else {
+      // Extended keys
+      (cu!=(0E0h-1)).if {
+	// not Pause
+	(cu !=41).if {
+	  e_code := FALSE;               // Deactivate extended code
+	  (cu != 169).if {
+	    {(ext_key.item (j+1).to_uinteger_8 != (cu & 07Fh)) && {j < 15}}.while_do {
+	      j := j + 1;
+	    };
+	    (j < 15).if {
+	      ((cu & 80h)==0).if {
+		result := keydown (88+j).to_uinteger_8;
+	      } else {
+		result := keyup (88+j).to_uinteger_8;
+	      };
+	    };
+	  };
+	};
+      };
+    };
+    result
+  );
+
+
+
+
+

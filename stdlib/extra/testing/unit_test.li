@@ -1,0 +1,240 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+
+  + name := UNIT_TEST;
+
+  - copyright := "2009 Jeremy Cowgar";
+
+  - comment := "Unit testing framework for Lisaac";
+
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Private
+
+  + pass_count:REAL_32 := 0;
+  + fail_count:REAL_32 := 0;
+  + verbose:BOOLEAN := FALSE;
+  + suite_name:ABSTRACT_STRING;
+  + section_name:ABSTRACT_STRING;
+
+  - usage <-
+  // Display common usage message on console
+  (
+    ("Usage: " + (COMMAND_LINE.item 0) + " [-v]").printline;
+    "  -v    verbose reporting".println;
+    OBJECT.die_with_code 1;
+  );
+
+  - bar <-
+  // Print a double line bar for visual separation.
+  (
+    "\n==============================\n".print;
+  );
+
+  - minibar <-
+  // Print a single line bar for visual separation.
+  (
+    "\n   ---------------------------\n".print;
+  );
+
+Section Public
+  // Setup
+
+  - init <-
+  // Initialize unit testing. This currently looks for
+  // command line parameters and configures itself
+  // accordingly.
+  (
+    + arg:ABSTRACT_STRING;
+
+    1.to (COMMAND_LINE.count-1) do { idx:INTEGER;
+      arg := (COMMAND_LINE.item idx);
+
+      (arg == "-v").if {
+        set_verbose TRUE;
+      } else {
+        usage;
+      };
+    };
+  );
+
+  - set_verbose verbose_mode:BOOLEAN <-
+  // When verbose is true, suite names, section names, passed and
+  // failed tests will all be reported. When verbose is false, only
+  // failed tests will be reported.
+  (
+    verbose := verbose_mode;
+  );
+
+Section Public
+  // Sectioning
+
+  - suite name:ABSTRACT_STRING <-
+  // Set the major suite name
+  (
+    suite_name := name;
+
+    verbose.if {
+      ("\n" + name).print;
+      bar;
+    };
+  );
+
+  - section name:ABSTRACT_STRING <-
+  // Set the minor section of a suite
+  (
+    section_name := name;
+
+    verbose.if {
+      ("\n   " + name).print;
+      minibar;
+    };
+  );
+
+Section Public
+  // Tests
+
+  - test_failed name:ABSTRACT_STRING <-
+  // Fail a test with no data report
+  (
+    fail_count := fail_count + 1;
+
+    (verbose = FALSE).if {
+      (suite_name + ":" + section_name + " -> ").print;
+    } else {
+      "   ".print;
+    };
+
+    (name + "... failed, no data given\n").print;
+  );
+
+  - test_failed name:ABSTRACT_STRING got got:ABSTRACT_STRING expected expected:ABSTRACT_STRING <-
+  // Fail a test
+  (
+    fail_count := fail_count + 1;
+
+    (verbose = FALSE).if {
+      (suite_name + ":" + section_name + " -> ").print;
+    } else {
+      "   ".print;
+    };
+
+    (name + "... failed: expected '" + expected + "' got '" + got + "'\n").print;
+  );
+
+  - test_passed name:ABSTRACT_STRING <-
+  // Pass a test
+  (
+    pass_count := pass_count + 1;
+
+    verbose.if {
+      ("   " + name + "... passed\n").print;
+    };
+  );
+
+  - test name:ABSTRACT_STRING integer got:INTEGER equals expected:INTEGER <-
+  // Test equality between two INTEGER values, fail on not equal
+  (
+    (expected = got).if {
+      test_passed name;
+    } else {
+      test_failed name got (got.to_string) expected (expected.to_string);
+    };
+  );
+
+  - test name:ABSTRACT_STRING real_16_16 got:REAL_16_16 equals expected:REAL_16_16 <-
+  // Test equality between two REAL_16_16 values, fail on not equal
+  (
+    (expected = got).if {
+      test_passed name;
+    } else {
+      test_failed name got (got.to_string) expected (expected.to_string);
+    }
+  );
+
+  - test name:ABSTRACT_STRING boolean got:BOOLEAN equals expected:BOOLEAN <-
+  // Test equality between two BOOLEAN values, fail on not equal
+  (
+    (got = expected).if {
+      test_passed name;
+    } else {
+      test_failed name got (got.to_string) expected (expected.to_string);
+    };
+  );
+
+  - test name:ABSTRACT_STRING character got:CHARACTER equals expected:CHARACTER <-
+  // Test equality between two CHARACTER values, fail on not equal
+  (
+    (got = expected).if {
+      test_passed name;
+    } else {
+      test_failed name got (got.to_string) expected (expected.to_string);
+    };
+  );
+
+  - test name:ABSTRACT_STRING string got:ABSTRACT_STRING equals expected:ABSTRACT_STRING <-
+  // Test equality between two STRING values, fail on not equal
+  (
+    (got == expected).if {
+      test_passed name;
+    } else {
+      test_failed name got got expected expected;
+    };
+  );
+
+Section Public
+  // Reporting
+
+  - test_results <-
+  // Print the test results to the screen. If fail_count > 0 then
+  // the program will exit with an error level of 1.
+  (
+    + total:REAL_32;
+    + success:REAL_32;
+
+    total := pass_count + fail_count;
+    success := pass_count / total;
+
+    verbose.if {
+      "\nResults".print;
+      bar;
+      "  Passed: ".print; pass_count.to_integer.print; "\n".print;
+      "  Failed: ".print; fail_count.to_integer.print; "\n".print;
+      "   Total: ".print; total.to_integer.print; "\n".print;
+      " Success: ".print; (success * 100).to_integer.print; "%\n".print;
+    } else {
+      (
+        "\n" +
+        "Pass: " + pass_count.to_integer.to_string +
+        " Fail: " + fail_count.to_integer.to_string +
+        " Total: " + total.to_integer.to_string +
+        " Success: " + (success * 100).to_integer.to_string + "%\n"
+      ).print;
+    };
+
+    (fail_count > 0).if {
+      OBJECT.die_with_code 1;
+    };
+  );

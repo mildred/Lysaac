@@ -1,0 +1,103 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := AI_COLOR;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment := "Color of .AI document.";
+
+  - version := 1;  
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Private  
+  
+  - gray_to_rgb g:REAL_16_16 :UINTEGER_32 <-
+  ( + tmp:UINTEGER_32;
+    
+    tmp := (g *# 255).to_integer;
+    (tmp << 16) | (tmp << 8) | tmp
+  );
+  
+  - cmyk_to_rgb (c,m,y,k:REAL_16_16) :UINTEGER_32 <-
+  ( + r,g,b:UINTEGER_32;
+    r   := ((- (c + k).min 1 + 1).max 0 *# 255).to_integer;
+    g   := ((- (m + k).min 1 + 1).max 0 *# 255).to_integer;
+    b   := ((- (y + k).min 1 + 1).max 0 *# 255).to_integer;           
+    (r << 16) | (g << 8) | b
+  );
+  
+Section Public
+  
+  + rgbcolor_fill  :UINTEGER_32;
+  + rgbcolor_stroke:UINTEGER_32;
+  
+  //
+  // GRAY
+  //
+    
+  - make_gray_stroke g:REAL_16_16 <-
+  ( 
+    rgbcolor_stroke := gray_to_rgb g;
+  );
+  
+  - make_gray_fill g:REAL_16_16 <-
+  ( 
+    rgbcolor_fill := gray_to_rgb g;
+  );
+  
+  //
+  // CMYK
+  //
+  
+  - make_cmyk_stroke (c,m,y,k:REAL_16_16) <-
+  (
+    rgbcolor_stroke := cmyk_to_rgb (c,m,y,k);
+  );
+  
+  - make_cmyk_fill (c,m,y,k:REAL_16_16) <-
+  ( 
+    rgbcolor_fill := cmyk_to_rgb (c,m,y,k);
+  );
+  
+  //
+  // CMYK + GRAY
+  //
+
+  - make_cmykg_stroke (c,m,y,k,g:REAL_16_16) <-
+  (
+    make_cmyk_stroke (c,m,y,k);
+  );
+  
+  - make_cmykg_fill (c,m,y,k,g:REAL_16_16) <-
+  (
+    make_cmyk_fill (c,m,y,k);
+  );
+
+
+
+
+

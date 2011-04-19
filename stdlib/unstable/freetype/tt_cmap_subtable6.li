@@ -1,0 +1,59 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_CMAP_SUBTABLE6;
+  - comment     :="Format 6: Trimmed table Mapping";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent_tt_cmap_subtable:TT_CMAP_SUBTABLE := TT_CMAP_SUBTABLE; 
+  
+Section Public
+  
+  + header:TT_CMAP_SUBTABLE6_HEADER;
+  
+  + glyph_id_array:FIXED_ARRAY(USHORTINT);
+  
+  - make file:STD_FILE <-
+  (
+    header := TT_CMAP_SUBTABLE6_HEADER.clone;
+    file.read header;
+    header.to_big_endian;
+    
+    glyph_id_array := FIXED_ARRAY(USHORTINT).create_with_capacity (header.entry_count);
+    file.read glyph_id_array size (header.entry_count * 2);
+    to_big_endian glyph_id_array;    
+  );
+  
+  - to_big_endian buf:FIXED_ARRAY(USHORTINT) <-
+  (
+    0.to (buf.upper) do { i:INTEGER;
+      buf.put (PROCESSOR.to_motorola_ushort (buf.item i)) to i;
+    };
+  );
+  
+  - print <-
+  (
+    "\n     Format 6: trimmed table mapping\n".print;
+    header.print;
+    0.to 255 do { i:INTEGER;
+      "\n      Char ".print;      
+      i.print;
+      " --> Index ".print;
+      glyph_id_array.item i.print;      
+    };
+  );

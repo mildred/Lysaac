@@ -1,0 +1,100 @@
+///////////////////////////////////////////////////////////////////////////////
+//   Lisaac - SDL binding library                                            //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//   http://lisaac.org                                                       //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name      := SDL;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>";
+  - comment   := "A cross-platform multimedia library designed to provide fast hardware access.";
+  - external  :=  `#include <SDL/SDL.h>`;
+  - lip       <- ( add_lib "-lSDL -I/opt/local/include/SDL -D_THREAD_SAFE -L/opt/local/lib -lSDL"; );
+
+Section Public
+
+//
+// SDL INIT FLAGS
+//
+  - init_timer       :UINTEGER_32 <- `SDL_INIT_TIMER`      :(UINTEGER_32);
+  - init_audio       :UINTEGER_32 <- `SDL_INIT_AUDIO`      :(UINTEGER_32);
+  - init_video       :UINTEGER_32 <- `SDL_INIT_VIDEO`      :(UINTEGER_32);
+  - init_cdrom       :UINTEGER_32 <- `SDL_INIT_CDROM`      :(UINTEGER_32);
+  - init_joystick    :UINTEGER_32 <- `SDL_INIT_JOYSTICK`   :(UINTEGER_32);
+  - init_noparachute :UINTEGER_32 <- `SDL_INIT_NOPARACHUTE`:(UINTEGER_32); // Don't catch fatal signals
+  - init_eventthread :UINTEGER_32 <- `SDL_INIT_EVENTTHREAD`:(UINTEGER_32); // Not supported on all OS's
+  - init_everything  :UINTEGER_32 <- `SDL_INIT_EVERYTHING` :(UINTEGER_32);
+
+//
+// INIT AND QUIT SDL SUBSYTEMS
+//
+  - init flags:UINTEGER_32 :INTEGER <-
+  // This function loads the SDL dynamically linked library and initializes 
+  // the subsystems specified by `flags' (and those satisfying dependencies)
+  // Unless the `init_noparachute' flag is set, it will install cleanup signal
+  // handlers for some commonly ignored fatal signals (like SIGSEGV)
+  (
+    `SDL_Init(@flags)`:(INTEGER)
+  );
+
+  - init_subsystem flags:UINTEGER_32 :INTEGER <-
+  // This function initializes specific SDL subsystems
+  (
+    `SDL_InitSubSystem(@flags)`:(INTEGER)
+  );
+
+  - was_init flags:UINTEGER_32 :UINTEGER_32 <-
+  // This function returns mask of the specified subsystems which have been
+  // initialized. If `flags' is 0, it returns a mask of all initialized
+  // subsystems.
+  (
+    `SDL_WasInit(@flags)`:(UINTEGER_32)
+  );
+
+  - quit_subsystem flags:UINTEGER_32 <-
+  // This function cleans up specific SDL subsystems
+  (
+    `SDL_QuitSubSystem(@flags)`;
+  );
+
+  - quit <-
+  // This function cleans up all initialized subsystems and unloads the
+  // dynamically linked library. You should call it upon all exit conditions.
+  (
+    `SDL_Quit()`;
+    "SDL: quit ...".println;
+  );
+
+  - set_timer       :INTEGER <- `SDL_InitSubSystem(SDL_INIT_TIMER)`      :(INTEGER);
+  - set_audio       :INTEGER <- `SDL_InitSubSystem(SDL_INIT_AUDIO)`      :(INTEGER);
+  - set_video       :INTEGER <- `SDL_InitSubSystem(SDL_INIT_VIDEO)`      :(INTEGER);
+  - set_cdrom       :INTEGER <- `SDL_InitSubSystem(SDL_INIT_CDROM)`      :(INTEGER);
+  - set_joystick    :INTEGER <- `SDL_InitSubSystem(SDL_INIT_JOYSTICK)`   :(INTEGER);
+  - set_noparachute :INTEGER <- `SDL_InitSubSystem(SDL_INIT_NOPARACHUTE)`:(INTEGER);
+  - set_eventthread :INTEGER <- `SDL_InitSubSystem(SDL_INIT_EVENTTHREAD)`:(INTEGER);
+  - set_everything  :INTEGER <- `SDL_InitSubSystem(SDL_INIT_EVERYTHING)` :(INTEGER);
+  
+  - unset_timer       <- `SDL_QuitSubSystem(SDL_INIT_TIMER)`;
+  - unset_audio       <- `SDL_QuitSubSystem(SDL_INIT_AUDIO)`;
+  - unset_video       <- `SDL_QuitSubSystem(SDL_INIT_VIDEO)`;
+  - unset_cdrom       <- `SDL_QuitSubSystem(SDL_INIT_CDROM)`;
+  - unset_joystick    <- `SDL_QuitSubSystem(SDL_INIT_JOYSTICK)`;
+  - unset_noparachute <- `SDL_QuitSubSystem(SDL_INIT_NOPARACHUTE)`;
+  - unset_eventthread <- `SDL_QuitSubSystem(SDL_INIT_EVENTTHREAD)`;
+  - unset_everything  <- `SDL_QuitSubSystem(SDL_INIT_EVERYTHING)`;

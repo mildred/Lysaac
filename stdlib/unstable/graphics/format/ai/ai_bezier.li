@@ -1,0 +1,121 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := AI_BEZIER;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := "Operation: bezier";
+  - version := 1;  
+  
+Section Inherit
+  
+  - parent_ai_operation:AI_OPERATION := AI_OPERATION;
+  
+Section Public
+  
+  + wx1:REAL_16_16;
+  + wy1:REAL_16_16;
+  
+  + wx2:REAL_16_16;
+  + wy2:REAL_16_16;
+  
+  + x:REAL_16_16;
+  + y:REAL_16_16;
+  
+  //
+  // Creation.
+  //
+  
+  - create_w1 (lx1,ly1:REAL_16_16) w2 (lx2,ly2:REAL_16_16) to (lx3,ly3:REAL_16_16) :SELF <-
+  (+ result:SELF;
+    result := SELF.clone;
+    result.make_w1 (lx1,ly1) w2 (lx2,ly2) to (lx3,ly3);
+    result    
+  );
+  
+  - make_w1 (lx1,ly1:REAL_16_16) w2 (lx2,ly2:REAL_16_16) to (lx3,ly3:REAL_16_16) <-
+  (
+    wx1 := lx1;
+    wy1 := ly1;
+    wx2 := lx2;
+    wy2 := ly2;
+    x   := lx3;
+    y   := ly3;
+  );
+  
+  //
+  // Draw
+  //
+
+  - draw_stroke b:ABSTRACT_BITMAP scale s:REAL_16_16 <-
+  ( + i_wx1,i_wy1,i_wx2,i_wy2,i_x,i_y:INTEGER;
+    
+    i_wx1 := (wx1 * s).rounded;
+    i_wy1 := (wy1 * s).rounded;
+    
+    i_wx2 := (wx2 * s).rounded;
+    i_wy2 := (wy2 * s).rounded;
+    
+    i_x   := (x * s).rounded;
+    i_y   := (y * s).rounded;
+    b.spline_w1 (i_wx1,i_wy1) w2 (i_wx2,i_wy2) to (i_x,i_y);
+  ); 
+
+  - draw_fill b:ABSTRACT_BITMAP scale s:REAL_16_16 <-
+  ( + i_wx1,i_wy1,i_wx2,i_wy2,i_x,i_y:INTEGER;
+    
+    i_wx1 := (wx1 * s).rounded;
+    i_wy1 := (wy1 * s).rounded;
+    
+    i_wx2 := (wx2 * s).rounded;
+    i_wy2 := (wy2 * s).rounded;
+    
+    i_x   := (x * s).rounded;
+    i_y   := (y * s).rounded;
+    b.poly_spline_w1 (i_wx1,i_wy1) w2 (i_wx2,i_wy2) to (i_x,i_y);
+  ); 
+
+  //  
+  // Display.
+  //
+  
+  - display <-
+  (  
+    "poly_spline_w1 ".print;
+    (wx1 *# 8).rounded.print;
+    ','.print;
+    (wy1 *# 8).rounded.print;
+    " w2 ".print;
+    (wx2 *# 8).rounded.print;
+    ','.print;
+    (wy2 *# 8).rounded.print;
+    " to ".print;
+    (x *# 8).rounded.print;
+    ','.print;
+    (y *# 8).rounded.print;
+    ";\n".print;
+  );
+
+
+

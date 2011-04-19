@@ -1,0 +1,221 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_VERTEX_BUFFER;
+  
+Section Inherit
+  
+  - parent_vertex_buffer:VERTEX_BUFFER := VERTEX_BUFFER;
+  
+Section Public
+  
+  - make sz:INTEGER <- 
+  (
+    // rien
+  );
+  
+  - destroy <-
+  (
+    // rien
+  );
+  
+  - build <-
+  (
+    // rien
+  );
+  
+  - points:INTEGER <- `GL_POINTS`:INTEGER;
+  - lines:INTEGER <- `GL_LINES`:INTEGER;
+  - polygon:INTEGER <- `GL_POLYGON`:INTEGER;
+  - triangles:INTEGER <- `GL_TRIANGLES`:INTEGER;
+  - quads:INTEGER <- `GL_QUADS`:INTEGER;
+  - line_strip:INTEGER <- `GL_LINE_STRIP`:INTEGER;
+  - line_loop:INTEGER <-  `GL_LINE_LOOP`:INTEGER;
+  - triangle_strip:INTEGER <- `GL_TRIANGLE_STRIP`:INTEGER;
+  - triangle_fan:INTEGER <- `GL_TRIANGLE_FAN`:INTEGER;
+  - quad_strip:INTEGER <- `GL_QUAD_STRIP`:INTEGER;
+  
+  
+  - begin_triangles <-
+  (
+    drawing_mode := triangles;
+    `glBegin (GL_TRIANGLES)`;
+  );
+  
+  - begin_lines <-
+  (
+    drawing_mode := lines;
+    `glBegin (GL_LINES)`;
+  );
+  
+  - begin_points <-
+  (
+    drawing_mode := points;
+    `glBegin (GL_POINTS)`;
+  );
+  
+  - begin_quads <-
+  (
+    drawing_mode := quads;
+    `glBegin (GL_QUADS)`;
+  );
+  
+  - begin_polygon <-
+  (
+    drawing_mode := polygon;
+    `glBegin (GL_POLYGON)`;
+  );
+  
+  - begin_line_strip <-
+  (
+    drawing_mode := line_strip;
+    `glBegin (GL_LINE_STRIP)`;
+  );
+  
+  - begin_line_loop <-
+  (
+    drawing_mode := line_loop;
+    `glBegin (GL_LINE_LOOP)`;
+  );
+  
+  - begin_triangle_strip <-
+  (
+    drawing_mode := triangle_strip;
+    `glBegin (GL_TRIANGLE_STRIP)`;
+  );
+  
+  - begin_triangle_fan <-
+  (
+    drawing_mode := triangle_fan;
+    `glBegin (GL_TRIANGLE_FAN)`;
+  );
+  
+  - begin_quads_strip <-
+  (
+    drawing_mode := quad_strip;
+    `glBegin (GL_QUAD_STRIP)`;
+  );
+  
+  - end <- 
+  (
+    `glEnd()`;
+  );
+  
+  - draw <-
+  (
+    `glFlush()`;
+  );
+  
+  - add_vertex2f (x,y:REAL_32) <-
+  (
+    `glVertex2f (@x, @y)`;
+  );
+  - add_vertex3f (x,y,z:REAL_32) <-
+  (
+    `glVertex3f (@x, @y, @z)`;
+  );
+  
+  - add_vertex3f (x,y,z:REAL_32) color col:COLOR <-
+  (
+    + r,g,b:REAL_32;
+    
+    r := col.r;
+    g := col.g;
+    b := col.b;
+    
+    `glColor3f (@r, @g, @b)`;
+    `glVertex3f (@x, @y, @z)`;
+  );
+  
+  - add_vertex v:VERTEX <- 
+  (
+    + x,y,z:REAL_32;
+    
+    x := v.x;
+    y := v.y;
+    z := v.z;
+    `glVertex3f (@x, @y, @z)`;
+  );
+  
+  - add_vertex v:VERTEX color col:COLOR <- 
+  (
+    + r,g,b:REAL_32;
+    
+    r := col.r;
+    g := col.g;
+    b := col.b;
+    `glColor3f (@r, @g, @b)`;
+    
+    add_vertex v;
+  );
+  
+  - add_texel2f (s,t:REAL_32) <-
+  (
+    `glTexCoord2f(@s, @t)`;
+  );
+  
+  - add_normal3f (x,y,z:REAL_32) <-
+  (
+    `glNormal3f(@x, @y, @z)`;
+  );
+  
+  - add_normal v:VECTOR3(REAL_32) <-
+  (
+    add_normal3f (v.x, v.y, v.z);
+  );
+  
+  - add_color c:COLOR <-
+  (
+    + r,g,b:REAL_32;
+    
+    r := c.r;
+    g := c.g;
+    b := c.b;
+    `glColor3f(@r, @g, @b)`;
+  );
+  
+  - add_color3f (r,g,b:REAL_32) <-
+  (
+    `glColor3f(@r, @g, @b)`;
+  );
+  
+  - get_vertex_data:FAST_ARRAY(REAL_32) <- 
+  (
+    not_yet_implemented; NULL
+  );
+  
+  - get_texels_data:FAST_ARRAY(REAL_32) <- 
+  (
+    not_yet_implemented; NULL
+  );
+  
+  - get_normals_data:FAST_ARRAY(REAL_32) <- 
+  (
+    not_yet_implemented; NULL
+  );
+  
+  - get_colors_data:FAST_ARRAY(REAL_32) <- 
+  (
+    not_yet_implemented; NULL
+  );
+  

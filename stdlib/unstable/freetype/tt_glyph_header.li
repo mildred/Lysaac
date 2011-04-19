@@ -1,0 +1,55 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name        := TT_GLYPH_HEADER;
+  - comment     :=" .";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Mapping
+  
+  + number_of_contours:SHORTINT;
+  + xmin:SHORTINT;
+  + ymin:SHORTINT;
+  + xmax:SHORTINT;
+  + ymax:SHORTINT;
+  
+Section Public  
+  
+  - to_big_endian <-
+  (
+    number_of_contours := PROCESSOR.to_motorola_short number_of_contours;
+    xmin := PROCESSOR.to_motorola_short xmin;
+    ymin := PROCESSOR.to_motorola_short ymin;
+    xmax := PROCESSOR.to_motorola_short xmax;
+    ymax := PROCESSOR.to_motorola_short ymax;
+  );
+   
+  - print <-
+  (
+    "\n     number_of_contours:".print;
+    number_of_contours.print;
+    "\n     xmin:".print;
+    xmin.print;
+    "\n     ymin:".print;
+    ymin.print;
+    "\n     xmax:".print;
+    xmax.print;
+    "\n     ymax:".print;
+    ymax.print;    
+  );

@@ -1,0 +1,102 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                  Lisaac                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name      := SDL_FLAG;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>)";
+  - comment   := "SDL flags";
+
+Section Public
+
+  //
+  // Color key
+  //
+  - srccolorkey :UINTEGER_32 <- `SDL_SRCCOLORKEY`:(UINTEGER_32);
+
+  //
+  // Video
+  //
+  // TODO Available for SDL_SetVideoMode()
+  // ========================================================================
+  //                             VIDEO MODES 
+  // ========================================================================
+  // SDL_SWSURFACE : Create the video surface in system memory
+  // SDL_HWSURFACE : Create the video surface in video memory
+  // SDL_ASYNCBLIT : Enables the use of asynchronous updates of the display 
+  //                 surface. This will usually slow down blitting on single 
+  //                 CPU machines, but may provide a speed increase on SMP 
+  //                 systems.
+  // SDL_ANYFORMAT : Normally, if a video surface of the requested 
+  //                 bits-per-pixel (bpp) is not available, SDL will emulate 
+  //                 one with a shadow surface. Passing SDL_ANYFORMAT 
+  //                 prevents this and causes SDL to use the video surface,
+  //                 regardless of its pixel depth.
+  // SDL_HWPALETTE : Give SDL exclusive palette access. Without this flag you
+  //                 may not always get the the colors you request with 
+  //                 SDL_SetColors or SDL_SetPalette.
+  // SDL_DOUBLEBUF : Enable hardware double buffering; only valid with 
+  //                 SDL_HWSURFACE. Calling SDL_Flip will flip the buffers 
+  //                 and update the screen. All drawing will take place on 
+  //                 the surface that is not displayed at the moment. If 
+  //                 double buffering could not be enabled then SDL_Flip will
+  //                 just perform a SDL_UpdateRect on the entire screen.
+  // SDL_FULLSCREEN: SDL will attempt to use a fullscreen mode. If a hardware
+  //                 resolution change is not possible (for whatever reason),
+  //                 the next higher resolution will be used and the display 
+  //                 window centered on a black background.
+  // SDL_OPENGL    : Create an OpenGL rendering context. You should have 
+  //                 previously set OpenGL video attributes with 
+  //                 SDL_GL_SetAttribute.
+  // SDL_OPENGLBLIT: Create an OpenGL rendering context, like above, but allow
+  //                 normal blitting operations. The screen (2D) surface may 
+  //                 have an alpha channel, and SDL_UpdateRects must be used 
+  //                 for updating changes to the screen surface. NOTE: This 
+  //                 option is kept for compatibility only, and will be 
+  //                 removed in next versions. Is not recommended for new 
+  //                 code.
+  // SDL_RESIZABLE : Create a resizable window. When the window is resized by
+  //                 the user a SDL_VIDEORESIZE event is generated and 
+  //                 SDL_SetVideoMode can be called again with the new size.
+  // SDL_NOFRAME   : If possible, SDL_NOFRAME causes SDL to create a window 
+  //                 with no title bar or frame decoration. Fullscreen modes
+  //                 automatically have this flag set.
+  // ========================================================================
+
+
+  - anyformat  :UINTEGER_32 <- `SDL_ANYFORMAT` :(UINTEGER_32); // Allow any video depth/pixel-format
+  - hwpalette  :UINTEGER_32 <- `SDL_HWPALETTE` :(UINTEGER_32); // Surface has exclusive palette
+  - doublebuf  :UINTEGER_32 <- `SDL_DOUBLEBUF` :(UINTEGER_32); // Set up double-buffered video mode
+  - fullscreen :UINTEGER_32 <- `SDL_FULLSCREEN`:(UINTEGER_32); // Surface is a full screen display
+  - opengl     :UINTEGER_32 <- `SDL_OPENGL`    :(UINTEGER_32); // Create an OpenGL rendering context
+  - openglblit :UINTEGER_32 <- `SDL_OPENGLBLIT`:(UINTEGER_32); // Create an OpenGL rendering context and use it for blitting
+  - resizable  :UINTEGER_32 <- `SDL_RESIZABLE` :(UINTEGER_32); // This video mode may be resized
+  - noframe    :UINTEGER_32 <- `SDL_NOFRAME`   :(UINTEGER_32); // No window caption or edge frame
+
+  // TODO: /** Available for SDL_CreateRGBSurface() or SDL_SetVideoMode() */
+  - swsurface :UINTEGER_32 <- `SDL_SWSURFACE`:(UINTEGER_32); // Surface is in system memory 
+  - hwsurface :UINTEGER_32 <- `SDL_HWSURFACE`:(UINTEGER_32); //Surface is in video memory
+  - asynblit  :UINTEGER_32 <- `SDL_ASYNCBLIT`:(UINTEGER_32); //Use asynchronous blits if possible */
+
+  // TODO  flags for SDL_SetPalette() */
+  // #define SDL_LOGPAL 0x01
+  //#define SDL_PHYSPAL 0x02

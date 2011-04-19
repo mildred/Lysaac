@@ -1,0 +1,301 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        := VIDEO;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     := "X11 Driver video - Xlib -";
+
+  - lip      <-
+  (
+    add_lib "-lX11 -L/usr/X11R6/lib/";
+  );
+
+  - external :=
+`
+#include <X11/Xlib.h>
+
+// For Frame buffer.
+//#include <X11/extensions/XTest.h>
+#include <linux/fb.h>
+#include <sys/mman.h>
+#include <fcntl.h>
+
+Display *display;
+Window  window;
+GC      gc;
+Screen  *screen;
+XImage  *ximage=NULL;
+`;
+
+Section Inherit
+
+  + parent_bitmap:Expanded BITMAP(PIXEL_24);
+
+Section Public //VIDEO
+
+  - line_tmp:ABSTRACT_BMP_LINE;
+
+Section Public
+
+  - screen_width:INTEGER;
+  - screen_height:INTEGER;
+
+  - message str:ABSTRACT_STRING <-
+  (
+    "Message : ".print; str.print; '\n'.print;
+  );
+
+  - is_active:BOOLEAN;
+
+  - planes:UINTEGER_32;
+
+  - resize (w,h:INTEGER) <-
+  (
+    width  := w;
+    height := h;
+    clipping_off;
+  );
+
+  - make_size (w,h:INTEGER) <-
+  ( + data:NATIVE_ARRAY(UINTEGER_8);
+    + w_max:INTEGER;
+
+    // Init BITMAP:
+    width  := w;
+    height := h;
+
+    // Creation Server X:
+    `display = XOpenDisplay(NULL)`;
+    // Screen Default:
+    `screen = ScreenOfDisplay(display,DefaultScreen(display))`;
+    // Init Graphic context:
+    `gc = DefaultGC(display,DefaultScreen(display))`;
+    // Creation Window:
+    `window = XCreateSimpleWindow(display,RootWindow(display,DefaultScreen(display)), 0,0,@w,@h,2,0,0)`;
+
+    // Event manager:
+    //XSelectInput(display,window,ExposureMask);
+
+    // Title window:
+    `XStoreName(display,window,"X-Isaac")`;
+
+    // Display Window:
+    `XMapWindow(display,window)`;
+
+    planes := `PlanesOfScreen(screen)`:UINTEGER_32;
+    "Video mode: ".print;
+    planes.print; "bits\n".print;
+
+    screen_width  := w_max := `WidthOfScreen(screen)`:INTEGER;
+    screen_height := `HeightOfScreen(screen)`:INTEGER;
+
+    planes
+    .when 15 then {
+      line_tmp := BMP_LINE(PIXEL_15).create w_max;
+      data := line_tmp.get_storage;
+      `ximage = XCreateImage(display,None,15,ZPixmap,0,(char *)@data,@w_max,1,16,0)`;
+    }
+    .when 16 then {
+      line_tmp := BMP_LINE(PIXEL_16).create w_max;
+      data := line_tmp.get_storage;
+      `ximage = XCreateImage(display,None,16,ZPixmap,0,(char *)@data,@w_max,1,16,0)`;
+    }
+    .when 24 then {
+      line_tmp := BMP_LINE(PIXEL_32).create w_max;
+      data := line_tmp.get_storage;
+      `ximage = XCreateImage(display,None,24,ZPixmap,0,(char *)@data,@w_max,1,32,0)`;
+    }
+    .when 32 then {
+      line_tmp := BMP_LINE(PIXEL_32).create w_max;
+      data := line_tmp.get_storage;
+      `ximage = XCreateImage(display,None,32,ZPixmap,0,(char *)@data,@w_max,1,32,0)`;
+    };
+
+    is_active := TRUE;
+  );
+
+  - auto_make <-
+  (
+    make_size (800,600);
+  );
+
+  - close <-
+  (
+    ? {is_active};
+    // Remove Window:
+    //`XUnmap(display,window)`;
+    is_active := FALSE;
+    ? {! is_active};
+  );
+
+  //
+  // Redefine Low level Bitmap.
+  //
+
+Section Public
+
+  - pixel_hard (x,y:INTEGER) color col:UINTEGER_32 <-
+  ( + real_col:UINTEGER_32;
+    + m:UINTEGER_8;
+
+    VIDEO.planes
+    .when 15 then {
+      real_col := PIXEL_15.get_raw col;
+    }
+    .when 16 then {
+      real_col := PIXEL_16.get_raw col;
+    }
+    .when 24 then {
+      real_col := PIXEL_24.get_raw col;
+    }
+    .when 32 then {
+      real_col := PIXEL_32.get_raw col;
+    };
+    m := mode;
+    `XSetForeground(display,gc,(int)@real_col)`;
+    `XSetFunction(display,gc,(int)@m)`;
+    `XDrawPoint(display,window,gc,@x,@y)`;
+  );
+
+  - line_h_hard (x0,y0:INTEGER) until x1:INTEGER color col:UINTEGER_32 <-
+  ( + real_col:UINTEGER_32;
+    + m:UINTEGER_8;
+
+    VIDEO.planes
+    .when 15 then {
+      real_col := PIXEL_15.get_raw col;
+    }
+    .when 16 then {
+      real_col := PIXEL_16.get_raw col;
+    }
+    .when 24 then {
+      real_col := PIXEL_24.get_raw col;
+    }
+    .when 32 then {
+      real_col := PIXEL_32.get_raw col;
+    };
+    m := mode;
+    `XSetForeground(display,gc,(int)@real_col)`;
+    `XSetFunction(display,gc,(int)@m)`;
+    `XDrawLine(display,window,gc,@x0,@y0,@x1,@y0)`;
+  );
+
+  - line_h_hard (x0,y0:INTEGER) until x1:INTEGER
+  image line:ABSTRACT_BMP_LINE offset ofs:INTEGER <-
+  ( + len:INTEGER;
+
+    len := x1 - x0;
+    VIDEO.line_tmp.put line offset ofs from 0 to len;
+    `XPutImage(display,window,gc, ximage, 0, 0, @x0, @y0, @len+1, 1)`;
+  );
+
+  - get_pixel_hard (x,y:INTEGER) :PIXEL <-
+  (
+    not_yet_implemented;
+  );
+
+  //
+  // Frame buffer.
+  //
+
+  - open_frame_buffer <-
+  ( + fb,w,h:INTEGER;
+
+    fb := `open("/dev/fb0", O_RDWR)`:INTEGER;
+    (fb = 0).if {
+      "Error: cannot open framebuffer device.\n".print;
+      die_with_code 0;
+    };
+
+    w := screen_width;
+    h := screen_height;
+    view_screen := `mmap(0, @w*@h*4, PROT_READ | PROT_WRITE,MAP_SHARED,@fb, 0)`:
+    NATIVE_ARRAY(UINTEGER_8);
+
+    (CONVERT(NATIVE_ARRAY(UINTEGER_8),INTEGER).on view_screen = -1).if {
+      "Error: failed to map framebuffer device to memory.\n".print;
+      die_with_code 0;
+    };
+  );
+
+  - get_pixel_screen (x,y:INTEGER) :UINTEGER_32 <-
+  [
+    -? {x.in_range 0 to (screen_width -1)};
+    -? {y.in_range 0 to (screen_height-1)};
+  ]
+  ( + ofs:INTEGER;
+    /*
+    (x.in_range 0 to (screen_width -1)).if_false {
+      "MERDE\n".print;
+    };
+    (y.in_range 0 to (screen_height-1)).if_false {
+      "MERDE Y\n".print;
+    };
+    */
+    ofs := (y * screen_width + x) * 4;
+    (view_screen.item  ofs   .to_uinteger_32      ) |
+    (view_screen.item (ofs+1).to_uinteger_32 <<  8) |
+    (view_screen.item (ofs+2).to_uinteger_32 << 16)
+  );
+
+  - set_pixel_screen (x,y:INTEGER) color col:UINTEGER_32 <-
+  ( + ofs:INTEGER;
+
+    ofs := (y * screen_width + x) * 4;
+    view_screen.put ((col >> 16).to_uinteger_8)         to (ofs+2);
+    view_screen.put (((col >> 8) & 0FFh).to_uinteger_8) to (ofs+1);
+    view_screen.put ((col & 0FFh).to_uinteger_8)        to (ofs+0);
+  );
+
+Section Private
+
+  - view_screen:NATIVE_ARRAY(UINTEGER_8);
+
+  /* A voir pour bloquer la size minimum
+
+// pointer to the size hints structure.
+XSizeHints* win_size_hints = XAllocSizeHints();
+if (!win_size_hints) {
+    fprintf(stderr, "XAllocSizeHints - out of memory\n");
+    exit(1);
+}
+
+// initialize the structure appropriately.
+// first, specify which size hints we want to fill in.
+// in our case - setting the minimal size as well as the initial size.
+win_size_hints->flags = PSize | PMinSize;
+// next, specify the desired limits.
+// in our case - make the window's size at least 300x200 pixels.
+// and make its initial size 400x250.
+win_size_hints->min_width = 300;
+win_size_hints->min_height = 200;
+win_size_hints->base_width = 400;
+win_size_hints->base_height = 250;
+
+// pass the size hints to the window manager.
+XSetWMNormalHints(display, win, win_size_hints);
+
+// finally, we can free the size hints structure.
+XFree(win_size_hints);
+*/

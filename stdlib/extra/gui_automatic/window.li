@@ -1,0 +1,213 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name      := WINDOW;
+
+  - copyright := "Jonathan Ponte, Maxime Audrin, Benoit Sonntag";
+
+  - comment   := "Vertical menu for GUII.";
+  
+Section Inherit
+  
+  - parent_internal_inode:INTERNAL_INODE := INTERNAL_INODE;
+  
+Section Public
+
+  - representation:STRING_CONSTANT := "WINDOW";
+
+  + win_out:G_WIN_OUT;
+
+  - print <-
+  (
+    "WINDOW".print;
+  );
+
+  - make_representation <-
+  (
+    +expr:G_EXPR;
+
+    list.foreach {
+      i:INODE;
+
+      (i.priority>covering).if {
+        (expr=NULL).if {
+          expr:=i.content;
+        } else {
+          expr:=expr / i.content;
+        };
+      };
+    };
+    win_out:=G_WIN_OUT.create name with expr;
+    content:=(G_BUTTON.create (G_OUT.create name) connect win_out).fix_width.fix_height;
+  );
+
+  - depth_node n:INODE of base:INODE from depth:INTEGER :INTEGER <-
+  (
+      +result:INTEGER;
+      +depth2:INTEGER;
+
+      depth2:=depth+1;
+      (n.name=base.name).if {
+        result:=depth2;
+      } else {
+        (!base.list.is_empty).if {
+          base.list.foreach {
+            i:INODE;
+            result:=result+depth2+(depth_node n of i from depth2);
+          };
+        } else {
+          result:=0;
+        };
+      };
+
+      result
+  );
+
+  - compute_size_from_prc p:INTEGER <-
+  [ ? {! list.is_empty}; ]
+  (
+    //attention ce calcul n'est pas le bon, c'est les dimensions au max
+    //les bonnes dimensions se calculent en fonction du placement des items
+    reset_size;
+    list.foreach {
+      i:INODE;
+      (i.priority > p).if {
+        height:=height+i.height;
+        width:=width+i.width;
+      };
+    };
+    (width,height):=G_WIN_OUT.predict_size (height,width) with_title TRUE;
+    (connector_width,connector_height):=G_BUTTON.predict_size (G_OUT.predict_size name);
+  );
+
+- semantic_evaluation (w,h:INTEGER) :BOOLEAN<-
+  (
+    bugw_screen:=w;
+    bugh_screen:=h;
+
+    !list.is_empty &&
+    {depth > 2} &&
+    {
+      +nb:INTEGER;
+
+      list.foreach {
+        i:INODE;
+        +tmp:REAL_32;
+        +best_prc:REAL_32;
+
+        (!i.list.is_empty).if {
+          tmp:=PAGE.evaluate i width screen_width height screen_height;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            i.set_representation PAGE;
+          };
+          tmp:=MENU_V.evaluate i width screen_width height screen_height;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            i.set_representation MENU_BAR;
+          };
+          tmp:=MENU_H.evaluate i width screen_width height screen_height;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            i.set_representation MENU_H;
+          };
+          tmp:=DROP_DOWN_MENU.evaluate i width screen_width height screen_height;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            i.set_representation DROP_DOWN_MENU;
+          };
+        } else {
+          tmp:=CHECK.evaluate i width screen_width height screen_height;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            i.set_representation CHECK;
+          };
+          tmp:=ACTION.evaluate i width screen_width height screen_height;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            i.set_representation ACTION;
+          };
+        };
+        (best_prc > 0).if {
+          nb:=nb+1;
+        };
+      };
+      nb=list.count
+    }
+  );
+
+- space_evaluation (w,h:INTEGER) :REAL_32<-
+  [? {!list.is_empty}; ]
+  (
+      + area,r,result:REAL_32;
+
+      // Space evaluation
+      compute_size_from_prc 0;
+    ((height >= h) || {width >= w}).if {
+      "Priority 0 failed\n".print;
+      compute_size_from_prc 25;
+      ((height >= h) || {width >= w}).if {
+        "Priority 25 failed\n".print;
+        compute_size_from_prc 50;
+        ((height >= h) || {width >= w}).if {
+          "Priority 50 failed\n".print;
+		r:=0;
+		set_height 0;
+		set_width 0;
+           } else {
+		covering:=50;
+		r:=get_nitem_from_prc 50;
+	   };
+	} else {
+	   covering:=25;
+	   r:=get_nitem_from_prc 25;
+	};
+      } else {
+	covering:=0;
+	r:=list.count;
+     };
+     r:=(r/list.count)*100;
+     area:=get_area_prc (w,h);
+     //name.print;" area := ".print;(get_area_prc (w,h)).print;"\n".print;
+     (r>area).if {
+       result:=r-area;
+     } else {
+       result:=0;
+     };
+    result
+  );
+
+- evaluate n:INODE width w:INTEGER height h:INTEGER : REAL_32<-
+  (
+     + result:REAL_32;
+
+     n.set_representation WINDOW;
+     "WINDOW semantic evaluation of ".print;n.name.print;"\n".print;
+     //Semantic evaluation: if the "base" son doesn't have any sons itself then it is a PAGE at 100%
+     (n.semantic_evaluation (w,h)).if {
+      //"WINDOW space evaluation of ".print;n.name.print;"\n".print;
+       result:=n.space_evaluation (w,h);
+     };
+     "WINDOW result of ".print;n.name.print;"= ".print;result.print;"% \n".print;
+     result
+  );
+

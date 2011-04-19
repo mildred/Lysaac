@@ -1,0 +1,78 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                             //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+ 
+Section Header
+  
+  + name     := ERROR;
+  
+  - comment  := "Renderer error";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  // 
+  // Error codes
+  //
+  
+  - no_error:INTEGER <- 0;
+  - invalid_enum:INTEGER <- 1;
+  - invalid_value:INTEGER <- 2;
+  - invalid_operation:INTEGER <- 3;
+  - stack_overflow:INTEGER <- 4;
+  - stack_underflow:INTEGER <- 5;
+  - out_of_memory:INTEGER <- 6;
+  
+  - last_error:INTEGER := no_error;
+  
+  
+  // return current error state variable
+  - get:INTEGER <- deferred;
+  
+  // return details of error 
+  - get buffer:STRING from code:INTEGER <- deferred;
+  
+  - get_string <- 
+  (
+    msg_error.clear;
+    get msg_error from last_error;
+  );
+  
+  - print_error <-
+  (
+    get_string;
+    STD_ERROR.put_string msg_error;
+  );
+  
+  - send msg:ABSTRACT_STRING <-
+  (
+    msg_error.clear;
+    msg_error.append "\nRenderer error: ";
+    msg_error.append msg;
+    
+    STD_ERROR.put_string msg_error;
+  );  
+  
+Section Public
+  
+  - msg_error:STRING := STRING.create 256;

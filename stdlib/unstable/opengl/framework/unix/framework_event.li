@@ -1,0 +1,135 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := FRAMEWORK_EVENT;
+  
+  - comment  := "GL Framework: handle input";
+  
+  - external := 
+  `
+char keybuf[64];
+KeySym  keysym;
+ `;
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  - make <-
+  (
+  );
+  
+  - keys:FAST_ARRAY(BOOLEAN) := 
+  ( + result:FAST_ARRAY(BOOLEAN);
+    
+    result := FAST_ARRAY(BOOLEAN).create (KEYCODE.key_count);
+    result.set_all_with FALSE;
+    result
+  );
+  
+  - mouse_x:INTEGER;
+  - mouse_y:INTEGER;
+
+  - get_mouse_pos:(INTEGER,INTEGER) <- 
+  (
+     (mouse_x, mouse_y)
+  );
+
+  - update:BOOLEAN <-
+  (
+    + type,k:INTEGER;
+    + w,h,b:INTEGER;
+  
+    {`XPending (win.dpy)`:INTEGER != 0}.while_do {
+      `XNextEvent (win.dpy, &event)`;
+      type := `event.type`:INTEGER;
+      
+      type
+
+      //
+      // Event Keyboard
+      //
+      .when `KeyPress`:INTEGER then {
+        `XLookupString(&event.xkey, keybuf, sizeof(keybuf), &keysym, 0)`;
+	k := KEYCODE.get_key (`keysym`:INTEGER);
+
+	keys.put TRUE to k;
+	FRAMEWORK.on_keydown k;
+      }
+      .when `KeyRelease`:INTEGER then {
+	`XLookupString(&event.xkey, keybuf, sizeof(keybuf), &keysym, 0)`;
+	k := KEYCODE.get_key (`keysym`:INTEGER);
+
+	keys.put FALSE to k;
+	FRAMEWORK.on_keyup k;
+      }	
+      .when `ButtonPress`:INTEGER then {
+        b := `event.xbutton.button`:INTEGER;
+        FRAMEWORK.on_mouseclick (((b = 1).to_integer <<1) | (b = 3).to_integer);
+      }
+      .when `MotionNotify`:INTEGER then {
+	mouse_x := `event.xmotion.x`:INTEGER;
+        mouse_y := `event.xmotion.y`:INTEGER;
+        FRAMEWORK.on_mousemove (mouse_x,mouse_y);
+      }
+      .when `ConfigureNotify`:INTEGER then {
+	w := `event.xconfigure.width`:INTEGER;
+	h := `event.xconfigure.height`:INTEGER;
+	
+	((w != FRAMEWORK.renderer.width) && {h != FRAMEWORK.renderer.height}).if {
+	  FRAMEWORK.renderer.resize (w,h); 
+	};
+      }
+      .when `ClientMessage`:INTEGER then {
+        `*XGetAtomName(win.dpy, event.xclient.message_type) == *"WM_PROTOCOLS"`:BOOLEAN{TRUE,FALSE}.if {
+	  FRAMEWORK.stop;
+	};	
+      };
+    };
+    TRUE
+  );
+  
+  - keydown k:INTEGER :BOOLEAN <-
+  (
+    keys.item k
+  );
+  
+  - keyup k:INTEGER :BOOLEAN <-
+  (
+    ! keys.item k
+  );
+  
+  - set_up k:INTEGER <-
+  (
+    keys.put FALSE to k;
+  );
+  
+  - warp_mouse (x,y:INTEGER) <-
+  (
+    mouse_x := x;
+    mouse_y := y;
+    `XWarpPointer (win.dpy, None, win.win, 0, 0, 0, 0, @x, @y)`; 
+  );
+  

@@ -1,0 +1,25 @@
+Section Header
+  // Progress Bar
+
+  + name      := PROGRESS_BAR;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP ProgressBar";
+
+Section Inherit
+
+  + parent:Expanded CONTROL := CONTROL;
+
+Section Public
+  
+  - make :SELF <-
+  ( + result:SELF;
+    + h:POINTER;
+
+    h := `IupProgressBar()`:POINTER;
+
+    result := SELF.clone;
+    result.set_handle h;
+    result
+  );

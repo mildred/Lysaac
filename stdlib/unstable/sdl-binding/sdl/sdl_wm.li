@@ -1,0 +1,62 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac-SDL Library                             //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := SDL_WM;
+  - comment  := "Window actions";
+  - author   := "Xavier Oswald <x.oswald@free.fr>";
+
+Section Inherit
+  
+  - parent_object: SDL_SETTINGS := SDL_SETTINGS;
+  
+Section Public
+
+  - iconify_window <-
+  // See SDL_APPACTIVE loss event (see SDL_ActiveEvent)
+  // Iconify/Minimise the window
+  ( + result: INTEGER;
+
+    result := `SDL_WM_IconifyWindow(void)`;
+    (result = 0).if{
+      "SDL iconification is not suported or was refused by the window manager...\n".print;
+    }
+  );
+
+  - set_caption (t:STRING_CONSTANT, i:STRING_CONSTANT) <-
+  // set the window title and application name in the bar
+  ( + title: NATIVE_ARRAY(CHARACTER);
+    + icon : NATIVE_ARRAY(CHARACTER);
+
+    title := t.to_external;
+    icon  := i.to_external;
+    `SDL_WM_SetCaption(@title, @icon);`;
+  );
+
+  - set_bmp_icon i:STRING_CONSTANT <-
+  // Sets the icon for the display window.
+  // Icon must be 32x32
+  ( + icon: NATIVE_ARRAY(CHARACTER);
+
+    icon := i.to_external;
+    `SDL_WM_SetIcon(SDL_LoadBMP(@icon), NULL);`;
+  );

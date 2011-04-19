@@ -1,0 +1,147 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name := SYSTEM_DETECT;
+
+  - author        := "Mildred Ki'Lya <mildred593(at)online.fr>";
+  - copyright     := "2008 Mildred Ki'Lya";
+  - bibliography  := "";
+  - comment       := "Detect charecteristics of the system/C compiler";
+
+  // Don't hesitate to add others slots to detect your platform.
+
+Section Inherit
+
+  - parent :Expanded OBJECT;
+
+Section Public
+
+  - end_of_line :STRING_CONSTANT <-
+  (
+    is_win32.if {
+      end_of_line := "\n\r";
+    } else {
+      end_of_line := "\n";
+    };
+    end_of_line
+  );
+
+  - is_unix :BOOLEAN <-
+  ( + true :TRUE;
+    + false :FALSE;
+    `
+    #ifdef __unix__
+    @true
+    #else
+    @false
+    #endif
+    `:BOOLEAN(TRUE,FALSE)
+  );
+
+  - is_windows :BOOLEAN <- is_win32;
+
+  - is_win32 :BOOLEAN <-
+  ( + true :TRUE;
+    + false :FALSE;
+    `
+    #ifdef WIN32
+    @true
+    #else
+    @false
+    #endif
+    `:BOOLEAN(TRUE,FALSE)
+  );
+
+  - is_stdc :BOOLEAN <-
+  ( + true :TRUE;
+    + false :FALSE;
+    `
+    #ifdef __STDC__
+    @true
+    #else
+    @false
+    #endif
+    `:BOOLEAN(TRUE,FALSE)
+  );
+
+  - is_gnuc :BOOLEAN <-
+  ( + true :TRUE;
+    + false :FALSE;
+    `
+    #ifdef __GNUC__
+    @true
+    #else
+    @false
+    #endif
+    `:BOOLEAN(TRUE,FALSE)
+  );
+
+  - is_elf :BOOLEAN <-
+  ( + true :TRUE;
+    + false :FALSE;
+    `
+    #ifdef __ELF__
+    @true
+    #else
+    @false
+    #endif
+    `:BOOLEAN(TRUE,FALSE)
+  );
+
+  - is_i383 :BOOLEAN <-
+  ( + true :TRUE;
+    + false :FALSE;
+    `
+    #ifdef __i386__
+    @true
+    #else
+    @false
+    #endif
+    `:BOOLEAN(TRUE,FALSE)
+  );
+
+  - is_linux :BOOLEAN <-
+  ( + true :TRUE;
+    + false :FALSE;
+    `
+    #ifdef __linux__
+    @true
+    #else
+    @false
+    #endif
+    `:BOOLEAN(TRUE,FALSE)
+  );
+
+  - is_gnu_linux :BOOLEAN <-
+  ( + true :TRUE;
+    + false :FALSE;
+    `
+    #ifdef __gnu_linux__
+    @true
+    #else
+    @false
+    #endif
+    `:BOOLEAN(TRUE,FALSE)
+  );
+
+// kate: hl Lisaac v0.2; indent-width 2; space-indent on; replace-tabs off;
+// kate: tab-width 8; remove-trailing-space on;

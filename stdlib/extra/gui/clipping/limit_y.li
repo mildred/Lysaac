@@ -1,0 +1,126 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name        := LIMIT_Y;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment     := "Sub structure for AREA.";
+    
+  - author      := "Benoit Sonntag (bsonntag@loria.fr), Jerome Boutet (boutet@loria.fr)";
+  
+  - version     := 1;
+  
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public  
+
+  + value:INTEGER;
+  
+  + plan:PLAN;
+  + is_top:BOOLEAN;  
+  
+  + next:LIMIT_Y;
+  + prev:LIMIT_Y;
+  
+Section Public 
+
+  - make y:INTEGER plan p:PLAN is_top b:BOOLEAN <- 
+  (
+    is_top:=b;
+    plan  :=p;
+    value :=y;
+  );
+  
+  - create_top y:INTEGER plan p:PLAN :LIMIT_Y <- 
+  ( + result:LIMIT_Y;
+    
+    result:=LIMIT_Y.clone;
+    result.make y plan p is_top TRUE;
+    result
+  );
+
+  - create_bottom y:INTEGER plan p:PLAN :LIMIT_Y <- 
+  ( + result:LIMIT_Y;
+    
+    result:=LIMIT_Y.clone;
+    result.make y plan p is_top FALSE;
+    result
+  );
+  
+  - append old_root:LIMIT_Y :LIMIT_Y <-
+  ( + new_root:LIMIT_Y;
+    + n,p:LIMIT_Y;
+    
+    n:=old_root;
+    {(n!=NULL) && {n.value<value}}.while_do {
+      p:=n; 
+      n:=n.next; 
+    };
+    next:=n; 
+    prev:=p;
+    (prev=NULL).if {
+      new_root:=Self; 
+    } else {
+      new_root:=old_root;
+      p.set_next Self;
+    };
+    (n!=NULL).if {
+      n.set_prev Self;
+    };
+    new_root
+  );
+
+  - remove old_root:LIMIT_Y :LIMIT_Y <-
+  ( + new_root:LIMIT_Y;
+    
+    (prev=NULL).if {
+      new_root:=next;
+    } else {
+      prev.set_next next;
+      new_root:=old_root;
+    };
+    (next!=NULL).if {
+      next.set_prev prev;
+    };
+    new_root
+  );
+
+  - set_value v:INTEGER <-
+  (
+    value:=v;
+  );
+  
+  - set_next new:LIMIT_Y <-
+  (
+    next:=new;
+  );
+
+  - set_prev new:LIMIT_Y <-
+  (
+    prev:=new;
+  );
+
+

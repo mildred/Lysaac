@@ -1,0 +1,96 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name      := CHECK;
+
+  - copyright := "Jonathan Ponte, Maxime Audrin, Benoit Sonntag";
+
+  - comment   := "Check button for GUII.";
+  
+Section Inherit
+  
+  - parent_internal_inode:INTERNAL_INODE := INTERNAL_INODE;
+  
+Section Public
+  
+  - representation:STRING_CONSTANT := "CHECK";
+
+  - print <-
+  (
+    "CHECK".print;
+  );
+
+  - make_representation <-
+  [? {list.is_empty}; ]
+  (
+    content:=(G_CHECK.create (G_OUT.create name)).fix_height.fix_width;
+    width:=content.width_min;
+    height:=content.height_min;
+  );
+
+//
+// Evaluation.
+//
+
+  //A check bouton can be apply only if it is a leaf
+  - semantic_evaluation (w,h:INTEGER) :BOOLEAN<-
+  (
+    //faire une vérification sur l'opérateur? check_button = opérateur 'ou'?
+    (list.is_empty) && {operator='|'}
+  );
+
+  - space_evaluation (w,h:INTEGER) :REAL_32<-
+  [ ? {list.is_empty}; ]
+  (
+    + result:REAL_32;
+
+    (width,height):=(G_CHECK.predict_size (G_OUT.predict_size name));
+    ((width > w) || {height > h}).if {
+      result:=0.0
+    } else {
+      result:=100.0-(get_area_prc (w,h));
+    };
+    result
+  )
+  [ ? {Result.in_range 0 to 100}; ];
+
+
+  - evaluate n:INODE width w:INTEGER height h:INTEGER : REAL_32<-
+  (
+    + result:REAL_32;
+    
+    // changer le parent de n pour pouvoir utiliser les méthodes spécifiques à MENU_BAR
+    n.set_representation CHECK;
+    
+    // Semantic evaluation && Space evaluation.
+    //"CHECK semantic evaluation of ".print;n.name.print;"\n".print;
+    (n.semantic_evaluation (w,h)).if {
+      //"CHECK space evaluation of ".print;n.name.print;"\n".print;
+      result:=n.space_evaluation (w,h);
+    } else {
+       result:=0;
+    };
+    //"CHECK result for ".print;n.name.print;"= ".print;result.print;"%\n".print;
+    result
+  )
+  [ ? {Result.in_range 0 to 100}; ];
+

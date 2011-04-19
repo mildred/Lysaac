@@ -1,0 +1,28 @@
+Section Header
+  // OLE Control
+
+  + name      := OLE_CONTROL;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP OLEControl";
+
+Section Inherit
+
+  + parent:Expanded CONTROL := CONTROL;
+
+Section Public
+  
+  - make prog_id:ABSTRACT_STRING :SELF <-
+  ( + result:SELF;
+    + h:POINTER;
+    + n_prog_id:NATIVE_ARRAY(CHARACTER);
+    
+    n_prog_id := prog_id.to_external;
+
+    h := `IupOleControl(@n_prog_id)`:POINTER;
+
+    result := SELF.clone;
+    result.set_handle h;
+    result
+  );

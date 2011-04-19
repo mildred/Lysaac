@@ -1,0 +1,202 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                  Lisaac                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name      := SDL_CDROM;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>)";
+  - comment   := "CD-ROM Global access. \
+                 \(In order to use these functions, SDL_INIT must have been \
+                 \called with the CD-ROM initialization. This causes SDL to \
+                 \scan the system for CD-ROM drives, and load appropriate \
+                 \drivers.)";
+  - type      := `SDL_CD`;
+
+Section Inherit
+
+  + parent_object:OBJECT := OBJECT;
+
+Section Public
+
+//
+// STATUS
+//
+  - cd_traempy  :INTEGER := `CD_TRAYEMPTY` :INTEGER; // No CD-ROM
+  - cd_stopped  :INTEGER := `CD_STOPPED`   :INTEGER; // Stopped status
+  - cd_playing  :INTEGER := `CD_PLAYING`   :INTEGER; // Playing status
+  - cd_paused   :INTEGER := `CD_PAUSED`    :INTEGER; // Paused status
+  - cd_error    :INTEGER := `CD_ERROR`     :INTEGER; // Error status
+
+//
+// DEVICES
+//
+  - nb_drives :INTEGER<-
+  // Returns the number of CD-ROM drives on the system, or -1 if 
+  // `SDL_INIT.set_cdrom' or `SDL_INIT.set_evrything' has not be called before.
+  (
+    `SDL_CDNumDrives()`:(INTEGER)
+  );
+
+  - drive_name d:INTEGER :STRING <-
+  // Returns a human-readable, system-dependent identifier for a given CD-ROM 
+  // drive `number'. Example: `/dev/cdrom' or `E:'
+  ( + drive:NATIVE_ARRAY(CHARACTER);
+    + drive_name:STRING;
+
+    drive := `SDL_CDName(@d)`:(NATIVE_ARRAY(CHARACTER));
+    drive_name := STRING.clone;
+    drive_name.from_external drive;
+    drive_name
+  );
+
+//
+// Internal CD-ROM
+//
+  - create drive:INTEGER :SELF <-
+  // Create and Set the cdrom given a drive `number'
+  ( + result :SELF;
+    + p:POINTER;
+    result := SELF.clone;
+    p := `SDL_CDOpen(@drive)`:POINTER;
+    result := CONVERT(POINTER,SELF).on p;
+    result
+  );
+
+  - status :INTEGER <-
+  // This function returns the current status of the CD-ROM drive.
+  (
+    `SDL_CDStatus(@Self)`:(INTEGER)
+  );
+
+  - cd_indrive status:INTEGER :BOOLEAN <-
+  // Given a status, returns `TRUE' if there's a disk in the drive
+  ( + s:BOOLEAN;
+    + s_r:INTEGER;
+    
+    s_r := `CD_INDRIVE(@s)`:(INTEGER);
+
+    (s_r > 0).if{
+      s := TRUE;
+    };
+
+    s
+  );
+
+  - cd_play_tracks (start_track,start_frame, ntracks, nframes:INTEGER) :INTEGER<-
+  // Play the given CD starting at `start_track' and `start_frame' for `ntracks'
+  // tracks and `nframes' frames.  If both `ntrack' and `nframe' are 0, play 
+  // until the end of the CD.  This function will skip data tracks.
+  // This slot should only be called after calling the slot `status' to 
+  // get track information about the CD.
+  // This function returns 0, or -1 if there was an error.
+  (
+
+    `SDL_CDPlayTracks(@Self, @start_track, @start_frame, @ntracks, @nframes)`:(INTEGER)
+
+
+    /* USAGE EXAMPLE
+       =============
+      + cdrom:SDL_CDROM_T;
+      cdrom := SDL_CDROM_T.create_with 0;
+      // PLAY ENTIRE CD
+      (cdom.indrive(cdrom.status) = 0).if {
+        cdrom.play_tracks(0,0,0,0);
+      };
+    */
+  );
+
+  - cd_play s:INTEGER length l:INTEGER :BOOLEAN <-
+  //  Play the given CD starting at `start' frame for `length' frames.
+  //  It returns `TRUE', or `FALSE' if there was an error.
+  ( + return:BOOLEAN;
+    + return_s:INTEGER;
+
+    return_s := `SDL_CDPlay(@Self, @s, @l)`:(INTEGER);
+
+    (return_s = 0).if{
+      return := TRUE;
+    };
+
+    return
+  );
+
+  - cd_pause <-
+  // Set the CD-ROM to pause.
+  (
+    `SDL_CDPause(@Self)`;
+  );
+
+  - cd_resume <-
+  // Resume CD-ROM.
+  (
+    `SDL_CDResume(@Self)`;
+  );
+
+  - cd_stop <-
+  // Stop playing CD-ROM.
+  (
+    `SDL_CDStop(@Self)`;
+  );
+
+  - eject <-
+  // Eject CD-ROM.
+  (
+    `SDL_CDEject(@Self)`;
+  );
+
+  - close <-
+  // Close CD-ROM drive handling.
+  (
+    `SDL_CDClose(@Self)`;
+  );
+
+//
+// TRACKS:
+//
+  - cd_numtracks :INTEGER <- `@Self->numtracks`:(INTEGER);
+  // Return the number of tracks of the CD-ROM else 0.
+
+  - cd_cur_track :INTEGER <- `@Self->cur_track`:(INTEGER);
+  // Current track position
+
+  - cd_cur_track_length :INTEGER <-
+  // Length, in frames, of the current track
+  (
+    `(@Self->track[@cur_track].length`:(INTEGER)
+  );
+  
+  - cd_track_length track:INTEGER :INTEGER <-
+  // Length, in frames, of a given track.
+  (
+    `(@Self->track[@track].length`:(INTEGER)
+  );
+
+  - cd_cur_frame :INTEGER <-
+  // Current frame offset within current track
+  (
+    `@Self->cur_frame`:(INTEGER)
+  ); 
+
+//
+// TRACK:
+//
+// TODO specific track access

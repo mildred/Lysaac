@@ -1,0 +1,96 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+ 
+  + name        := VIEW_SLOT;
+
+    
+  - comment     :="Reflexivity view slot.";
+  
+Section Public  
+  
+  //
+  // General information.
+  //
+  
+  //- name:STRING_CONSTANT <- `FUCK`;
+  
+  //- is_shared:BOOLEAN <- `FUCK`; 
+  // TRUE if '-' style, FALSE else.
+  
+  //- is_data:BOOLEAN <- `FUCK`;
+  
+  //- is_method:BOOLEAN <- ! is_data;
+  
+  //- section:STRING_CONSTANT <- `FUCK`;
+  
+  //
+  // Result analysis.
+  //
+  
+  //- result:VIEW_OBJECT <-
+  // Return the first result.  
+  //[
+  //  -? {upper_result = 0};
+  //]
+  //(
+  //  `FUCK`
+  //);
+  
+  //- lower_result:INTEGER := 0;  
+  
+  //- upper_result:INTEGER <-
+  
+  //- item_result idx:INTEGER :VIEW_OBJECT <-
+  //[
+  //  -? {in_range lower_result to upper_result};
+  //]
+  //(
+  //  `FUCK`
+  //);
+  
+  //
+  // Arguments access.
+  //
+  
+  //- lower_argument:INTEGER := 0;
+  
+  //- upper_argument:INTEGER <- `FUCK`;
+  
+  //- item_argument idx:INTEGER :VIEW_OBJECT <-
+  //[
+  //  -? {in_range lower_argument to upper_argument};
+  //]
+  //(
+  //  `FUCK`
+  //);
+  
+  //
+  // Call.
+  //
+  
+  //- call_with args:BLOCK :BLOCK <- `FUCK`;
+  
+  //- call:BLOCK <- 
+  //(
+  //  call_with NULL
+  //);
+  

@@ -1,0 +1,154 @@
+///////////////////////////////////////////////////////////////////////////////
+//                          Isaac Operating System                           //
+// 									     //
+//   This program is free software; you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation; version 3 of the License.  		     //
+// 									     //
+//   This program is distributed in the hope that it will be useful, 	     //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of 	     //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 	     //
+//   GNU General Public License for more details. 			     //
+// 									     //
+// 			    http://www.lisaac.org			     //
+///////////////////////////////////////////////////////////////////////////////
+
+
+Section Header
+  
+  + name        :=FILE_SYSTEM;
+  
+  - bibliography:="http://www.lisaac.org";
+
+  - author      := 
+  "Benoit Sonntag (benoit.sonntag@lisaac.org),\
+  \ Jerome Boutet (pisteur@free.fr)";  
+
+  - comment     :="File System manager for ISAAC - X86.";
+  
+Section Inherit  
+  
+  + parent_entry:Expanded ENTRY;
+  
+  + parent_directory:Expanded DIRECTORY;
+  
+Section Public
+  
+  - is_open:BOOLEAN <- parent_directory.is_open;
+  
+  - open:BOOLEAN <-
+  (         
+    (is_open).if_false {
+    
+      set_path "/";
+      alias.put Self to path;
+      
+      physical_refresh;
+    };
+    TRUE
+  );
+  
+Section Private
+  
+  - physical_refresh <-
+  ( + ctrl:CONTROLER;
+    + drv:DRIVE;
+    + n_drv:INTEGER;
+    
+    list := LINKED_LIST(ENTRY).create;
+/*  
+    // Floppy Controler. JHJH: detect
+    ctrl := FLOPPY_CONTROLER.create 3F0h;
+    drv  := DRIVE.create ctrl drive 00h;
+    // Init fat12
+    part := FAT12.create drv begin 0;
+    list.add_last part;
+  */  
+    // Controler BIOS.
+    ctrl := BIOS_CONTROLER.create 0;    
+    n_drv := 80h;
+//    {
+      drv  := DRIVE.create ctrl drive n_drv;
+      (drv != NULL).if {
+        // Partition.    
+        "Mount IDE ".print;
+        n_drv.print;
+        '\n'.print;
+        read_partition drv begin 0;
+      };
+      n_drv := n_drv + 1;
+  //  }.do_while {drv != NULL};
+  );
+  
+  - buffer:FAST_ARRAY(UINTEGER_8) := FAST_ARRAY(UINTEGER_8).create_with_capacity 512;  
+  
+  - read_partition drv:DRIVE begin logical_sector:UINTEGER_32 <-
+  ( + mbr:MBR;
+    + new_part:PARTITION;
+    + first:UINTEGER_32;
+    
+    drv.set_cursor logical_sector;
+    buffer.clear;    
+    drv.read buffer size 1;
+            
+    // Load mbr.    
+    1BEh.to 1EEh by 16 do { n:INTEGER;
+      mbr:=CONVERT(NATIVE_ARRAY(UINTEGER_8),MBR).on (buffer.to_native_array + n);
+      
+      first := mbr.mbr_first_sector + logical_sector;
+      ((mbr.type=05h) || {mbr.type=0Fh}).if {      
+        // Extended Partition.
+        "extended partition type\n".print;
+        read_partition drv begin first;	
+      }.elseif {(mbr.type != 0) && {mbr.type != 0FFh}} then {
+        // Mbr Extended.
+        mbr.is_fat12.if {
+          "\t\tFAT12 detected\n".print;
+          new_part := FAT12.create drv begin first;
+          add_part new_part with "fat12";
+        }.elseif {mbr.is_fat16} then {
+          "\t\tFAT16 detected\n".print;  
+          new_part := FAT16.create drv begin first;
+          add_part new_part with "fat16";
+        }.elseif {mbr.is_fat32} then {
+          "\t\tFAT32 detected.\n".print;
+          new_part := FAT32.create drv begin first;
+          add_part new_part with "fat32";
+        }.elseif {mbr.is_ext2} then {
+          "\t\tEXT2 detected.\n".print;
+          new_part := EXT2.create drv begin first;
+          add_part new_part with "ext2";
+        } else {
+          "\t\tUnknown partition detected (".print;
+          mbr.type.to_hexadecimal.print;
+          "h)\n".print;
+        };
+      };
+    };    
+  );  
+        
+        
+  - add_part new_part:PARTITION with name:ABSTRACT_STRING <-
+  (     
+    new_part.make;          
+    alias.put new_part to (new_part.path);
+    list.add_last new_part;    
+  );
+  
+Section ENTRY
+  
+  - get_partition e:ENTRY :PARTITION <-
+  ( + result:PARTITION;
+            
+    result ?= e;
+    (result = NULL).if {
+      string_tmp.copy (e.path);
+      string_tmp.keep_head (string_tmp.index_of '/' since 2 - 1);
+      result ?= alias.at string_tmp;
+      (result = NULL).if {
+        "GROSSE MERDE!\n".print;
+      };
+    };
+    result
+  )
+  [ +? { Result != NULL }; ];

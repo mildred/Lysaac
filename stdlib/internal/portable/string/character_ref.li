@@ -1,0 +1,81 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := CHARACTER_REF;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment :=" .";
+
+Section Inherit
+
+  - parent_hashable:HASHABLE <- HASHABLE;
+
+  - parent_comparable:COMPARABLE <- COMPARABLE;
+
+Section Public
+
+  - item:CHARACTER;
+
+  - set_item value:CHARACTER <-
+  (
+    item := value;
+  );
+
+  - Self:SELF '<' other:SELF : BOOLEAN <-
+  (
+    item < other.item
+  );
+
+  - code:UINTEGER_8 <-
+  // ASCII code of Current
+  (
+    item.code
+  );
+
+  - to_upper:SELF <-
+  (
+    item.to_upper
+  );
+
+  - to_lower:SELF <-
+  // Conversion of Current to lower case
+  (
+    item.to_lower
+  );
+
+  // Object Printing:
+
+  - out_in_tagged_out_memory <- fill_tagged_out_memory;
+
+  - fill_tagged_out_memory <-
+  (
+    item.fill_tagged_out_memory;
+  );
+
+  // Hashing:
+
+  - hash_code:INTEGER <-
+  (
+    item.hash_code
+  );

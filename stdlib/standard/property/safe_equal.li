@@ -1,0 +1,64 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := SAFE_EQUAL(E);
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment :="The goal of this class is to share the definition of \
+              \feature `safe_equal'. Feature `safe_equal' compares  \
+              \two arguments of type E, by calling `==' only  \
+              \and only if both arguments have the `same_type'..";
+
+Section Inherit
+
+  - parent:OBJECT := OBJECT;
+
+Section Public
+
+  - safe_equal (e1, e2:E) :BOOLEAN <-
+  // In order to avoid run-time type errors, feature `safe_equal' call
+  // `==' only when `e1' and `e2' have exactly the same `generating_type'.
+  // Furthermore, this feature avoid argument passing from some
+  // expanded type to the corresponding reference type (no automatic
+  // allocation of some reference type during the comparison).
+  ( /*
+    + result:BOOLEAN;
+
+    ( e1.is_basic_expanded_type).if { then
+      result := (e1 = e2);
+    }.elseif {e1.is_expanded_type} then {
+      result := e1 == e2;
+    }.elseif {e1 = e2} then {
+      result := true;
+    }.elseif {(e1 = NULL) || {e2 = NULL}} then {
+    }.elseif {e1.generating_type = e2.generating_type} then {
+      result := e1 == e2;
+    }; // end if
+
+    result
+    */
+    (e1=e2) || {(e1!=NULL) && {e1==e2}}
+  );
+
+

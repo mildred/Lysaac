@@ -1,0 +1,260 @@
+///////////////////////////////////////////////////////////////////////////////
+//                          Isaac Operating System                           //
+// 									     //
+//   This program is free software; you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation; version 3 of the License.  		     //
+// 									     //
+//   This program is distributed in the hope that it will be useful, 	     //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of 	     //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 	     //
+//   GNU General Public License for more details. 			     //
+// 									     //
+// 			    http://www.lisaac.org			     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := VIDEO;
+  
+  - comment     := "Driver video - standard VESA 2.0 Linear -";
+  
+//  - category    := MICRO;
+  
+  - bibliography:= "http://www.lisaac.org";
+  - author      := "Benoit Sonntag (benoit.sonntag@lisaac.org), Jerome Boutet (pisteur@free.fr)";
+  
+Section Inherit
+  
+  - parent_bitmap_bug:ABSTRACT_BITMAP := ABSTRACT_BITMAP;
+  //- parent_bitmap:BITMAP := BITMAP;
+  
+Section Public
+  
+  - get_abstract_bitmap:ABSTRACT_BITMAP;
+  
+  - get_y_line y:INTEGER :ABSTRACT_BMP_LINE <-
+  (     
+    get_abstract_bitmap.get_y_line y
+  );
+  
+  - is_active:BOOLEAN <- (current_mode != 0);
+  
+  + horizontal_dpi:INTEGER := 72;
+  + vertical_dpi:INTEGER   := 72;
+
+  + screen_width:REAL_24_8  := 12; // 12 Inch
+  + screen_height:REAL_24_8 := 8;  // 8 Inch
+
+  + mode_list:FAST_ARRAY(UINTEGER_16);
+  
+  + current_mode:UINTEGER_16;
+  
+  - load_mode mode:UINTEGER_16 <-
+  // Get Information Vesa mode. (update MODE_INFO)
+  (     
+    BIOS.clear_buffer;    
+    REGISTER.set_ax 4F01h;
+    REGISTER.set_cx mode;
+    REGISTER.set_es (BIOS.segment_buffer);
+    REGISTER.set_di (BIOS.offset_buffer);
+    BIOS.call_interrupt 10h;
+    MODE_INFO.make (BIOS.buffer);
+  );
+
+  - init_mode mode:UINTEGER_16 <-
+  ( + addr,size:UINTEGER_32;
+//    + new_bmp:BITMAP;
+    + is_ok:BOOLEAN;
+  
+    current_mode:=mode;
+
+    // Get info mode.
+    load_mode mode;
+
+    // Allocation video Linear memory.
+    addr:=MODE_INFO.phys_base_ptr;
+        
+    size:=MODE_INFO.y_resolution * MODE_INFO.bytes_per_scan_line;
+//    MEMORY.allocation_reserved addr to (addr+size-1);
+
+    // Init physical video mode.
+    REGISTER.set_ax 04F02h;
+    REGISTER.set_bx (mode | 4000h); // Mode linear.
+    BIOS.call_interrupt 10h;
+    `___video_text = 0`;
+
+    // Choix de l'objet parent :    
+    MODE_INFO.bits_per_pixel
+    .when 15 to 16 then {
+	  ((MODE_INFO.red_mask_size  = 5)   && 
+           {MODE_INFO.red_mask_pos   =10}   &&
+	   {MODE_INFO.green_mask_size= 5} && 
+           {MODE_INFO.green_mask_pos = 5}  &&
+	   {MODE_INFO.blue_mask_size = 5}  && 
+	   {MODE_INFO.blue_mask_pos  = 0}).if {
+     get_abstract_bitmap:=parent_bitmap_bug := BITMAP(PIXEL_15).create ((MODE_INFO.x_resolution),(MODE_INFO.y_resolution)) at addr bytes_per_line (MODE_INFO.bytes_per_scan_line);
+	     is_ok:=TRUE;
+	   } else {
+	     ((MODE_INFO.red_mask_size  = 5)      && 
+              {MODE_INFO.red_mask_pos   =11}      &&
+              {MODE_INFO.green_mask_size= 6}    && 
+              {MODE_INFO.green_mask_pos = 5}     &&
+	      {MODE_INFO.blue_mask_size = 5}     && 
+              {MODE_INFO.blue_mask_pos  = 0}).if {
+            get_abstract_bitmap:=parent_bitmap_bug := BITMAP(PIXEL_16).create ((MODE_INFO.x_resolution),(MODE_INFO.y_resolution)) at addr bytes_per_line (MODE_INFO.bytes_per_scan_line);
+		is_ok:=TRUE;
+	      };
+	    };
+	  }	  
+    .when 24 then {
+	    ((MODE_INFO.red_mask_size  = 8)      && 
+	     {MODE_INFO.red_mask_pos   =16}      &&
+	     {MODE_INFO.green_mask_size= 8}    && 
+             {MODE_INFO.green_mask_pos = 8}     &&
+	     {MODE_INFO.blue_mask_size = 8}     && 
+	     {MODE_INFO.blue_mask_pos  = 0}).if {
+       get_abstract_bitmap:=parent_bitmap_bug := BITMAP(PIXEL_24).create ((MODE_INFO.x_resolution),(MODE_INFO.y_resolution)) at addr bytes_per_line (MODE_INFO.bytes_per_scan_line);
+	       is_ok:=TRUE;
+	     };
+	   }
+    .when 32 then {
+      (
+        (MODE_INFO.red_mask_size   = 8) && 
+        {MODE_INFO.red_mask_pos    =16} &&
+        {MODE_INFO.green_mask_size = 8} && 
+        {MODE_INFO.green_mask_pos  = 8} &&
+        {MODE_INFO.blue_mask_size  = 8} && 
+        {MODE_INFO.blue_mask_pos   = 0}
+      ).if {
+        get_abstract_bitmap := parent_bitmap_bug := BITMAP(PIXEL_32).create 
+        ((MODE_INFO.x_resolution),(MODE_INFO.y_resolution)) at addr 
+        bytes_per_line (MODE_INFO.bytes_per_scan_line);
+        is_ok:=TRUE;
+      };
+    };
+
+    // On initialise la bitmap :
+    (! is_ok).if {
+      crash_with_message "Error VESA : Mode 16bits not supported."; 
+    };
+        
+    
+//    parent_bitmap_bug := BITMAP_24.create (MODE_INFO.x_resolution),(MODE_INFO.y_resolution) at addr bytes_per_line (MODE_INFO.bytes_per_scan_line);
+        
+//    make (MODE_INFO.x_resolution),(MODE_INFO.y_resolution) at addr bytes_per_line (MODE_INFO.bytes_per_scan_line);
+    
+    //horizontal_dpi:=MODE_INFO.x_resolution.to_real_24_8/screen_width;
+    //vertical_dpi  :=MODE_INFO.y_resolution.to_real_24_8/screen_height;
+  );
+  
+  - auto_make <-
+  ( + mode:NATIVE_ARRAY(UINTEGER_16);
+    + pos,j:INTEGER;
+    + mode_index:INTEGER;
+        
+    BIOS.clear_buffer;
+    
+    // Load information Vasa Card.
+    BIOS.buffer.put ('V'.to_uinteger_8) to 0;
+    BIOS.buffer.put ('B'.to_uinteger_8) to 1;
+    BIOS.buffer.put ('E'.to_uinteger_8) to 2;
+    BIOS.buffer.put ('2'.to_uinteger_8) to 3;
+    
+    // Call Interrupt.
+    REGISTER.set_es (BIOS.segment_buffer);
+    REGISTER.set_di (BIOS.offset_buffer);
+    REGISTER.set_ax 4F00h;
+    BIOS.call_interrupt 10h;
+    
+    // Get VESA Information.
+    
+    VESA_INFO.make (BIOS.buffer);
+    (VESA_INFO.vesa_version < 200h).if {
+      // Version very old !
+      crash_with_message "Error VESA : Old Version.";
+    };
+    // Get VIDEO mode list.
+    mode := CONVERT(UINTEGER_32,NATIVE_ARRAY(UINTEGER_16)).on (BIOS.get_address (VESA_INFO.video_mode_ptr));
+    mode_list:=FAST_ARRAY(UINTEGER_16).create_with_capacity 256;
+
+    pos:=0;
+    {mode.item pos != 0FFFFh}.while_do {
+      mode_list.add_last (mode.item pos);
+      pos:=pos+1;
+    };
+
+    // Search good mode.
+    j:=mode_list.lower;
+    {j<=mode_list.upper}.while_do {
+      load_mode (mode_list.item j);
+      (
+	((MODE_INFO.mode_attributes & 25)=25) &&
+	{MODE_INFO.number_of_planes=1}        &&
+	{MODE_INFO.bits_per_pixel>=15}	      &&
+	{MODE_INFO.bits_per_pixel<=32}	      &&
+	{MODE_INFO.x_resolution>640}	      &&
+	{(MODE_INFO.memory_model=4) || {MODE_INFO.memory_model=6}}
+      ).if {
+	('a'+j.to_character).print;
+	'-'.print;
+        MODE_INFO.x_resolution.print; 
+        'x'.print;
+	MODE_INFO.y_resolution.print; 
+        'x'.print;
+	MODE_INFO.bits_per_pixel.print;
+	'\n'.print;	
+	j:=j+1;
+      } else {
+	mode_list.remove j;
+      };
+    };
+    (mode_list.is_empty).if {
+      crash_with_message "Error VESA : Mode 800x600x15bits or superior not supported.";       
+    };
+        
+    { + car:CHARACTER;
+      "Active mode: ".print;
+      {
+	car := KEYBOARD.getcode (KEYBOARD.wait_key).to_character;
+	car.print;
+      }.do_until {car.in_range 'a' to 'z'};
+      mode_index := car -! 'a';
+      /*
+      mode_index.print; 
+      '\n'.print;
+      KEYBOARD.wait_key;
+      */
+    }.do_until {mode_index.in_range (mode_list.lower) to (mode_list.upper)};    
+    
+    //mode_index := 3;
+    //mode_index.print;
+			
+    "\nPress key for start...\n".print;
+    KEYBOARD.wait_key;
+    //
+        
+    init_mode (mode_list.item mode_index);    
+
+  );
+  
+  - message st:ABSTRACT_STRING <-
+  (
+    close;
+    st.print;
+    die_with_code 0;
+  );
+  
+  - close <-
+  ( ? {is_active}; 
+    
+    current_mode := 0;
+    `___video_text = 1`;
+    
+    // Init physical text mode.
+    REGISTER.set_ax 03h;
+    BIOS.call_interrupt 10h;
+    
+    ? {! is_active};    
+  );    
+

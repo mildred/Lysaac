@@ -1,0 +1,57 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name    := TOOLS;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+    
+  - comment := "Miscellaneous Tools";
+
+  - external := `#include <time.h>`;
+  
+Section Public
+  
+  - unicode_to_ascii uni:FAST_ARRAY(CHAR_UNICODE) to asc:FAST_ARRAY(CHARACTER) <-
+  ( + i:INTEGER;
+    {uni.item i != 0}.while_do {
+      asc.put ((uni.item i & 0FFh).to_uinteger_8) to i;
+      i := i + 1;
+    };
+    asc.put 0 to i;    
+  );
+
+  - ascii_to_unicode asc:FAST_ARRAY(CHARACTER) to uni:FAST_ARRAY(CHAR_UNICODE) <-
+  ( + i:INTEGER;
+    {asc.item i != 0}.while_do {
+      uni.put (asc.item i) to i;
+      i := i + 1;
+    };
+    uni.put 0 to i;    
+  );
+
+  - bench b:{} :REAL_32 <-
+  ( + ts:REAL_32;
+
+    ts := `clock()`:REAL_32;
+    b.value;
+    ((`clock()`:REAL_32 - ts) / `CLOCKS_PER_SEC`:REAL_32)
+  );

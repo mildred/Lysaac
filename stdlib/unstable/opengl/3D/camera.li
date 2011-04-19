@@ -1,0 +1,206 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Application                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := CAMERA;
+  
+  - comment  := "handle view (based on gluLookAt())";
+  
+Section Inherit
+  
+  - parent_framework:FRAMEWORK_ANY := FRAMEWORK_ANY;
+
+Section Public
+  
+  // position in 3d world
+  + position:VECTOR3(REAL_32); 
+  
+  // camera's view vector
+  + view:VECTOR3(REAL_32);
+  
+  // camera's up vector (orthonormal with view & right)
+  + up:VECTOR3(REAL_32);
+  
+  // camera's up vector (orthonormal with view & up)
+  + right:VECTOR3(REAL_32);
+  
+  
+  // speed coeff
+  - kspeed:REAL_32 := 50;
+  
+  
+  - create_from (p,v,u,r:VECTOR3(REAL_32)) :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make (p,v,u,r);
+    result
+  );
+  
+  - create_position (p:VECTOR3(REAL_32)) :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make (p, VECTOR3(REAL_32).create (0.0,-1.0,1.0),VECTOR3(REAL_32).create (0.0,1.0,0.0),VECTOR3(REAL_32).create (1.0,0.0,0.0));
+    result
+  );
+  
+   - create_position p:VECTOR3(REAL_32) looking_at target:VECTOR3(REAL_32) :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make (p, (target - p).normalized, VECTOR3(REAL_32).create (0.0,1.0,0.0),VECTOR3(REAL_32).create (1.0,0.0,0.0));
+    result
+  );
+  
+  - create :SELF <-
+  // default camera
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make (VECTOR3(REAL_32).create (0.0,1.0,-1.0), VECTOR3(REAL_32).create (0.0,-1.0,1.0),VECTOR3(REAL_32).create (0.0,1.0,0.0),VECTOR3(REAL_32).create (1.0,0.0,0.0));
+    result
+  );
+  
+  - make (p,v,u,r:VECTOR3(REAL_32)) <-
+  (
+    position := p;
+    view := v;
+    up := u;
+    right := r;
+  );
+  
+  - set_position p:VECTOR3(REAL_32) <-
+  (
+    position := p;
+  );
+  
+  - set_view v:VECTOR3(REAL_32) <-
+  (
+    view := v;
+  );
+  
+  - set_up u:VECTOR3(REAL_32) <-
+  (
+    up := u;
+  );
+  
+  - set_right u:VECTOR3(REAL_32) <-
+  (
+    right := u;
+  );
+  
+  - look <-
+  (
+    + px,py,pz,vx,vy,vz,ux,uy,uz:REAL_32;
+    
+    px := position.x;
+    py := position.y;
+    pz := position.z;
+    
+    vx := px + view.x;
+    vy := py + view.y;
+    vz := pz + view.z;
+    
+    ux := up.x;
+    uy := up.y;
+    uz := up.z;
+    
+    `gluLookAt (@px,@py,@pz, @vx,@vy,@vz, @ux,@uy,@uz)`;
+  );
+  
+  - update_with_mouse <-
+  (
+    + midx, midy, mx, my:INTEGER;
+    + angle_y, angle_x:REAL_32;
+    
+    midx := screen_width >> 1;
+    midy := screen_height >> 1;
+    
+    (mx,my) := event.get_mouse_pos;
+  
+    ((mx = midx) && {my = midy}).if_false {
+      event.warp_mouse (midx,midy); // a changer
+      
+      // scaled direction the moused moved in
+      angle_y := (midx - mx).to_real / 1000.0;
+      angle_x := (midy - my).to_real / 1000.0;
+      
+      rotate_y angle_y;
+      rotate_x angle_x;
+    };
+  );
+
+  - rotate_x angle:REAL_32 <-
+  ( 
+    view := ((view*angle.cos) + (up*angle.sin)).normalized;
+    
+    up := (view.cross right) * -1;
+  );
+  
+  - rotate_y angle:REAL_32 <-
+  (    
+    view := ((view*angle.cos) - (right*angle.sin)).normalized;
+    
+    right := view.cross up;
+  );
+  
+  - rotate_z angle:REAL_32 <-
+  (  
+    right := ((right*angle.cos) + (up*angle.sin)).normalized;
+    
+    up := view.cross right * -1;
+  );
+  
+  - move (speed:REAL_32,t:REAL_32) axis v:VECTOR3(REAL_32) <-
+  (  
+    position.set_x (position.x + v.x * speed * t);
+    position.set_y (position.y + v.y * speed * t);
+    position.set_z (position.z + v.z * speed * t);
+  );
+  
+  //   
+  // just for testing
+  //
+  - update_with_keys time:REAL_32 <-
+  (
+    (event.keydown (KEYCODE.k_up)).if {
+      move (kspeed,time) axis view;
+      event.set_up (KEYCODE.k_up);// hack
+    };
+    (event.keydown (KEYCODE.k_down)).if {
+      move (-kspeed,time) axis view;
+      event.set_up (KEYCODE.k_down); // hack
+    };
+    (event.keydown (KEYCODE.k_left)).if {
+      move (-kspeed,time) axis right;
+      event.set_up (KEYCODE.k_left);// hack
+    };
+    (event.keydown (KEYCODE.k_right)).if {
+      move (kspeed,time) axis right;
+      event.set_up (KEYCODE.k_right); // hack
+    };
+  );
+  
+  - animate t:REAL_32 <-
+  (
+    update_with_mouse;
+    update_with_keys t;
+  );
+  
+  

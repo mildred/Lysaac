@@ -1,0 +1,82 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := FOG;
+  
+  - comment  := "Fog properties";
+  
+Section Inherit
+  
+  + parent_state:Expanded STATE;
+  
+Section Public
+  
+  // fog modes
+  - filter_linear:INTEGER <- 1;
+  - filter_exp:INTEGER <- 2;
+  
+  - fogmode:INTEGER := filter_linear; // best fog rendering mode
+  
+  + color:COLOR;
+  + density:REAL_32;
+  
+  // fog depth
+  + start:REAL_32;
+  + end:REAL_32;
+  
+  - create (c:COLOR, d,s,e:REAL_32) :SELF <-
+  (
+    + result:SELF;
+    result := SELF.clone;
+    result.make (c,d,s,e);
+    result
+  );
+  
+  - make (c:COLOR, d,s,e:REAL_32) <- 
+  (
+    color := c;
+    density := d;
+    start := s;
+    end := e;
+    render;
+  );
+  
+  - set_filter f:INTEGER <- fogmode := f;
+  
+  - set_color c:COLOR <- 
+  (
+    color := c;
+  );
+  
+  - set_density d:REAL_32 <- 
+  (
+    density := d;
+  );
+  
+  - set_depth (s,e:REAL_32) <- 
+  (
+    start := s;
+    end := e;
+  );
+  
+  - render <- deferred;

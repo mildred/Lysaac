@@ -1,0 +1,155 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := G_WIN_IN;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+      
+  - author  := "Sonntag Benoit (bsonntag@loria.fr)";
+  - comment := "Group elements for GUI.";
+
+Section Inherit  
+  
+  + parent_area:Expanded AREA;
+  
+  + parent_g_expr:Expanded G_EXPR;
+  
+Section Public  
+  
+  + win_in:G_WIN_IN_INTERN;
+  
+  //
+  // Creation.
+  //
+  
+  - create (w,h:INTEGER) with elt:G_EXPR :G_WIN_IN <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make (w,h) with elt;
+    result
+  );
+  
+  - make (w,h:INTEGER) with elt:G_EXPR <-
+  (
+    width_min  := w;
+    height_min := h;
+    win_in := G_WIN_IN_INTERN.create elt;
+  );
+  
+  //
+  // Fix position.
+  //
+  
+  - set_top <- 
+  (
+    win_in.set_top;
+    refresh_in;
+  );
+    
+  - set_bottom <- 
+  (
+    win_in.set_bottom;
+    refresh_in;
+  );
+    
+  - set_right <-
+  (
+    win_in.set_right;
+    refresh_in;
+  );
+
+  - set_left <-
+  (
+    win_in.set_left;
+    refresh_in;
+  );
+
+  //
+  // Size.
+  //
+  
+  - predict_size (w,h:INTEGER) :(INTEGER,INTEGER) <-
+  ( 
+    w, h
+  );
+
+  + width_min:INTEGER;
+  
+  + height_min:INTEGER;
+    
+  //
+  // Update position.
+  //
+  
+  - refresh_in <-
+  ( // BSBS: Pas TOP !!!
+    win_in.set_position Self at (2,2) size (width-4,height-4); 
+    win_in.refresh;
+    (win_in.elevator_v.parent != NULL).if { 
+      win_in.elevator_v.refresh;
+    };
+    (win_in.elevator_h.parent != NULL).if { 
+      win_in.elevator_h.refresh;
+    };
+  );
+  
+  - set_position rac:AREA at (x,y:INTEGER) size (w,h:INTEGER) <-
+  ( 
+    update rac from (x,y) size (w,h);
+    win_in.set_position Self at (2,2) size (w-4,h-4); 
+  );
+  
+  //
+  // Display.
+  //
+  
+  - draw_slave bmp:ABSTRACT_BITMAP from (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  ( 
+    bmp.rectangle_fill (x0,y0) to (x1,y1) color color_back;
+  );
+  
+  - draw (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  (     
+    clipping (x0,y0) to (x1,y1);       
+    draw_border_in (x_min,y_min) to (x_max,y_max);    
+    draw_border_in (x_min+1,y_min+1) to (x_max-1,y_max-1);
+    draw_slave Self from (x_min+2,y_min+2) to (x_max-2,y_max-2);
+  );
+
+  //
+  // Event manager.
+  //
+  
+  - receive msg:EVENT <-
+  ( + mouse:EVENT_MOUSE;  
+    + win:AREA;
+        
+    mouse ?= msg;
+    (mouse != NULL).if {                  
+      win := DESK.get_object (mouse.x_current,mouse.y_current);
+      (win != Self).if {
+	DESK.receive msg;	
+      };
+    };    
+  );

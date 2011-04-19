@@ -1,0 +1,146 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name     := EVENT_SYSTEM;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment  := "X11 - Event System";
+
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Public
+
+  - x_root:INTEGER;
+  - y_root:INTEGER;
+
+  - sleep n:INTEGER <-
+  // Milisecond
+  (
+    `usleep(@n * 1000)`;
+  );
+
+  - make <-
+  ( + mask:UINTEGER_32;
+
+    mask := `ExposureMask`:UINTEGER_32;
+    mask := mask | `KeyPressMask|KeyReleaseMask`:UINTEGER_32;
+    mask := mask | `ButtonPressMask|ButtonReleaseMask|PointerMotionMask`:UINTEGER_32;
+    mask := mask | `ClientMessage`:UINTEGER_32;
+    //mask := mask | `ResizeRedirectMask`:UINTEGER_32;
+    mask := mask | `StructureNotifyMask`:UINTEGER_32;
+    `XSelectInput(display,window,@mask)`;
+  );
+
+  - get_event <-
+  ( //+ nb_ev:INTEGER;
+    + type:INTEGER;
+    + x0,y0,x1,y1:INTEGER;
+
+    TIMER.get_event;
+    `{ XEvent ev`;
+      (`XPending(display)`:INTEGER != 0).if {
+        `XNextEvent(display,&ev)`;
+        type := `ev.type`:INTEGER;
+
+        type
+        //
+        // Event Window
+        //
+        .when `Expose`:INTEGER then {
+          // Refresh X Window
+          x0 := `ev.xexpose.x`:INTEGER;
+          y0 := `ev.xexpose.y`:INTEGER;
+          x1 := x0 + `ev.xexpose.width` :INTEGER - 1;
+          y1 := y0 + `ev.xexpose.height`:INTEGER - 1;
+          DESK.physical_screen.redraw (x0,y0) to (x1,y1);
+        }
+        .when `ResizeRequest`:INTEGER then {
+          // Resize X Window
+          x1 := `ev.xresizerequest.width`:INTEGER;
+          y1 := `ev.xresizerequest.height`:INTEGER;
+          `XResizeWindow(display,window,@x1,@y1)`;
+
+          VIDEO.pixel_hard (x1,10) color 0FF0000h;
+
+          DESK.resize_window (x1,y1);
+        }
+
+        .when `ConfigureNotify`:INTEGER then {
+          // Resize X Window
+          x1 := `ev.xconfigure.width`:INTEGER;
+          y1 := `ev.xconfigure.height`:INTEGER;
+          DESK.resize_window (x1,y1);
+        }
+
+        //
+        // Event Keyboard
+        //
+        .when `KeyPress`:INTEGER then {
+          KEYBOARD.key `ev.xkey.keycode`:UINTEGER_8 press TRUE;
+        }
+        .when `KeyRelease`:INTEGER then {
+          KEYBOARD.key `ev.xkey.keycode`:UINTEGER_8 press FALSE;
+        }
+        //
+        // Event Mouse
+        //
+        .when `ButtonPress`:INTEGER then {
+          x_root := `ev.xmotion.x_root`:INTEGER;
+          y_root := `ev.xmotion.y_root`:INTEGER;
+          (`ev.xbutton.button`:INTEGER = 1).if {
+            MOUSE.set (`ev.xbutton.x`:INTEGER,`ev.xbutton.y`:INTEGER) with (TRUE,MOUSE.right);
+          } else {
+            MOUSE.set (`ev.xbutton.x`:INTEGER,`ev.xbutton.y`:INTEGER) with (MOUSE.left,TRUE);
+          };
+        }
+        .when `ButtonRelease`:INTEGER then {
+          x_root := `ev.xmotion.x_root`:INTEGER;
+          y_root := `ev.xmotion.y_root`:INTEGER;
+          (`ev.xbutton.button`:INTEGER = 1).if {
+            MOUSE.set (`ev.xbutton.x`:INTEGER,`ev.xbutton.y`:INTEGER) with (FALSE,MOUSE.right);
+          } else {
+            MOUSE.set (`ev.xbutton.x`:INTEGER,`ev.xbutton.y`:INTEGER) with (MOUSE.left,FALSE);
+          };
+        }
+        .when `MotionNotify`:INTEGER then {
+          x_root := `ev.xmotion.x_root`:INTEGER;
+          y_root := `ev.xmotion.y_root`:INTEGER;
+          MOUSE.set (`ev.xmotion.x`:INTEGER,`ev.xmotion.y`:INTEGER) with (MOUSE.left,MOUSE.right);
+        };
+      };
+    `}`;
+  );
+
+
+
+
+
+
+
+
+
+
+
+

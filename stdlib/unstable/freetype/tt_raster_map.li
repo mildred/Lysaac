@@ -1,0 +1,171 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_RASTER_MAP;
+  
+  - comment     :=" A structure used to describe the target bitmap or pixmap\
+  \ to the renderer.  Note that there is nothing in this structure that\
+  \gives the nature of the buffer.\
+  \IMPORTANT NOTE:\
+  \In the case of a pixmap, the `width' and `cols' fields must\
+  \have the _same_ values, and _must_ be padded to 32-bits, i.e.,\
+  \be a multiple of 4.  Clipping problems will arise otherwise,\
+  \if not even page faults!\
+  \The typical settings are:\
+
+  \- for a WxH bitmap:\
+
+  \rows  = H\
+  \cols  = (W+7) / 8\
+  \width = W\
+  \flow  = your_choice\
+
+  \- for a WxH pixmap:\
+
+  \rows  = H\
+  \cols  = (W+3) & ~3\
+  \width = cols\
+  \flow  = your_choice.";
+  
+
+  
+  - bibliography:="http://IsaacOS.com";
+  -  author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Public
+  
+  + rows:INTEGER;   // number of rows
+  + cols:INTEGER;   // number of columns (bytes) per row
+  + width:INTEGER;  // number of pixels per line
+  + flow:INTEGER;   // bitmap orientation
+  
+  + bitmap:FIXED_ARRAY(UINTEGER_16); // bit/pixmap buffer
+  + size:INTEGER;   // bit/pixmap size in bytes
+  
+  
+  
+  - set_rows new:INTEGER <- 
+  (
+    rows := new;
+  ); // end set_rows
+  
+  - add_rows val:INTEGER <-
+  (
+    rows := rows + val;
+  ); // end add_rows
+    
+  
+  - set_cols new:INTEGER <- 
+  (
+    cols := new;
+  ); // end set_cols
+  
+  
+  
+  - set_width new:INTEGER <- 
+  (
+    width := new;
+  ); // end set_width
+  
+  
+  - add_width val:INTEGER <-
+  (
+    width := width + val;
+  ); // end add_width
+  
+  
+  - set_flow new:INTEGER <- 
+  (
+    flow := new;
+  ); // end set_flow
+  
+  
+  
+  - set_bitmap new:UINTEGER_16 to i:NUMERIC <-
+  (
+    bitmap.put new to i;
+  ); // end set_bitmap
+  
+  
+  
+  - init_bitmap my_size:NUMERIC <-
+  (
+    bitmap := FIXED_ARRAY(UINTEGER_16).create my_size;
+  ); // end init_bitmap
+  
+  
+  - copy_bitmap new:FIXED_ARRAY(UINTEGER_16) <-
+  (
+    bitmap := new;
+  );
+  
+  - set_size new:INTEGER <- 
+  (
+    size := new;
+  ); // end set_size
+  
+  
+  
+  - init_bit_display (new_rows,new_width,new_flow,font_smoothing:INTEGER) <-
+  // Initialize the display bitmap named
+  (
+    rows := new_rows;  // the whole window
+    width := new_width;
+    flow := new_flow;
+    
+    ( font_smoothing > 0).if {
+      cols := (width+3) & -4;  // must be 32-bits aligned
+    } else {
+      cols := (width+7) >> 3;
+    }; // end if
+    size   := rows * cols;
+    
+    init_bitmap size;
+  ); // end init_bit_display
+  
+  
+  - init_small_display (x_ppem,y_ppem,new_flow:INTEGER) <-
+  // Init Small Bitmap
+  (
+    rows  := y_ppem + 32;
+    width := x_ppem + 32;
+    cols  := (width+3 ) & -4;  // pad to 32-bits
+    flow  := new_flow;
+    size  := rows * cols;
+    
+    init_bitmap size;
+  ); // end init_small_display
+  
+  
+  - clear_display <-
+  // reset every element
+  (
+    (size - 1).to 0 do { i:INTEGER;
+      bitmap.put 0 to i;
+    }; // end do
+  ); // end clear_display
+  
+  
+  - get_glyph_bitmap (glyph:TT_GLYPH,x_offset,y_offset:INTEGER) <-
+  // Produces a bitmap from a glyph outline.
+  //  Input  :  glyph      the glyph container's handle
+  //           xOffset    x offset in fractional pixels (26.6 format)
+  //           yOffset    y offset in fractional pixels (26.6 format)
+  (
+    // NOT YET IMPLEMENTED
+  ); // end get_glyph_bitmap

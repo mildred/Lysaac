@@ -1,0 +1,34 @@
+Section Header
+  // PPlot
+
+  + name      := PPLOT;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP PPlot";
+
+Section Inherit
+
+  + parent:Expanded CONTROL := CONTROL;
+
+Section Private
+  
+  - was_opened:BOOLEAN := FALSE;
+
+Section Public
+  
+  - make :SELF <-
+  ( + result:SELF;
+    + h:POINTER;
+    
+    was_opened.if_false {
+      was_opened := TRUE;
+      `IupPPlotOpen()`;
+    };
+
+    h := `IupPPlot()`:POINTER;
+
+    result := SELF.clone;
+    result.set_handle h;
+    result
+  );

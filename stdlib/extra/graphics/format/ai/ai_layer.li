@@ -1,0 +1,96 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := AI_LAYER;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment := "Layer of a AI document.";
+
+  - version := 1;    
+  
+Section Inherit  
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  + color:AI_COLOR;
+  
+  + operation:LINKED_LIST(AI_OPERATION);
+  
+  + is_fill:BOOLEAN;
+  
+  + is_stroke:BOOLEAN;
+      
+  //
+  // Creation.
+  //
+  
+  - create lst_op:LINKED_LIST(AI_OPERATION) color col:AI_COLOR fill f:BOOLEAN stroke s:BOOLEAN :SELF <-
+  ( + result:SELF;
+    result := clone;
+    result.make lst_op color col fill f stroke s;
+    result
+  );
+  
+  - make lst_op:LINKED_LIST(AI_OPERATION) color col:AI_COLOR fill f:BOOLEAN stroke s:BOOLEAN <-
+  (
+    color     := col;
+    operation := lst_op;
+    is_stroke := s;
+    is_fill   := f;
+  );
+  
+  //
+  // Draw
+  //
+  
+  - draw b:ABSTRACT_BITMAP scale s:REAL_16_16 <-
+  (
+    ? { color != NULL};
+    ? { operation !=  NULL};
+    
+    /*
+    (operation.lower).to (operation.upper) do { i:INTEGER;      
+      operation.item i.display; 
+    };
+    */
+
+    is_fill.if {      
+      b.color (color.rgbcolor_fill);
+      (operation.lower).to (operation.upper) do { i:INTEGER;
+	operation.item i.draw_fill b scale s;
+      };
+      b.poly_trace;
+    };
+    is_stroke.if {
+      b.color (color.rgbcolor_stroke);
+      (operation.lower).to (operation.upper) do { i:INTEGER;
+	operation.item i.draw_stroke b scale s;
+      };
+    };
+
+  );
+  
+

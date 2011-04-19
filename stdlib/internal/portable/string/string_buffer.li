@@ -1,0 +1,68 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name      := Expanded STRING_BUFFER;
+
+  - import    := STRING;
+  - export    := STRING, ABSTRACT_STRING;
+
+  - copyright := "2009 Mildred <http://ki.lya.online.fr>";
+
+  - comment   := "String buffer";
+
+Section Insert
+
+  + parent_string: STRING := STRING;
+
+Section Private
+
+  - set_parent s:STRING <- (parent_string := s;);
+
+Section Public
+
+  - clone :SELF <-
+  ( + result :SELF;
+    + str :STRING;
+    str := parent_string;
+    result.set_parent (str.create 0);
+    result
+  );
+
+  - create_from s:STRING :SELF <-
+  ( + result :SELF;
+    result.set_parent s;
+    result
+  );
+
+  - from_string s:STRING :SELF <- create_from s;
+
+  - to_string :STRING <- parent_string;
+
+  - to_abstract_string:ABSTRACT_STRING <- parent_string;
+
+  - Self:SELF '+' other:ABSTRACT_STRING :STRING_BUFFER <-
+  // Create a new STRING_BUFFER which is the concatenation of
+  // `self' and `other'.
+  (
+    append other;
+    Self
+  );

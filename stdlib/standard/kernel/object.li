@@ -1,0 +1,254 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := OBJECT;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := "Root object.";
+
+Section Insert
+
+  - im_an_idiot:Expanded I_DONT_KNOW_PROTOTYPING;
+
+Section Public
+
+  //
+  // Compiler consideration.
+  //
+
+  - object_size:INTEGER <- `12`;
+
+  //- pointer_size:INTEGER <- POINTER.pointer_size;
+
+  - is_debug_mode:BOOLEAN <- debug_level != 0;
+
+  - debug_level:INTEGER               <- `11`;
+  - compiler_inlining_level:INTEGER   <- `18`;
+  - compiler_optimization:BOOLEAN     <- `19`;
+  - compiler_built_on:STRING_CONSTANT <- `20`;
+  - compiler_debug_with_code:BOOLEAN  <- `21`;
+  - compile_time:TIME                 <- TIME.create_csecond `22`;
+  - compile_date:DATE                 <- DATE.decode `23`;
+
+  - is_ansi:BOOLEAN := SYSTEM.is_ansi;
+
+  //
+  // Control Error.
+  //
+
+  - top_runtime_stack:POINTER <- `14`;
+
+  - print_runtime_stack_on ptr:POINTER <-
+  (
+    (debug_level != 0).if {
+      `lisaac_stack_print((_____CONTEXT *)@ptr)`;
+    };
+  );
+
+  - wait_all_the_time <- `pthread_join(c_thread, NULL)`;
+
+  - print_runtime_stack <- print_runtime_stack_on top_runtime_stack;
+
+  - crash_on ptr:POINTER with_message msg:ABSTRACT_STRING <-
+  (
+    print_runtime_stack_on ptr;
+    msg.print;
+    '\n'.print;
+    die_with_code exit_failure_code;
+  );
+
+  - crash_with_message msg:ABSTRACT_STRING <-
+  (
+    crash_on top_runtime_stack with_message msg;
+  );
+
+  - die_with_code code:INTEGER <- SYSTEM.exit code;
+  // Terminate execution with exit status code `code'.
+
+  - exit_success_code:INTEGER := 0;
+
+  - exit_failure_code:INTEGER := 1;
+
+  - deferred <-
+  ( + ptr:POINTER;
+    ptr := top_runtime_stack;
+    crash_on ptr with_message "Slot deferred.";
+  );
+
+  - crash <-
+  ( + ptr:POINTER;
+    ptr := top_runtime_stack;
+    crash_on ptr with_message "Crash system.";
+  );
+
+  - not_yet_implemented <-
+  ( + ptr:POINTER;
+    ptr := top_runtime_stack;
+    crash_on ptr with_message "Sorry, Some Feature is Not Yet Implemented.";
+  );
+
+  //
+  // Common Function.
+  //
+
+  - Self:SELF '=='  Right 60 other:E :BOOLEAN <- ( deferred; FALSE);
+
+  - Self:SELF '!==' Right 60 other:OBJECT :BOOLEAN <- (! (Self == other));
+
+
+  - clone_allocation_size:UINTEGER_CPU;
+
+  - clone:SELF <-
+  ( + result:SELF;
+    + ptr:POINTER;
+    + sz:UINTEGER_CPU;
+    + typ_id:INTEGER;
+
+    sz := object_size;
+    (sz = 0).if {
+      result := Self;
+    } else {
+      typ_id := type_id_intern;
+      //ptr := `malloc(((unsigned long)(@sz + 3)) & 0xFFFFFFFC)`:POINTER;
+      clone_allocation_size := clone_allocation_size + sz;
+      (typ_id = -1).if {
+	ptr := MEMORY.alloc_size sz;
+      } else {
+	ptr := MEMORY.alloc_type (typ_id.to_uinteger_32) size sz;
+      };
+      result := CONVERT(POINTER,SELF).on ptr;
+      //MEMORY.copy to_pointer to ptr size (CONVERT(POINTER,UINTEGER_32).on sz);
+      copy_intern_in result;
+      (is_cop_type).if {
+        `((lith_object *)@result)->first = NULL`;
+        `((lith_object *)@result)->last  = NULL`;
+      };
+    };
+    result
+  );
+
+  - free_allocation_memory <-
+  // Static free, don't use with GC.
+  ( + ptr:POINTER;
+    + sz:UINTEGER_CPU;
+    + typ_id:INTEGER;
+
+    sz := object_size;
+    (sz != 0).if {
+      typ_id := type_id_intern;
+      //ptr := `free(@Self)`;
+      clone_allocation_size := clone_allocation_size - sz;
+      ptr := to_pointer;
+      (typ_id = -1).if {
+	MEMORY.free ptr size sz;
+      } else {
+	MEMORY.free ptr type (typ_id.to_uinteger_32);
+      };
+    };
+  );
+
+  - to_pointer:POINTER <- CONVERT(SELF,POINTER).on Self;
+
+  - to_string :STRING <- to_pointer.to_string;
+
+  - to_abstract_string :ABSTRACT_STRING <- to_string;
+
+  - print <- to_abstract_string.print;
+
+  - println <- to_abstract_string.println;
+
+  - dynamic_type:SELF <- SELF;
+
+  - same_dynamic_type other:OBJECT :BOOLEAN <-
+  ( + convert:SELF;
+    convert ?= other;
+    convert != NULL
+  );
+
+  - to_self_on obj:OBJECT :SELF <-
+  [
+    -? {obj != NULL};
+  ]
+  ( + result:SELF;
+
+    result ?= obj;
+    result
+  )
+  [
+    +? {Result != NULL};
+  ];
+
+  //
+  // Reflexivity.
+  //
+
+  - type_name:STRING_CONSTANT <- `24`;
+
+  - foreach_data action:{ (STRING_CONSTANT,INTEGER,INTEGER); } <-
+  (
+    foreach_intern_data {
+      (sec:STRING_CONSTANT,nam:STRING_CONSTANT,typ:INTEGER,val:INTEGER);
+      (sec == "Mapping").if {
+        action.value (nam,typ,val);
+      };
+    };
+  );
+
+  - foreach_set_data action:{ (STRING_CONSTANT,T); T} <-
+  (
+    foreach_set_intern_data { (sec:STRING_CONSTANT,nam:STRING_CONSTANT,typ:T);
+      + r:T;
+      (sec == "Public").if {
+        r := action.value (nam,typ);
+      };
+      r
+    };
+  );
+
+  //
+  // The Guru section (Don't touch, don't use !)
+  //
+
+  - is_expanded_type:BOOLEAN  <- `0`;
+
+  - type_id_intern:INTEGER    <- `1`;
+
+  - is_cop_type:BOOLEAN       <- `15`;
+
+  - copy_intern_in other:SELF <- `*@other = *@Self`;
+
+Section Public
+
+  //
+  // Reflexivity Private
+  //
+
+  // BSBS: a simplifier qd les types parameters ds les blocks seront good.
+
+//  - foreach_intern_data_action (sec,nam:STRING_CONSTANT,typ:T,val:V)
+//  with action:{ (STRING_CONSTANT,STRING_CONSTANT,T,E); } <- `25`;
+
+  - foreach_intern_data action:{ (STRING_CONSTANT,STRING_CONSTANT,INTEGER,INTEGER); } <- `25`;
+
+  - foreach_set_intern_data action:{ (STRING_CONSTANT,STRING_CONSTANT,T); T} <- `26`;

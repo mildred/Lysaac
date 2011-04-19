@@ -1,0 +1,50 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_CMAP_SUBTABLE_HEADER;
+  - comment     :="Header Subtable";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Mapping
+  
+  + format:USHORTINT;
+  
+  + length:USHORTINT;
+  
+  + version:USHORTINT;
+  
+Section Public
+  
+  - to_big_endian <-
+  (
+    format := PROCESSOR.to_motorola_ushort format;
+    length := PROCESSOR.to_motorola_ushort length;
+    version := PROCESSOR.to_motorola_ushort version;
+  );
+  
+  - print <-
+  (
+    "\n   Format:".print;
+    format.print;
+    "\n   length:".print;
+    length.print;
+    "\n   Version:".print;
+    version.print;
+  );

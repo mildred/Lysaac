@@ -1,0 +1,66 @@
+///////////////////////////////////////////////////////////////////////////////
+//                           Lisaac-OpenGL library                           //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := FRAMEWORK_ANY;
+  
+Section Inherit
+  
+  - parent_platform:PLATFORM := PLATFORM;
+  
+Section Public
+  
+  //
+  // Framework modules.
+  //
+
+  - event:FRAMEWORK_EVENT <- FRAMEWORK_EVENT;
+
+  
+  - renderer:RENDERER; // current renderer
+  
+  - log:LOG; // current log file
+  
+  - report_error:BOOLEAN; // debug mode
+  
+  
+  - width:INTEGER <- renderer.width;
+  - height:INTEGER <- renderer.height;
+  
+  - screen_width:INTEGER <- width;
+  - screen_height:INTEGER <- height;
+  
+  - track_errors <- report_error := TRUE;
+  
+  
+  - error msg:ABSTRACT_STRING <- 
+  (
+    log.append "==== GL Framework Error ====";
+    log.append msg;
+    log.append "============================";
+  );
+  
+  - fatal_error msg:ABSTRACT_STRING <- 
+  (
+    error msg;
+    renderer.fatal_error msg;
+  );

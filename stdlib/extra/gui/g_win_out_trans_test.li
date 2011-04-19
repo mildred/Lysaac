@@ -1,0 +1,354 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := G_WIN_OUT_TRANS_TEST;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  //
+  // ****** WARNING : JUST TEST ***********
+  //
+  
+  - author  := "Sonntag Benoit (bsonntag@loria.fr)";
+  - comment := "Group elements for GUI.";
+
+Section Inherit  
+  
+  + parent_window:Expanded AREA_MASK;
+  
+  + parent_g_expr:Expanded G_EXPR;
+  
+Section Private
+  
+  //
+  // ***** APPEND *****
+  // 
+  
+  - depth:INTEGER := 4;
+  
+  - color_4_to_8 n:INTEGER :UINTEGER_32 <-
+  (
+    `(unsigned int)((255. / 15) * @n)`:UINTEGER_32
+  );
+  
+  - color_table:NATIVE_ARRAY(UINTEGER_32) :=
+  ( + result:NATIVE_ARRAY(UINTEGER_32);
+    + r,g,b,col:UINTEGER_32;
+    
+    result := NATIVE_ARRAY(UINTEGER_32).create 4096;
+    0.to 4095 do { c:INTEGER;      
+      r := color_4_to_8 ((c & 0F00h) >> 8);
+      g := color_4_to_8 ((c & 00F0h) >> 4);
+      b := color_4_to_8  (c & 000Fh);
+      // Begin color effect
+      r := (r >> 1) + (r >> 2);
+      b := (b >> 1) + (b >> 2);
+      g := (g >> 1) + (g >> 2);
+      // End.
+      col := (r << 16) | (g << 8) | b;
+      result.put col to c;
+    };
+    result
+  );
+  
+  - col_trans col:UINTEGER_32 :UINTEGER_32 <-
+  ( + idx:UINTEGER_32;
+    
+    idx := 
+    ((col >> 12) & 0F00h) | // Red
+    ((col >>  8) & 00F0h) | // Green
+    ((col >>  4) & 000Fh);  // Blue
+    color_table.item idx
+  );
+  
+  + line_tmp_trans:BMP_LINE(PIXEL_32);
+    
+Section Public  
+  
+  + title_len:INTEGER;
+  
+  + title:ABSTRACT_STRING;
+  
+  + stat:INTEGER_8;
+    
+  - is_open:BOOLEAN <- (stat & 1) != 0;
+  
+  - open_by src:G_GROUP <-
+  ( + px,py,w,h:INTEGER;
+    
+    (stat = 0).if {	
+      ((title = NULL) && {src != NULL}).if {	
+	w := width_min;
+	h := height_min;
+	(src.is_horizontal).if {
+	  px := src.x_window;
+	  py := src.y_window + src.height;
+	  ((px + w) > DESK.x_max).if {
+	    px := DESK.x_max - w;
+	  };
+	  ((py + h) > DESK.y_max).if {
+	    py := src.y_window - h;
+	  };
+	} else {
+	  px := src.x_window + src.width;
+	  py := src.y_window;
+	  ((px + w) > DESK.x_max).if {
+	    px := src.x_window - w;
+	  };
+	  ((py + h) > DESK.y_max).if {
+	    py := DESK.y_max - h;
+	  };
+	};	  	  
+      } else {
+	px := (DESK.width  - width_min ) / 2;
+	py := (DESK.height - height_min) / 2;
+      };
+      set_position DESK at (px,py);
+      stat := 01b;	
+    };       
+  );
+    
+  - close <-
+  (
+    delete;
+    stat := 0;
+  );
+  
+  //
+  // Creation.
+  //
+  
+  - create t:ABSTRACT_STRING with elt:G_EXPR :SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make t with elt;
+    result
+  );
+  
+  - make t:ABSTRACT_STRING with elt:G_EXPR <-
+  (
+    title_len := BITMAP(PIXEL_32).font_width t + 2; //+ 25;
+    title := t;
+    //root := elt;
+    
+    // ***** APPEND ****
+    line_tmp_trans  := BMP_LINE(PIXEL_32).create 2048;
+  );
+  
+  //
+  // Size.
+  //
+  
+  - width_min:INTEGER <-
+  (
+    title_len
+  );
+  
+  - height_min:INTEGER <-
+  ( 
+    20
+  );
+
+  //
+  // Update position.
+  //
+    
+  - set_position rac:AREA at (x,y:INTEGER) size (w,h:INTEGER) <-
+  (
+    update rac from (x,y) size (w,h);
+    
+    // ******* ESSAI *******
+    stat := 01b;
+    
+    //(title = NULL).if {
+    //  root.set_position Self at (1, 1) size (w-2,h-2);
+    //} else {
+    //  root.set_position Self at (1,17) size (w-2,h-18);
+    //};
+  );
+  
+  //
+  // Display.
+  //
+  
+  - draw_slave bmp:ABSTRACT_BITMAP from (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  (
+    bmp.rectangle_fill (x0,y0) to (x1,y1) color color_back; 
+  );
+  
+  //
+  // ********** UPDATE ********
+  //
+  
+  - draw (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  (
+
+    clipping (x0,y0) to (x1,y1);    
+    
+    color green; //008000h;
+    line_h (0,0) until (title_len+1);
+    line_to ((title_len+1+15),15);
+    line_h_until (x_max-depth);
+    
+    line_h (0,19) until (x_max-depth);
+    line_h (0,(y_max-depth-3)) until (x_max-depth);
+    
+    line_v (3,20) until (y_max-depth-4);
+    line_v ((x_max-depth-3),20) until (y_max-depth-4);
+    
+    poly_move_to (0,1);
+    poly_line_to ((title_len+1),1);
+    poly_line_to ((title_len+16),16);
+    poly_line_to ((x_max-depth),16);
+    poly_line_to ((x_max-depth),18);
+    poly_line_to (0,18);
+    poly_trace_color blue;
+    
+    // Title.
+    color white;
+    print title to (3,(-1));
+    //display_mask;
+    
+    margin_clip_x1 := margin_clip_x1 + (x_max - x1).min depth;
+    margin_clip_y1 := margin_clip_y1 + (y_max - y1).min depth;
+  );
+
+  - slave_pixel_hard (x,y:INTEGER) color col:UINTEGER_32 <- 
+  ( + new_x,new_y:INTEGER;
+    
+    ((y < 16) && {x > (title_len+1+y)}).if {
+      parent_window.slave_pixel_hard (x,y) color col;
+    } else {      
+      new_x := x - depth;
+      new_y := y - depth;
+      ((new_x >= 0) && {new_y >= 20}).if { 	
+	parent_window.slave_pixel_hard (new_x,new_y) color (col_trans col); 
+      };
+      ((x > (x_max-depth)) || {y > (y_max-depth)}).if {
+	parent_window.slave_pixel_hard (x,y) color col; 
+      };
+    };
+  );
+  
+  - slave_line_h_hard (x1,y:INTEGER) until x2:INTEGER color col:UINTEGER_32 <- 
+  ( + new_x1,new_y,new_x2:INTEGER;
+    
+    ((y < 16) && {x2 > (title_len+1+y)}).if {
+      new_x1 := x1.max (title_len+2+y);	
+      parent_window.slave_line_h_hard (new_x1,y) until x2 color col;
+    } else {
+      new_x1 := 0.max (x1 - depth);
+      new_x2 := x2 - depth;
+      new_y  := y  - depth;
+      ((new_x2 >= 0) && {new_y >= 20}).if {
+	parent_window.slave_line_h_hard (new_x1,new_y) until new_x2 color (col_trans col);
+      };
+      (y > (y_max-depth)).if {
+	parent_window.slave_line_h_hard (x1,y) until x2 color col; 
+      }.elseif {x2 > (x_max-depth)} then {
+	new_x1 := x1.max (x_max-depth+1);
+	parent_window.slave_line_h_hard (new_x1,y) until x2 color col; 
+      };
+    };    
+  );
+
+  - slave_line_h_hard (x1,y:INTEGER) until x2:INTEGER 
+  image line:ABSTRACT_BMP_LINE offset ofs:INTEGER <-
+  ( + new_x1,new_y,new_x2,ofs2:INTEGER;
+    + ofsd:INTEGER;
+    + col:UINTEGER_32;
+        
+    ((y < 16) && {x2 > (title_len+1+y)}).if {
+      new_x1 := x1.max (title_len+2+y);	
+      parent_window.slave_line_h_hard (new_x1,y) until x2 image line offset (ofs+new_x1-x1);
+    } else {
+      new_x1 := x1 - depth;
+      new_x2 := x2 - depth;
+      new_y  := y  - depth;
+      ((new_x2 >= 0) && {new_y >= 20}).if {
+	(new_x1 < 0).if {
+	  ofs2   := ofs - new_x1;
+	  new_x1 := 0;
+	} else {
+	  ofs2 := ofs;
+	};
+	ofs2.to (ofs2+new_x2-new_x1) do { o:INTEGER;
+	  col := line.get_color o;
+	  line_tmp_trans.put (col_trans col) to ofsd;
+	  ofsd := ofsd + 1;
+	};
+	parent_window.slave_line_h_hard (new_x1,new_y) until new_x2 image line_tmp_trans offset 0;
+	//color (col_trans col);
+      };
+      (y > (y_max-depth)).if {
+	parent_window.slave_line_h_hard (x1,y) until x2 image line offset ofs;
+      }.elseif {x2 > (x_max-depth)} then {
+	new_x1 := x1.max (x_max-depth+1);
+	parent_window.slave_line_h_hard (new_x1,y) until x2 image line offset (ofs+new_x1-x1);
+      };
+    };        
+  );
+
+  //
+  // Event.
+  //
+    
+  - receive msg:EVENT <-  
+  ( + mouse:EVENT_MOUSE;
+    + win:AREA;    
+
+    mouse ?= msg;        
+    (mouse != NULL).if {       
+      (mouse.right_down).if {
+	first;
+      };
+      ((mouse.is_moving_only) && {mouse.left}).if {
+	move ((mouse.dx),(mouse.dy));
+      } else {	
+	win := DESK.get_object ((mouse.x_current),(mouse.y_current));
+	(win != Self).if {	  
+	  DESK.receive msg;
+	};
+      };
+    };
+  );
+    
+  - get_object (x,y:INTEGER) :AREA <-
+  ( + result:AREA;
+    + rel_x,rel_y:INTEGER;
+    
+    result := parent_window.get_object (x,y);
+    
+    (result = Self).if {
+      (title != NULL).if {
+	rel_x := x - x_window;
+	rel_y := y - y_window;
+	((rel_y >= 16) || {rel_x > (title_len+1+rel_y)}).if {
+	  result := NULL;
+	};
+      };
+    };
+    result
+  );
+

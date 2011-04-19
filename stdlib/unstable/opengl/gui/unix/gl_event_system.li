@@ -1,0 +1,136 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name     := GL_EVENT_SYSTEM;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment  := "X11 - Event System";
+  
+Section Inherit
+  
+  - parent_event_system:EVENT_SYSTEM := EVENT_SYSTEM;
+  
+Section Public  
+
+  - make <- ();
+
+  - get_event <-
+  (
+    + type:INTEGER;
+    + x0,y0,x1,y1:INTEGER;
+    + mouse_set:BOOLEAN;
+    + mouse_motion_x, mouse_motion_y:INTEGER;
+
+    {`XPending (win.dpy)`:INTEGER != 0}.while_do { // pb avec les bouttons...
+  //  (`XPending (win.dpy)`:INTEGER != 0).if { // rame !!!
+      `XNextEvent (win.dpy, &event)`;
+      type := `event.type`:INTEGER;
+      
+      type
+
+      //
+      // Event Keyboard
+      //
+
+      .when `KeyPress`:INTEGER then {
+	KEYBOARD.key `event.xkey.keycode`:UINTEGER_8 press TRUE;
+      }
+      .when `KeyRelease`:INTEGER then {
+	KEYBOARD.key `event.xkey.keycode`:UINTEGER_8 press FALSE;
+      }	
+
+      //
+      // Event Mouse
+      //
+      .when `ButtonPress`:INTEGER then {
+	mouse_set := TRUE; 
+	(`event.xbutton.button`:INTEGER = 1).if {
+	  MOUSE.set (`event.xbutton.x`:INTEGER,`event.xbutton.y`:INTEGER) with (TRUE,(MOUSE.right));
+	} else {
+	  MOUSE.set (`event.xbutton.x`:INTEGER,`event.xbutton.y`:INTEGER) with ((MOUSE.left),TRUE);
+	};
+      }
+      .when `ButtonRelease`:INTEGER then {
+	mouse_set := TRUE; 
+	(`event.xbutton.button`:INTEGER = 1).if {
+	  MOUSE.set (`event.xbutton.x`:INTEGER,`event.xbutton.y`:INTEGER) with (FALSE,(MOUSE.right));
+	} else {
+	  MOUSE.set (`event.xbutton.x`:INTEGER,`event.xbutton.y`:INTEGER) with ((MOUSE.left),FALSE);
+	};
+      }
+      .when `MotionNotify`:INTEGER then {
+	mouse_motion_x := `event.xmotion.x`:INTEGER;
+	mouse_motion_y := `event.xmotion.y`:INTEGER;
+	//MOUSE.set (`event.xmotion.x`:INTEGER,`event.xmotion.y`:INTEGER) with ((MOUSE.left),(MOUSE.right));
+      }
+
+      //
+      // Event Window
+      //
+      .when `Expose`:INTEGER then {
+	// Refresh X Window
+	x0 := `event.xexpose.x`:INTEGER;
+	y0 := `event.xexpose.y`:INTEGER;
+	x1 := x0 + `event.xexpose.width` :INTEGER - 1;
+	y1 := y0 + `event.xexpose.height`:INTEGER - 1;		
+	GL_DESK.physical_screen.redraw (x0,y0) to (x1,y1);
+      }
+      .when `ResizeRequest`:INTEGER then {
+	// Resize X Window
+	x1 := `event.xresizerequest.width`:INTEGER;
+	y1 := `event.xresizerequest.height`:INTEGER;
+
+	GL_DRIVER.resize (x1,y1);
+	`XResizeWindow(display,window,@x1,@y1)`;
+	
+	VIDEO.pixel_hard (x1,10) color 0FF0000h;
+	GL_DESK.resize_window (x1,y1);
+      }
+      .when `ConfigureNotify`:INTEGER then {
+	// Resize X Window
+	x1 := `event.xconfigure.width`:INTEGER;
+	y1 := `event.xconfigure.height`:INTEGER;
+
+	GL_DRIVER.resize (x1,y1);		
+	GL_DESK.resize_window (x1,y1);
+      }
+      .when `ClientMessage`:INTEGER then {
+      //  TIMER.get_event;	
+      };
+    };
+    ((! mouse_set) && {(mouse_motion_x != 0) && {mouse_motion_y != 0}}).if { // mouse hack
+      MOUSE.set (mouse_motion_x, mouse_motion_y) with ((MOUSE.left),(MOUSE.right));
+    };
+  );
+
+   
+  
+
+
+
+
+
+
+
+
+

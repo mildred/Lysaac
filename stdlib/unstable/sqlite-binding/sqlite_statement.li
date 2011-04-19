@@ -1,0 +1,316 @@
+Section Header
+
+  // Represent a SQLite prepared statement. Prepared statements execute faster
+  // and are generally safer than a standard execute call as all bound
+  // parameters are escaped properly.
+  //
+  // To create a `SQLITE_STATEMENT`, use `SQLITE.prepare`. Any valid SQL
+  // can be sent to prepare. Further bound values are inserted with
+  // each call to step. ? and ?NNN are supported.
+
+  + name     := SQLITE_STATEMENT;
+
+  - copyright := "2008, Jeremy Cowgar";
+
+  - comment := "SQLite binding of prepared statements";
+
+  - external := `#include "sqlite3.h"`;
+
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Public
+
+  - pointer :POINTER := NULL;
+  // Internal pointer to the "sqlite3_stmt *" statement handle.
+
+Section Public
+  // Create/Reset/Destroy slots
+
+  - set_stmt p:POINTER <-
+  // Set the C sqlite3_stmt* handle for this statement.
+  (
+    pointer := p;
+  );
+
+  - make stmt:POINTER :SELF <-
+  // Clone `SQLITE_STATEMENT` with the given `stmt` as the statement
+  // pointer.
+  (
+    + result:SELF;
+
+    result := SELF.clone;
+    result.set_stmt stmt;
+    result
+  );
+
+  - finalize <-
+  // Finalize the prepared statement which free's all memory
+  // associated with it. Once finalized, this `SQLITE_STATEMENT`
+  // can no longer be used.
+  (
+    + stmt:POINTER;
+    stmt := pointer;
+    `sqlite3_finalize(@stmt)`;
+    pointer := NULL;
+  );
+
+  - reset <-
+  // Reset the prepared statement back to it's initial state, ready to be
+  // re-executed. Any SQL statement variables that had values bound to
+  // them using the `bind` slots retain their values. Use `clear_bindings`
+  // to reset the bindings.
+  (
+    + stmt:POINTER;
+    stmt := pointer;
+    `sqlite3_reset(@stmt)`;
+  );
+
+  - clear_bindings <-
+  // Reset all bound values of the prepared statement to NULL.
+  (
+    + stmt:POINTER;
+    stmt := pointer;
+    `sqlite3_clear_bindings(@stmt)`;
+  );
+
+Section Public
+  // Movement through the result set.
+
+  - step :INTEGER <-
+  // Evaluate the next (or first) SQL statement in the prepared statement.
+  (
+    + stmt: POINTER;
+    stmt := pointer;
+    `sqlite3_step(@stmt)`:INTEGER
+  );
+
+  - foreach b:{} <-
+  // Evaluate the prepared statement calling `b` for each row that is
+  // returned by `step`. Warning: When completed, `foreach` does not
+  // automatically call finalize. This is left up to the caller.
+  (
+    { step = SQLITE.row }.while_do b;
+  );
+
+Section Public
+  // Binding for execute
+
+  - bind col:INTEGER to_integer v:INTEGER <-
+  // Bind the integer value `v` to the column `col`.
+  (
+    + stmt :POINTER;
+    stmt := pointer;
+    `sqlite3_bind_int(@stmt, @col, @v)`;
+  );
+
+  - bind col:INTEGER to_integer64 v:INTEGER_64 <-
+  // Bind the 64bit integer value `v` to the column `col`.
+  (
+    + stmt :POINTER;
+    stmt := pointer;
+    `sqlite3_bind_int64(@stmt, @col, @v)`;
+  );
+
+  - bind col:INTEGER to_real v:REAL_64 <-
+  // Bind the real value `v` to the column `col`.
+  (
+    + stmt :POINTER;
+    stmt := pointer;
+    `sqlite3_bind_double(@stmt, @col, @v)`;
+  );
+
+  - bind col:INTEGER to_string v:ABSTRACT_STRING <-
+  // Bind the string value `v` to the column `col`.
+  (
+    + stmt    : POINTER;
+    + a_value : NATIVE_ARRAY(CHARACTER);
+
+    stmt    := pointer;
+    a_value := v.to_external;
+
+    `sqlite3_bind_text(@stmt, @col, @a_value, -1, 0)`;
+  );
+
+  - bind_nul col:INTEGER <-
+  // Bind null to the colum `col`.
+  (
+    + stmt :POINTER;
+    stmt := pointer;
+    `sqlite3_bind_null(@stmt, @col)`;
+  );
+
+Section Public
+  // Column Values
+
+  - as_integer col:INTEGER :INTEGER <-
+  // Get the value of `col` as an integer.
+  (
+    + stmt:POINTER;
+    stmt := pointer;
+    `sqlite3_column_int(@stmt, @col)`:INTEGER
+  );
+
+  - as_integer64 col:INTEGER :INTEGER <-
+  // Get the value of `col` as a 64bit integer.
+  (
+    + stmt:POINTER;
+    stmt := pointer;
+    `sqlite3_column_int64(@stmt, @col)`:INTEGER_64
+  );
+
+  - as_double col:INTEGER :REAL_64 <-
+  // Get the value of `col` as a double.
+  (
+    + stmt:POINTER;
+    stmt := pointer;
+    `sqlite3_column_double(@stmt, @col)`:REAL_64
+  );
+
+  - as_string col:INTEGER :STRING <-
+  // Get the value of `col` as a string.
+  (
+    + stmt : POINTER;
+    + value : NATIVE_ARRAY(CHARACTER);
+    + result : STRING;
+
+    stmt := pointer;
+    value := `sqlite3_column_text(@stmt, @col)`:NATIVE_ARRAY(CHARACTER);
+
+    result := STRING.clone;
+    result.from_external(value);
+    result
+  );
+
+Section Public
+  // Column Values (by name)
+
+  - field_as_integer name:ABSTRACT_STRING :INTEGER <-
+  // Get the value of `name` as an integer.
+  (
+    as_integer (index name)
+  );
+
+  - field_as_integer64 name:ABSTRACT_STRING :INTEGER <-
+  // Get the value of `name` as a 64bit integer.
+  (
+    as_integer64 (index name)
+  );
+
+  - field_as_double name:ABSTRACT_STRING :REAL_64 <-
+  // Get the value of `name` as a double.
+  (
+    as_double (index name)
+  );
+
+  - field_as_string name:ABSTRACT_STRING :STRING <-
+  // Get the value of `name` as a string.
+  (
+    as_string (index name)
+  );
+
+Section Public
+  // Column Information
+
+  - count :INTEGER <-
+  // Get the number of columns in the prepared statement.
+  (
+    + stmt:POINTER;
+
+    stmt := pointer;
+
+    `sqlite3_column_count(@stmt)`:INTEGER
+  );
+
+  - type col:INTEGER :INTEGER <-
+  // Get the column type of column `col`.
+  (
+    + stmt :POINTER;
+
+    stmt := pointer;
+
+    `sqlite3_column_type(@stmt, @col)`:INTEGER
+  );
+
+  - declared_type col:INTEGER :STRING <-
+  // Get the declared type of column `col`.
+  (
+    + stmt:POINTER;
+    + n_name:NATIVE_ARRAY(CHARACTER);
+    + result:STRING;
+
+    stmt := pointer;
+    n_name := `sqlite3_column_decltype(@stmt, @col)`:NATIVE_ARRAY(CHARACTER);
+
+    result := STRING.clone;
+    result.from_external(n_name);
+    result
+  );
+
+  - name col:INTEGER :STRING <-
+  // Get the column name of column `col`.
+  (
+    + stmt:POINTER;
+    + n_name:NATIVE_ARRAY(CHARACTER);
+    + result:STRING;
+
+    stmt := pointer;
+    n_name := `sqlite3_column_name(@stmt, @col)`:NATIVE_ARRAY(CHARACTER);
+
+    result := STRING.clone;
+    result.from_external(n_name);
+    result
+  );
+
+  - index colname:ABSTRACT_STRING :INTEGER <-
+  // Get the index of the column named `colname`.
+  (
+    // TODO: Cache this information, then search the cache
+    + result:INTEGER;
+    + idx:INTEGER;
+
+    result := -1;
+    idx := 0;
+
+    { idx < count }.while_do {
+      (name idx == colname).if {
+        result := idx;
+        idx := count;
+      };
+
+      idx := idx + 1;
+    };
+
+    result
+  );
+
+  - table_name col:INTEGER :STRING <-
+  // Get the table name of column `col`.
+  (
+    + stmt:POINTER;
+    + n_name:NATIVE_ARRAY(CHARACTER);
+    + result:STRING;
+
+    stmt := pointer;
+    n_name := `sqlite3_column_table_name(@stmt, @col)`:NATIVE_ARRAY(CHARACTER);
+
+    result := STRING.clone;
+    result.from_external(n_name);
+    result
+  );
+
+  - database_name col:INTEGER :STRING <-
+  // Get the database name of column `col`.
+  (
+    + stmt:POINTER;
+    + n_name:NATIVE_ARRAY(CHARACTER);
+    + result:STRING;
+
+    stmt := pointer;
+    n_name := `sqlite3_column_database_name(@stmt, @col)`:NATIVE_ARRAY(CHARACTER);
+
+    result := STRING.clone;
+    result.from_external(n_name);
+    result
+  );

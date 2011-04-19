@@ -1,0 +1,69 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := HASHED_SET_NODE(V);
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := "Auxilliary class to implement SET(V).";
+
+Section Inherit
+
+  - parent_any_hashed_set_node:ANY_HASHED_SET_NODE := ANY_HASHED_SET_NODE;
+
+Section Public
+
+  + item:V;
+
+  + next:HASHED_SET_NODE(V);
+  // The `next' one when some clash occurs.
+
+  - set_next n:HASHED_SET_NODE(V) <-
+  (
+    next := n;
+  )
+  [
+    +? {next = n};
+  ];
+
+Section HASHED_SET
+
+  - create i:V next n:HASHED_SET_NODE(V) :SELF <-
+  ( + result:SELF;
+
+    result := clone;
+    result.make i next n;
+    result
+  );
+
+  - make i:V next n:HASHED_SET_NODE(V) <-
+  (
+    item := i;
+    next := n;
+  )
+  [
+    +? {item = i};
+    +? {next = n};
+  ];
+
+

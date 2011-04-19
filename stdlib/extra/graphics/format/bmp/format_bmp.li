@@ -1,0 +1,259 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name        := FORMAT_BMP;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment     := "Mapping BMP Image File (V < 4.0)";
+    
+Section Inherit
+  
+  + parent_format_img:Expanded FORMAT_IMG;
+  
+Section Public
+    
+  - name:STRING_CONSTANT := "Bitmap format by Microboft & IBM.";
+      
+  - extension:STRING_CONSTANT := "bmp";
+  
+  - is_bitmap:BOOLEAN := TRUE;
+    
+  - height:INTEGER <- header.height;
+  - width:INTEGER  <- header.width;
+  
+  //
+  // Creation.
+  //
+
+  - create_with_file f:FILE :SELF <-
+  ( 
+    clone.make_with_file f
+  );
+
+  - make_with_file f:FILE :SELF <-
+  ( + result:SELF;    
+    file := f;
+    (read_header).if {
+      result := Self;
+      pos_buffer := BMP_HEADER.object_size;
+    };
+    result
+  );
+  
+  - create_with buf:FAST_ARRAY(UINTEGER_8) :SELF <-
+  ( 
+    clone.make_with buf
+  );
+
+  - make_with buf:FAST_ARRAY(UINTEGER_8) :SELF <-
+  ( + result:SELF;
+    buffer := buf;
+    (read_header).if {
+      result := Self;
+      pos_buffer := BMP_HEADER.object_size;
+    };
+    result
+  );
+  
+  //
+  // Put image.
+  //
+  
+  - put_image_in bmp:ABSTRACT_BITMAP <-
+  [
+    -? {header != NULL};
+    -? {(bmp.width = header.width) && {bmp.height = header.height}};
+  ]
+  ( + end:BOOLEAN;
+    + x,y:INTEGER;
+    + line_24:BMP_LINE(PIXEL_24);    
+    + tmp_pix:PIXEL_24;
+    + escape,cmd:UINTEGER_8;
+    + align:UINTEGER_32;
+    + pos:INTEGER;
+    
+    line_24 := BMP_LINE(PIXEL_24).create (header.width);
+    header.is_8bit.if {
+      //
+      // 8 Bit
+      // 	        
+      init_color_map;      
+      header.is_rle8_compressed.if {	  
+        pos := header.bitmap_offset.to_integer;
+        y := header.height;
+        {end}.until_do {
+          escape := buffer_item pos;
+          pos := pos + 1;
+          ? { x <= header.width};
+          ? { y >= 0};
+          (escape = 00h).if {
+            cmd := buffer_item pos;
+            pos := pos + 1;
+            (cmd = 00h).if {
+              bmp.line_h (0,y) until (header.width - 1) image line_24;	
+              x := 0;
+              y := y - 1;
+            }.elseif {cmd = 01h} then {
+              // End of file
+              bmp.line_h (0,y) until (header.width - 1) image line_24;	
+              end := TRUE;
+            }.elseif {cmd = 02h} then {
+              // Move cursor: usually not used except for MS icons
+              pos := pos + 2;
+            } else {
+              // Pixel not compressed
+              1.to cmd do { j:INTEGER;
+                line_24.item_24 x.make (color_map.item (buffer_item pos).get_color);
+                pos := pos + 1;
+                x := x + 1;
+              };
+              cmd.is_odd.if {
+                pos := pos + 1;
+              };
+            };				
+          } else {
+            // Pixel compressed
+            tmp_pix := color_map.item (buffer_item pos);                        
+            pos := pos + 1;
+            1.to escape do { j:INTEGER;
+              line_24.item_24 x.make (tmp_pix.get_color);
+              x := x + 1;
+            };
+          };
+        }; 	  	  	  
+      };		
+    }.elseif {header.is_24bit} then {	
+      //
+      // 24 Bit
+      //	      
+      align := ((header.width * -3) & 011b).to_uinteger_32;
+      pos := header.bitmap_offset;
+      // No compression
+      0.to (header.height - 1) do { i:INTEGER;
+        1.to (header.width) do { j:INTEGER;          
+          line_24.item_24 (j-1).make_rgb (
+            buffer_item (pos + 2),
+            buffer_item (pos + 1),
+            buffer_item (pos)
+          );          
+          pos := pos + 3;
+        };
+        pos := pos + align;
+        /*
+        "bmp.width    : ".print; bmp.width.print; '\n'.print;
+        "header.width : ".print; header.width.print; '\n'.print;
+        "line_24.width: ".print; line_24.count.print; '\n'.print;
+        */
+        bmp.line_h (0,header.height - i - 1) 
+        until (header.width - 1) image line_24;        
+      };	    
+    };
+  );
+  
+  - put_image_in bmp:ABSTRACT_BITMAP scale s:REAL_16_16 <-
+  (
+    not_yet_implemented;
+  );
+  
+Section Private
+  
+  + file:FILE;
+  + buffer:FAST_ARRAY(UINTEGER_8);
+  + header:BMP_HEADER;
+      
+  - read_header:BOOLEAN <-
+  (     
+    (file != NULL).if {
+      header := BMP_HEADER.clone;
+      (file.is_open).if_false {
+        (file.open).if_false {
+          "FORMAT_BMP : Open file fail!\n".print;
+          die_with_code 0;
+        };
+      };
+      file.read header;
+    } else {
+      header := CONVERT(NATIVE_ARRAY(UINTEGER_8),BMP_HEADER).on (buffer.storage);
+    };
+    header.is_valid
+  );
+  
+  - buffer_item p:INTEGER :UINTEGER_8 <-
+  ( + result:UINTEGER_8;
+    (buffer != NULL).if {
+      result := buffer.item p;
+    } else {
+      `/* CUR1 */`;
+      buffer := FAST_ARRAY(UINTEGER_8).create_with_capacity (file.size);
+      `/* CUR2 */`;
+      file.set_cursor 0;
+      file.read buffer size (file.size);      
+      result := buffer.item p;
+    };
+    result
+  );
+      
+  
+  //
+  
+  - color_map:FAST_ARRAY(Expanded PIXEL_24);
+
+  
+  - init_color_map <-
+  ( + code,nb_colors:INTEGER;    
+    ? {header != NULL};
+    //
+    // Init Color Table
+    // 
+    header.is_bgr_format.if {
+      code := 3;
+    } else {
+      code := 4;
+    };
+    nb_colors := header.get_nb_colors;
+    (color_map = NULL).if {
+      color_map := FAST_ARRAY(PIXEL_24).create 256;
+    };            
+    0.to (nb_colors-1) do { j:INTEGER; 
+      color_map.item j
+      .make_rgb (
+	buffer_item (pos_buffer + 2),
+	buffer_item (pos_buffer + 1),
+	buffer_item (pos_buffer + 0)
+      );
+      pos_buffer := pos_buffer + code;
+    };
+  );
+          
+  - buf_item :UINTEGER_8 <-
+  ( + result:UINTEGER_8;
+    result := bmp_buffer.item pos_buffer;
+    pos_buffer := pos_buffer + 1;
+    result
+  );
+  
+
+  
+
+  

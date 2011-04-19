@@ -1,0 +1,523 @@
+///////////////////////////////////////////////////////////////////////////////
+//                          Isaac Operating System                           //
+// 									     //
+//   This program is free software; you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation; version 3 of the License.  		     //
+// 									     //
+//   This program is distributed in the hope that it will be useful, 	     //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of 	     //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 	     //
+//   GNU General Public License for more details. 			     //
+// 									     //
+// 			    http://www.lisaac.org			     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := SYSTEM;
+  
+  - bibliography:= "http://www.lisaac.org";
+  - author      := "Boutet Jerome (pisteur@free.fr),Sonntag Benoit (benoit.sonntag@lisaac.org)";
+  - comment     := "Intel System Object (methods).";
+  
+  - external := `  
+unsigned char ___video_text=1;
+  
+#define __BEGIN_INTERRUPT__ volatile unsigned long eax; \
+  volatile unsigned long ebx; \
+  volatile unsigned long ecx; \
+  volatile unsigned long edx; \
+  volatile unsigned long esi; \
+  volatile unsigned long edi; \
+                              \
+  asm volatile (\
+  "/* BEGIN INTERRUPT */ \n\
+  movl %%eax,%0 \n\
+  movl %%ebx,%1 \n\
+  movl %%ecx,%2 \n\
+  movl %%edx,%3 \n\
+  movl %%esi,%4 \n\
+  movl %%edi,%5 \n\
+  /* BEGIN CODE */" \
+  : "=m"(eax),"=m"(ebx),"=m"(ecx),"=m"(edx),"=m"(esi),"=m"(edi) \
+  : /* no input */ \
+  : "eax","edx","ecx","esi","edi", "memory") /*ebx removed, if not gcc error, why ??*/
+
+#define __END_INTERRUPT__ asm volatile (\
+ "/* END CODE */  \n\
+  movl %0,%%eax \n\
+  movl %1,%%ebx \n\
+  movl %2,%%ecx \n\
+  movl %3,%%edx \n\
+  movl %4,%%esi \n\
+  movl %5,%%edi \n\
+ movl %%ebp,%%esp \n\
+ popl %%ebp       \n\
+ iret             \n\
+ /* END INTERRUPT */" \
+ : /* no output */    \
+ : "m"(eax),"m"(ebx),"m"(ecx),"m"(edx),"m"(esi),"m"(edi) \
+ : "eax","edx","ecx","esi","edi", "memory")
+int __bss_stop;
+`;
+  
+Section Private  
+  
+  - idtr_mem:NATIVE_ARRAY(UINTEGER_16) := NATIVE_ARRAY(UINTEGER_16).create 3;
+  
+Section Public
+  
+  - realloc_c (beg:UINTEGER_32,nb:INTEGER) :UINTEGER_32 <- crash_with_message "SYSTEM.realloc_c";
+  
+  - is_ansi:BOOLEAN := FALSE;
+  
+  // Memory init
+  
+  - memory:MEMORY := MEMORY;//VIRTUAL_MEMORY;
+  
+  // Ancienne ligne
+  //- get_begin_memory:UINTEGER_32 :=  `&__bss_stop`:UINTEGER_32.align_power 4096; //400000h;  // 4MB
+
+  // Nouvelle ligne pour que ça compile
+  - get_begin_memory:POINTER :=  CONVERT(UINTEGER_32,POINTER).on (`&__bss_stop`:UINTEGER_32.align_power 4096); //400000h;  // 4MB
+  
+  - get_memory_capacity:UINTEGER_CPU <-
+  ( + all_memory:NATIVE_ARRAY_VOLATILE(INTEGER_8);
+    + byte:INTEGER_8;
+    + capacity:UINTEGER_CPU;
+    
+    /* JBJB ... A VOIR ... www.ctyme.com/rbrowne.htm
+    
+    // Call Int 15h / AH=88h
+    REGISTER.set_ah 88h;
+    BIOS.call_interrupt 15h;
+    (REGISTER.ax = 0FFC0h).if {
+      // > 64Mb       
+      // Call Int 15h / AX=E801h
+      REGISTER.set_ax 0E801h;
+      BIOS.call_interrupt 15h;
+      REGISTER.print;
+      capacity := REGISTER.bx << 6;  
+    };
+    capacity := (capacity + REGISTER.ax + 1024) << 10;
+    
+    */
+ // Pose trop de problème à la compil
+
+   // BUG COMPIL !!! Line #74 Column #27 in PUT_TO (.../src/external/put_to.li). Call On NULL
+    all_memory := CONVERT(POINTER,NATIVE_ARRAY_VOLATILE(INTEGER_8)).on get_begin_memory; 
+   // all_memory := CONVERT(NATIVE_ARRAY_VOLATILE(INTEGER_8),POINTER).on all_memory;
+    
+    {
+      capacity := capacity + 200000h;
+
+      byte := all_memory.item (capacity.to_uinteger_64.to_uinteger_32);
+      all_memory.force_put (~byte) to (capacity.to_uinteger_64.to_uinteger_32);  
+      
+      all_memory.force_put 0 to ((capacity.to_uinteger_64.to_uinteger_32) + 1); // Cache invalidation for old x86 generation
+      //`print_char('0')`;
+    }.do_until {byte != ~all_memory.item (capacity.to_uinteger_64.to_uinteger_32)};
+    
+    `/*BSBS MEM*/`;
+    
+    capacity
+    //8388608 // 8Mb
+  );
+  
+  // Other Features
+  
+  - wait <-
+  // Wait hardware interruption.
+  (
+    `asm("wait")`;
+  );
+  
+  - exit code:INTEGER <-
+  (
+    interrupt_off;
+    //"System locked: #".print;
+    //code.print;
+    {}.endless_loop;
+  );
+  
+  //
+  // In / Out Hardware Port.
+  //
+  
+  - itemb port:UINTEGER_16 :UINTEGER_8<-
+  // Read in port
+  ( + result:UINTEGER_8;
+
+    `{ unsigned short port;
+       volatile unsigned short val;
+      
+       port=@port;
+       asm("movw %1,%%dx   \n\
+	    inb %%dx,%%al  \n\
+	    movw %%ax,%0  ": "=m"(val) : "m"(port) : "dx","ax");
+	    `;	    
+       result:=`val`:UINTEGER_8;    
+     `}`;
+     
+    result
+  );
+  
+  - putb value:UINTEGER_8 to port:UINTEGER_16 <-
+  // Write in port
+  (
+    `{ unsigned short port;
+       unsigned short val;
+       
+       port=@port;
+       val =@value;
+       asm("movw %0,%%dx    \n\
+            movw %1,%%ax    \n\
+            outb %%al,%%dx  ": /*  no output */ : "m"(port), "m"(val) : "dx","ax");
+     }`;
+  );
+  
+  - itemw port:UINTEGER_16 :UINTEGER_16<-
+  // Read in port
+  ( + result:UINTEGER_16;
+    
+    `{ unsigned short port;
+       volatile unsigned short val;
+      
+       port=@port;
+       asm("movw %1,%%dx \n\
+            inw %%dx,%%ax    \n\
+            movw %%ax,%0  ": "=m"(val) : "m"(port) : "dx","ax")`;
+    
+       result:=`val`:UINTEGER_16;
+
+    `}`;
+    result
+  );
+  
+  - putw value:UINTEGER_16 to port:UINTEGER_16 <-
+  // Write in port
+  (
+    `{ unsigned short port,val;
+      
+       port=@port;
+       val =@value;
+       asm("movw %0,%%dx    \n\
+            movw %1,%%ax    \n\
+            outw %%ax,%%dx  ": /*  no output */ : "m"(port), "m"(val) : "dx","ax");
+     }`;
+  );
+  
+  //
+  // Interrupt manager.
+  //
+  
+Section Private
+  
+  - idt:NATIVE_ARRAY(Expanded DESC_INT) := CONVERT(INTEGER,NATIVE_ARRAY(Expanded DESC_INT)).on 800h;
+  
+Section Public
+  
+  - descriptor_code:UINTEGER_16 := 18h;
+  
+  - descriptor_data:UINTEGER_16 := 20h;
+  
+  - interrupt_on  <- `asm("STI")`;
+  
+  - interrupt_off <- `asm("CLI")`;
+  
+  - new_interrupt offset:POINTER to num:UINTEGER_8 <-
+  ( 
+    idt.item num.make (offset.to_uinteger_32);
+  );
+  
+  - idtr:UINTEGER_32 <-
+  ( + mem:UINTEGER_32;    
+    
+    mem:=CONVERT(NATIVE_ARRAY(UINTEGER_16),UINTEGER_32).on idtr_mem;
+    `asm volatile ("movl %0,%%eax	\n\
+      .byte 0x0F	\n\
+      .byte 0x01	\n\
+      .byte 0x08        \n": /* no output */ : "g" (@mem) : "eax", "memory")`;
+    (idtr_mem.item 2.to_uinteger_32<< 16) | idtr_mem.item 1
+  );
+  
+  - set_idtr addr:UINTEGER_32 limit sz:UINTEGER_16 <-
+  ( + mem:UINTEGER_32;    
+    
+    mem:=CONVERT(NATIVE_ARRAY(UINTEGER_16),UINTEGER_32).on idtr_mem;
+    // Write addr
+    idtr_mem.put ((addr >> 16).to_uinteger_16) to 2;
+    idtr_mem.put ((addr & 0FFFFh).to_uinteger_16) to 1;
+    // Write limit
+    idtr_mem.put sz to 0;
+    `asm("movl %0,%%eax	\n\
+      .byte 0x0F	\n\
+      .byte 0x01	\n\
+      .byte 0x18        \n": /* no output */ : "g" (@mem) : "eax")`;
+  );
+  
+  //
+  // IRQ manager.
+  //
+  
+  - irq_on num:INTEGER_8 <-
+  ( + mask:UINTEGER_8;
+    ? {num<=15};
+
+    (num<8).if {
+      //mask:= ~ (1.to_uinteger_8 << num);
+	//LISAAC2 bug
+	mask:= ((~ (1<<((num)& 0Fh)))& 0FFh).to_uinteger_8;
+      putb (itemb 21h & mask) to 21h;
+    } else {
+      mask:= ((~ (1<<((num-8)& 0Fh)))& 0FFh).to_uinteger_8;
+      putb (itemb 0A1h & mask) to 0A1h;
+    };
+  );
+
+  - irq_off num:UINTEGER_8 <-
+  ( + mask:UINTEGER_8;
+    ? {num<=15};
+    
+    (num<8).if {
+      mask:= 1.to_uinteger_8 << num;
+      putb (itemb 21h | mask) to 21h;
+    } else {
+      mask:= 1.to_uinteger_8 << (num-8);
+      putb (itemb 0A1h | mask) to 0A1h;
+    };
+  );
+  
+  //
+  // Exceptions
+  //
+  
+Section Interrupt
+
+  - exception_00 <- 
+  (
+    'E'.print;
+    '0'.print;
+    //"\nException N�00h : Division par zero !\n".print;
+    exit 1;
+  );
+
+  - exception_01 <-
+  (
+    'E'.print;
+    '1'.print;
+    //"\nException N�01h : Trace !\n".print;
+    exit 1;
+  );
+
+  - exception_02 <-
+  (
+    'E'.print;
+    '2'.print;
+    //"\nException N�02h : Non masquable !".print;
+    exit 1;
+  );
+
+  - exception_03 <-
+  (
+    'E'.print;
+    '3'.print;
+    //"\nException N�03h : Point d'arr�t !".print; 
+    exit 1; 
+  );
+
+  - exception_04 <-
+  (
+    'E'.print;
+    '4'.print;
+    //"\nException N�04h : D�passement de capacit� INTO !".print; 
+    exit 1;
+  );
+
+  - exception_05 <-
+  (
+    'E'.print;
+    '5'.print;
+    //"\nException N�05h : D�bordement de limites BOUND !".print; 
+    exit 1; 
+  );
+
+  - exception_06 <-
+  (
+    'E'.print;
+    '6'.print;
+    //"\nException N�06h : Opcode invalide !\n".print;
+    exit 1;
+  );
+  
+  - exception_07 <-
+  (
+    'E'.print;
+    '7'.print;
+    //"\nException N�07h : Coprocesseur indisponible !".print; 
+    exit 1; 
+  );
+
+  - exception_08 <-
+  (
+    'E'.print;
+    '8'.print;
+    //"\nException N�08h : Double faute !".print; 
+    exit 1; 
+  );
+
+  - exception_09 <-
+  (
+    'E'.print;
+    '9'.print;
+    //"\nException N�09h : D�bordement de segment !".print; 
+    exit 1;
+  );
+
+  - exception_0a <-
+  (
+    'E'.print;
+    'a'.print;
+    //"\nException N�0Ah : Segment de t�che invalide ! ".print;
+    exit 1;
+  );
+
+  - exception_0b <-
+  (
+    'E'.print;
+    'b'.print;
+    //"\nException N�0Bh : Segment absent !".print; 
+    exit 1;
+  );
+
+  - exception_0c <-
+  (
+    'E'.print;
+    'c'.print;
+    //"\nException N�0Ch : Faute de pile !".print; 
+    exit 1; 
+  );
+
+  - exception_0d <-
+  (
+    'E'.print;
+    'd'.print;
+    //"\nException N�0Dh : Protection generale !\n".print;
+    exit 1;
+  );
+
+  - exception_0e <-
+  (
+    'E'.print;
+    'e'.print;
+    //"\nException N�0Eh : Faute de page !".print; 
+    exit 1; 
+  );
+
+  - exception_0f <-
+  (
+    'E'.print;
+    'f'.print;
+    //"\nException N�0Fh : R�serv� Intel !".print; 
+    exit 1; 
+  );
+
+  - exception_10 <-
+  (
+    'E'.print;
+    '1'.print;
+    '0'.print;
+    //"\nException N�10h : Error coprocesseur !".print; 
+    exit 1; 
+  );
+
+  - exception_11 <-
+  (
+    'E'.print;
+    '1'.print;
+    '1'.print;
+    //"\nException N�11h : V�rification d'alignement !".print; 
+    exit 1; 
+  );
+
+  - exception_12_1f <-
+  (
+    'E'.print;
+    'x'.print;
+    //"\nException N�12h-1Fh : R�serv� Intel !".print; 
+    exit 1; 
+  );
+  
+  //
+  // Service interrupt.
+  
+  - mode_text <-
+  // int. 30h.
+  (
+    VIDEO.close;
+    //"Mode text:\n".print;
+  );
+  
+Section Public
+  
+  //
+  // Creation.
+  //
+  
+  - make <-
+  (   + tmp : STRING_CONSTANT;
+
+    "Registering interuptions\n".print;
+    new_interrupt exception_01 to 01h;       
+    new_interrupt exception_0d to 0Dh;
+
+    // Other exceptions.
+    new_interrupt exception_00 to 00h;
+    new_interrupt exception_02 to 02h;
+    new_interrupt exception_03 to 03h;
+    new_interrupt exception_04 to 04h;
+    new_interrupt exception_05 to 05h;
+    new_interrupt exception_06 to 06h;
+    new_interrupt exception_07 to 07h;
+    new_interrupt exception_08 to 08h;
+    new_interrupt exception_09 to 09h;
+    new_interrupt exception_0a to 0Ah;
+    new_interrupt exception_0b to 0Bh;
+    new_interrupt exception_0c to 0Ch;
+    new_interrupt exception_0e to 0Eh;
+    new_interrupt exception_0f to 0Fh;
+    new_interrupt exception_10 to 10h;
+    new_interrupt exception_11 to 11h;
+
+  /* // Ce code fait planter le compilateur !!!!! 
+    12h.to 1Fh do { n:UINTEGER_8;
+      new_interrupt exception_12_1f to n;
+    };*/
+   new_interrupt exception_12_1f to 12h;
+   new_interrupt exception_12_1f to 13h;
+   new_interrupt exception_12_1f to 14h;
+   new_interrupt exception_12_1f to 15h;
+   new_interrupt exception_12_1f to 16h;
+   new_interrupt exception_12_1f to 1Ah;
+   new_interrupt exception_12_1f to 1Bh;
+   new_interrupt exception_12_1f to 1Ch;
+   new_interrupt exception_12_1f to 1Dh;
+   new_interrupt exception_12_1f to 1Eh;
+   new_interrupt exception_12_1f to 1Fh;
+
+
+
+    
+    // Interrupt service.
+    new_interrupt mode_text to 30h;
+    
+    // IRQ cascade on:
+    "IRQ cascade ON\n".print;
+    irq_on 2;
+    
+    // STI
+    "Interupts On\n".print;
+    interrupt_on;    
+  );
+  

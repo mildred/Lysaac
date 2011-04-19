@@ -1,0 +1,340 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := G_CHECK;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+      
+  - author  := "Sonntag Benoit (bsonntag@loria.fr)";
+  - comment := "Group elements for GUI.";
+
+Section Inherit  
+
+  + parent_g_group:Expanded G_GROUP;
+  
+Section Public  
+  
+  + auto_action:G_WIN_OUT;
+  
+  + stat:INTEGER_8;
+  
+  - is_on:BOOLEAN    <- (stat & 0100b) != 0;
+  - is_check:BOOLEAN <- (stat & 1000b) != 0;
+  
+  - set_stat s:INTEGER_8 <-
+  (
+    stat := s;
+    (stat != Old stat).if {
+      refresh;
+    };
+  );
+  
+  + action:{ G_CHECK; } := 
+  { b:G_CHECK; 
+    // Nothing.
+  };
+  
+  + next_check:G_CHECK;
+  + previous_check:G_CHECK;
+  
+  - set_previous_check p:G_CHECK <-
+  (
+    previous_check := p;
+  );
+  
+  //
+  // Operator position.
+  //
+  
+  - Self:SELF '^' Left 40 other:G_CHECK :G_CHECK <-
+  (
+    next_check := other;
+    other.set_previous_check Self;
+    other
+  );
+    
+  //
+  // Creation
+  //
+  
+  - create_with_check elt:G_EXPR :SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make elt connect NULL action NULL check TRUE;
+    result
+  );
+
+  - create_with_check elt:G_EXPR connect a:G_WIN_OUT :SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make elt connect a action NULL check TRUE;
+    result
+  );
+
+  - create elt:G_EXPR connect a:G_WIN_OUT :SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make elt connect a action NULL check FALSE;
+    result
+  );
+  
+  - create_with_check elt:G_EXPR action b:{ G_CHECK; } :SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make elt connect NULL action b check TRUE;
+    result
+  );
+
+  - create elt:G_EXPR action b:{ G_CHECK; } :SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make elt connect NULL action b check FALSE;
+    result
+  );
+  
+  - make elt:G_EXPR connect a:G_WIN_OUT action b:{ G_CHECK; } check c:BOOLEAN <-
+  (
+    make elt;
+    auto_action := a;
+    action := b;
+    stat := c.to_integer << 3;
+  );
+     
+  //
+  // Size.
+  //
+  
+  - predict_size (w,h:INTEGER) :(INTEGER,INTEGER) <-
+  ( + rw:INTEGER;
+    
+    (is_check).if {
+      rw := w + 24;
+    } else {
+      rw := w + 4;
+    };
+    rw , h + 4
+  );  
+  
+  - width_min:INTEGER <-
+  ( + result:INTEGER;
+    
+    (is_check).if {
+      result := parent_g_group.width_min + 24;
+    } else {
+      result := parent_g_group.width_min + 4;
+    };
+    result
+  );
+  
+  - height_min:INTEGER <-
+  (
+    parent_g_group.height_min + 4
+  );
+  
+  //
+  // Update position.
+  //
+  
+  - set_position rac:AREA at (x,y:INTEGER) size (w,h:INTEGER) <-
+  ( + px,py,nw,nh,p:INTEGER;   
+    update rac from (x,y) size (w,h);
+    (is_check).if {
+      p := 20;
+    };
+    ((w-(p+4)) > root.width_max).if {      
+      nw := root.width_max;
+      px := ((w-(p+4) - nw) / 2) + (p+2);
+    } else {
+      nw := w - (p+4);
+      px := (p+2);
+    };
+    ((h-4) > root.height_max).if {      
+      nh := root.height_max;
+      py := ((h-4 - nh) / 2) + 2;
+    } else {
+      nh := h - 4;
+      py := 2;
+    };    
+    root.set_position Self at (px,py) size (nw,nh);
+  );
+  
+  //
+  // Display.
+  //
+
+  - draw_slave bmp:ABSTRACT_BITMAP from (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  ( + col:UINTEGER_32;
+    
+    ((stat & 01b) = 0).if {
+      col := color_back;
+    } else {
+      col := color_back_light;
+    };    
+    bmp.rectangle_fill (x0,y0) to (x1,y1) color col;
+  );
+  
+  - draw (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  ( + style:INTEGER_8;
+    clipping (x0,y0) to (x1,y1);
+    ((is_on) && {! is_check}).if {
+      style := 1; // In
+    } else {        
+      ((stat & 11b) = 01b).if {
+        style := 2; // Out
+      } else {
+        ((stat & 11b) != 00b).if {
+          style := 1; // In
+        };
+      };
+    };
+    (style)
+    .when 0 then {
+      draw_slave Self from (x0,y0) to (x1,y1);
+    }
+    .when 1 then {
+      draw_border_in (x_min  ,y_min  ) to (x_max  ,y_max  );
+      draw_border_in (x_min+1,y_min+1) to (x_max-1,y_max-1);
+      draw_slave Self from (x_min+2,y_min+2) to (x_max-2,y_max-2);
+    }
+    .when 2 then {
+      draw_border_out (x_min  ,y_min  ) to (x_max  ,y_max  );
+      draw_border_out (x_min+1,y_min+1) to (x_max-1,y_max-1);	
+      draw_slave Self from (x_min+2,y_min+2) to (x_max-2,y_max-2);
+    };
+    
+    (is_check).if {
+      draw_check;
+    };
+  );
+  
+  //
+  // Event manager.
+  //
+  
+  - receive msg:EVENT <-
+  // stat :
+  // -1 = Not actif
+  //  0 = out & off
+  //  1 = in  & off
+  //  2 = out & on
+  //  3 = in  & on
+  ( + mouse:EVENT_MOUSE;  
+    + gui:EVENT_GUI;
+    + new_stat:INTEGER;
+    + cur:G_CHECK;
+    
+    mouse ?= msg;
+    gui ?= msg;
+    (mouse != NULL).if {                  
+      new_stat := (stat & 1100b) | (mouse.is_in).to_integer | (mouse.left.to_integer << 1);      
+      (new_stat != stat).if {	
+	stat := new_stat;
+	((stat & 1) != 0).if {
+	  // In.	    	    
+	  (mouse.left_down).if {
+	    (auto_action != NULL).if {	    
+	      (auto_action.is_open).if {
+		auto_action.close;
+	      } else {
+		auto_action.open_by Self;		
+	      };
+	    } else {
+	      action.value Self;
+	    };
+	    stat := stat ^ 0100b;
+	    ((stat & 0100b) != 0).if {
+	      cur := next_check;
+	      {cur != NULL}.while_do {
+		cur.set_stat (cur.stat & 1000b);
+		cur := cur.next_check;
+	      };
+	      cur := previous_check;
+	      {cur != NULL}.while_do {
+		cur.set_stat (cur.stat & 1000b);
+		cur := cur.previous_check;
+	      };
+	    };
+	  };
+	} else {
+	  // Out.	  
+	  ((stat & 10b) = 0).if {
+	    stat := stat & 1100b;	  
+	    DESK.receive msg;
+	  };
+	};
+	refresh;	
+      };
+    };
+  );
+  
+  //
+  // Check draw.
+  //
+  
+  - draw_check <-
+  ( + py:INTEGER;
+    
+    py := (height - 14) >> 1;
+    ((next_check = NULL) && {previous_check = NULL}).if {
+      // Check.
+      draw_border_in (3,py) to (16,py+13);
+      rectangle_fill (4,py+1) to (15,py+12) color color_back_light;
+      ((stat & 100b) != 0).if {
+	color black;
+	line  (5,(py+2)) to (14,(py+11));
+	line  (5,(py+3)) to (13,(py+11));
+	line  (6,(py+2)) to (14,(py+10));
+	
+	line (14,(py+2)) to  (5,(py+11));
+	line (13,(py+2)) to  (5,(py+10));
+	line (14,(py+3)) to  (6,(py+11));
+      };
+    } else {
+      // Check list
+      color color_dark;
+      move_to (3,(py+6));
+      line_to (9,py);
+      line_to (15,(py+6));
+      color color_light;
+      line_to (9,(py+12));
+      line_to (3,(py+6));
+      
+      color color_back_light;
+      poly_move_to (9,(py+1));
+      poly_line_to (14,(py+6));
+      poly_line_to (9,(py+11));
+      poly_line_to (4,(py+6));
+      poly_trace;
+      
+      ((stat & 100b) != 0).if {
+	color black;
+	circle_fill (9,(py+6)) rayon 2 color black;
+      };
+    };
+  );
+  

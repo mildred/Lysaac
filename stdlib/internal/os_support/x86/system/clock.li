@@ -1,0 +1,101 @@
+///////////////////////////////////////////////////////////////////////////////
+//                          Isaac Operating System                           //
+// 									     //
+//   This program is free software; you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation; version 3 of the License.  		     //
+// 									     //
+//   This program is distributed in the hope that it will be useful, 	     //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of 	     //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 	     //
+//   GNU General Public License for more details. 			     //
+// 									     //
+// 			    http://www.lisaac.org			     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+
+  + name    := CLOCK;
+  
+  - bibliography:="http://www.lisaac.org";
+
+  - author      := "Benoit Sonntag (bsonntag@loria.fr), Jerome Boutet (boutet@loria.fr)";
+
+  - comment     :="Clock management.";
+
+  - date    :="2003/04";
+  
+Section Inherit  
+  
+  - parent_input:INPUT := INPUT;
+  
+Section Private
+    
+  - update <-
+  ( + s,m,h:UINTEGER_8;
+    + wd,d,mo:UINTEGER_8;    
+    + y:UINTEGER_16;
+    
+    SYSTEM.putb 0 to 70h;
+    s := SYSTEM.itemb 71h .to_binary;
+    
+    SYSTEM.putb 2 to 70h;
+    m := SYSTEM.itemb 71h .to_binary;
+    
+    SYSTEM.putb 4 to 70h;
+    h := SYSTEM.itemb 71h .to_binary;
+        
+    time := TIME.create (h,m,s,0);
+    
+    SYSTEM.putb 6 to 70h;
+    wd := ((SYSTEM.itemb 71h .to_binary + 4) % 7); // JBJB ??? + 1;
+    
+    SYSTEM.putb 7 to 70h;
+    d := SYSTEM.itemb 71h .to_binary;
+    
+    SYSTEM.putb 8 to 70h;
+    mo := SYSTEM.itemb 71h .to_binary;
+    
+    SYSTEM.putb 9 to 70h;
+    y := 2000 + SYSTEM.itemb 71h .to_binary;
+    
+    date := DATE.create (y,mo,d,wd);
+  );
+  
+Section Interrupt  
+  
+  - rtc_interrupt <-  
+  (     
+    SYSTEM.putb 0Ch to 70h;    
+    ((SYSTEM.itemb 71h & 010h)!=0).if {    
+      update;
+    };
+        
+    // Acknowledge.
+    SYSTEM.putb 20h to 020h;
+    SYSTEM.putb 20h to 0A0h;
+  );
+  
+Section Public  
+  
+  - date:DATE;
+    
+  - time:TIME;
+  
+  - make <-
+  (
+    SYSTEM.putb 0Bh to 70h;    
+    SYSTEM.putb 012h to 71h;
+
+    SYSTEM.putb 0Ah to 70h;
+    {(SYSTEM.itemb 71h & 80h)=0}.until_do {};
+
+    update;
+    SYSTEM.new_interrupt rtc_interrupt to 28h;
+    SYSTEM.irq_on 8;         
+  );
+
+
+
+
+

@@ -1,0 +1,73 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := KEYBOARD;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     :="Windows (Win32) - RSXNT - Keyboard Driver";
+
+  - version := 2;
+
+Section Inherit
+
+  + parent_input_keyboard:Expanded INPUT_KEYBOARD;
+
+Section Private
+
+  - keyup cu:UINTEGER_8 :UINTEGER_8 <-
+  ( + result:UINTEGER_8;
+
+    result := cu;
+    cmd := cmd & 0F7h; // Deactivate the cmd bit
+
+    cu
+    .when 8 then  { cmd := cmd | 8; }
+    .when 13 then { cmd := cmd | 8; };
+
+
+    result
+  );
+
+  - keydown cu:UINTEGER_8 :UINTEGER_8 <-
+  ( + result:UINTEGER_8;
+
+    cu
+    .when 52h then { result := 'I'.to_uinteger_8; }
+    .when 53h then { result := 'S'.to_uinteger_8; }
+    .when 4Fh then { result := 'E'.to_uinteger_8; }
+    .when 47h then { result := 'B'.to_uinteger_8; }
+    .when 49h then { result := 'A'.to_uinteger_8; }
+    .when 51h then { result := 'Z'.to_uinteger_8; }
+    .when 48h then { result := 'U'.to_uinteger_8; }
+    .when 50h then { result := 'D'.to_uinteger_8; }
+    .when 4Bh then { result := 'L'.to_uinteger_8; }
+    .when 4Dh then { result := 'R'.to_uinteger_8; };
+    cmd := cmd | 8;
+
+    result
+  );
+
+
+
+
+

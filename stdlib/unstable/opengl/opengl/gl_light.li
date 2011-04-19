@@ -1,0 +1,131 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_LIGHT;
+  
+  - comment  := "OpenGL Light";
+  
+Section Inherit
+  
+  + parent_light:Expanded LIGHT;
+  
+Section Public
+  
+  // OpenGl allow only 8 differents lights at a time
+  - nb_lights:INTEGER;
+  
+  + id_light:INTEGER; // OpenGL id: LIGHT0 - LIGHT7
+  
+  - make (a,d,s:COLOR, pos:VECTOR3(REAL_32)) <- 
+  (
+    parent_light.make (a,d,s,pos);
+    (nb_lights < 8).if {
+      
+      id_light := `GL_LIGHT0`:INTEGER + nb_lights;
+      
+      nb_lights := nb_lights + 1;
+    } else {
+      GL_ERROR.send "too much lights";
+    };
+  );
+  
+  - enable <- 
+  (   
+    + id:INTEGER;
+    + p:POINTER;
+    + vec:FAST_ARRAY(REAL_32);
+    
+    parent_state.enable;
+    id := id_light;
+    
+    modified.if {
+      p := ambient.get_array.to_external;
+      `glLightfv(@id, GL_AMBIENT, @p)`;
+      
+      p := diffuse.get_array.to_external;
+      `glLightfv(@id, GL_DIFFUSE, @p)`;
+      
+      p := specular.get_array.to_external;
+      `glLightfv(@id, GL_SPECULAR, @p)`;
+      
+      vec := position.getv;
+      is_directional.if {
+	vec.add_last 0.0;
+	p := vec.to_external;
+	`glLightfv(@id, GL_POSITION, @p)`;
+      } else {
+	vec.add_last 1.0;
+	p := vec.to_external;
+	`glLightfv(@id, GL_POSITION, @p)`;
+      };
+      modified := FALSE;
+    };
+    `glEnable(@id)`;
+  );
+  
+  - disable <-
+  (
+    + id:INTEGER;
+    
+    id := id_light;
+    `glDisable(@id)`;
+  );
+  
+  - set_model_ambient col:RGBA <- 
+  ( + p:POINTER;
+    p := col.getv.to_external;
+    `glLightModelfv(GL_LIGHT_MODEL_AMBIENT, @p)`;
+  );
+  
+  - set_model_local_viewer b:BOOLEAN <- 
+  (
+    `glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, @b)`;
+  );
+  
+  - set_model_two_side b:BOOLEAN <-
+  (
+    `glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, @b)`;
+  );
+  
+  
+  - push_attrib <-
+  (
+    `glPushAttrib(GL_ENABLE_BIT)`;
+  );
+  
+  - pop_attrib <-
+  (
+    `glPopAttrib()`;
+  );
+   
+  
+  - enable_default_light <- 
+  (
+    `glEnable(GL_LIGHT0)`;
+  );
+  
+  - disable_default_light <-
+  (
+    `glDisable(GL_LIGHT0)`;
+  );
+  

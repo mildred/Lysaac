@@ -1,0 +1,70 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name := FILE_OUTPUT_STREAM;
+
+  - author        := "Mildred <mildred593(at)online.fr>";
+  - bibliography  := "none";
+  - comment       := "Use files as streams";
+
+Section Inherit
+
+  - inherit_output_stream :OUTPUT_STREAM := OUTPUT_STREAM;
+
+Section Public
+
+  + file :FILE;
+
+  + is_connected:BOOLEAN := FALSE;
+
+Section Public
+
+  - make std_file:FILE <-
+  (
+    file := std_file;
+    is_connected := (file != NULL);
+  );
+
+  - create std_file:FILE :SELF <-
+  ( + result:SELF;
+    result := clone;
+    result.make std_file;
+    result
+  );
+
+Section Public
+
+  - put_character c:CHARACTER <-
+  // Put `c' on stream
+  (
+    tmp.put c to 0;
+    file.physical_write tmp size 1;
+  );
+
+  - flush <- (); //file.basic_fush;
+
+Section Private
+
+  - tmp:NATIVE_ARRAY(UINTEGER_8) := NATIVE_ARRAY(UINTEGER_8).create 1;
+
+// kate: hl Lisaac v0.2; indent-width 2; space-indent on; replace-tabs off;
+// kate: tab-width 8; remove-trailing-space on;

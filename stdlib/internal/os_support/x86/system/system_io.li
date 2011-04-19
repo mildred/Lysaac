@@ -1,0 +1,215 @@
+///////////////////////////////////////////////////////////////////////////////
+//                          Isaac Operating System                           //
+// 									     //
+//   This program is free software; you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation; version 3 of the License.  		     //
+// 									     //
+//   This program is distributed in the hope that it will be useful, 	     //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of 	     //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 	     //
+//   GNU General Public License for more details. 			     //
+// 									     //
+// 			    http://www.lisaac.org			     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+
+  + name        := SYSTEM_IO;
+
+  - comment     :="Lower level for Input / Output";
+
+  - bibliography:="http://www.www.lisaac.org";
+
+  - author      :="Boutet Jerome (pisteur@free.fr), Benoit Sonntag (benoit.sonntag@lisaac.org)";
+
+  - external := `  
+
+  extern unsigned char ___video_text;  
+
+
+  int count_char=0;
+  // Hardware 'print_char'.  
+  int print_char(char car)
+  // Very low level buffered output.
+  { unsigned short tmp;
+    int i;
+    unsigned short pos_cur;
+    unsigned char *screen=(unsigned char *)0xB8000LU;
+
+    if (___video_text == 0) {
+      asm("int $0x30");
+    };
+
+    // Read cursor location.
+    asm("movw $0x0E,%%ax     \n\
+      movw $0x3D4,%%dx    \n\
+      outb %%al,%%dx      \n\
+      incw %%dx           \n\
+      inb  %%dx,%%al      \n\
+      movw %%ax,%0        ": "=g"(tmp) : :"ax","dx");
+      pos_cur = tmp;
+
+      asm("movw $0x0F,%%ax     \n\
+        movw $0x3D4,%%dx    \n\
+        outb %%al,%%dx      \n\
+        incw %%dx           \n\
+        inb  %%dx,%%al      \n\
+        movw %%ax,%0        ": "=g"(tmp) : :"ax","dx");
+        pos_cur = ((pos_cur << 8) | tmp) << 1;
+
+        // Write character.
+        switch (car) {    
+          case '\b':
+          if ((pos_cur % 160) != 0) {
+            pos_cur = pos_cur - 2;
+          };
+          break;
+          case '\t': 
+          pos_cur = (pos_cur + 16) & 0xFFF0;
+          break;
+          case '\n':
+          pos_cur = pos_cur + 160 - (pos_cur % 160);
+          count_char++;
+          if (count_char == 20) {
+            do {
+              asm("movw $0x60,%%dx     \n\
+                inb  %%dx,%%al      \n\
+                movw %%ax,%0        ": "=g"(tmp) : :"ax","dx");
+              } while ((tmp & 0x80) == 0);
+              do {
+                asm("movw $0x60,%%dx     \n\
+                  inb  %%dx,%%al      \n\
+                  movw %%ax,%0        ": "=g"(tmp) : :"ax","dx");
+                } while ((tmp & 0x80) == 0x80);      
+                count_char = 0;     
+              };
+              break; 
+              case '\r':
+              pos_cur = pos_cur - (pos_cur % 160);
+              default: // other.
+              screen[pos_cur]   = car;
+              screen[pos_cur+1] = 12;
+              pos_cur = pos_cur + 2;
+            };
+
+            // Scroll screen.
+            if (pos_cur>=4000) {
+              for (i=160;i<4000;i++) screen[i-160]=screen[i];
+              for (i=(4000-160);i<4000;i+=2) {
+                screen[i]     = ' ';
+                screen[i + 1] = 15;
+              };
+              pos_cur = pos_cur - 160;
+            };
+
+            // Write cursor location.
+            pos_cur = pos_cur >> 1;
+
+            tmp = pos_cur;
+            asm("movw %0,%%ax        \n\
+              movb $0x0E,%%al     \n\
+              movw $0x3D4,%%dx    \n\
+              outw %%ax,%%dx      ": : "g"(tmp) : "dx","ax");
+
+              tmp = (pos_cur << 8) & 0xFF00;
+              asm("movw %0,%%ax        \n\
+                movb $0x0F,%%al     \n\
+                movw $0x3D4,%%dx    \n\
+                outw %%ax,%%dx      ": : "g"(tmp) : "dx","ax");
+              };
+
+              void print_nb(int n)
+              { int d;
+                char car;
+
+                d = 10000000;
+                while (d != 0) {
+                  car = n / d;
+                  print_char(car+'0');
+                  n = n % d;
+                  d = d / 10;
+                };
+              };
+
+              // Hardware 'exit'.
+              int die_with_code(int code)
+              {
+                while (1);
+              };
+
+              `; 
+
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Public
+
+  - print_char car:CHARACTER <-
+  // Low level buffered output.
+  ( + pos_cur:UINTEGER_16;
+    + screen:NATIVE_ARRAY(INTEGER_8);
+
+    (VIDEO.is_active).if {
+      VIDEO.close;
+    };
+
+    // Screen location.
+    screen:=CONVERT(INTEGER,NATIVE_ARRAY(INTEGER_8)).on 0B8000h;
+
+    // Read cursor location.
+    SYSTEM.putb 0Eh to 3D4h;
+    pos_cur := SYSTEM.itemb 3D5h;
+    SYSTEM.putb 0Fh to 3D4h;
+    pos_cur := ((pos_cur << 8) | SYSTEM.itemb 3D5h) << 1;
+
+    // Write character.
+    car    
+    .when '\b' then {
+      ((pos_cur % 160) != 0).if {
+        pos_cur := pos_cur - 2;
+      };
+    }
+    .when '\t' then {
+      pos_cur := (pos_cur + 16) & 0FFF0h;
+    }
+    .when '\n' then {
+      pos_cur := pos_cur + 160 - (pos_cur % 160);
+    } 
+    .when '\r' then {
+      pos_cur := pos_cur - (pos_cur % 160);
+    }
+    .when '\14\' to (127.to_character) then {
+      // other.
+      screen.put (car.to_integer_8) to pos_cur;
+      screen.put 15  to (pos_cur + 1);
+      pos_cur := pos_cur + 2;
+    };
+
+    // Scroll screen.
+    (pos_cur>=4000).if {
+      screen.move 160 to 3999 by (-160);
+      (4000-160).to 3999 by 2 do { i:INTEGER;
+        screen.put (' '.to_integer_8) to i;
+        screen.put 15  to (i+1);
+      };
+      pos_cur := pos_cur - 160;
+    };
+
+    // Write cursor location.
+    pos_cur := pos_cur >> 1;
+    SYSTEM.putw ((pos_cur & 0FF00h) | 0Eh) to 3D4h;
+    SYSTEM.putw ((pos_cur << 8) | 0Fh)     to 3D4h;
+  );
+
+  - print_error_char char:CHARACTER <-
+  // Low level buffered error output.
+  (
+    print_char char;
+  ); 
+
+  - get_char :CHARACTER <- ((KEYBOARD.get_key & 0FFh).to_character);
+
+  - eof:CHARACTER <- ((-1).to_character);
+

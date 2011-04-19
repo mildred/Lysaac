@@ -1,0 +1,108 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header	
+  
+  + name        := TT_FLAG_GLYPH;
+  - comment     :="Glyph Flag.";
+  
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Private
+  
+  - is_curve:BOOLEAN <-
+  (
+    value & 1 = 1
+  );
+  
+  - is_x_short:BOOLEAN <-
+  (
+    value & 10b > 0
+  );
+  
+  - is_y_short:BOOLEAN <-
+  (
+    value & 100b > 0
+  );
+  
+  - is_repeat:BOOLEAN <-
+  (
+    value & 1000b > 0
+  );
+  
+  - is_x_same:BOOLEAN <-
+  (
+    value & 10000b > 0
+  );
+  
+  - is_y_same:BOOLEAN <-
+  (
+    value & 100000b > 0
+  );
+  
+Section Public
+  
+  + value:UINTEGER_16;
+  
+   - create v:UINTEGER_16 :SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make v;
+    result
+  );
+    
+  - make v:UINTEGER_16 <-
+  (
+    value := v;
+  );
+
+  - print <-
+  (
+    is_y_same.if {
+      " YDual".print;
+    } else {
+      "      ".print;
+    };
+    is_x_same.if {
+      " XDual".print;
+    } else {
+      "      ".print;
+    };
+    is_repeat.if {
+      " Rep ".print;
+    } else {
+      "     ".print;
+    };
+    is_y_short.if {
+      " YShort".print;
+    } else {
+      "       ".print;
+    };
+    is_x_short.if {
+      " XShort".print;
+    } else {
+      "       ".print;
+    };
+    is_curve.if {
+      " On".print;
+    } else {
+      " Off".print;
+    };
+  );
+

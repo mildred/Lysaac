@@ -1,0 +1,175 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name := AVL_DICTIONARY_NODE(V,K);
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := "Auxiliary class to implement AVL_DICTIONARY.";
+
+Section Inherit
+
+  + parent_avl_tree_node:Expanded AVL_TREE_NODE(K);
+
+  - parent_any_avl_dictionary_node:ANY_AVL_DICTIONARY_NODE := ANY_AVL_DICTIONARY_NODE;
+
+Section Public
+
+  - key:K <- item;
+
+  - set_key i:K <- set_item i;
+
+Section AVL_DICTIONARY, AVL_DICTIONARY_NODE
+
+  + value:V;
+
+  - set_value v:V <-
+  (
+    value := v;
+  )
+  [
+    +? {value = v};
+  ];
+
+  - fast_at k:K :AVL_DICTIONARY_NODE(V, K) <-
+  // Is element `e' in the tree?
+  ( + result:AVL_DICTIONARY_NODE(V, K);
+
+    (key = k).if {
+      result := Self;
+    }.elseif {key == k /*SAFE_EQUAL(K).test key and k*/} then {
+      // because otherwise there would be an infinite recursion
+      // result := NULL
+    }.elseif {k < key} then {
+      (left != NULL).if {
+	result := left.fast_at k;
+      };
+    } else {
+      (right != NULL).if {
+	result := right.fast_at k;
+      };
+    };
+    result
+  );
+
+  - occurrences v:V :INTEGER <-
+  (
+    occurrences v start 0
+  );
+
+  - fast_occurrences v:V :INTEGER <-
+  (
+    fast_occurrences v start 0
+  );
+
+  - key_at v:V :K <-
+  ( + result:K;
+
+    (v == value /*SAFE_EQUAL(V).test v and value*/).if {
+      result := key;
+    }.elseif {left != NULL} then {
+      result := left.key_at v;
+    }.elseif {right != NULL} then {
+      result := right.key_at v;
+    };
+    result
+  );
+
+  - fast_key_at v:V :K <-
+  ( + result:K;
+
+    (v = value).if {
+      result := key;
+    }.elseif {left != NULL} then {
+      result := left.fast_key_at v;
+    }.elseif {right != NULL} then {
+      result := right.fast_key_at v;
+    };
+    result
+  );
+
+Section AVL_DICTIONARY_NODE
+
+  - occurrences v:V start cnt:INTEGER :INTEGER <-
+  ( + result:INTEGER;
+
+    result := cnt;
+    (v == value /*SAFE_EQUAL(V).test v and value*/).if {
+      result := result + 1;
+    };
+    (left != NULL).if {
+      result := left.occurrences v start result;
+    };
+    (right != NULL).if {
+      result := right.occurrences v start result;
+    };
+    result
+  )
+  [
+    +? {Result >= cnt};
+  ];
+
+  - fast_occurrences v:V start cnt:INTEGER :INTEGER <-
+  ( + result:INTEGER;
+    result := cnt;
+    (v = value).if {
+      result := result + 1;
+    };
+    (left != NULL).if {
+      result := left.fast_occurrences v start result;
+    };
+    (right != NULL).if {
+      result := right.fast_occurrences v start result;
+    };
+    result
+  )
+  [
+    +? {Result >= cnt};
+  ];
+
+Section AVL_DICTIONARY
+
+  //
+  // Creation:
+  //
+
+  - create (v:V,k:K) :SELF <-
+  ( + result:SELF;
+
+    result := clone;
+    result.make (v,k);
+    result
+  );
+
+  - make (v:V,k:K) <-
+  (
+    set_balance balanced;
+    left  := NULL;
+    right := NULL;
+    set_value v;
+    set_key k;
+  )
+  [
+    +? {value = v};
+    +? {key = k};
+  ];

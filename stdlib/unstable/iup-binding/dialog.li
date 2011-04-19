@@ -1,0 +1,82 @@
+Section Header
+  // Dialog
+
+  + name      := DIALOG;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP Dialog";
+
+Section Inherit
+
+  + parent_control:Expanded CONTROL := CONTROL;
+
+Section Public
+
+  + child:CONTROL;
+
+Section Public
+  // popup and show_xy possible values
+  
+  - show_center         :INTEGER := `IUP_CENTER`:INTEGER;
+  - show_left           :INTEGER := `IUP_LEFT`:INTEGER;
+  - show_right          :INTEGER := `IUP_RIGHT`:INTEGER;
+  - show_mousepos       :INTEGER := `IUP_MOUSEPOS`:INTEGER;
+  - show_current        :INTEGER := `IUP_CURRENT`:INTEGER;
+  - show_centerparent   :INTEGER := `IUP_CENTER_PARENT`:INTEGER;
+  - show_top            :INTEGER := `IUP_TOP`:INTEGER;
+  - show_bottom         :INTEGER := `IUP_BOTTOM`:INTEGER;
+
+Section Public
+  // Creation
+  
+  - make title:ABSTRACT_STRING child control:CONTROL :SELF <-
+  // Make a new dialog
+  ( + result:SELF;
+    + h, child_h:POINTER;
+    
+    child   := control;
+    child_h := control.handle;
+    h       := `IupDialog(@child_h)`:POINTER;
+
+    result := SELF.clone;
+    result.set_handle h;
+    result.store "TITLE" value title;
+    result
+  );
+  
+Section Public
+  // Showing/hiding the dialog
+  
+  - popup (x:INTEGER,y:INTEGER) :INTEGER <-
+  // Display the dialog as a modal popup dialog. You may wish to refer
+  // to the documentation section "popup and show_xy possible values" for 
+  // other possible values to popup.
+  ( + h:POINTER;
+    
+    h := handle;
+    `IupPopup(@h, @x, @y)`:(INTEGER)
+  );
+  
+  - show :INTEGER <-
+  // Show the dialog as a non-modal dialog
+  ( + h:POINTER;
+    h := handle;
+    `IupShow(@h)`:(INTEGER)
+  );
+  
+  - show x:INTEGER y y:INTEGER :INTEGER <-
+  // Show the dialog as a non-modal dialog at X and Y. You may wish to refer
+  // to the documentation section "popup and show_xy possible values" for 
+  // other possible values to show x y.
+  ( + h:POINTER;
+    h := handle;
+    `IupShowXY(@h, @x, @y)`:(INTEGER)
+  );
+  
+  - hide <-
+  // Hide the dialog
+  ( + h:POINTER;
+    h := handle;
+    `IupHide(@h)`;
+  );

@@ -1,0 +1,88 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                  Lisaac                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name      := SDL_RECT;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>";
+  - comment   := "SDL Rectangle structure";
+  - type      := `SDL_Rect`;
+
+Section Inherit
+
+  + parent_object:OBJECT := OBJECT;
+
+Section Public
+
+  - create :SDL_RECT <- SELF.clone;
+//
+// GET:
+//
+
+  - get_all :(INTEGER,INTEGER,INTEGER,INTEGER) <-
+  // Return a vector with 4 values (x,y,w,h).
+  (
+    (x, y, w, h)
+  );
+
+  - x :INTEGER <- `@Self->x`:(INTEGER); // Return the `X' position value.
+  - y :INTEGER <- `@Self->y`:(INTEGER); // Return the `Y' position value.
+  - w :INTEGER <- `@Self->w`:(INTEGER); // Return the `Width' size value.
+  - h :INTEGER <- `@Self->h`:(INTEGER); // Return the `Height' size value.
+
+//
+// SET: 
+//
+
+  - set_all (x,y,w,h:INTEGER)<-
+  // Set all values (x,y,w,h).
+  ( 
+    `@Self->x = @x`;
+    `@Self->y = @y`;
+    `@Self->w = @w`;
+    `@Self->h = @h`;
+  );
+
+  - set_x value:INTEGER <- 
+  // Set the `X' position.
+  (
+    `@Self->x = @value`;
+  );
+
+  
+  - set_y value:INTEGER <-
+  // Set the `Y' position.
+  (
+    `@Self->y = @value`;
+  );
+  
+  - set_w value:INTEGER <-
+  // Set the `Width' size.
+  (
+    `@Self->w = @value`;
+  );
+  
+  - set_h value:INTEGER <-
+  // Set the `Height' size.
+  (
+    `@Self->h = @value`;
+  );

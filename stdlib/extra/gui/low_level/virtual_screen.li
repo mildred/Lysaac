@@ -1,0 +1,98 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := VIRTUAL_SCREEN;
+
+  - copyright   := "2003-2008 Benoit Sonntag";
+    
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Sonntag Benoit (bsonntag@loria.fr)";
+  - comment     :="Virtual screen.";
+
+  - version := 1;  
+  
+Section Inherit  
+  
+  + parent_area:Expanded AREA;
+        
+Section Public
+  
+  + scale_width:INTEGER;
+  + scale_height:INTEGER;
+  
+  + desk:DESK;
+  
+  - create d:DESK scale (w,h:INTEGER) :SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make d scale (w,h);
+    result    
+  );
+    
+  - make d:DESK scale (w,h:INTEGER) <-
+  ( 
+    desk := d;
+    scale_width  := w;
+    scale_height := h;
+    make d from (0,0) size (d.width*w,d.height*h);
+  );
+  
+  //
+  // Display.
+  //
+
+  - slave_pixel_hard (x,y:INTEGER) color col:UINTEGER_32 <- 
+  ( 
+    pixel_hard (x,y) color col;
+  );
+  
+  - slave_line_h_hard (x1,y:INTEGER) until x2:INTEGER color col:UINTEGER_32 <- 
+  ( 
+    line_h_hard (x1,y) until x2 color col;
+  );  
+  
+  - slave_line_h_hard (x1,y:INTEGER) until x2:INTEGER 
+  image line:ABSTRACT_BMP_LINE offset ofs:INTEGER <-
+  ( 
+    line_h_hard (x1,y) until x2 image line offset ofs;
+  );
+  
+  - get_object (x,y:INTEGER) :AREA <-
+  ( + result:AREA;
+    result := parent_area.get_object (x,y);
+    (result = Self).if {
+      result := NULL;
+    };
+    result
+  );
+  
+  //
+  // Resize
+  //    
+  
+  - update_size <-
+  (    
+    resize (scale_width * desk.width,scale_height * desk.height);
+  );
+  
+  

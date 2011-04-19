@@ -1,0 +1,206 @@
+///////////////////////////////////////////////////////////////////////////////
+//   Lisaac - SDL binding library                                            //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program. If not, see <http://www.gnu.org/licenses/>.    //
+//                                                                           //
+//   http://lisaac.org/                                                      //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+
+  + name      := Expanded SDL_KEYSYM;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>";
+  - comment   := "SDL Mapping of every raw key on the keyboard";
+  - type      := `SDL_keysym`;
+
+Section Public
+
+//
+// KEYSYM INFORMATION 
+//
+  - scancode :UINTEGER_8  <- `@Self.scancode`:(UINTEGER_8);  // hardware specific scancode
+  - sym      :INTEGER     <- `@Self.sym`     :(INTEGER);	   // SDL virtual keysym 
+  - mod      :INTEGER     <- `@Self.mod`     :(INTEGER);     // current key modifiers
+  - unicode  :UINTEGER_16 <- `@Self.unicode` :(UINTEGER_16); // translated character
+
+//
+// ASCII MAPPED KEYSYMS
+//
+  - backspace :INTEGER <-`SDLK_BACKSPACE` :(INTEGER);
+  - tab       :INTEGER <-`SDLK_TAB`       :(INTEGER);
+  - clear     :INTEGER <-`SDLK_CLEAR`     :(INTEGER);
+  - return    :INTEGER <-`SDLK_RETURN`    :(INTEGER);
+  - pause     :INTEGER <-`SDLK_PAUSE`     :(INTEGER);
+  - escape    :INTEGER <-`SDLK_ESCAPE`    :(INTEGER);
+  - space     :INTEGER <-`SDLK_SPACE`     :(INTEGER);
+  - exclaim   :INTEGER <-`SDLK_EXCLAIM`   :(INTEGER);
+  - quotedbl  :INTEGER <-`SDLK_QUOTEDBL`  :(INTEGER);
+  - hash      :INTEGER <-`SDLK_HASH`      :(INTEGER);
+  - dollar    :INTEGER <-`SDLK_DOLLAR`    :(INTEGER);
+  - ampersand :INTEGER <-`SDLK_AMPERSAND` :(INTEGER);
+  - quote     :INTEGER <-`SDLK_QUOTE`     :(INTEGER);
+  - leftparen :INTEGER <-`SDLK_LEFTPAREN` :(INTEGER);
+  - rightparen:INTEGER <-`SDLK_RIGHTPAREN`:(INTEGER);
+  - asterisk  :INTEGER <-`SDLK_ASTERISK`  :(INTEGER);
+  - plus      :INTEGER <-`SDLK_PLUS`      :(INTEGER);
+  - comma     :INTEGER <-`SDLK_COMMA`     :(INTEGER);
+  - minus     :INTEGER <-`SDLK_MINUS`     :(INTEGER);
+  - period    :INTEGER <-`SDLK_PERIOD`    :(INTEGER);
+  - slash     :INTEGER <-`SDLK_SLASH`     :(INTEGER);
+
+  - k_0 :INTEGER <-`SDLK_0`:(INTEGER);
+  - k_1 :INTEGER <-`SDLK_1`:(INTEGER);
+  - k_2 :INTEGER <-`SDLK_2`:(INTEGER);
+  - k_3 :INTEGER <-`SDLK_3`:(INTEGER);
+  - k_4 :INTEGER <-`SDLK_4`:(INTEGER);
+  - k_5 :INTEGER <-`SDLK_5`:(INTEGER);
+  - k_6 :INTEGER <-`SDLK_6`:(INTEGER);
+  - k_7 :INTEGER <-`SDLK_7`:(INTEGER);
+  - k_8 :INTEGER <-`SDLK_8`:(INTEGER);
+  - k_9 :INTEGER <-`SDLK_9`:(INTEGER);
+
+  - colon        :INTEGER <-`SDLK_COLON`       :(INTEGER);
+  - semicolon    :INTEGER <-`SDLK_SEMICOLON`   :(INTEGER);
+  - less         :INTEGER <-`SDLK_LESS`        :(INTEGER);
+  - equals       :INTEGER <-`SDLK_EQUALS`      :(INTEGER);
+  - greater      :INTEGER <-`SDLK_GREATER`     :(INTEGER);
+  - at           :INTEGER <-`SDLK_AT`          :(INTEGER);
+  - leftbracket  :INTEGER <-`SDLK_LEFTBRACKET` :(INTEGER);
+  - backslash    :INTEGER <-`SDLK_BACKSLASH`   :(INTEGER);
+  - rightbracket :INTEGER <-`SDLK_RIGHTBRACKET`:(INTEGER);
+  - caret        :INTEGER <-`SDLK_CARET`       :(INTEGER);
+  - underscore   :INTEGER <-`SDLK_UNDERSCORE`  :(INTEGER);
+  - backquote    :INTEGER <-`SDLK_BACKQUOTE`   :(INTEGER);
+
+  - a :INTEGER <-`SDLK_a`:(INTEGER);
+  - b :INTEGER <-`SDLK_b`:(INTEGER);
+  - c :INTEGER <-`SDLK_c`:(INTEGER);
+  - d :INTEGER <-`SDLK_d`:(INTEGER);
+  - e :INTEGER <-`SDLK_e`:(INTEGER);
+  - f :INTEGER <-`SDLK_f`:(INTEGER);
+  - g :INTEGER <-`SDLK_g`:(INTEGER);
+  - h :INTEGER <-`SDLK_h`:(INTEGER);
+  - i :INTEGER <-`SDLK_i`:(INTEGER);
+  - j :INTEGER <-`SDLK_j`:(INTEGER);
+  - k :INTEGER <-`SDLK_k`:(INTEGER);
+  - l :INTEGER <-`SDLK_l`:(INTEGER);
+  - m :INTEGER <-`SDLK_m`:(INTEGER);
+  - n :INTEGER <-`SDLK_n`:(INTEGER);
+  - o :INTEGER <-`SDLK_o`:(INTEGER);
+  - p :INTEGER <-`SDLK_p`:(INTEGER);
+  - q :INTEGER <-`SDLK_q`:(INTEGER);
+  - r :INTEGER <-`SDLK_r`:(INTEGER);
+  - s :INTEGER <-`SDLK_s`:(INTEGER);
+  - t :INTEGER <-`SDLK_t`:(INTEGER);
+  - u :INTEGER <-`SDLK_u`:(INTEGER);
+  - v :INTEGER <-`SDLK_v`:(INTEGER);
+  - w :INTEGER <-`SDLK_w`:(INTEGER);
+  - x :INTEGER <-`SDLK_x`:(INTEGER);
+  - y :INTEGER <-`SDLK_y`:(INTEGER);
+  - z :INTEGER <-`SDLK_z`:(INTEGER);
+
+  - delete   :INTEGER <-`SDLK_DELETE`  :(INTEGER);
+  - up       :INTEGER <-`SDLK_UP`      :(INTEGER);
+  - down     :INTEGER <-`SDLK_DOWN`    :(INTEGER);
+  - right    :INTEGER <-`SDLK_RIGHT`   :(INTEGER);
+  - left     :INTEGER <-`SDLK_LEFT`    :(INTEGER);
+  - insert   :INTEGER <-`SDLK_INSERT`  :(INTEGER);
+  - home     :INTEGER <-`SDLK_HOME`    :(INTEGER);
+  - end      :INTEGER <-`SDLK_END`     :(INTEGER);
+  - pageup   :INTEGER <-`SDLK_PAGEUP`  :(INTEGER);
+  - pagedown :INTEGER <-`SDLK_PAGEDOWN`:(INTEGER);
+
+  - f1  :INTEGER <-`SDLK_F1` :(INTEGER);
+  - f2  :INTEGER <-`SDLK_F2` :(INTEGER);
+  - f3  :INTEGER <-`SDLK_F3` :(INTEGER);
+  - f4  :INTEGER <-`SDLK_F4` :(INTEGER);
+  - f5  :INTEGER <-`SDLK_F5` :(INTEGER);
+  - f6  :INTEGER <-`SDLK_F6` :(INTEGER);
+  - f7  :INTEGER <-`SDLK_F7` :(INTEGER);
+  - f8  :INTEGER <-`SDLK_F8` :(INTEGER);
+  - f9  :INTEGER <-`SDLK_F9` :(INTEGER);
+  - f10 :INTEGER <-`SDLK_F10`:(INTEGER);
+  - f11 :INTEGER <-`SDLK_F11`:(INTEGER);
+  - f12 :INTEGER <-`SDLK_F12`:(INTEGER);
+  - f13 :INTEGER <-`SDLK_F13`:(INTEGER);
+  - f14 :INTEGER <-`SDLK_F14`:(INTEGER);
+  - f15 :INTEGER <-`SDLK_F15`:(INTEGER);
+
+  - numlock   :INTEGER <-`SDLK_NUMLOCK`  :(INTEGER);
+  - capslock  :INTEGER <-`SDLK_CAPSLOCK` :(INTEGER);
+  - scrollock :INTEGER <-`SDLK_SCROLLOCK`:(INTEGER);
+  - rshift    :INTEGER <-`SDLK_RSHIFT`   :(INTEGER);
+  - lshift    :INTEGER <-`SDLK_LSHIFT`   :(INTEGER);
+  - rctrl     :INTEGER <-`SDLK_RCTRL`    :(INTEGER);
+  - lctrl     :INTEGER <-`SDLK_LCTRL`    :(INTEGER);
+  - ralt      :INTEGER <-`SDLK_RALT`     :(INTEGER);
+  - lalt      :INTEGER <-`SDLK_LALT`     :(INTEGER);
+  - rmeta     :INTEGER <-`SDLK_RMETA`    :(INTEGER);
+  - lmeta     :INTEGER <-`SDLK_LMETA`    :(INTEGER);
+  - lsuper    :INTEGER <-`SDLK_LSUPER`   :(INTEGER);
+  - rsuper    :INTEGER <-`SDLK_RSUPER`   :(INTEGER);
+  - mode      :INTEGER <-`SDLK_MODE`     :(INTEGER);
+  - compose   :INTEGER <-`SDLK_COMPOSE`  :(INTEGER);
+
+  - help   :INTEGER <-`SDLK_HELP`  :(INTEGER);
+  - print  :INTEGER <-`SDLK_PRINT` :(INTEGER);
+  - sysreq :INTEGER <-`SDLK_SYSREQ`:(INTEGER);
+  - break  :INTEGER <-`SDLK_BREAK` :(INTEGER);
+  - menu   :INTEGER <-`SDLK_MENU`  :(INTEGER);
+  - power  :INTEGER <-`SDLK_POWER` :(INTEGER);
+  - euro   :INTEGER <-`SDLK_EURO`  :(INTEGER);
+  - undo   :INTEGER <-`SDLK_UNDO`  :(INTEGER);
+
+//
+// Numeric keypad
+//
+  - kp_0        :INTEGER <-`SDLK_KP0`        :(INTEGER);
+  - kp_1        :INTEGER <-`SDLK_KP1`        :(INTEGER);
+  - kp_2        :INTEGER <-`SDLK_KP2`        :(INTEGER);
+  - kp_3        :INTEGER <-`SDLK_KP3`        :(INTEGER);
+  - kp_4        :INTEGER <-`SDLK_KP4`        :(INTEGER);
+  - kp_5        :INTEGER <-`SDLK_KP5`        :(INTEGER);
+  - kp_6        :INTEGER <-`SDLK_KP6`        :(INTEGER);
+  - kp_7        :INTEGER <-`SDLK_KP7`        :(INTEGER);
+  - kp_8        :INTEGER <-`SDLK_KP8`        :(INTEGER);
+  - kp_9        :INTEGER <-`SDLK_KP9`        :(INTEGER);
+  - kp_period   :INTEGER <-`SDLK_KP_PERIOD`  :(INTEGER);
+  - kp_divide   :INTEGER <-`SDLK_KP_DIVIDE`  :(INTEGER);
+  - kp_multiply :INTEGER <-`SDLK_KP_MULTIPLY`:(INTEGER);
+  - kp_minus    :INTEGER <-`SDLK_KP_MINUS`   :(INTEGER);
+  - kp_plus     :INTEGER <-`SDLK_KP_PLUS`    :(INTEGER);
+  - kp_enter    :INTEGER <-`SDLK_KP_ENTER`   :(INTEGER);
+  - kp_equals   :INTEGER <-`SDLK_KP_EQUALS`  :(INTEGER);
+
+//
+// Keys mods
+//
+  - mod_none   :INTEGER <- `KMOD_NONE`  :(INTEGER);
+	- mod_shift  :INTEGER <- `KMOD_SHIFT` :(INTEGER);
+	- mod_lshift :INTEGER <- `KMOD_LSHIFT`:(INTEGER);
+	- mod_rshift :INTEGER <- `KMOD_RSHIFT`:(INTEGER);
+  - mod_ctrl   :INTEGER <- `KMOD_CTRL`  :(INTEGER);
+	- mod_lctrl  :INTEGER <- `KMOD_LCTRL` :(INTEGER);
+	- mod_rctrl  :INTEGER <- `KMOD_RCTRL` :(INTEGER);
+  - mod_alt    :INTEGER <- `KMOD_ALT`   :(INTEGER);
+  - mod_lalt   :INTEGER <- `KMOD_LALT`  :(INTEGER);
+	- mod_ralt   :INTEGER <- `KMOD_RALT`  :(INTEGER);
+	- mod_meta   :INTEGER <- `KMOD_META`  :(INTEGER);
+	- mod_lmeta  :INTEGER <- `KMOD_LMETA` :(INTEGER);
+	- mod_rmeta  :INTEGER <- `KMOD_RMETA` :(INTEGER);
+	- mod_num    :INTEGER <- `KMOD_NUM`   :(INTEGER);
+	- mod_caps   :INTEGER <- `KMOD_CAPS`  :(INTEGER);
+	- mod_mode   :INTEGER <- `KMOD_MODE`  :(INTEGER);

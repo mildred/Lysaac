@@ -1,0 +1,94 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := Expanded REAL_16_16;
+
+  - export  := REAL_32, REAL_64;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := "signed 16.16 fixed float.";
+
+  - type    := `signed long`;
+  - default := (0.to_raw_real_16_16);
+
+Section Insert
+
+  - parent_signed_fixed_real:SIGNED_FIXED_REAL := SIGNED_FIXED_REAL;
+
+Section SELF
+
+  - shift_bits:INTEGER <- 16;
+
+Section Public
+
+  //
+  // Range.
+  //
+
+  - minimum:INTEGER_64  <- INTEGER_16.minimum;
+
+  - maximum:UINTEGER_64 <- INTEGER_16.maximum;
+
+  //
+  // Convertion format with test.
+  //
+
+  - to_real_16_16:REAL_16_16 <- Self;
+
+  //
+  // Convertion
+  //
+
+  - append_in buffer:STRING <-
+  // Append in the `buffer' the equivalent of `to_string'. No new STRING
+  // creation during the process.
+  ( + val:INTEGER;
+    + old_count,new_count:INTEGER;
+    ? {buffer!=NULL};
+
+    val := to_raw_integer;
+
+    (val < 0).if {
+      val := - val;
+      buffer.extend '-';
+    };
+    (val >> 16).append_in buffer;
+    buffer.extend '.';
+
+    old_count:=buffer.count;
+    //     1/65536 = 0.00390625 => 8 digit.
+    (((val & 0FFFFh).to_uinteger_64 * 100000000)>>16).to_integer.append_in buffer;
+    new_count:=old_count+8;
+    {buffer.count!=new_count}.while_do {
+      buffer.insert '0' to old_count;
+    };
+  );
+
+
+
+
+
+
+
+
+

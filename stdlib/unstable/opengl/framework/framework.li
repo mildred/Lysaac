@@ -1,0 +1,333 @@
+///////////////////////////////////////////////////////////////////////////////
+//                           Lisaac-OpenGL library                           //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := FRAMEWORK;
+  
+Section Inherit
+  
+  - parent_framework_any:FRAMEWORK_ANY := FRAMEWORK_ANY;
+  
+Section Private  
+  
+  - current_time:UINTEGER_32; //REAL_32;
+  - prev_time:UINTEGER_32; //REAL_32;
+  
+Section Public
+
+ 
+  //
+  //
+  //  
+
+  - current_scene:SCENE;
+  
+  - out:FONT;
+  
+  - is_running:BOOLEAN;
+  - frame_per_second_max:INTEGER;
+  - time_per_frame:INTEGER;
+
+  - frame_time:UINTEGER_32;
+  
+  
+  - make r:RENDERER <-
+  ( + buf:STRING;
+
+    renderer := r;
+    
+    log := LOG.create "renderer.log" level 3; 
+    buf := STRING.create 256;
+    
+    buf.append "Video Card Driver:\n";
+    renderer.video_card_name buf;
+    renderer.video_card_vendor buf;	    
+    renderer.video_card_version buf;
+    log.append buf;
+	
+    KEYCODE.make;
+    FRAMEWORK_EVENT.make;
+
+    out := renderer.font.default;
+  );
+  
+  - make_for_gui r:RENDERER <-
+  (
+    renderer := r;
+    KEYCODE.make;
+    
+    out := renderer.font.default;
+  );
+  
+  - attach_scene sc:SCENE <-
+  (
+    current_scene := sc;
+    //
+    sc.initialize;
+    //
+  );
+  
+  - set_fps n:INTEGER <-
+  (
+    frame_per_second_max := n;
+    time_per_frame := 1000/frame_per_second_max;
+  );
+  
+  //
+  // Application events.
+  //
+  
+  - initialize:BOOLEAN <- TRUE;
+  
+  - load_config <- 
+  (
+    set_fps 60;
+  );
+  
+  - init_time <- 
+  (
+    frame_time := 0;
+    parent_platform.init_time;
+    
+    current_time := get_milliseconds;
+  );
+  
+  - update_time <-
+  (
+    prev_time := current_time;
+    current_time := get_milliseconds;
+    
+    frame_time := current_time - prev_time;
+  );
+  
+  - make_frame <-
+  (
+    begin_frame;
+    //
+    draw_frame;
+    //
+    end_frame;
+  );
+  
+  - begin_frame <- 
+  (
+    renderer.begin_frame;
+  );
+  
+  - end_frame <- 
+  (
+    renderer.end_frame;
+
+    report_error.if {
+      //...
+    };
+
+    // sleep to keep constant framerate
+    (frame_per_second_max > 0).if {
+
+      (frame_time < time_per_frame).if { 
+        delay (time_per_frame - frame_time);
+      };
+    };
+  );
+  
+  - draw_frame <- 
+  (
+    (current_scene != NULL).if {
+      current_scene.render (frame_time.to_real/1000.0);
+    };
+  );
+  
+  - on_close <-
+  (
+  );
+  
+  
+  - run <-
+  // main program loop
+  (
+    init_time;
+    load_config;
+    
+    initialize.if {
+      is_running := TRUE;
+      
+      //
+      // main loop
+      //
+      {
+        FRAMEWORK_EVENT.update;
+        
+        // (is_active).if {
+        update_time;
+        make_frame;
+        // else 
+        // sleep(100);
+        
+      }.do_while {is_running};
+      
+      // exit framework
+      close; 
+    };
+  );
+  
+  - stop <-
+  (
+    is_running := FALSE;
+  );
+  
+  - close <-
+  (
+    (current_scene != NULL).if {
+      current_scene.release;
+    };
+    on_close;
+  );
+
+  //
+  // 3D modes handling
+  //
+
+Section Private
+  
+  - lighting_mode:BOOLEAN;
+  - blending_mode:BOOLEAN;
+  - fog_mode:BOOLEAN;
+  - wireframe_mode:BOOLEAN;
+  - shading_mode:BOOLEAN;
+  
+Section Public
+  
+  - toggle_shading <-
+  (
+    shading_mode := ! shading_mode;
+    shading_mode.if {
+      renderer.enable_shading;
+    } else {
+      renderer.disable_shading;
+    };
+  );
+  
+  - toggle_lighting <- 
+  (
+    lighting_mode := ! lighting_mode;
+    lighting_mode.if {
+      renderer.enable_lighting;
+    } else {
+      renderer.disable_lighting;
+    };
+  );  
+  
+  - toggle_blending <- 
+  (
+    blending_mode := ! blending_mode;
+    blending_mode.if {
+      renderer.blending.enable;
+      renderer.depth_buffer.disable;
+    } else {
+      renderer.blending.disable;
+      renderer.depth_buffer.enable;
+    };
+  );
+  
+  - toggle_fog <- 
+  (
+    fog_mode := ! fog_mode;
+    fog_mode.if {
+      renderer.fog.enable;
+    } else {
+      renderer.fog.disable;
+    };
+  );
+  
+  - toggle_wireframe <-
+  (
+    wireframe_mode := ! wireframe_mode;
+    renderer.wireframe_mode wireframe_mode;
+  );
+  
+  //
+  // Event management
+  //
+   
+Section Private
+  
+  - key_listeners:LINKED_LIST(EVENT_LISTENER);
+  - mouse_listeners:LINKED_LIST(EVENT_LISTENER);
+  
+Section Public  
+  
+  - add_key_listener kl:EVENT_LISTENER <-
+  (
+    (key_listeners = NULL).if {
+      key_listeners := LINKED_LIST(EVENT_LISTENER).create;
+    };
+    key_listeners.add_last kl;
+  );
+  
+  - add_mouse_listener ml:EVENT_LISTENER <-
+  (
+    (mouse_listeners = NULL).if {
+      mouse_listeners := LINKED_LIST(EVENT_LISTENER).create;
+    };
+    mouse_listeners.add_last ml;
+  );
+  
+  //
+  // Events
+  //
+  
+  - on_keydown k:INTEGER <-
+  (
+    (key_listeners != NULL).if {
+      key_listeners.lower.to (key_listeners.upper) do { i:INTEGER;
+        key_listeners.item i.keydown k;
+      };
+    };
+  );
+  
+  - on_keyup k:INTEGER <-
+  (
+    (key_listeners != NULL).if {
+      key_listeners.lower.to (key_listeners.upper) do { i:INTEGER;
+        key_listeners.item i.keyup k;
+      };
+    };
+  );
+  
+  - on_mousemove (x,y:INTEGER) <- 
+  (
+    (mouse_listeners != NULL).if {
+      mouse_listeners.lower.to (mouse_listeners.upper) do { i:INTEGER;
+        mouse_listeners.item i.move (x,y);
+      };
+    };
+  );
+  
+  - on_mouseclick b:INTEGER <-
+  (
+    (mouse_listeners != NULL).if {
+      mouse_listeners.lower.to (mouse_listeners.upper) do { i:INTEGER;
+        mouse_listeners.item i.click b;
+      };
+    };
+  );

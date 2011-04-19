@@ -1,0 +1,148 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        :=OUTPUT_STREAM;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     :="Standard Output Stream.";
+
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Public
+
+  - is_connected:BOOLEAN <- deferred;
+
+  - put_character c:CHARACTER <-
+  ( ? {is_connected};
+    deferred;
+  );
+
+  - put_string s:ABSTRACT_STRING <-
+  // Output `s' to current output device.
+  ( ? {is_connected};
+    ? {s!=NULL};
+
+    (s.lower).to (s.count) do {i:INTEGER;
+      put_character (s.item i);
+    };
+  );
+
+  - put_integer i:INTEGER <-
+  // Output `i' to current output device.
+  ( ? {is_connected};
+
+    tmp_string.clear;
+    i.append_in tmp_string;
+    put_string tmp_string;
+  );
+
+  - put_integer_format (i, s:INTEGER) <-
+  // Output `i' to current output device using at most
+  // `s' character.
+  ( ? {is_connected};
+
+    tmp_string.clear;
+    i.append_in_format (tmp_string,s);
+    put_string tmp_string;
+  );
+
+  //
+  // Other features:
+  //
+
+  - put_boolean b:BOOLEAN <-
+  // Output `b' to current output device according
+  // to the Eiffel format.
+  ( ? {is_connected};
+
+    put_string (b.to_string);
+  );
+
+  - put_pointer p:POINTER <-
+  // Output a viewable version of `p'.
+  ( ? {is_connected};
+
+    tmp_string.clear;
+    p.append_in tmp_string;
+    put_string tmp_string;
+  );
+
+  - put_new_line <-
+  // Output a newline character.
+  ( ? {is_connected};
+
+    put_character '\n';
+  );
+
+  - put_spaces nb:INTEGER <-
+  // Output `nb' spaces character.
+  ( ? {nb >= 0};
+
+    1.to nb do { count:INTEGER;
+      put_character ' ';
+    };
+  );
+
+  - file_exists path:ABSTRACT_STRING :BOOLEAN<-
+  (
+    DIRECTORY.scan_current_working_directory;
+    DIRECTORY.has path
+  );
+
+  /*
+  - append_file file_name:STRING <-
+  (
+    + c:CHARACTER;
+    ? { is_connected };
+    ? { file_exists file_name };
+
+    tmp_file_read.connect_to file_name;
+    tmp_file_read.read_character;
+    { tmp_file_read.end_of_input }.until_do {
+      c := tmp_file_read.last_character;
+      put_character c;
+      tmp_file_read.read_character;
+    };
+    tmp_file_read.disconnect;
+  );
+  */
+
+  - flush <-
+  // forces a write of unwritten character (write my have been
+  // delayed, flush writes buffered characters)
+  (
+    deferred;
+  );
+
+Section Private
+
+  - basic_io_putc c:CHARACTER <- SYSTEM_IO.print_char c;
+
+  - basic_error_putc c:CHARACTER <- SYSTEM_IO.print_error_char c;
+  /*
+  - tmp_file_read:TEXT_FILE_READ := TEXT_FILE_READ.create;
+  */
+  - tmp_string:STRING := STRING.create 512;

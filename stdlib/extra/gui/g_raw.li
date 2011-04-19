@@ -1,0 +1,111 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := G_RAW;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+      
+  - author  := "Sonntag Benoit (bsonntag@loria.fr)";
+  - comment := "Group elements for GUI.";
+
+Section Inherit  
+  
+  + parent_g_group:Expanded G_GROUP;
+  
+Section Public  
+  
+  //
+  // Size.
+  //
+
+  - predict_size (w,h:INTEGER) :(INTEGER,INTEGER) <-
+  (
+    w + 4, h + 4
+  );
+  
+  - width_min:INTEGER <-
+  (
+    parent_g_group.width_min + 4
+  );
+  
+  - height_min:INTEGER <-
+  (
+    parent_g_group.height_min + 4
+  );
+
+  //
+  // Update position.
+  //
+  
+  - set_position rac:AREA at (x,y:INTEGER) size (w,h:INTEGER) <-
+  ( + px,py,nw,nh:INTEGER;   
+    update rac from (x,y) size (w,h);
+    ((w-4) > root.width_max).if {      
+      nw := root.width_max;
+      px := ((w-4 - nw) / 2) + 2;
+    } else {
+      nw := w - 4;
+      px := 2;
+    };
+    ((h-4) > root.height_max).if {      
+      nh := root.height_max;
+      py := ((h-4 - nh) / 2) + 2;
+    } else {
+      nh := h - 4;
+      py := 2;
+    };    
+    root.set_position Self at (px,py) size (nw,nh);
+  );
+  
+  //
+  // Display.
+  //
+  
+  - draw_slave bmp:ABSTRACT_BITMAP from (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  ( 
+    bmp.rectangle_fill (x0,y0) to (x1,y1) color color_back;
+  );
+  
+  - draw (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  ( 
+    clipping (x0,y0) to (x1,y1);
+    draw_border_out (x_min,y_min) to (x_max,y_max);
+    draw_slave Self from (x_min+1,y_min+1) to (x_max-1,y_max-1);
+  );
+
+  //
+  // Event manager.
+  //
+  
+  - receive msg:EVENT <-
+  ( + mouse:EVENT_MOUSE;  
+    + win:AREA;
+        
+    mouse ?= msg;
+    (mouse != NULL).if {                  
+      win := DESK.get_object (mouse.x_current,mouse.y_current);
+      (win != Self).if {
+	DESK.receive msg;	
+      };
+    };    
+  );

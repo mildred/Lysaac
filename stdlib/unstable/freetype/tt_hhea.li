@@ -1,0 +1,101 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_HHEA;
+  
+  - comment     :="Horizontal Header.";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Mapping
+  
+  + version:UINTEGER_32;
+  + ascender:INTEGER_8;
+  + descender:INTEGER_8;
+  + line_gap:INTEGER_8;
+  
+  + advance_width_max:UINTEGER_8;     // advance width maximum
+  
+  + min_left_side_bearing:INTEGER_8; // minimum left-sb
+  + min_right_side_bearing:INTEGER_8;// minimum right-sb
+  + xmax_extent:INTEGER_8;           // xmax extents
+  + caret_slope_rise:INTEGER_8;
+  + caret_slope_run:INTEGER_8;
+  
+  + reserved0:INTEGER_8;
+  + reserved1:INTEGER_8;
+  + reserved2:INTEGER_8;
+  + reserved3:INTEGER_8;
+  + reserved4:INTEGER_8;
+  
+  + metric_data_format:INTEGER_8;
+  
+  + number_of_hmetrics:UINTEGER_8;
+  
+Section Public
+  
+  - to_big_endian <-
+  (
+    version := PROCESSOR.to_motorola_uint version;
+    ascender := PROCESSOR.to_motorola_short ascender;
+    descender := PROCESSOR.to_motorola_short descender;
+    line_gap := PROCESSOR.to_motorola_short line_gap;
+    advance_width_max:= PROCESSOR.to_motorola_ushort advance_width_max;    
+    min_left_side_bearing := PROCESSOR.to_motorola_short min_left_side_bearing;
+    min_right_side_bearing := PROCESSOR.to_motorola_short min_right_side_bearing;
+    xmax_extent := PROCESSOR.to_motorola_short xmax_extent;           
+    caret_slope_rise := PROCESSOR.to_motorola_short caret_slope_rise ;
+    caret_slope_run := PROCESSOR.to_motorola_short caret_slope_run;    
+    metric_data_format := PROCESSOR.to_motorola_short metric_data_format;
+    number_of_hmetrics := PROCESSOR.to_motorola_ushort number_of_hmetrics;
+  );
+  
+  - print <-
+  (
+    "\n********* HEAD TABLE *********\n".print;
+    "\n     version: ".print;
+    (version >> 16).to_hexadecimal.print;
+    '.'.print;
+    (version & 0FFFFh).to_hexadecimal.print;
+    "\n     ascender: ".print;
+    ascender.print;
+    "\n     descender: ".print;
+    descender.print;
+    "\n     line_gap: ".print; 
+    line_gap.print;
+    "\n     advance_width_max: ".print;
+    advance_width_max.print;    
+    "\n     min_left_side_bearing: ".print; 
+    min_left_side_bearing.print;
+    "\n     min_right_side_bearing: ".print;
+    min_right_side_bearing.print;
+    "\n     xmax_extent: ".print;
+    xmax_extent.print;           
+    "\n     caret_slope_rise: ".print;
+    caret_slope_rise.print;
+    "\n     caret_slope_run: ".print;
+    caret_slope_run.print;    
+    "\n     metric_data_format: ".print;
+    metric_data_format .print;
+    "\n     number of Hmetrics: ".print;
+    number_of_hmetrics.print;
+  );
+  
+  
+  

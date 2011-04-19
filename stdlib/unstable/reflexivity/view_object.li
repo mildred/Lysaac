@@ -1,0 +1,160 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+ 
+  + name    := VIEW_OBJECT(E);
+
+    
+  - comment := "Reflexivity view object.";
+  
+Section Public  
+  
+  //
+  // General information.
+  //
+  
+  //- name:STRING_CONSTANT <- `FUCK`;
+  
+  - is_separate:BOOLEAN <- `FUCK`;
+  
+  - is_expanded:BOOLEAN <- `FUCK`;
+  
+  - is_natif_expanded:BOOLEAN <- `FUCK`; 
+
+  //
+  // Data action.
+  //  
+  
+  - forall_data action:BLOCK <- `FUCK`;
+  
+  - forall_set_data action:BLOCK <- `FUCK`;
+  
+  - has_data:BOOLEAN <- `FUCK`;
+  
+  //
+  // Bit control access.
+  //
+  
+  - is_marked:BOOLEAN <-   
+  (
+    (is_natif_expanded) || {! has_data} || {(get_idf_intern & 001b) != 0}
+  );
+
+  - is_free:BOOLEAN        <- (get_idf_intern & 010b) != 0;
+  
+  - is_non_mutable:BOOLEAN <- 
+  (
+    (is_natif_expanded) || {! has_data} || {(get_idf_intern & 100b) != 0}
+  );
+        
+Section MEMORY  
+  
+  //
+  // MEMORY
+  //
+  
+  - set_mark <-
+  // Recurssive set marked bit
+  [ -? {! is_free}; ]
+  (
+    (! is_marked).if {
+      set_idf_intern (get_idf_intern | 001b);
+      for_all_data { obj:VIEW_OBJECT;	
+	obj.mark_object;
+      };
+    };
+  )
+  [ +? {is_marked}; ];
+  
+  - unset_mark <-
+  // Unset marked bit (non recurssive).
+  [ 
+    -? {is_marked};
+    -? {! is_free}; 
+  ]
+  (    
+    set_idf_intern (get_idf_intern & ~011b);
+    for_all_data { obj:VIEW_OBJECT;
+      ((! obj.is_natif_expanded) && {obj.is_expanded}).if {
+	obj.demark_object;
+      };
+    };
+  )
+  [ +? {! is_marked}; ];
+  
+  - set_free <-  
+  [ -? {! is_free}; ]
+  (
+    set_idf_intern (get_idf_intern | 010b);
+  )
+  [ +? {  is_free}; ];
+  
+  - deep_clone:VIEW_OBJECT(E) <-
+  ( + result:VIEW_OBJECT;
+        
+    ((! is_separate) && {! is_non_mutable}).if {
+      result := dico_clone.at Self else_add { 
+	+ new_clone:VIEW_OBJECT(E);
+	
+	new_clone := clone;
+	new_clone.for_all_set_data { obj:VIEW_OBJECT(F);
+	  obj.deep_clone
+	};
+	new_clone
+      };      
+    } else {
+      result := Self;
+    };
+    result
+  );
+  
+Section Public
+  
+  //
+  // Non mutable.
+  //
+  
+  - set_non_mutable <-
+  // Recurssive set non mutable bit.
+  (
+    (! is_non_mutable).if {
+      set_idf_intern (get_idf_intern | 100b);
+      for_all_data { obj:VIEW_OBJECT;	
+	obj.set_non_mutable;
+      };
+    };
+  );
+  
+Section Private
+  
+  - dico_clone:DICTIONARY(VIEW_OBJECT, VIEW_OBJECT) := DICTIONARY(VIEW_OBJECT, VIEW_OBJECT).create;
+  
+  - get_idf_intern:INTEGER <-
+  [ -? {! is_natif_expanded}; ]
+  (
+    `FUCK`    
+  );
+  
+  - set_idf_intern idf:INTEGER <-
+  [ -? {! is_natif_expanded}; ]
+  (
+    `FUCK`;
+  );

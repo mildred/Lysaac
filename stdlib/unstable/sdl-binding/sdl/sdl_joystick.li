@@ -1,0 +1,206 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                  Lisaac                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name      := SDL_JOYSTICK;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>";
+  - comment   := "";
+  - type      := `SDL_Joystick`;
+
+Section Inherit
+
+  + parent_any:ANY := ANY;
+
+Section Public /* Hat positions */
+
+//
+// Hat positions
+//
+
+  // SDL_JOYSTICK.get_hat() possible positions
+  - hat_centered  :UINTEGER_8 <- `SDL_HAT_CENTERED` :UINTEGER_8;
+  - hat_up        :UINTEGER_8 <- `SDL_HAT_UP`       :UINTEGER_8;
+  - hat_right     :UINTEGER_8 <- `SDL_HAT_RIGHT`    :UINTEGER_8;
+  - hat_down      :UINTEGER_8 <- `SDL_HAT_DOWN`     :UINTEGER_8;
+  - hat_left      :UINTEGER_8 <- `SDL_HAT_LEFT`     :UINTEGER_8;
+  - hat_rightup   :UINTEGER_8 <- `SDL_HAT_RIGHTUP`  :UINTEGER_8;
+  - hat_rightdown :UINTEGER_8 <- `SDL_HAT_RIGHTDOWN`:UINTEGER_8;
+  - hat_leftup    :UINTEGER_8 <- `SDL_HAT_LEFTUP`   :UINTEGER_8;
+  - hat_leftdown  :UINTEGER_8 <- `SDL_HAT_LEFTDOWN` :UINTEGER_8;
+
+Section Public /* Local Access */
+
+//
+// Direct Joystick access
+//
+
+  - create :SELF <-
+  ( + result:SELF;
+    result := clone;
+    result
+  );
+
+  - create_witch (device_index:INTEGER) :SELF <-
+  ( + result:SELF;
+    result := clone;
+    result.make device_index;
+    result
+  );
+
+  - make (device_index:INTEGER) <-
+  ( 
+    Self.open device_index; 
+  );
+
+  // TODO
+  - open (device_index:INTEGER) <-
+  // Open a joystick for use.
+  // The index passed as an argument refers to the N'th joystick on the system.
+  // This index is the value which will identify this joystick in future
+  // joystick events. This function returns a joystick identifier, or NULL if
+  // an error occurred.
+  ( + p:POINTER;
+    p := `SDL_JoystickOpen(@device_index)`:POINTER;
+    //Self := CONVERT(POINTER,SDL_JOYSTICK);
+  );
+
+  - index :INTEGER <-
+  // Get the device index of the opened joystick.
+  (
+    `SDL_JoystickIndex(@Self)`:INTEGER
+  );
+
+  - num_axes :INTEGER <-
+  // Get the number of general axis controls on the opened joystick
+  (
+    `SDL_JoystickNumAxes(@Self)`:INTEGER
+  );
+
+  - num_balls :INTEGER <-
+  // Get the number of trackballs on a joystick. Joystick trackballs have only
+  // relative motion events associated with them and their state cannot be
+  // polled.
+  (
+    `SDL_JoystickNumBalls(@Self);`:INTEGER
+  );
+    
+  - num_hats :INTEGER <-
+  // Get the number of POV hats on a joystick
+  (
+    `SDL_JoystickNumHats(@Self)`:INTEGER
+  );
+
+  - num_buttons :INTEGER <-
+  // Get the number of buttons on the opened joystick
+  (
+    `SDL_JoystickNumButtons(@Self)`:INTEGER
+  );
+
+  // TODO: optimize return Sint16
+  - get_axis (axis:INTEGER) :INTEGER <-
+  // Get the current state of an axis control on the opened joystick The axis
+  // indices start at index 0.  The return state is a value ranging from
+  // `-32768' to `32767'.
+  (
+    `SDL_JoystickGetAxis(@Self, @axis)`:INTEGER
+  );
+
+  - get_hat (hat:INTEGER) :UINTEGER_8 <-
+  // Get the current state of a POV hat on a joystick. The hat indices start at
+  // index `0'.
+  (
+    `SDL_JoystickGetHat(@Self, @hat)`:UINTEGER_8
+  );
+
+  // TODO check this !!!
+  - get_ball (ball:INTEGER, dx:INTEGER, dy:INTEGER) :INTEGER <-
+  // Get the ball axis change since the last poll
+  // The ball indices start at index `0'.
+  // This returns `0', or `-1' if you passed it invalid parameters.
+  (
+    //extern DECLSPEC int SDLCALL SDL_JoystickGetBall(SDL_Joystick *joystick, int ball, int *dx, int *dy);
+    `SDL_JoystickGetBall(@Self, @ball, &@dx, &@dy)`:INTEGER
+  );
+
+  - get_button (button:INTEGER) :UINTEGER_8 <-
+  // Get the current state of a button on the opened joystick. The button
+  // indices start at index `0'.
+  (
+    `SDL_JoystickGetButton(@Self, @button)`:UINTEGER_8
+  );
+
+  - close <-
+  // Close a joystick previously opened with `SDL_JoystickOpen()'
+  (
+    `SDL_JoystickClose(@Self)`;
+  );
+
+
+Section Public /* Global Access */
+
+//
+// Global information
+//
+
+  // TODO: check for NULL string return
+  - joystick_name (device_index:INTEGER) :STRING <-
+  // Get the implementation dependent name of a joystick.
+  // This can be called before any joysticks are opened.
+  // If no name can be found, this function returns NULL.
+  ( + device      :NATIVE_ARRAY(CHARACTER);
+    + device_name :STRING;
+
+    device := `SDL_JoystickName(@device_index)`:NATIVE_ARRAY(CHARACTER);
+    device_name := STRING.clone;
+    device_name.from_external device;
+    device_name 
+  );
+  
+  - opened (device_index:INTEGER) :INTEGER <-
+  // Returns 1 if the joystick has been opened, or 0 if it has not.
+  (
+    `SDL_JoystickOpened(@device_index)`:INTEGER;
+  );
+
+  - num_joysticks :INTEGER <-
+  // Count the number of joysticks attached to the system
+  (
+    `SDL_NumJoysticks()`:INTEGER
+  );
+
+  - update <-
+  //  Update the current state of the open joysticks. This is called
+  //  automatically by the event loop if any joystick events are enabled.
+  (
+    `SDL_JoystickUpdate()`;
+  );
+
+  - event_state (state:INTEGER) :INTEGER<-
+  // Enable/disable joystick event polling. If joystick events are disabled,
+  // you must call `SDL_JOYSTICK.update' yourself and check the state of the
+  // joystick when you want joystick information.
+  // The state can be one of `SDL_FLAG.query', `SDL_FLAG.enable' or
+  // `SDL_FLAG.ignore'.
+  (
+    `SDL_JoystickEventState(@state);`:INTEGER
+  );

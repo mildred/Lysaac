@@ -1,0 +1,25 @@
+Section Header
+  // Horizontal box container control
+
+  + name      := HORIZONTAL_BOX;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP Horizontal Box";
+
+Section Inherit
+
+  + parent:Expanded CONTAINER_CONTROL := CONTAINER_CONTROL;
+
+Section Public
+  
+  - make :SELF <-
+  ( + result:SELF;
+    + h:POINTER;
+    
+    h := `IupHbox(NULL)`:POINTER;
+    
+    result := SELF.clone;
+    result.set_handle h;
+    result
+  );

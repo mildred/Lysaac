@@ -1,0 +1,285 @@
+///////////////////////////////////////////////////////////////////////////////
+//   Lisaac - SDL binding library                                            //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//   http://lisaac.org/                                                      //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+
+  + name      := SDL_VIDEO;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>";
+  - comment   := "";
+
+Section Public
+
+  // ========================================================================
+  //                             VIDEO MODES 
+  // ========================================================================
+  // SDL_SWSURFACE : Create the video surface in system memory
+  // SDL_HWSURFACE : Create the video surface in video memory
+  // SDL_ASYNCBLIT : Enables the use of asynchronous updates of the display 
+  //                 surface. This will usually slow down blitting on single 
+  //                 CPU machines, but may provide a speed increase on SMP 
+  //                 systems.
+  // SDL_ANYFORMAT : Normally, if a video surface of the requested 
+  //                 bits-per-pixel (bpp) is not available, SDL will emulate 
+  //                 one with a shadow surface. Passing SDL_ANYFORMAT 
+  //                 prevents this and causes SDL to use the video surface,
+  //                 regardless of its pixel depth.
+  // SDL_HWPALETTE : Give SDL exclusive palette access. Without this flag you
+  //                 may not always get the the colors you request with 
+  //                 SDL_SetColors or SDL_SetPalette.
+  // SDL_DOUBLEBUF : Enable hardware double buffering; only valid with 
+  //                 SDL_HWSURFACE. Calling SDL_Flip will flip the buffers 
+  //                 and update the screen. All drawing will take place on 
+  //                 the surface that is not displayed at the moment. If 
+  //                 double buffering could not be enabled then SDL_Flip will
+  //                 just perform a SDL_UpdateRect on the entire screen.
+  // SDL_FULLSCREEN: SDL will attempt to use a fullscreen mode. If a hardware
+  //                 resolution change is not possible (for whatever reason),
+  //                 the next higher resolution will be used and the display 
+  //                 window centered on a black background.
+  // SDL_OPENGL    : Create an OpenGL rendering context. You should have 
+  //                 previously set OpenGL video attributes with 
+  //                 SDL_GL_SetAttribute.
+  // SDL_OPENGLBLIT: Create an OpenGL rendering context, like above, but allow
+  //                 normal blitting operations. The screen (2D) surface may 
+  //                 have an alpha channel, and SDL_UpdateRects must be used 
+  //                 for updating changes to the screen surface. NOTE: This 
+  //                 option is kept for compatibility only, and will be 
+  //                 removed in next versions. Is not recommended for new 
+  //                 code.
+  // SDL_RESIZABLE : Create a resizable window. When the window is resized by
+  //                 the user a SDL_VIDEORESIZE event is generated and 
+  //                 SDL_SetVideoMode can be called again with the new size.
+  // SDL_NOFRAME   : If possible, SDL_NOFRAME causes SDL to create a window 
+  //                 with no title bar or frame decoration. Fullscreen modes
+  //                 automatically have this flag set.
+  // ========================================================================
+
+//
+// SDL VIDEO FLAGS
+//
+  - anyformat  :UINTEGER_32 <- `SDL_ANYFORMAT` :(UINTEGER_32); // Allow any video depth/pixel-format
+  - hwpalette  :UINTEGER_32 <- `SDL_HWPALETTE` :(UINTEGER_32); // Surface has exclusive palette
+  - doublebuf  :UINTEGER_32 <- `SDL_DOUBLEBUF` :(UINTEGER_32); // Set up double-buffered video mode
+  - fullscreen :UINTEGER_32 <- `SDL_FULLSCREEN`:(UINTEGER_32); // Surface is a full screen display
+  - opengl     :UINTEGER_32 <- `SDL_OPENGL`    :(UINTEGER_32); // Create an OpenGL rendering context
+  - openglblit :UINTEGER_32 <- `SDL_OPENGLBLIT`:(UINTEGER_32); // Create an OpenGL rendering context and use it for blitting
+  - resizable  :UINTEGER_32 <- `SDL_RESIZABLE` :(UINTEGER_32); // This video mode may be resized
+  - noframe    :UINTEGER_32 <- `SDL_NOFRAME`   :(UINTEGER_32); // No window caption or edge frame
+  - swsurface  :UINTEGER_32 <- `SDL_SWSURFACE` :(UINTEGER_32); // Surface is in system memory 
+  - hwsurface  :UINTEGER_32 <- `SDL_HWSURFACE` :(UINTEGER_32); // Surface is in video memory
+  - asyncblit  :UINTEGER_32 <- `SDL_ASYNCBLIT` :(UINTEGER_32); // Use asynchronous blits if possible */
+
+  // TODO: the 3last/** Available for SDL_CreateRGBSurface() or SDL_SetVideoMode() */
+
+//
+// SDL PALETTE FLAGS
+//
+  - logpal  :INTEGER <- `SDL_LOGPAL`  :(INTEGER);
+  - physpal :INTEGER <- `SDL_PHYSPAL` :(INTEGER);
+
+//
+// OVERLAY FORMATS FLAGS
+//
+  - yv12_overlay :UINTEGER_32 <- `SDL_YV12_OVERLAY`:(UINTEGER_32); // Planar mode: Y + V + U  (3 planes)
+  - iyuv_overlay :UINTEGER_32 <- `SDL_IYUV_OVERLAY`:(UINTEGER_32); // Planar mode: Y + U + V  (3 planes)
+  - yuy2_overlay :UINTEGER_32 <- `SDL_YUY2_OVERLAY`:(UINTEGER_32); // Packed mode: Y0+U0+Y1+V0 (1 plane)
+  - uyvy_overlay :UINTEGER_32 <- `SDL_UYVY_OVERLAY`:(UINTEGER_32); // Packed mode: U0+Y0+V0+Y1 (1 plane)
+  - yvyu_overlay :UINTEGER_32 <- `SDL_YVYU_OVERLAY`:(UINTEGER_32); // Packed mode: Y0+V0+Y1+U0 (1 plane)
+
+Section Public
+
+  - set_mode (w,h,bpp:INTEGER, video:UINTEGER_32) :SDL_SURFACE <-
+  // Set up a video mode with the specified width, height and bits-per-pixel.
+  //
+  // If '`bpp' is 0, it is treated as the current display bits per pixel.
+  //
+  // If `anyformat' is set in `flags', the SDL library will try to set the
+  // requested bits-per-pixel, but will return whatever video pixel format is
+  // available.  The default is to emulate the requested pixel format if it is
+  // not natively available.
+  //
+  // If `hwsurface' is set in `flags', the video surface will be placed in
+  // video memory, if possible, and you may have to call SDL_LockSurface() in
+  // order to access the raw framebuffer.  Otherwise, the video surface will be
+  // created in system memory.
+  //
+  // If `asyncblit' is set in `flags', SDL will try to perform rectangle
+  // updates asynchronously, but you must always lock before accessing pixels.
+  // SDL will wait for updates to complete before returning from the lock.
+  //
+  // If `hwpalette' is set in `flags', the SDL library will guarantee that the
+  // colors set by `SDL_SetColors()' will be the colors you get.  Otherwise, in
+  // 8-bit mode, `SDL_SetColors()' may not be able to set all of the colors
+  // exactly the way they are requested, and you should look at the video
+  // surface structure to determine the actual palette.  If SDL cannot
+  // guarantee that the colors you request can be set, i.e. if the colormap is
+  // shared, then the video surface may be created under emulation in system
+  // memory, overriding the `hwsurface' flag.
+  //
+  // If `fullscreen' is set in `flags', the SDL library will try to set a
+  // fullscreen video mode. The default is to create a windowed mode if the
+  // current graphics system has a window manager. If the SDL library is able
+  // to set a fullscreen video mode, this flag will be set in the surface that
+  // is returned.
+  //
+  // If `doublebug' is set in `flags', the SDL library will try to set up two
+  // surfaces in video memory and swap between them when you call `flip'.
+  // This is usually slower than the normal single-buffering scheme, but
+  // prevents "tearing" artifacts caused by modifying video memory while the
+  // monitor is refreshing.  It should only be used by applications that redraw
+  // the entire screen on every update.
+  //
+  // If `resizable' is set in `flags', the SDL library will allow the window
+  // manager, if any, to resize the window at runtime.  When this occurs, SDL
+  // will send a SDL_VIDEORESIZE event to you application, and you must respond
+  // to the event by re-calling `set_video_mode' with the requested size (or
+  // another size that suits the application).
+  //
+  // If `noframe' is set in `flags', the SDL library will create a window
+  // without any title bar or frame decoration.  Fullscreen video modes have
+  // this flag set automatically.
+  //
+  // This function returns the video framebuffer surface, or NULL if it fails.
+  //
+  // If you rely on functionality provided by certain video flags, check the
+  // flags of the returned surface to make sure that functionality is available.
+  // SDL will fall back to reduced functionality if the exact flags you wanted
+  // are not available.
+  ( + scr:POINTER;
+    scr := `SDL_SetVideoMode(@w, @h, @bpp, @video)`:(POINTER);
+    CONVERT(POINTER,SDL_SURFACE).on scr
+  );
+
+  - video_mode_ok (w,h,b:INTEGER, video:UINTEGER_32) :INTEGER <-
+  // Check to see if a particular video mode is supported.  It returns 0 if the
+  // requested mode is not supported under any bit depth, or returns the
+  // bits-per-pixel of the closest available mode with the given width and
+  // height.  If this bits-per-pixel is different from the one used when
+  // setting the video mode, `set_video_mode' will succeed, but will emulate
+  // the requested bits-per-pixel with a shadow surface.
+  //
+  // The arguments to `video_mode_ok' are the same ones you would pass to
+  // `set_video_mode'.
+  (
+    `SDL_VideoModeOK(@w,@h,@b,@video)`:(INTEGER)
+  );
+
+
+
+//
+//
+//
+  
+  - map_rgb (pf:SDL_PIXEL_FORMAT, r,g,b:UINTEGER_8) :UINTEGER_32<-
+  //Maps an RGB triple to an opaque pixel value for a given pixel format
+  (
+    `SDL_MapRGB((SDL_PixelFormat*)@pf, @r, @g, @b)`:(UINTEGER_32)
+  );
+
+  // TODO
+  /*
+  extern DECLSPEC int SDLCALL SDL_VideoInit(const char *driver_name, Uint32 flags);
+  extern DECLSPEC void SDLCALL SDL_VideoQuit(void);
+  extern DECLSPEC char * SDLCALL SDL_VideoDriverName(char *namebuf, int maxlen);
+  extern DECLSPEC SDL_Surface * SDLCALL SDL_GetVideoSurface(void);
+  extern DECLSPEC const SDL_VideoInfo * SDLCALL SDL_GetVideoInfo(void);
+  extern DECLSPEC SDL_Rect ** SDLCALL SDL_ListModes(SDL_PixelFormat *format, Uint32 flags);
+  extern DECLSPEC void SDLCALL SDL_UpdateRects
+		      (SDL_Surface *screen, int numrects, SDL_Rect *rects);
+  extern DECLSPEC void SDLCALL SDL_UpdateRect
+		      (SDL_Surface *screen, Sint32 x, Sint32 y, Uint32 w, Uint32 h);
+  extern DECLSPEC int SDLCALL SDL_SetGamma(float red, float green, float blue);
+  extern DECLSPEC int SDLCALL SDL_SetGammaRamp(const Uint16 *red, const Uint16 *green, const Uint16 *blue);
+  extern DECLSPEC int SDLCALL SDL_GetGammaRamp(Uint16 *red, Uint16 *green, Uint16 *blue);
+  extern DECLSPEC int SDLCALL SDL_SetColors(SDL_Surface *surface, 
+		    	SDL_Color *colors, int firstcolor, int ncolors);
+  extern DECLSPEC int SDLCALL SDL_SetPalette(SDL_Surface *surface, int flags,
+				   SDL_Color *colors, int firstcolor,
+				   int ncolors);
+  extern DECLSPEC Uint32 SDLCALL SDL_MapRGB
+          (const SDL_PixelFormat * const format,
+          const Uint8 r, const Uint8 g, const Uint8 b);
+  extern DECLSPEC Uint32 SDLCALL SDL_MapRGBA
+          (const SDL_PixelFormat * const format,
+          const Uint8 r, const Uint8 g, const Uint8 b, const Uint8 a);
+  extern DECLSPEC void SDLCALL SDL_GetRGB(Uint32 pixel,
+	  			const SDL_PixelFormat * const fmt,
+		  		Uint8 *r, Uint8 *g, Uint8 *b);
+  extern DECLSPEC void SDLCALL SDL_GetRGBA(Uint32 pixel,
+  				const SDL_PixelFormat * const fmt,
+	  			Uint8 *r, Uint8 *g, Uint8 *b, Uint8 *a);
+
+
+  extern DECLSPEC SDL_Surface * SDLCALL SDL_CreateRGBSurfaceFrom(void *pixels,
+		  	int width, int height, int depth, int pitch,
+	  		Uint32 Rmask, Uint32 Gmask, Uint32 Bmask, Uint32 Amask);
+  extern DECLSPEC void SDLCALL SDL_FreeSurface(SDL_Surface *surface);
+  extern DECLSPEC int SDLCALL SDL_LockSurface(SDL_Surface *surface);
+  extern DECLSPEC void SDLCALL SDL_UnlockSurface(SDL_Surface *surface);
+  extern DECLSPEC SDL_Surface * SDLCALL SDL_LoadBMP_RW(SDL_RWops *src, int freesrc);
+  extern DECLSPEC int SDLCALL SDL_SaveBMP_RW
+    		(SDL_Surface *surface, SDL_RWops *dst, int freedst);
+  extern DECLSPEC int SDLCALL SDL_SetColorKey
+			(SDL_Surface *surface, Uint32 flag, Uint32 key);
+  extern DECLSPEC int SDLCALL SDL_SetAlpha(SDL_Surface *surface, Uint32 flag, Uint8 alpha);
+  extern DECLSPEC SDL_bool SDLCALL SDL_SetClipRect(SDL_Surface *surface, const SDL_Rect *rect);
+  extern DECLSPEC void SDLCALL SDL_GetClipRect(SDL_Surface *surface, SDL_Rect *rect);
+  extern DECLSPEC SDL_Surface * SDLCALL SDL_ConvertSurface
+    			(SDL_Surface *src, SDL_PixelFormat *fmt, Uint32 flags);
+  extern DECLSPEC int SDLCALL SDL_UpperBlit
+			(SDL_Surface *src, SDL_Rect *srcrect,
+			 SDL_Surface *dst, SDL_Rect *dstrect);
+  extern DECLSPEC int SDLCALL SDL_LowerBlit
+			(SDL_Surface *src, SDL_Rect *srcrect,
+			 SDL_Surface *dst, SDL_Rect *dstrect);
+  extern DECLSPEC int SDLCALL SDL_FillRect
+		(SDL_Surface *dst, SDL_Rect *dstrect, Uint32 color);
+  extern DECLSPEC SDL_Surface * SDLCALL SDL_DisplayFormat(SDL_Surface *surface);
+  extern DECLSPEC SDL_Surface * SDLCALL SDL_DisplayFormatAlpha(SDL_Surface *surface);
+
+  YUV
+  ===
+  extern DECLSPEC SDL_Overlay * SDLCALL SDL_CreateYUVOverlay(int width, int height,	Uint32 format, SDL_Surface *display);
+  extern DECLSPEC int SDLCALL SDL_LockYUVOverlay(SDL_Overlay *overlay);
+  extern DECLSPEC void SDLCALL SDL_UnlockYUVOverlay(SDL_Overlay *overlay);
+  extern DECLSPEC int SDLCALL SDL_DisplayYUVOverlay(SDL_Overlay *overlay, SDL_Rect *dstrect);
+  extern DECLSPEC void SDLCALL SDL_FreeYUVOverlay(SDL_Overlay *overlay);
+
+  OPENGL
+  ======
+  extern DECLSPEC int SDLCALL SDL_GL_LoadLibrary(const char *path);
+  extern DECLSPEC void * SDLCALL SDL_GL_GetProcAddress(const char* proc);
+  extern DECLSPEC int SDLCALL SDL_GL_SetAttribute(SDL_GLattr attr, int value);
+  extern DECLSPEC int SDLCALL SDL_GL_GetAttribute(SDL_GLattr attr, int* value);
+  extern DECLSPEC void SDLCALL SDL_GL_SwapBuffers(void);
+  extern DECLSPEC void SDLCALL SDL_GL_UpdateRects(int numrects, SDL_Rect* rects);
+  extern DECLSPEC void SDLCALL SDL_GL_Lock(void);
+  extern DECLSPEC void SDLCALL SDL_GL_Unlock(void);
+  
+  Window Manager
+  ==============
+  extern DECLSPEC void SDLCALL SDL_WM_SetCaption(const char *title, const char *icon);
+  extern DECLSPEC void SDLCALL SDL_WM_GetCaption(char **title, char **icon);
+  extern DECLSPEC void SDLCALL SDL_WM_SetIcon(SDL_Surface *icon, Uint8 *mask);
+  extern DECLSPEC int SDLCALL SDL_WM_IconifyWindow(void);
+  extern DECLSPEC int SDLCALL SDL_WM_ToggleFullScreen(SDL_Surface *surface);
+  extern DECLSPEC SDL_GrabMode SDLCALL SDL_WM_GrabInput(SDL_GrabMode mode);
+  */

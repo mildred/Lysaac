@@ -1,0 +1,64 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_HDMX_DATA;
+  - comment     :=" hdmx: device records .";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Public
+
+  + pixel_size:UINTEGER_16;
+  
+  + max_width:UINTEGER_16;
+  
+  + widths:NATIVE_ARRAY(UINTEGER_16);
+  
+  + number_glyph:UINTEGER_32;
+  
+  - create (n:NUMERIC,buf:NATIVE_ARRAY(UINTEGER_16)) :SELF <-
+  ( + result:SELF;
+    
+    result := SELF.clone;
+    result.make (n,buf);
+    result       
+  );
+  
+  - make (n:NUMERIC,buf:NATIVE_ARRAY(UINTEGER_16)) <-
+  (
+    pixel_size := buf.item 0;
+    max_width := buf.item 1;
+    number_glyph := n;
+    widths := NATIVE_ARRAY(UINTEGER_16).calloc n;
+    widths := NATIVE_ARRAY(UINTEGER_16).force_conversion (buf + 2);        
+  );
+  
+  - print <-
+  (
+    "\n     Pixel Size:".print;
+    pixel_size.print;
+    "\n     Max Width:".print;
+    max_width.print;
+    "\n     Widths:".print;
+    0.to (number_glyph - 1) do { i:INTEGER;
+      width.item i.print;
+      ' '.print;      
+    };
+    '\n'.print;
+  );

@@ -1,0 +1,69 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Application                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := MD2_VERTEX;
+  
+  - comment  := "Quake2' md2 model format";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public //Mapping
+  
+  + vertex_index1:UINTEGER_8;
+  + vertex_index2:UINTEGER_8;
+  + vertex_index3:UINTEGER_8;
+  
+  + lightnormal_index:UINTEGER_8;
+  
+Section Public
+  
+  - index1:REAL_32 <- vertex_index1.to_real;
+  - index2:REAL_32 <- vertex_index2.to_real;
+  - index3:REAL_32 <- vertex_index3.to_real;
+  
+  - light_index:UINTEGER_8 <- lightnormal_index;
+  
+  - create (v1,v2,v3:UINTEGER_8, l:UINTEGER_8) :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make (v1,v2,v3,l);
+    result
+  );
+
+  - make (v1,v2,v3:UINTEGER_8, l:UINTEGER_8) <-
+  ( 
+    vertex_index1 := v1;
+    vertex_index2 := v2;
+    vertex_index3 := v3;
+    lightnormal_index := l;
+  );
+
+  - print <-
+  (
+    "\nmd2 vertex: ".print; vertex_index1.print; " , ".print;
+    vertex_index2.print; " , ".print;
+    vertex_index2.print; " => light ".print; 
+    lightnormal_index.print;
+  );

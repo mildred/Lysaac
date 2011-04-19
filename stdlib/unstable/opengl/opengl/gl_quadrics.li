@@ -1,0 +1,78 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_QUADRICS;
+  
+  - comment  := "glu quadrics";
+  
+  - external := `GLUquadric* quadric;`; 
+  
+Section Inherit
+  
+  - parent_quadrics:QUADRICS := QUADRICS;
+  
+Section Public
+  
+  - fill_mode:INTEGER  <- `GLU_FILL`:INTEGER;
+  - point_mode:INTEGER  <- `GLU_POINT`:INTEGER;
+  - line_mode:INTEGER  <- `GLU_LINE`:INTEGER;
+  
+  - begin_quadric <-
+  (
+    `quadric = gluNewQuadric()`;
+  );
+  
+  - end_quadric <-
+  (
+    `gluDeleteQuadric(quadric)`;
+  );
+  
+  - enable_texture <-
+  (
+    `gluQuadricTexture(quadric,GL_TRUE)`;
+  );
+  
+  - disable_texture <-
+  (
+    `gluQuadricTexture(quadric,GL_FALSE)`;
+  );
+  
+  - set_style style:INTEGER <-
+  (
+    `gluQuadricDrawStyle(quadric,@style)`;
+  );
+  
+  - draw_sphere (radius,slices,stacks:REAL_32) <-
+  (
+    `gluSphere(quadric,@radius,@slices,@stacks)`; 
+  );
+  
+  - draw_cylinder (base,top,height,slices,stacks:REAL_32) <-
+  (
+    `gluCylinder(quadric,@base,@top,@height,@slices,@stacks)`; 
+  );
+
+  - draw_disk (inner,outer,slices,loops:REAL_32) <-
+  (   
+    `gluDisk(quadric,@inner,@outer,@slices,@loops)`;
+  );

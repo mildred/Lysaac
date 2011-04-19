@@ -1,0 +1,158 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := G_OUT;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+      
+  - author  := "Sonntag Benoit (bsonntag@loria.fr)";
+  - comment := "Output text for GUI.";
+
+Section Inherit  
+
+  + parent_area:Expanded AREA;
+  
+  + parent_g_expr:Expanded G_EXPR;
+          
+Section Public
+  
+  + text:STRING;
+  
+  + justify:UINTEGER_8;
+  
+  - left  :UINTEGER_8 := 0;
+  - right :UINTEGER_8 := 1;
+  - center:UINTEGER_8 := 2;
+  
+  //
+  // Width / Height
+  //
+  
+  - predict_size txt:ABSTRACT_STRING :(INTEGER,INTEGER) <-
+  ( 
+    width_min_on txt, height_min_on txt
+  );
+  
+  - width_min:INTEGER <-
+  ( 
+    width_min_on text
+  );
+  
+  - height_min:INTEGER <-
+  (
+    height_min_on text
+  );
+  
+  //
+  // Creation.
+  //
+  
+  - create txt:ABSTRACT_STRING :SELF <-
+  ( + result:SELF;
+    
+    result := clone;
+    result.make txt justify left;
+    result
+  );
+  
+  - create txt:ABSTRACT_STRING justify j:UINTEGER_8 :SELF <-
+  [
+    -? {j.in_range 0 to 2};
+  ]
+  ( + result:SELF;
+        
+    result := clone;
+    result.make txt justify j;
+    result
+  );
+  
+  - make txt:ABSTRACT_STRING justify j:UINTEGER_8 <-
+  (
+    text := STRING.create (txt.count.max 8);
+    text.copy txt;
+    justify := j;
+  ); 
+
+  //
+  // Update position.
+  //
+  
+  - set_position rac:AREA at (x,y:INTEGER) size (w,h:INTEGER) <-
+  ( 
+    update rac from (x,y) size (w,h);
+  );
+  
+  //
+  // Display.
+  //
+  
+  - draw (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  ( + beg,idx,siz,px,py:INTEGER;
+    + g_grp:G_GROUP;
+    
+    clipping (x0,y0) to (x1,y1);    
+    //    
+    g_grp ?= parent;
+    g_grp.draw_slave Self from (x0,y0) to (x1,y1);
+    //
+    color black;
+    beg := text.lower;
+    py := (height - height_min) / 2;
+    {
+      idx := text.index_of '\n' since beg;
+      (justify != left).if {
+	siz := font_width text at beg to (idx-1);
+	(justify = right).if {
+	  // Right
+	  px := width - siz;
+	} else {
+	  // Center
+	  px := (width - siz) >> 1;
+	};
+      };
+      print text at beg to (idx-1) to (px,py); 
+      py  := py + 16;
+      beg := idx + 1;
+    }.do_until {idx > text.count};
+  );
+  
+Section Private
+  
+  - width_min_on txt:ABSTRACT_STRING :INTEGER <-
+  ( + beg,idx,siz:INTEGER;
+    + result:INTEGER;
+    
+    beg := txt.lower;
+    {
+      idx    := txt.index_of '\n' since beg;
+      siz    := font_width txt at beg to (idx-1);
+      result := result.max siz;      
+      beg    := idx + 1;
+    }.do_until {idx > txt.count};
+    result
+  );
+  
+  - height_min_on txt:ABSTRACT_STRING :INTEGER <-
+  (
+    (txt.occurrences '\n' + 1) * 16
+  );

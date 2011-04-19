@@ -1,0 +1,140 @@
+///////////////////////////////////////////////////////////////////////////////
+//                           Lisaac-OpenGL library                           //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_COLOR_BUFFER;
+  
+  - comment  := "OpenGL pixel color buffer";
+  
+Section Inherit
+  
+  - parent_color_buffer:COLOR_BUFFER := COLOR_BUFFER;
+  
+Section Public
+  
+  - rgb:INTEGER <- `GL_RGB`:INTEGER;
+  - rgba:INTEGER <- `GL_RGBA`:INTEGER;
+  - red:INTEGER <- `GL_RED`:INTEGER;
+  - green:INTEGER <- `GL_GREEN`:INTEGER;
+  - blue:INTEGER <- `GL_BLUE`:INTEGER;
+  - alpha:INTEGER <- `GL_ALPHA`:INTEGER;
+  - luminance:INTEGER <- `GL_LUMINANCE`:INTEGER; // grey (single component)
+  - luminance_alpha:INTEGER <- `GL_LUMINANCE_ALPHA`:INTEGER; // grey+alpha
+  - stencil_index:INTEGER <- `GL_STENCIL_INDEX`:INTEGER;
+  - depth_component:INTEGER <- `GL_DEPTH_COMPONENT`:INTEGER;
+  
+  
+  - clear <- 
+  (
+    `glClear(GL_COLOR_BUFFER_BIT)`;
+  );
+  
+  - set_clear_value (r,g,b,a:REAL_32) <- 
+  (
+    `glClearColor(@r, @g, @b, @a)`;
+  );
+  
+  - set_color c:COLOR <- 
+  (
+    + r,g,b:REAL_32;
+    
+    r := c.r;
+    g := c.g;
+    b := c.b;
+    `glColor3f(@r, @g, @b)`;
+  );
+  
+  - set_color3f (r,g,b:REAL_32) <-
+  (
+    `glColor3f(@r, @g, @b)`;
+  );
+  
+  - set_color4f (r,g,b,a:REAL_32) <-
+  (
+    `glColor4f(@r, @g, @b, @a)`;
+  );
+  
+  - set_mask (r,g,b,a:BOOLEAN) <-
+  (
+    `glColorMask(@r, @g, @b, @a)`;
+  );
+  
+  - enable <-
+  (
+    `glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE)`;
+  );
+  
+  - disable <-
+  (
+    `glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE)`;
+  );
+  
+  - read (x,y:INTEGER) size (w,h:INTEGER) type t:INTEGER in buf:FAST_ARRAY(UINTEGER_8) <-
+  ( + p:POINTER;
+    
+    p := buf.to_external;
+    `glReadPixels(@x,@y,@w,@h,@t,GL_UNSIGNED_BYTE,@p)`; 
+  ); 
+  
+  // aliases
+  - read_rgb (x,y:INTEGER) size (w,h:INTEGER) in buf:FAST_ARRAY(UINTEGER_8) <-
+  ( 
+    read (x,y) size (w,h) type rgb in buf;
+  ); 
+   
+ - read_rgba (x,y:INTEGER) size (w,h:INTEGER) in buf:FAST_ARRAY(UINTEGER_8) <-
+  ( 
+    read (x,y) size (w,h) type rgba in buf;
+  );
+  
+  - draw_pixels pixels:FAST_ARRAY(UINTEGER_8) size (w,h:INTEGER) type t:INTEGER <-
+  ( + p:POINTER;
+    
+    p := pixels.to_external;
+    `glDrawPixels(@w,@h,GL_UNSIGNED_BYTE,@t,@p)`;
+  );
+  
+  - draw_rgb_pixels pixels:FAST_ARRAY(UINTEGER_8) size (w,h:INTEGER) <-
+  (
+    draw_pixels pixels size (w,h) type rgb;
+  );
+
+  - draw_rgba_pixels pixels:FAST_ARRAY(UINTEGER_8) size (w,h:INTEGER) <-
+  (
+    draw_pixels pixels size (w,h) type rgba;
+  );
+  
+  - copy (x,y:INTEGER) size (w,h:INTEGER) type t:INTEGER <-
+  (
+    `glCopyPixels(@x,@y,@w,@h,@t)`;
+  );
+  
+  - copy_rgb (x,y:INTEGER) size (w,h:INTEGER) <-
+  (
+    copy (x,y) size (w,h) type rgb;
+  );
+  
+  - copy_rgba (x,y:INTEGER) size (w,h:INTEGER) <-
+  (
+    copy (x,y) size (w,h) type rgba;
+  );
+  

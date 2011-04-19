@@ -1,0 +1,100 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := BMP;
+  
+  - comment  := "bmp loader";
+  
+Section Inherit
+  
+  - parent_format:IMAGE_FORMAT := IMAGE_FORMAT;
+  
+Section Public
+  
+  - format:STRING_CONSTANT := "bmp";
+ 
+  
+  - load image:IMAGE :BOOLEAN <-
+  (
+    + result:BOOLEAN;
+    + bmp_buffer:FAST_ARRAY(UINTEGER_8);
+    + header:BMP_HEADER;
+    
+    + columns,rows,stride:UINTEGER_32;
+    + image_data:FAST_ARRAY(UINTEGER_8);
+    + base,k:INTEGER;
+    
+    + e:ENTRY;
+    + file:FILE;
+    
+    e := FILE_SYSTEM.get_entry (image.name);
+    (e != NULL).if {
+      file ?= e;
+      file.open;
+      
+      bmp_buffer := FAST_ARRAY(UINTEGER_8).create_with_capacity (file.size+1);
+      
+      (file.read bmp_buffer size (file.size)  > 0).if {
+	
+	header := CONVERT(NATIVE_ARRAY(UINTEGER_8),BMP_HEADER).on (bmp_buffer.storage);
+	
+	image.set_size (header.width, header.height);
+	image.set_channels (header.bits_per_pixel >> 3);
+	
+	((!header.is_valid) || {header.is_rle8_compressed}).if {
+	  error "Only uncompressed BMP files supported";
+	};
+	
+	(image.channels = 3).if {
+	  // load 24bit bitmap
+	  
+	  columns := header.width;
+	  rows := header.height;
+	  
+	  stride := image.calculate_stride;
+	  
+	  image_data := FAST_ARRAY(UINTEGER_8).create (stride * rows);
+	  base := BMP_HEADER.object_size;
+	  
+	  0.to (rows-1) do { row:INTEGER;
+	    k := row * stride;
+	    0.to (columns-1) do { i:INTEGER;
+	      // swap bytes 0 & 2 
+	      image_data.put (bmp_buffer.item (base+k+i*3+2)) to (k+i*3);
+	      image_data.put (bmp_buffer.item (base+k+i*3+1)) to (k+i*3+1);  
+	      image_data.put (bmp_buffer.item (base+k+i*3)) to (k+i*3+2);   
+	    };
+	  };
+	  image.set_data image_data;
+	  result := TRUE;
+	}.elseif {image.channels = 1} then {
+	  // load8
+
+	  error "8bit bitmap not yet supported";
+	} else {
+	  error "Unsupported bitmap";
+	};	
+      };    
+    };
+    result
+  );

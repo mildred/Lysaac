@@ -1,0 +1,305 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := OPENGL;
+  
+  - lip  <-
+  (
+    add_lib " -lGL -lGLU -lXxf86vm ";
+  );
+  
+  - external :=   
+  `#include <GL/glx.h>
+  #include <GL/gl.h>
+  #include <GL/glu.h>
+  #include <X11/Xlib.h>
+  #include <X11/keysym.h>
+  #include <X11/extensions/xf86vmode.h>
+  #include <sys/time.h>
+  
+  #define GPA(funcname)  glXGetProcAddressARB(funcname);
+  
+  struct glx_window_t
+  {
+    Display               *dpy;
+    int                    screen;
+    Window                 win;
+    GLXContext             context;
+    XSetWindowAttributes   attributes;
+    
+    XF86VidModeModeInfo deskMode;   
+    XVisualInfo *vi;
+  };
+  
+  struct glx_window_t   win;
+  XF86VidModeModeInfo **modes;
+  int  numModes, bestMode;
+  int vidModeMajorVersion, vidModeMinorVersion;
+  Atom wmDelete;
+  
+  XEvent event;
+  
+  static struct timeval start, now, tv; 
+  
+  static int attribs[32];
+  `;
+  
+Section Inherit
+  
+  - parent_opengl_abstract:OPENGL_ABSTRACT := OPENGL_ABSTRACT;
+  
+Section Public
+  
+  - swap_buffers <-
+  // post rendering
+  (
+    // flip double buffer
+    `glXSwapBuffers (win.dpy, win.win)`;
+  );
+  
+Section Public  
+  
+  - make (w,h:INTEGER) <-
+  (
+    do_make (w,h) title "OpenGL application";
+    SCENE.set_renderer Self; // make Self current
+  );
+  
+  - make (w,h:INTEGER) title s:ABSTRACT_STRING <-
+  (
+    do_make (w,h) title s;	
+    SCENE.set_renderer Self; // make Self current
+  );
+  
+  - do_make (w,h:INTEGER) title s:ABSTRACT_STRING <-
+  (
+    + nb_mode,n,size:INTEGER;
+    + title:NATIVE_ARRAY(CHARACTER);	
+    
+    width := w;
+    height := h;
+    viewport := VIEWPORT.create (0,0,w,h);
+    
+    // Creation fenetre X:
+    `win.dpy = XOpenDisplay (NULL)`;
+    `win.screen = DefaultScreen (win.dpy)`;
+    `bestMode = 0`;
+    
+    `XF86VidModeQueryVersion(win.dpy, &vidModeMajorVersion,&vidModeMinorVersion)`;
+    
+    `XF86VidModeGetAllModeLines (win.dpy, win.screen, &numModes, &modes)`;
+    
+    `win.deskMode = *modes[0];`;
+    
+    // make OpenGL attributes list
+    `attribs[0] = GLX_RGBA`;
+    `attribs[1] = GLX_RED_SIZE`;
+    size := red_size;
+    `attribs[2] = @size`;
+    `attribs[3] = GLX_GREEN_SIZE`;
+    size := green_size;
+    `attribs[4] = @size`;
+    `attribs[5] = GLX_BLUE_SIZE`;
+    size := blue_size;
+    `attribs[6] = @size`;
+    
+    n := 7;
+    has_alpha.if {
+      `attribs[@n] = GLX_ALPHA_SIZE`;
+      n := n+1;
+      size := alpha_size;
+      `attribs[@n] = @size`;
+      n := n+1;
+    };      
+    has_doublebuffer.if {
+      `attribs[@n] = GLX_DOUBLEBUFFER`;
+      n := n+1;
+    };
+    has_depth_buffer.if {
+      `attribs[@n] = GLX_DEPTH_SIZE`;
+      n := n+1;
+      
+      size := depth_size;
+      `attribs[@n] = @size`;
+      n := n+1;
+    };
+    has_stencil_buffer.if {
+      `attribs[@n] = GLX_STENCIL_SIZE`;
+      n := n+1;
+      
+      size := stencil_size;
+      `attribs[@n] = @size`;
+      n := n+1;
+    };
+    has_accum_buffer.if {
+      `attribs[@n] = GLX_ACCUM_RED_SIZE`;
+      n := n+1;
+      size := accum_red_size;
+      `attribs[@n] = @size`;
+      n := n+1;
+      
+      `attribs[@n] = GLX_ACCUM_GREEN_SIZE`;
+      n := n+1;
+      size := accum_green_size;
+      `attribs[@n] = @size`;
+      n := n+1; 
+      
+      `attribs[@n] = GLX_ACCUM_BLUE_SIZE`;
+      n := n+1;
+      size := accum_blue_size;
+      `attribs[@n] = @size`;
+      n := n+1;
+      
+      has_alpha.if {
+        `attribs[@n] = GLX_ACCUM_ALPHA_SIZE`;
+        n := n+1;
+        size := accum_alpha_size;
+        `attribs[@n] = @size`;
+        n := n+1;
+      };
+    };
+    // terminate list
+    `attribs[@n] = (int) None`;
+    
+    `win.vi = glXChooseVisual (win.dpy, win.screen, attribs)`;
+    (`win.vi`:POINTER = NULL).if {
+      fatal_error "Failed to set XVisual";
+    };
+    
+    nb_mode := `numModes`:INTEGER;
+    0.to (nb_mode-1) do { i:INTEGER;
+      `
+      if ((modes[@i]->hdisplay == @w) &&
+      (modes[@i]->vdisplay == @h))
+      {
+        bestMode = @i;
+      }
+      `;
+    };
+    
+    // create OpenGL context
+    `win.context = glXCreateContext (win.dpy, win.vi, 0, GL_TRUE)`;
+    (`win.context`:POINTER = NULL).if {
+      `XDestroyWindow (win.dpy, win.win)`;
+      `XCloseDisplay (win.dpy)`;
+      
+      fatal_error "failed to create a rendering context";
+    };
+    
+    // create a color map
+    `win.attributes.colormap = XCreateColormap (win.dpy, RootWindow (win.dpy, win.vi->screen),win.vi->visual, AllocNone)`;
+    `win.attributes.border_pixel = 0`;
+    //`win.attributes.background_pixel = 0`;
+    
+    is_fullscreen.if {
+      `XF86VidModeSwitchToMode (win.dpy, win.screen, modes[bestMode])`;
+      `XF86VidModeSetViewPort (win.dpy, win.screen, 0, 0)`;
+      width := `modes[bestMode]->hdisplay`:INTEGER;
+      height := `modes[bestMode]->vdisplay`:INTEGER;
+      `XFree (modes)`;
+      
+      // create fullscreen window
+      `win.attributes.override_redirect = 1`;
+      `win.attributes.event_mask = ExposureMask | KeyPressMask| ButtonPressMask|ButtonReleaseMask | PointerMotionMask | StructureNotifyMask`;
+      
+      `win.win = XCreateWindow (win.dpy, RootWindow (win.dpy, win.vi->screen),0, 0, @w, @h, 0, win.vi->depth, InputOutput, win.vi->visual,CWBorderPixel | CWColormap | CWEventMask | CWOverrideRedirect, &win.attributes)`;
+      
+      // warp mouse at center of the screen
+      `XWarpPointer (win.dpy, None, win.win, 0, 0, 0, 0, @w / 2, @h / 2)`;
+      `XMapRaised (win.dpy, win.win)`;
+      `XGrabKeyboard (win.dpy, win.win, True, GrabModeAsync,GrabModeAsync, CurrentTime)`;
+      
+      `XGrabPointer (win.dpy, win.win, True, ButtonPressMask,GrabModeAsync, GrabModeAsync, win.win, None, CurrentTime)`;      
+    } else {
+      // window mode
+      `win.attributes.event_mask = ExposureMask | KeyPressMask | ButtonPressMask|ButtonReleaseMask | PointerMotionMask | StructureNotifyMask`;
+      
+     // `win.attributes.event_mask |= ClientMessage | KeyReleaseMask`;
+
+      // create simple window
+      `win.win = XCreateWindow (win.dpy, RootWindow (win.dpy, win.vi->screen),0, 0, @w, @h, 0, win.vi->depth, InputOutput, win.vi->visual,CWBorderPixel | CWColormap | CWEventMask, &win.attributes)`;
+      
+      `#ifndef GLBINDING__USE_GUI 
+      // unbind action of the close window button
+      wmDelete = XInternAtom(win.dpy, "WM_DELETE_WINDOW", True);
+      XSetWMProtocols(win.dpy, win.win, &wmDelete, 1);
+      #endif
+      `;
+      title := s.to_external;
+      `XSetStandardProperties(win.dpy, win.win, @title, @title, None, NULL, 0, NULL)`;
+      `XMapRaised (win.dpy, win.win)`;
+    };
+    // `int x,y,borderDummy`;
+    //`Window winDummy`;
+    `glXMakeCurrent (win.dpy, win.win, win.context)`;
+    // `XGetGeometry(win.dpy, win.win, &winDummy, &x, &y,&x, &y, &borderDummy, &x)`;
+    
+    (`glXIsDirect (win.dpy, win.context)`:INTEGER = 0).if {
+      fatal_error "no direct rendering possible\n";
+    };
+    // Title window:
+    // title := s.to_external;
+    //`XStoreName(win.dpy,win.win,@title)`;  
+    
+    /// for GUI compatibility ///
+    `#ifdef GLBINDING__USE_GUI
+    display = win.dpy;	
+    window = win.win;
+    #endif
+    `;
+    ///
+    
+    initialize;
+    resize (width,height);
+  );
+  
+  - resize (w,h:INTEGER) <-
+  (     
+    (h != 0).if {
+      width := w;
+      height := h;
+      
+      viewport.make (0, 0, w, h);
+      //
+      reshape.on_resize (w,h);
+      //
+    };
+  );
+  
+Section Public
+  - close <-
+  (   
+    // release context
+    (`win.context`:POINTER != NULL).if {
+      `glXMakeCurrent (win.dpy, None, NULL)`;
+      `glXDestroyContext (win.dpy, win.context)`;
+      `win.context = NULL`;
+    };
+    is_fullscreen.if {
+      `XF86VidModeSwitchToMode (win.dpy, win.screen, &win.deskMode)`;
+      `XF86VidModeSetViewPort (win.dpy, win.screen, 0, 0)`;
+    };
+    `XDestroyWindow (win.dpy, win.win)`;
+    `XCloseDisplay (win.dpy)`;
+  );
+  

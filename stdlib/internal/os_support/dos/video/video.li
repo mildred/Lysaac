@@ -1,0 +1,158 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        := VIDEO;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     := "Driver video - For DOS -";
+
+  - bibliography:= "http://IsaacOS.com";
+  - author      := "Benoit Sonntag (bsonntag@loria.fr)";
+
+  - external :=
+  `
+#include <stdio.h>
+#include <dos.h>
+#include <dpmi.h>
+#include <pc.h>
+#include <go32.h>
+#include <conio.h>
+unsigned short __desc_video;
+void __init_video_320x200()
+{ union REGS in;
+
+  __desc_video=__dpmi_allocate_ldt_descriptors(1);
+  __djgpp_map_physical_memory((void *)0xA0000, 64000,0xA0000);
+  __dpmi_set_segment_base_address(__desc_video,0xA0000);
+  __dpmi_set_segment_limit(__desc_video,63999);
+  __dpmi_set_descriptor_access_rights(__desc_video,0x40F3);
+  in.w.ax=0x13;
+  int86(0x10,&in,&in);
+};
+void __init_video_text()
+{ union REGS in;
+
+  in.w.ax=0x03;
+  int86(0x10,&in,&in);
+};
+`;
+
+
+Section Inherit
+
+  + parent_bitmap:Expanded BITMAP;
+
+Section Public
+
+  - message str:ABSTRACT_STRING <-
+  (
+    str.print;
+  );
+
+  - is_active:BOOLEAN;
+
+  - make (w,h:INTEGER) <-
+  (
+    ? {w = 320};
+    ? {h = 200};
+
+    // Init BITMAP:
+    width  := w;
+    height := h;
+
+    //
+    // Init mode 320x200.
+    //
+    `__init_video_320x200()`;
+
+    //
+    // Init palette.
+    //
+    SYSTEM.putb 0 to 3C8h;
+    0.to 255 do { j:INTEGER;
+      + r,g,b,c:UINTEGER_8;
+
+      c:=j.to_uinteger_8;
+      r:=(c&11000000b)>>2;
+      g:=(c&00111000b);
+      b:=(c&00000111b)<<3;
+      SYSTEM.putb r to 3C9h;
+      SYSTEM.putb g to 3C9h;
+      SYSTEM.putb b to 3C9h;
+    };
+    is_active := TRUE;
+  );
+
+  - pixel_hard (x,y:INTEGER) color col:UINTEGER_32 <-
+  ( + col8:UINTEGER_8;
+    + ofs:INTEGER;
+    col8 :=
+    (((col >> 16).to_uinteger_8) & 11000000b) | // Red
+    (((col >> 10).to_uinteger_8) & 00111000b) | // Green
+    (((col >>  5).to_uinteger_8) & 00000111b);  // Blue
+    ofs:=(y<<8)+(y<<6)+x;
+    //MOUSE.display_off;
+    `_farpokeb(__desc_video,@ofs,@col8)`;
+    //MOUSE.display_on;
+  );
+
+  - line_h_hard (x,y:INTEGER) until x1:INTEGER color col:UINTEGER_32 <-
+  ( + col8:UINTEGER_8;
+    + ofs:INTEGER;
+    col8 := (((col >> 16).to_uinteger_8) &11000000b) | ((((col & 00FF00h) >> 10).to_uinteger_8)&00111000b) | (((col & 0000FFh).to_uinteger_8) >>5);
+    ofs:=(y<<8)+(y<<6)+x;
+    //MOUSE.display_off;
+    ofs.to (ofs+x1-x) do { j:INTEGER;
+      `_farpokeb(__desc_video,@j,@col8)`;
+    };
+    //MOUSE.display_on;
+  );
+
+  - line_h_hard (x,y:INTEGER) until x1:INTEGER image line:BMP_LINE offset ofs:INTEGER <-
+  ( + ofs2,ofs_img2:INTEGER;
+    + col8:UINTEGER_8;
+    + col:UINTEGER_32;
+    ofs2:=(y<<8)+(y<<6)+x;
+    ofs_img2:=ofs;
+    //MOUSE.display_off;
+    ofs2.to (ofs2+x1-x) do { j:INTEGER;
+      col  := line.get_color ofs_img2;
+      col8 := (((col >> 16).to_uinteger_8) &11000000b) | ((((col & 00FF00h) >> 10).to_uinteger_8)&00111000b) | (((col & 0000FFh).to_uinteger_8) >>5);
+      `_farpokeb(__desc_video,@j,@col8)`;
+      ofs_img2:=ofs_img2+1;
+    };
+    //MOUSE.display_on;
+  );
+
+  - close <-
+  (
+    ? {is_active};
+    `__init_video_text()`;
+    is_active := FALSE;
+    ? {! is_active};
+  );
+
+
+
+
+

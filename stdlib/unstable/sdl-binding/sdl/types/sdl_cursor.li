@@ -1,0 +1,93 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                  Lisaac                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name      := SDL_CURSOR;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>";
+  - comment   := "SDL Cursor pointer";
+  - type      := `SDL_Cursor`;
+
+Section Inherit
+
+  + parent_object:OBJECT := OBJECT;
+
+Section Public
+
+ /**
+ * Create a cursor using the specified data and mask (in MSB format).
+ * The cursor width must be a multiple of 8 bits.
+ *
+ * The cursor is created in black and white according to the following:
+ * data  mask    resulting pixel on screen
+ *  0     1       White
+ *  1     1       Black
+ *  0     0       Transparent
+ *  1     0       Inverted color if possible, black if not.
+ */
+
+  - create (
+    data:FAST_ARRAY(UINTEGER_8),
+    mask:FAST_ARRAY(UINTEGER_8),
+    w:INTEGER,
+    h:INTEGER,
+    x:INTEGER,
+    y:INTEGER ) :SELF <-
+  // Create a cursor
+  (
+    make(data, mask, w, h, x, y);
+  );
+
+  - make ( 
+    data:FAST_ARRAY(UINTEGER_8),
+    mask:FAST_ARRAY(UINTEGER_8),
+    w:INTEGER,
+    h:INTEGER,
+    x:INTEGER,
+    y:INTEGER ) :SELF <-
+  ( + d,m:POINTER;
+    + result :SELF;
+    d := data.to_external;
+    m := mask.to_external;
+    pointer := `SDL_CreateCursor(@d, @m, @w, @h, @x, @y)`:(POINTER);
+    result := SELF.clone;
+    result := CONVERT(POINTER,SELF).on pointer;
+    result
+  );
+
+  - set_default <-
+  // Set the currently active cursor to the specified one.
+  // If the cursor is currently visible, the change will be immediately 
+  // represented on the display.
+  (
+    `SDL_SetCursor(@Self)`;
+  );
+
+  - get_cursor :SDL_CURSOR <-
+  // Returns the currently active cursor.
+  ( + ptr :POINTER;
+    + cursor :SDL_CURSOR;
+    ptr := `SDL_GetCursor()`:POINTER;
+    cursor := SELF.clone;
+    cursor := CONVERT(POINTER,SELF).on ptr;
+    cursor
+  );

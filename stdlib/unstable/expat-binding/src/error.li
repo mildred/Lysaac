@@ -1,0 +1,95 @@
+Section Header
+
+  + name := ERROR;
+
+  - author        := "Mildred Ki'Lya <mildred593(at)online.fr>";
+  - copyright     := "2008 Mildred Ki'Lya";
+  - comment       := "";
+
+  - import := INTEGER;
+  - export := INTEGER, STRING;
+
+  // Copyright (c) 2008 Mildred Ki'Lya <mildred593(at)online.fr>
+  //
+  // Permission is hereby granted, free of charge, to any person
+  // obtaining a copy of this software and associated documentation
+  // files (the "Software"), to deal in the Software without
+  // restriction, including without limitation the rights to use,
+  // copy, modify, merge, publish, distribute, sublicense, and/or sell
+  // copies of the Software, and to permit persons to whom the
+  // Software is furnished to do so, subject to the following
+  // conditions:
+  //
+  // The above copyright notice and this permission notice shall be
+  // included in all copies or substantial portions of the Software.
+  //
+  // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  // NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  // HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  // OTHER DEALINGS IN THE SOFTWARE.
+
+  - external := `#include <expat.h>`;
+  - type := `int`;
+
+Section Insert
+
+  - parent :Expanded ENUM;
+
+  - parent_expat_object :Expanded EXPAT_OBJECT;
+
+Section Public
+
+  - none                     :ERROR := create_code (`XML_ERROR_NONE`:INTEGER);
+  - no_memory                :ERROR := create_code (`XML_ERROR_NO_MEMORY`:INTEGER);
+  - syntax                   :ERROR := create_code (`XML_ERROR_SYNTAX`:INTEGER);
+  - no_elements              :ERROR := create_code (`XML_ERROR_NO_ELEMENTS`:INTEGER);
+  - invalid_token            :ERROR := create_code (`XML_ERROR_INVALID_TOKEN`:INTEGER);
+  - unclosed_token           :ERROR := create_code (`XML_ERROR_UNCLOSED_TOKEN`:INTEGER);
+  - partial_char             :ERROR := create_code (`XML_ERROR_PARTIAL_CHAR`:INTEGER);
+  - tag_mismatch             :ERROR := create_code (`XML_ERROR_TAG_MISMATCH`:INTEGER);
+  - duplicate_attribute      :ERROR := create_code (`XML_ERROR_DUPLICATE_ATTRIBUTE`:INTEGER);
+  - junk_after_doc_element   :ERROR := create_code (`XML_ERROR_JUNK_AFTER_DOC_ELEMENT`:INTEGER);
+  - param_entity_ref         :ERROR := create_code (`XML_ERROR_PARAM_ENTITY_REF`:INTEGER);
+  - undefined_entity         :ERROR := create_code (`XML_ERROR_UNDEFINED_ENTITY`:INTEGER);
+  - recursive_entity_ref     :ERROR := create_code (`XML_ERROR_RECURSIVE_ENTITY_REF`:INTEGER);
+  - async_entity             :ERROR := create_code (`XML_ERROR_ASYNC_ENTITY`:INTEGER);
+  - bad_char_ref             :ERROR := create_code (`XML_ERROR_BAD_CHAR_REF`:INTEGER);
+  - binary_entity_ref        :ERROR := create_code (`XML_ERROR_BINARY_ENTITY_REF`:INTEGER);
+  - attribute_external_entity_ref :ERROR := create_code (`XML_ERROR_ATTRIBUTE_EXTERNAL_ENTITY_REF`:INTEGER);
+  - misplaced_xml_pi         :ERROR := create_code (`XML_ERROR_MISPLACED_XML_PI`:INTEGER);
+  - unknown_encoding         :ERROR := create_code (`XML_ERROR_UNKNOWN_ENCODING`:INTEGER);
+  - incorrect_encoding       :ERROR := create_code (`XML_ERROR_INCORRECT_ENCODING`:INTEGER);
+  - unclosed_cdata_section   :ERROR := create_code (`XML_ERROR_UNCLOSED_CDATA_SECTION`:INTEGER);
+  - external_entity_handling :ERROR := create_code (`XML_ERROR_EXTERNAL_ENTITY_HANDLING`:INTEGER);
+  - not_standalone           :ERROR := create_code (`XML_ERROR_NOT_STANDALONE`:INTEGER);
+  - unexpected_state         :ERROR := create_code (`XML_ERROR_UNEXPECTED_STATE`:INTEGER);
+  - entity_declared_in_pe    :ERROR := create_code (`XML_ERROR_ENTITY_DECLARED_IN_PE`:INTEGER);
+  - feature_requires_xml_dtd :ERROR := create_code (`XML_ERROR_FEATURE_REQUIRES_XML_DTD`:INTEGER);
+  - cant_change_feature_once_parsing :ERROR := create_code (`XML_ERROR_CANT_CHANGE_FEATURE_ONCE_PARSING`:INTEGER);
+  - unbound_prefix           :ERROR := create_code (`XML_ERROR_UNBOUND_PREFIX`:INTEGER);
+  - undeclaring_prefix       :ERROR := create_code (`XML_ERROR_UNDECLARING_PREFIX`:INTEGER);
+  - incomplete_pe            :ERROR := create_code (`XML_ERROR_INCOMPLETE_PE`:INTEGER);
+  - xml_decl                 :ERROR := create_code (`XML_ERROR_XML_DECL`:INTEGER);
+  - text_decl                :ERROR := create_code (`XML_ERROR_TEXT_DECL`:INTEGER);
+  - publicid                 :ERROR := create_code (`XML_ERROR_PUBLICID`:INTEGER);
+  - suspended                :ERROR := create_code (`XML_ERROR_SUSPENDED`:INTEGER);
+  - not_suspended            :ERROR := create_code (`XML_ERROR_NOT_SUSPENDED`:INTEGER);
+  - aborted                  :ERROR := create_code (`XML_ERROR_ABORTED`:INTEGER);
+  - finished                 :ERROR := create_code (`XML_ERROR_FINISHED`:INTEGER);
+  - suspend_pe               :ERROR := create_code (`XML_ERROR_SUSPEND_PE`:INTEGER);
+  - reserved_prefix_xml      :ERROR := create_code (`XML_ERROR_RESERVED_PREFIX_XML`:INTEGER);
+  - reserved_prefix_xmlns    :ERROR := create_code (`XML_ERROR_RESERVED_PREFIX_XMLNS`:INTEGER);
+  - reserved_namespace_uri   :ERROR := create_code (`XML_ERROR_RESERVED_NAMESPACE_URI`:INTEGER);
+
+  - to_string :STRING <-
+  ( + self :SELF;
+    self := Self;
+    from_external_copy (`XML_ErrorString(@self)`:NATIVE_ARRAY(CHARACTER))
+  );
+
+// kate: hl Lisaac v0.2; indent-width 2; space-indent on; replace-tabs off;
+// kate: tab-width 8; remove-trailing-space on; dynamic-word-wrap off;

@@ -1,0 +1,120 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                             //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := MATERIAL;
+  
+  - comment  := "Material: lighting properties of an object";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  - mode_front:INTEGER <- 1;
+  - mode_back:INTEGER <- 2;
+  - mode_front_and_back:INTEGER <- 3;
+  
+  
+  + ambient:COLOR; // percentage of reflected ambient light
+  + diffuse:COLOR; 
+  + specular:COLOR;
+  
+  + emission:COLOR; // emissive color of material
+  
+  + shininess:REAL_32; // specular exponent
+   
+  
+  - create (a,d,s,e:COLOR, shine:REAL_32)  :SELF <-
+  (
+    + result:SELF;
+    result := SELF.clone;
+    result.make (a,d,s,e,shine);
+    result
+  );
+  
+  - make (a,d,s,e:COLOR, shine:REAL_32) <- 
+  (
+    ambient := a;
+    diffuse := d;
+    specular := s;
+    emission := e;
+    
+    shininess := shine;
+  );
+  
+  - enable_color <- deferred;
+  - disable_color <- deferred;
+  
+  - notify <-
+  (
+  //  modified := TRUE;
+  );
+  
+  - set_ambient c:COLOR <- 
+  (
+    notify;
+    ambient := c;
+  );
+  
+  - set_diffuse c:COLOR <- 
+  (
+    notify;
+    diffuse := c;
+  );
+  
+  - set_specular c:COLOR <- 
+  (
+    notify;
+    specular := c;
+  );
+  
+  - set_emission c:COLOR <- 
+  (
+    notify;
+    emission := c;
+  );
+  
+  - set_shininess s:REAL_32 <- 
+  (
+    notify;
+    shininess := s;
+  );
+  
+  - apply mode:INTEGER  <- deferred;
+  
+  // aliases
+  - apply_front  <- 
+  (
+    apply mode_front;
+  );
+  
+  - apply_back  <-
+  (
+    apply mode_back;
+  );
+
+  - apply_front_and_back  <-
+  (
+    apply mode_front_and_back;
+  );

@@ -1,0 +1,58 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := FLOAT_MAP64;
+
+  - comment := "Mapping for REAL_64.";
+
+Section Inherit
+
+  - parent_float_map:FLOAT_MAP := FLOAT_MAP;
+
+Section Mapping
+
+  + map_64:UINTEGER_64;
+
+Section REAL, REAL_32, REAL_64, REAL_80
+
+  - get_map f:SELF <-
+  ( + tab:NATIVE_ARRAY(SELF);
+    tab := CONVERT(FLOAT_MAP64,NATIVE_ARRAY(SELF)).on FLOAT_MAP64;
+    tab.put f to 0;
+  );
+
+  - sign:BOOLEAN         <- (map_64 >> 63) = 0; // TRUE if positif, FALSE else.
+
+  - exponent:UINTEGER_32 <- ((map_64 >> mantissa_bits) & 07_FFh).to_uinteger_32;
+
+  - mantissa:UINTEGER_64 <- map_64 & ((1 << mantissa_bits)-1);
+
+Section Public
+
+  //
+  // Format.
+  //
+
+  - mantissa_bits:INTEGER_8 := 52;
+
+  - exponent_bits:INTEGER_8 := 11;
+

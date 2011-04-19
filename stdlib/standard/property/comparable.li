@@ -1,0 +1,142 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := COMPARABLE;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := " All classes handling COMPARABLE objects with a total order\
+               \relation should inherit from this class.";
+
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Public
+
+  - Self:SELF '=='  Right 60 other:E :BOOLEAN <-
+  ( + result:BOOLEAN;
+    + same:SELF;
+    same ?= other;
+    (same != NULL) && {! (Self < same)} && { ! (same < Self)}
+  );
+
+  - Self:SELF '<' Left 1 other:SELF :BOOLEAN <-
+  // Is `self' strictly less than `other'?
+  (
+    ? { other != NULL };
+    deferred;
+    //? { result -> ! (other < self)};
+  );
+
+  - Self:SELF '<=' Left 1 other:SELF :BOOLEAN <-
+  // Is `self' less than or equal `other'?
+  (
+    + result:BOOLEAN;
+
+    ? { other != NULL };
+    result := ! (other < Self);
+    ? { result = ((Self < other) | == other)};
+
+    result
+  );
+
+  - Self:SELF '>' other:SELF :BOOLEAN <-
+  // Is `self' strictly greater than `other'?
+  (
+    ?{ other != NULL };
+    other < Self
+  );
+
+  - Self:SELF '>=' other:SELF :BOOLEAN <-
+  // Is `self' greater than or equal than `other'?
+  (
+    ?{ other != NULL };
+    ! (Self < other)
+  );
+
+  - in_range lower:SELF to upper:SELF :BOOLEAN <-
+  // Return true if `self' is in range [`lower'..`upper']
+  (
+    (Self >= lower) && { Self <= upper }
+  );
+
+  - compare other:SELF :INTEGER <-
+  // If current object equal to `other', 0;
+  // if smaller,  -1; if greater, 1.
+  (
+    + result:INTEGER;
+    ?{ other != NULL };
+    (Self < other).if {
+      result := -1;
+    }.elseif { other < Self } then {
+      result := 1;
+    } else {
+      result := 0;
+    };
+
+    ? { (result =  0) = ( == other)};
+    ? { (result = -1) = (Self < other)};
+    ? { (result =  1) = (Self > other)};
+
+    result
+  );
+
+  - min other:SELF :SELF <-
+  // Minimum of `self' and `other'.
+  (
+    + result:SELF;
+
+    ?{ other != NULL };
+    ( Self <= other ).if {
+      result := Self;
+    } else {
+      result := other;
+    };
+
+    ? { (result <= Self) && { result <= other}};
+    ? { (compare result = 0) || { other.compare result = 0 }};
+
+    result
+  );
+
+
+  - max other:SELF :SELF <-
+  // Maximum of `self' and `other'.
+  (
+    + result:SELF;
+    ?{ other != NULL };
+
+    ( Self >= other ).if {
+      result := Self;
+    } else {
+      result := other;
+    };
+
+    ? { (result >= Self) && { result >= other }};
+    ? { (compare result = 0) || {other.compare result = 0}};
+
+    result
+  );
+
+

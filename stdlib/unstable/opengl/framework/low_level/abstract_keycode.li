@@ -1,0 +1,188 @@
+///////////////////////////////////////////////////////////////////////////////
+//                           Lisaac-SDL Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := ABSTRACT_KEYCODE;
+  - comment  := "Plateform independant key mapping";
+  - author   := "Xavier Oswald <x.oswald@free.fr>";
+
+Section Inherit
+  
+  - parent_object: OBJECT := OBJECT;
+
+Section Private
+
+  - keys:HASHED_DICTIONARY(INTEGER,INTEGER);
+
+Section Public
+
+  - max_keys: INTEGER := 322;
+
+  - k_backspace     : INTEGER <- 8;
+  - k_tab           : INTEGER <- 9;
+  - k_clear         : INTEGER <- 12;
+  - k_return        : INTEGER <- 13;
+  - k_pause         : INTEGER <- 19;
+  - k_escape        : INTEGER <- 27;
+  - k_space         : INTEGER <- 32;
+  - k_exclaim       : INTEGER <- 33;
+  - k_quotedbl      : INTEGER <- 34;
+  - k_hash          : INTEGER <- 35;
+  - k_dollar        : INTEGER <- 36;
+  - k_ampersand     : INTEGER <- 38;
+  - k_quote         : INTEGER <- 39;
+  - k_leftparen     : INTEGER <- 40;
+  - k_rightparen    : INTEGER <- 41;
+  - k_asterisk      : INTEGER <- 42;
+  - k_plus          : INTEGER <- 43;
+  - k_comma         : INTEGER <- 44;
+  - k_minus         : INTEGER <- 45;
+  - k_period        : INTEGER <- 46;
+  - k_slash         : INTEGER <- 47;
+  - k_0             : INTEGER <- 48;
+  - k_1             : INTEGER <- 49;
+  - k_2             : INTEGER <- 50;
+  - k_3             : INTEGER <- 51;
+  - k_4             : INTEGER <- 52;
+  - k_5             : INTEGER <- 53;
+  - k_6             : INTEGER <- 54;
+  - k_7             : INTEGER <- 55;
+  - k_8             : INTEGER <- 56;
+  - k_9             : INTEGER <- 57;
+  - k_colon         : INTEGER <- 58;
+  - k_semicolon     : INTEGER <- 59;
+  - k_less          : INTEGER <- 60;
+  - k_equals        : INTEGER <- 61;
+  - k_greater       : INTEGER <- 62;
+  - k_question      : INTEGER <- 63;
+  - k_at            : INTEGER <- 64;
+  - k_leftbracket   : INTEGER <- 91;
+  - k_backslash     : INTEGER <- 92;
+  - k_rightbracket  : INTEGER <- 93;
+  - k_caret         : INTEGER <- 94;
+  - k_underscore    : INTEGER <- 95;
+  - k_backquote     : INTEGER <- 96;
+  - k_a             : INTEGER <- 97;
+  - k_b             : INTEGER <- 98;
+  - k_c             : INTEGER <- 99;
+  - k_d             : INTEGER <- 100;
+  - k_e             : INTEGER <- 101;
+  - k_f             : INTEGER <- 102;
+  - k_g             : INTEGER <- 103;
+  - k_h             : INTEGER <- 104;
+  - k_i             : INTEGER <- 105;
+  - k_j             : INTEGER <- 106;
+  - k_k             : INTEGER <- 107;
+  - k_l             : INTEGER <- 108;
+  - k_m             : INTEGER <- 109;
+  - k_n             : INTEGER <- 110;
+  - k_o             : INTEGER <- 111;
+  - k_p             : INTEGER <- 112;
+  - k_q             : INTEGER <- 113;
+  - k_r             : INTEGER <- 114;
+  - k_s             : INTEGER <- 115;
+  - k_t             : INTEGER <- 116;
+  - k_u             : INTEGER <- 117;
+  - k_v             : INTEGER <- 118;
+  - k_w             : INTEGER <- 119;
+  - k_x             : INTEGER <- 120;
+  - k_y             : INTEGER <- 121;
+  - k_z             : INTEGER <- 122;
+  - k_delete        : INTEGER <- 127;
+
+  // Numeric keypad
+  - kp_0            : INTEGER <- 256;
+  - kp_1            : INTEGER <- 257;
+  - kp_2            : INTEGER <- 258;
+  - kp_3            : INTEGER <- 259;
+  - kp_4            : INTEGER <- 260;
+  - kp_5            : INTEGER <- 261;
+  - kp_6            : INTEGER <- 262;
+  - kp_7            : INTEGER <- 263;
+  - kp_8            : INTEGER <- 264;
+  - kp_9            : INTEGER <- 265;
+  - kp_period       : INTEGER <- 266;
+  - kp_divide       : INTEGER <- 267;
+  - kp_multiply     : INTEGER <- 268;
+  - kp_minus        : INTEGER <- 269;
+  - kp_plus         : INTEGER <- 279;
+  - kp_enter        : INTEGER <- 271;
+  - kp_equals       : INTEGER <- 272;
+
+  // Arrows + Home/End pad
+  - k_up            : INTEGER <- 273;
+  - k_down          : INTEGER <- 274;
+  - k_right         : INTEGER <- 275;
+  - k_left          : INTEGER <- 276;
+  - k_insert        : INTEGER <- 277;
+  - k_home          : INTEGER <- 278;
+  - k_end           : INTEGER <- 279;
+  - k_pageup        : INTEGER <- 290;
+  - k_pagedown      : INTEGER <- 281;
+
+  // Function keys
+  - k_f1            : INTEGER <- 282;
+  - k_f2            : INTEGER <- 283;
+  - k_f3            : INTEGER <- 284;
+  - k_f4            : INTEGER <- 285;
+  - k_f5            : INTEGER <- 286;
+  - k_f6            : INTEGER <- 287;
+  - k_f7            : INTEGER <- 288;
+  - k_f8            : INTEGER <- 289;
+  - k_f9            : INTEGER <- 290;
+  - k_f10           : INTEGER <- 291;
+  - k_f11           : INTEGER <- 292;
+  - k_f12           : INTEGER <- 293;
+  - k_f13           : INTEGER <- 294;
+  - k_f14           : INTEGER <- 295;
+  - k_f15           : INTEGER <- 296;
+
+  // Key state modifier keys
+  - k_numlock       : INTEGER <- 300;
+  - k_capslock      : INTEGER <- 301;
+  - k_scrollock     : INTEGER <- 302;
+  - k_rshift        : INTEGER <- 303;
+  - k_lshift        : INTEGER <- 304;
+  - k_rctrl         : INTEGER <- 305;
+  - k_lctrl         : INTEGER <- 306;
+  - k_ralt          : INTEGER <- 307;
+  - k_lalt          : INTEGER <- 308;
+  - k_rmeta         : INTEGER <- 309;
+  - k_lmeta         : INTEGER <- 310;
+  - k_lsuper        : INTEGER <- 311;
+  - k_rsuper        : INTEGER <- 312;
+  - k_mode          : INTEGER <- 313;
+  - k_compose       : INTEGER <- 314;
+
+  // Miscellaneous function keys
+  - k_help          : INTEGER <- 315; 
+  - k_print         : INTEGER <- 316; 
+  - k_sysreq        : INTEGER <- 317; 
+  - k_break         : INTEGER <- 318; 
+  - k_menu          : INTEGER <- 319; 
+  - k_power         : INTEGER <- 320; 
+  - k_euro          : INTEGER <- 321; 
+  - k_undo          : INTEGER <- 322; 
+  
+  - key_count:INTEGER <- 323;
+  
+  - get_key key:INTEGER :INTEGER <- deferred;

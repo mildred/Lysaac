@@ -1,0 +1,94 @@
+Section Header
+
+  + name := HANDLERS;
+
+  - author        := "Mildred Ki'Lya <mildred593(at)online.fr>";
+  - copyright     := "2008 Mildred Ki'Lya";
+  - comment       := "";
+
+  // Copyright (c) 2008 Mildred Ki'Lya <mildred593(at)online.fr>
+  //
+  // Permission is hereby granted, free of charge, to any person
+  // obtaining a copy of this software and associated documentation
+  // files (the "Software"), to deal in the Software without
+  // restriction, including without limitation the rights to use,
+  // copy, modify, merge, publish, distribute, sublicense, and/or sell
+  // copies of the Software, and to permit persons to whom the
+  // Software is furnished to do so, subject to the following
+  // conditions:
+  //
+  // The above copyright notice and this permission notice shall be
+  // included in all copies or substantial portions of the Software.
+  //
+  // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  // NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  // HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  // OTHER DEALINGS IN THE SOFTWARE.
+
+Section Inherit
+
+  + parent :Expanded EXPAT_OBJECT;
+
+Section Public
+
+  + parser :PARSER;
+
+  - start_element (name:ABSTRACT_STRING, atts:FAST_ARRAY(ABSTRACT_STRING)) <- ();
+  - end_element (name:ABSTRACT_STRING) <- ();
+  - character_data (s:ABSTRACT_STRING) <- ();
+  - processing_instruction (target:ABSTRACT_STRING, data:ABSTRACT_STRING) <- ();
+  - comment ( data:ABSTRACT_STRING) <- ();
+  - start_cdata_section <- ();
+  - end_cdata_section <- ();
+  - default (s:ABSTRACT_STRING) <- ();
+  - external_entity_ref (
+      context  :ABSTRACT_STRING,
+      base     :ABSTRACT_STRING,
+      system_id:ABSTRACT_STRING,
+      public_id:ABSTRACT_STRING) :STATUS <- STATUS.ok;
+  - skipped_entity (entity_name:ABSTRACT_STRING, is_parameter_entity:BOOLEAN) <- ();
+  - unknown_encoding (name:ABSTRACT_STRING, info:ENCODING) :STATUS <- STATUS.error;
+  - start_namespace_decl (prefix:ABSTRACT_STRING, uri:ABSTRACT_STRING) <- ();
+  - end_namespace_decl (prefix:ABSTRACT_STRING) <- ();
+  - xml_decl (versio:ABSTRACT_STRING, encoding:ABSTRACT_STRING, standalone:INTEGER) <- ();
+  - start_doctype_decl (
+      doctype_name:ABSTRACT_STRING,
+      sysid       :ABSTRACT_STRING,
+      pubid       :ABSTRACT_STRING,
+      has_internal_subset:BOOLEAN) <- ();
+  - end_doctype_decl <- ();
+  - element_decl (name:ABSTRACT_STRING, model:POINTER) <- ();
+  - attlist_decl (
+      elname  :ABSTRACT_STRING,
+      attname :ABSTRACT_STRING,
+      att_type:ABSTRACT_STRING,
+      dflt    :ABSTRACT_STRING,
+      isrequired:BOOLEAN) <- ();
+  - entity_decl (
+      entity_name       :ABSTRACT_STRING,
+      is_parameter_entry:BOOLEAN,
+      value             :ABSTRACT_STRING,
+      base              :ABSTRACT_STRING,
+      system_id         :ABSTRACT_STRING,
+      public_id         :ABSTRACT_STRING,
+      notation_name     :ABSTRACT_STRING) <- ();
+  - unparsed_entity_decl (
+      entity_name       :ABSTRACT_STRING,
+      base              :ABSTRACT_STRING,
+      system_id         :ABSTRACT_STRING,
+      public_id         :ABSTRACT_STRING,
+      notation_name     :ABSTRACT_STRING) <- ();
+  - notation_decl (
+      notation_name     :ABSTRACT_STRING,
+      base              :ABSTRACT_STRING,
+      system_id         :ABSTRACT_STRING,
+      public_id         :ABSTRACT_STRING) <- ();
+  - not_standalone :INTEGER <- STATUS.ok;
+
+
+// kate: hl Lisaac v0.2; indent-width 2; space-indent on; replace-tabs off;
+// kate: tab-width 8; remove-trailing-space on;

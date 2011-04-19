@@ -1,0 +1,266 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                  Lisaac                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name      := SDL_MIXER;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>";
+  - comment   := "Audio & Noise managment";
+
+  - lip <-
+  (
+    add_lib  " -lSDL_mixer ";
+  );
+
+  - external  := `
+#include "SDL/SDL_mixer.h"
+Mix_Music *music  = NULL;
+Mix_Chunk *phaser = NULL;
+
+void music_done(){
+  Mix_HaltMusic();
+  Mix_FreeMusic(music);
+  music = NULL;
+}
+
+int freq;
+Uint16 format;
+int channels;
+  `;
+
+Section Inherit
+
+  + parent_object:OBJECT := OBJECT;
+
+Section Public /* MAKING MUSIC */
+
+  - audio_rate:INTEGER;
+  - audio_channels:INTEGER; /* 2: stereo, 1:mono */
+  - audio_buffers:INTEGER;
+  - audio_format:UINTEGER_16;
+
+
+  /*
+  chunksize 
+  This value determines the size of the memory chunks used for storage and
+  playback of samples. A value of 4096 should be suitable for most games.
+  Increasing the value will decrease the CPU load but will also decrease
+  responsiveness of playback. If you find the mixer's play/stop response times to
+  be too slow, you may wish to decrease this value.
+  */
+  - chuck_size:INTEGER; /*4096*/
+
+  - audio_s16 :INTEGER := `AUDIO_S16SYS`:INTEGER; /* 16-bit stereo */
+  - audio_s8  :INTEGER := `AUDIO_S8`    :INTEGER; /* 8-bit  stereo */
+
+  - mus_none    :INTEGER := `MUS_NONE`    :INTEGER;
+  - mus_cmd     :INTEGER := `MUS_CMD`     :INTEGER;
+  - mus_wav     :INTEGER := `MUS_WAV`     :INTEGER;
+  - mus_mod     :INTEGER := `MUS_MOD`     :INTEGER;
+  - mus_mid     :INTEGER := `MUS_MID`     :INTEGER;
+  - mus_ogg     :INTEGER := `MUS_OGG`     :INTEGER;
+  - mus_mp3     :INTEGER := `MUS_MP3`     :INTEGER;
+  - mus_mp3_mad :INTEGER := `MUS_MP3_MAD` :INTEGER;
+
+  /* Find out what the actual audio device parameters are.
+   This function returns 1 if the audio has been opened, 0 otherwise.
+ */
+  - query_spec :(INTEGER,INTEGER,INTEGER) <-
+  ( 
+    /*+ freq:INTEGER;
+    + format:INTEGER;
+    + channels:INTEGER;*/
+    `Mix_QuerySpec(&freq, &format, &channels);`;
+    `freq`:INTEGER,`format`:INTEGER,`channels`:INTEGER
+  );
+  
+  
+  /* Open the mixer with a certain audio format */
+  /*
+    extern DECLSPEC int SDLCALL Mix_OpenAudio(int frequency, Uint16 format, int channels,
+							int chunksize);
+    TODO: return value */
+  - open_audio (frequency,format, channels,chunksize :INTEGER) <-
+  (
+    `Mix_OpenAudio(@frequency, @format, @channels, @chunksize);`
+  );
+
+  //extern DECLSPEC Mix_Music * SDLCALL Mix_LoadMUS(const char *file);
+  - load_music file:STRING_CONSTANT <-
+  ( + f:NATIVE_ARRAY(CHARACTER);
+    f := file.to_external;
+    `music = Mix_LoadMUS(@f);`
+  );
+
+
+	/* This begins playing the music, the argument is how many
+	   times you want it to loop (use -1 for infinite, and 0 to
+	   have it just play once) 
+  */
+  - play_music nb:INTEGER <-
+  (
+    `Mix_PlayMusic(music, @nb);`
+  );
+
+  	/* We want to know when our music has stopped playing so we
+	   can free it up and set 'music' back to NULL.  SDL_Mixer
+	   provides us with a callback routine we can use to do
+	   exactly that */
+    //	Mix_HookMusicFinished(musicDone);
+  - hook_music_finished <- 
+  (
+   	`Mix_HookMusicFinished(music_done);`
+  );
+
+    /* If we actually care about what we got, we can ask here.  In this
+     program we don't, but I'm showing the function call here anyway
+     in case we'd want to know later. */
+   // TODO: Mix_QuerySpec(&audio_rate, &audio_format, &audio_channels);
+ 
+
+  /* Dynamically change the number of channels managed by the mixer.
+    If decreasing the number of channels, the upper channels are
+    stopped.
+    This function returns the new number of allocated channels.
+  */
+  - allocate_channels num:INTEGER <-
+  (
+    audio_channels := `Mix_AllocateChannels(@num);`:INTEGER;
+  );
+
+
+  /* Set the "distance" of a channel. (distance) is an integer from 0 to 255
+ *  that specifies the location of the sound in relation to the listener.
+ *  Distance 0 is overlapping the listener, and 255 is as far away as possible
+ *  A distance of 255 does not guarantee silence; in such a case, you might
+ *  want to try changing the chunk's volume, or just cull the sample from the
+ *  mixing process with Mix_HaltChannel().
+ * For efficiency, the precision of this effect may be limited (distances 1
+ *  through 7 might all produce the same effect, 8 through 15 are equal, etc).
+ *  (distance) is an integer between 0 and 255 that specifies the space
+ *  between the sound and the listener. The larger the number, the further
+ *  away the sound is.
+ * Setting (distance) to 0 unregisters this effect, since the data would be
+ *  unchanged.
+ * If you need more precise positional audio, consider using OpenAL for
+ *  spatialized effects instead of SDL_mixer. This is only meant to be a
+ *  basic effect for simple "3D" games.
+ *
+ * Setting (channel) to MIX_CHANNEL_POST registers this as a posteffect, and
+ *  the distance attenuation will be done to the final mixed stream before
+ *  passing it on to the audio device.
+ *
+ * This uses the Mix_RegisterEffect() API internally.
+ *
+ * returns zero if error (no such channel or Mix_RegisterEffect() fails),
+ *  nonzero if position effect is enabled.
+ *  Error messages can be retrieved from Mix_GetError().
+ */
+//extern DECLSPEC int SDLCALL Mix_SetDistance(int channel, Uint8 distance);
+  - set_distance (channel,distance:INTEGER) <-
+  (
+    `Mix_SetDistance(@channel,@distance)`;
+  );
+
+  /* Set the volume in the range of 0-128 of a specific channel or chunk.
+   If the specified channel is -1, set volume for all channels.
+   Returns the original volume.
+   If the specified volume is -1, just return the current volume.
+*/
+/*
+extern DECLSPEC int SDLCALL Mix_Volume(int channel, int volume);
+extern DECLSPEC int SDLCALL Mix_VolumeChunk(Mix_Chunk *chunk, int volume);
+extern DECLSPEC int SDLCALL Mix_VolumeMusic(int volume);
+*/
+  - volume (channel,volume:INTEGER) <-
+  (
+    `Mix_Volume(@channel, @volume);`
+  );
+/* TODO
+  - volume_chunk volume:INTEGER <-
+  (
+    `Mix_VolumeChunk(chunk, @volume);`
+  );
+  */
+  - volume_music volume:INTEGER <-
+  (
+    `Mix_VolumeMusic(@volume);`
+  );
+
+
+
+	/* Stop the music from playing */
+  - halt_music <-
+  (
+    `Mix_HaltMusic();`
+  );
+
+  - free_music <-
+  (
+    `Mix_FreeMusic(music);`
+  );
+
+  - close_audio <-
+  (
+    `Mix_CloseAudio();`
+  );
+
+
+Section Public /* MAKING NOISE */
+
+  /* Every sound that gets played is assigned to a channel.  Note that
+  this is different from the number of channels you request when you
+  open the audio device; a channel in SDL_mixer holds information
+  about a sound sample that is playing, while the number of channels
+  you request when opening the device is dependant on what sort of
+  sound you want (1 channel = mono, 2 = stereo, etc) */
+
+  /* We're going to pre-load the sound effects that we need */
+  - load_wav sound:STRING_CONSTANT <-
+  ( + s:NATIVE_ARRAY(CHARACTER);
+    s := sound.to_external;
+    `phaser = Mix_LoadWAV(@s);`;
+    "load\n".println;
+  );
+
+  /* Mix_PlayChannel takes, as its arguments, the channel that
+  the given sound should be played on, the sound itself, and
+  the number of times it should be looped.  If you don't care
+  what channel the sound plays on, just pass in -1.  Looping
+  works like Mix_PlayMusic. This function returns the channel
+  that the sound was assigned to, which you'll need later. */
+  - play_channel (channel,loop:INTEGER) :INTEGER<-
+  ( + phaser_channel:INTEGER;
+    phaser_channel := `Mix_PlayChannel(@channel, phaser, @loop)`:(INTEGER);
+    phaser_channel
+  );
+
+  /* Mix_HaltChannel stops a certain channel from playing - this
+  is one of the reasons we kept track of which channel the
+  phaser had been assigned to */
+  - halt_channel ph_chan:INTEGER <-
+  (
+    `Mix_HaltChannel(@ph_chan);`;
+  );
+
+
+

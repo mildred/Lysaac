@@ -1,0 +1,62 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name    := AI_FILE;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment := "Adobe Illustrator File";
+    
+Section Inherit
+  
+  + parent_std_file:Expanded FILE;
+
+Section Public
+
+  + width:INTEGER;
+
+  + height:INTEGER;
+
+  - fill_bitmap f:FILE in b:ABSTRACT_BITMAP scale s:REAL_16_16 <-
+  ( + tmp_buf:FAST_ARRAY(CHARACTER);
+    + ai_parser:AI_PARSER;
+    
+    tmp_buf := FAST_ARRAY(CHARACTER).create_with_capacity (f.size);
+    f.read tmp_buf size (f.size);
+    ai_parser := AI_PARSER.create tmp_buf;
+    width  := ai_parser.width;
+    height := ai_parser.height;
+    ai_parser.draw b scale s;
+  );  
+  
+  - is_type n:ABSTRACT_STRING :BOOLEAN <-
+  // Return true if the file name has '.ai' or '.AI' suffix
+  (
+    ? {n != NULL};
+    ? {! n.is_empty};
+    (n.has_suffix ".ai") || { n.has_suffix ".AI"}
+  );
+  
+
+
+

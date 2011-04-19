@@ -1,0 +1,168 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name        := BITMAP(E);
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment     := "Generic Bitmap.";
+
+Section Inherit
+  
+  + parent_abstract_bitmap:Expanded ABSTRACT_BITMAP;
+  
+Section Private  
+  
+  + image:FAST_ARRAY(BMP_LINE(E));
+  
+Section Public
+  
+  - get_y_line y:INTEGER :ABSTRACT_BMP_LINE <-
+  (
+    image.item y
+  );
+  
+  //
+  // Data.
+  //
+  
+  - pixel_geometry:PIXEL <- E;
+  
+  //
+  // Creation. 
+  //
+
+  - make_size (w,h:INTEGER) <-
+  (
+    width  := w;
+    height := h;
+    //bytes_per_line:=(w * PIXEL_16.size + 7)>>3;
+    image := FAST_ARRAY(BMP_LINE(E)).create h;
+    0.to (image.upper) do { y:INTEGER;
+      image.put (BMP_LINE(E).create w) to y;
+    };
+    clipping_off;
+  );
+  
+  - make (w,h:INTEGER) at offset_begin:UINTEGER_32 bytes_per_line lx:INTEGER <-
+  ( + offset:UINTEGER_32;
+    
+    width  := w;
+    height := h;    
+    image := FAST_ARRAY(BMP_LINE(E)).create h;
+    offset:=offset_begin;
+    0.to (image.upper) do { y:INTEGER;
+      image.put (BMP_LINE(E).create w at offset) to y;
+      offset:=offset+lx;
+    };
+    clipping_off;
+  );
+
+  
+  //****************************************************************************
+  //*                               PutImage                                   *
+  //****************************************************************************
+  
+  - put_bitmap bmp:ABSTRACT_BITMAP to (x,y:INTEGER) <-
+  ( + x1,y1,x0,y0:INTEGER;
+    + y_src,x_src:INTEGER;
+    + line:ABSTRACT_BMP_LINE;
+
+    // JBJB A VOIR: SI H/W RECEVEUR < H/W BMP --> PLANTAGE !!!
+    x0 := x.max clip_x0;
+    y0 := y.max clip_y0;
+    x1 := (x + bmp.width -1).min clip_x1; 
+    y1 := (y + bmp.height-1).min clip_y1;
+    ((x0<=x1) && {y0<=y1}).if {
+      y_src := y0 - y;
+      x_src := x0 - x;
+      y0.to y1 do { y_dst:INTEGER;
+	line := bmp.get_y_line y_src;
+	line_h_hard (x0,y_dst) until x1 image line offset x_src;
+	y_src := y_src + 1;
+      };  
+    };
+  );
+
+  - put_bitmap bmp:ABSTRACT_BITMAP to (x,y:INTEGER) scale (scale_x,scale_y:REAL_16_16) <-
+  ( + x1,y1,x0,y0:INTEGER;
+    + y_src,x_src,x_tmp:REAL_16_16;
+    + line:ABSTRACT_BMP_LINE;
+    + col:UINTEGER_32;
+
+    x0 := x.max clip_x0;
+    y0 := y.max clip_y0;
+    x1 := (x + (bmp.width.to_real_16_16  / scale_x).to_integer -1).min clip_x1;
+    y1 := (y + (bmp.height.to_real_16_16 / scale_y).to_integer -1).min clip_y1;
+    ((x0<=x1) && {y0<=y1}).if {
+      x_src := (x0 - x).to_real_16_16 * scale_x;
+      y_src := (y0 - y).to_real_16_16 * scale_y;      
+      y0.to y1 do { y_dst:INTEGER;
+	line := bmp.get_y_line (y_src.to_integer);
+	x_tmp := x_src;
+	x0.to x1 do { x_dst:INTEGER;
+	  col := line.get_color (x_tmp.to_integer);
+	  pixel_hard (x_dst,y_dst) color col;
+	  x_tmp := x_tmp + scale_x;
+	};	
+	y_src := y_src + scale_y;
+      };  
+    };
+  );
+
+Section Public
+  
+  //
+  // Low level.
+  //   
+    
+  - pixel_hard (x,y:INTEGER) color col:UINTEGER_32 <-
+  ( 
+    //image.item y.put col to x;    
+    get_y_line y.put col to x;
+  );
+  
+  - line_h_hard (x0,y0:INTEGER) until x1:INTEGER color col:UINTEGER_32 <-
+  ( 
+    //image.item y.put col from x to x1;
+    get_y_line y0.put col from x0 to x1;
+  );
+    
+  - line_h_hard (x0,y0:INTEGER) until x1:INTEGER image line:ABSTRACT_BMP_LINE offset ofs:INTEGER <-
+  (     
+    //image.item y.put line offset ofs from x to x1;
+    get_y_line y0.put line offset ofs from x0 to x1;
+  );
+  
+  - get_pixel_hard (x,y:INTEGER) :PIXEL <-
+  (
+    //image.item y.item x
+    get_y_line y.item x
+  );
+
+  - get_color_hard (x,y:INTEGER) :UINTEGER_32 <-
+  (
+    //image.item y.item x
+    get_y_line y.get_color x
+  );
+  

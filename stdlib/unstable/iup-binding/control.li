@@ -1,0 +1,125 @@
+Section Header
+  // Base control
+
+  + name     := CONTROL;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP Control";
+
+Section Inherit
+
+  - parent_iup:IUP := IUP;
+
+Section Public
+
+  + handle:POINTER;
+
+  - set_handle p:POINTER <-
+  (
+    handle := p;
+  );
+
+Section Public
+  // Attribute utility methods
+  
+  - store name:ABSTRACT_STRING value v:ABSTRACT_STRING <-
+  ( + n_name:NATIVE_ARRAY(CHARACTER);
+    + n_v:NATIVE_ARRAY(CHARACTER);
+    + h:POINTER;
+    
+    h := handle;
+    n_name := name.to_external;
+    n_v := v.to_external;
+    
+    `IupStoreAttribute(@h, @n_name, @n_v)`;
+  );
+  
+  - store name:ABSTRACT_STRING boolean v:BOOLEAN <-
+  ( + n_name:NATIVE_ARRAY(CHARACTER);
+    + n_v:NATIVE_ARRAY(CHARACTER);
+    + h:POINTER;
+       
+    h := handle;
+    n_name := name.to_external;
+    v.if_true { n_v := "YES".to_external; }
+    else { n_v := "NO".to_external; };
+       
+    `IupStoreAttribute(@h, @n_name, @n_v)`;
+  );
+  
+  - get name:ABSTRACT_STRING :ABSTRACT_STRING <-
+  ( + n_name, n_val : NATIVE_ARRAY(CHARACTER);
+    + h:POINTER;
+    + result : STRING;
+        
+    h := handle;
+    n_name := name.to_external;
+    n_val := `IupGetAttribute(@h, @n_name)`:NATIVE_ARRAY(CHARACTER);
+        
+    result := STRING.clone;
+    result.from_external(n_val);
+    result
+  );
+
+  - set_callback name:ABSTRACT_STRING slot v:POINTER <-
+  ( + n_name:NATIVE_ARRAY(CHARACTER);
+    
+    h := handle;
+    n_name := name.to_external;
+    
+    `IupSetCallback(@h, @n_name, @v)`;
+  );
+
+Section Public
+  // Common control attributes
+
+  - set_active state:BOOLEAN <- store "ACTIVE" boolean state;
+  - active :BOOLEAN <- (get "ACTIVE") = "YES";
+
+  - set_background_color color:ABSTRACT_STRING <- store "BGCOLOR" value color;  
+  - background_color :ABSTRACT_STRING <- get "BGCOLOR";
+
+  - set_foreground_color color:ABSTRACT_STRING <- store "FGCOLOR" value color; 
+  - foreground_color color:ABSTRACT_STRING <- get "FGCOLOR";
+
+  - set_font font:ABSTRACT_COLOR <- store "FONT" value font;
+  - font :ABSTRACT_STRING <- get "FONT";
+
+  - set_visible state:BOOLEAN <- store "VISIBLE" value state;
+  - visible :BOOLEAN <- (get "VISIBLE") = "YES";
+
+  - clientsize :ABSTRACT_STRING <- get "CLIENTSIZE";
+  
+  - set_expand v:ABSTRACT_STRING <- store "EXPAND" value v;
+  - expand :ABSTRACT_STRING <- get "EXPAND";
+  
+  - set_floating v:BOOLEAN <- store "FLOATING" boolean value;
+  - floating :BOOLEAN <- (get "FLOATING") = "YES";
+  
+  - set_name v:ABSTRACT_STRING <- store "NAME" value v;
+  - name :ABSTRACT_STRING <- get "NAME";
+  
+  - set_position position:ABSTRACT_STRING <- store "POSITION" value v;
+  - position :ABSTRACT_STRING <- get "POSITION";
+  
+  - set_raster_size v:ABSTRACT_STRING <- store "RASTERSIZE" value v;
+  - raster_size :ABSTRACT_STRING <- get "RASTERSIZE";
+  
+  - set_size v:ABSTRACT_STRING <- store "SIZE" value v;
+  - size :ABSTRACT_STRING <- get "SIZE";
+  
+  - set_tip v:ABSTRACT_STRING <- store "TIP" value v;
+  - tip :ABSTRACT_STRING <- get "TIP";
+  
+  - set_title v:ABSTRACT_STRING <- store "TITLE" value v;
+  - title :ABSTRACT_STRING <- get "TITLE";
+  
+  - set_value v:ABSTRACT_STRING <- store "VALUE" value v;
+  - value :ABSTRACT_STRING <- get "VALUE";
+  
+  - wid :ABSTRACT_STRING <- get "WID";  
+  - x :ABSTRACT_STRING <- get "X";
+  - y :ABSTRACT_STRING <- get "Y";
+
+  - set_zorder v:ABSTRACT_STRING <- store "ZORDER" value v;

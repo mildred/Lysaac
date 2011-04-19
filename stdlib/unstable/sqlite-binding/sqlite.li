@@ -1,0 +1,351 @@
+Section Header
+
+  // Binding of SQLite (http://sqlite.org) for Lisaac
+
+  + name     := SQLITE ;
+
+  - copyright := "2008, Jeremy Cowgar";
+
+  - comment   := "SQLite binding";
+
+  - external := `
+  #include "sqlite3.c"
+  int rc;
+  sqlite3 *db;
+  sqlite3_stmt *stmt;
+  `;
+
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Public
+
+  + pointer :POINTER := NULL;
+  // Internal pointer to the "sqlite3 *" database handle.
+
+Section Public
+  // Mode specifiers that can be used in conjunction with `open ... mode ...`
+
+  - open_readonly   :INTEGER := `SQLITE_OPEN_READONLY`:INTEGER;
+  // The database is opened in read-only mode. If the database does not
+  // already exist, an error is returned.
+
+  - open_readwrite  :INTEGER := `SQLITE_OPEN_READWRITE`:INTEGER;
+  // The database is opened for reading and writing if possible, or reading
+  // only if the file is write protected by the operating system. In either
+  // case the database must already exist, otherwise an error is returned.
+  // This is the behavior that is always used for `open`.
+
+  - open_create     :INTEGER := `SQLITE_OPEN_CREATE`:INTEGER;
+  // The database is created if it does not yet exist. This is the behavior
+  // that is always used for `open`.
+
+Section Public
+  // Error/Success codes returned by many SQLITE slots.
+
+  - ok:INTEGER := `SQLITE_OK`:INTEGER;
+  // Successful result
+
+  - error:INTEGER := `SQLITE_ERROR`:INTEGER;
+  // SQL error or missing database
+
+  - internal:INTEGER := `SQLITE_INTERNAL`:INTEGER;
+  // Internal logic error in SQLite
+
+  - perm:INTEGER := `SQLITE_PERM`:INTEGER;
+  // Access permission denied
+
+  - abort:INTEGER := `SQLITE_ABORT`:INTEGER;
+  // Callback routine requested an abort
+
+  - busy:INTEGER := `SQLITE_BUSY`:INTEGER;
+  // The database file is locked
+
+  - locked:INTEGER := `SQLITE_LOCKED`:INTEGER;
+  // A table in the database is locked
+
+  - nomem:INTEGER := `SQLITE_NOMEM`:INTEGER;
+  // A malloc() failed
+
+  - readonly:INTEGER := `SQLITE_READONLY`:INTEGER;
+  // Attempt to write a readonly database
+
+  - interrupt:INTEGER := `SQLITE_INTERRUPT`:INTEGER;
+  // Operation terminated by sqlite3_interrupt()
+
+  - ioerr:INTEGER := `SQLITE_IOERR`:INTEGER;
+  // Some kind of disk I/O error occurred
+
+  - corrupt:INTEGER := `SQLITE_CORRUPT`:INTEGER;
+  // The database disk image is malformed
+
+  - notfound:INTEGER := `SQLITE_NOTFOUND`:INTEGER;
+  // NOT USED. Table or record not found
+
+  - full:INTEGER := `SQLITE_FULL`:INTEGER;
+  // Insertion failed because database is full
+
+  - cantopen:INTEGER := `SQLITE_CANTOPEN`:INTEGER;
+  // Unable to open the database file
+
+  - protocol:INTEGER := `SQLITE_PROTOCOL`:INTEGER;
+  // NOT USED. Database lock protocol error
+
+  - empty:INTEGER := `SQLITE_EMPTY`:INTEGER;
+  // Database is empty
+
+  - schema:INTEGER := `SQLITE_SCHEMA`:INTEGER;
+  // The database schema changed
+
+  - toobig:INTEGER := `SQLITE_TOOBIG`:INTEGER;
+  // String or BLOB exceeds size limit
+
+  - constraint:INTEGER := `SQLITE_CONSTRAINT`:INTEGER;
+  // Abort due to constraint violation
+
+  - mismatch:INTEGER := `SQLITE_MISMATCH`:INTEGER;
+  // Data type mismatch
+
+  - misuse:INTEGER := `SQLITE_MISUSE`:INTEGER;
+  // Library used incorrectly
+
+  - nolfs:INTEGER := `SQLITE_NOLFS`:INTEGER;
+  // Uses OS features not supported on host
+
+  - auth:INTEGER := `SQLITE_AUTH`:INTEGER;
+  // Authorization denied
+
+  - format:INTEGER := `SQLITE_FORMAT`:INTEGER;
+  // Auxiliary database format error
+
+  - range:INTEGER := `SQLITE_RANGE`:INTEGER;
+  // bind column index is out of range
+
+  - notadb:INTEGER := `SQLITE_NOTADB`:INTEGER;
+  // File opened that is not a database file
+
+  - row:INTEGER := `SQLITE_ROW`:INTEGER;
+  // `step` has another row ready
+
+  - done:INTEGER := `SQLITE_DONE`:INTEGER;
+  // `step` has finished executing
+
+Section Public
+  // Open/Close, Create/Destroy
+
+  - set_dbh dbh:POINTER <-
+  // Set the C sqlite3* handle for this connection.
+  (
+    pointer := dbh;
+  );
+
+  - make dbh:POINTER :SELF <-
+  // Clone `SQLITE` with the given `dbh` as the database handle pointer.
+  (
+    + result:SELF;
+
+    result := SELF.clone;
+    result.set_dbh dbh;
+    result
+  );
+
+  - open filename:ABSTRACT_STRING :SELF <-
+  // Open a SQLite database. The database file is created if it does not
+  // exist. If the `filename` is ":memory:", then a private, temporary
+  // in-memory database is created for the connection. If the `filename`
+  // is empty "" then a private, temporary on-disk database will be
+  // created.
+  (
+    + result:SELF;
+    + n_filename:NATIVE_ARRAY(CHARACTER);
+
+    n_filename := filename.to_external;
+
+    ( `sqlite3_open(@n_filename, &db)`:INTEGER = SQLITE.ok ).if {
+      result := SELF.make `db`:POINTER;
+    } else {
+      result := SELF.make NULL;
+    };
+
+    result
+  );
+
+  - open filename:ABSTRACT_STRING mode mode:INTEGER :SELF <-
+  // Open a SQLite database in the given `mode`. See `open`,
+  // `open_readonly`, `open_readwrite` and `open_create` for
+  // more information.
+  (
+    + result:SELF;
+    + n_filename:NATIVE_ARRAY(CHARACTER);
+    + rc:INTEGER;
+
+    n_filename := filename.to_external;
+    rc := `sqlite3_open_v2(@n_filename, &db, @mode, NULL)`:INTEGER;
+    ( rc = SQLITE.ok ).if {
+      result := SELF.make `db`:POINTER;
+    } else {
+      result := SELF.make NULL;
+    };
+
+    result
+  );
+
+  - close <-
+  // Close the database.
+  (
+    + dbh :POINTER;
+    dbh := pointer;
+    `sqlite3_close(@dbh)`;
+  );
+
+Section Public
+  // Error information
+
+  - errcode :INTEGER <-
+  // Returns the integer result code of the most recent failed
+  // action. It is possible that it return `ok` if no failure
+  // has taken place.
+  (
+    + dbh : POINTER;
+    `sqlite3_errcode(@dbh)`:INTEGER
+  );
+
+  - errmsg :STRING <-
+  // Returns the English-language text that describes the most
+  // recent failed action.
+  (
+    + error_message : NATIVE_ARRAY(CHARACTER);
+    + dbh : POINTER;
+    + result : STRING;
+
+    dbh := pointer;
+    error_message := `sqlite3_errmsg(@dbh)`:NATIVE_ARRAY(CHARACTER);
+
+    result := STRING.clone;
+    result.from_external(error_message);
+    result
+  );
+
+Section Public
+  // Querying
+
+  - exec sql:ABSTRACT_STRING :INTEGER <-
+  // Execute one or more SQL statements. See also `prepare`, `changes`
+  // and `total_changes`.
+  (
+    + dbh    : POINTER;
+    + a_sql  : NATIVE_ARRAY(CHARACTER);
+
+    dbh    := pointer;
+    a_sql  := sql.to_external;
+    `sqlite3_exec(@dbh, @a_sql, 0, 0, 0)`:INTEGER
+  );
+
+  - prepare sql:ABSTRACT_STRING :SQLITE_STATEMENT <-
+  // Prepare a SQL statement for execution.
+  (
+    + dbh    : POINTER;
+    + stmt   : POINTER;
+    + a_sql  : NATIVE_ARRAY(CHARACTER);
+    + result : INTEGER;
+    + o_stmt : SQLITE_STATEMENT;
+
+    dbh    := pointer;
+    a_sql  := sql.to_external;
+    `rc = sqlite3_prepare_v2(@dbh, @a_sql, -1, &stmt, 0)`;
+    result := `rc`:INTEGER;
+    stmt   := `stmt`:POINTER;
+
+    o_stmt := SQLITE_STATEMENT.make stmt;
+    o_stmt
+  );
+
+  - foreach sql:ABSTRACT_STRING do b:{SQLITE_STATEMENT;} <-
+  // Execute `sql` and call `b` for each row returned by the `sql`
+  // statement.
+  (
+    + o_stmt : SQLITE_STATEMENT;
+    o_stmt := prepare(sql);
+    { o_stmt.step = SQLITE.row }.while_do { b.value o_stmt };
+    o_stmt.finalize;
+  );
+
+  - foreach sql:ABSTRACT_STRING do b:{SQLITE_STATEMENT;} else be:{} <-
+  // Execute `sql` and call `b` for each row returned by the `sql`
+  // statement. If no rows are returned execute `be` instead.
+  (
+    + o_stmt:SQLITE_STATEMENT;
+    + count:INTEGER;
+
+    count := 0;
+    o_stmt := prepare(sql);
+    { o_stmt.step = SQLITE.row }.while_do {
+      b.value o_stmt;
+      count := count + 1;
+    };
+
+    o_stmt.finalize;
+
+    ( count = 0 ).if be;
+  );
+
+Section Public
+  // Statistics
+
+  - changes :INTEGER <-
+  // Returns the number of row changes caused by INSERT, UPDATE and
+  // DELETE statements during the last SQL statement. See also
+  // `total_changes`.
+  (
+    + dbh:POINTER;
+    dbh := pointer;
+    `sqlite3_changes(@dbh)`:INTEGER
+  );
+
+  - total_changes :INTEGER <-
+  // Returns the number of row changes caused by INSERT, UPDATE and
+  // DELETE statements since the database connection was opened.
+  // See also `changes`.
+  (
+    + dbh:POINTER;
+    dbh := pointer;
+    `sqlite3_total_changes(@dbh)`:INTEGER
+  );
+
+  - last_insert_rowid :INTEGER_64 <-
+  // Each entry in an SQLite table has a unique 64-bit signed integer
+  // key called the "rowid". The rowid is always available as an
+  // undeclared column named ROWID, OID, or _ROWID_ as long as those
+  // names are not also used by explicitly declared columns. If the
+  // table has a column of type INTEGER PRIMARY KEY then that column
+  // is another alias for the rowid.
+  //
+  // This routine returns the rowid of the most recent successful
+  // INSERT into the database from the database connection in the
+  // first argument. If no successful INSERTs have ever occurred on
+  // that database connection, zero is returned.
+  (
+    + dbh:POINTER;
+    dbh := pointer;
+    `sqlite3_last_insert_rowid(@stmt)`:INTEGER_64
+  );
+
+  - is_empty :BOOLEAN <-
+  // Query the "sqlite_master" table to determine if this SQLite
+  // database has any tables. This can be used to see if a call
+  // to `open` has opened or created the database file.
+  (
+    + s : SQLITE_STATEMENT;
+    + r : BOOLEAN;
+
+    s := prepare("SELECT COUNT(name) FROM sqlite_master");
+    ( s.step = SQLITE.row ).if {
+      r := (s.as_integer(0) = 0);
+    } else {
+      r := TRUE;
+    };
+    s.finalize;
+
+    r
+  );

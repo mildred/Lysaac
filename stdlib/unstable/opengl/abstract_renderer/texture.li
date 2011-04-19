@@ -1,0 +1,124 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := TEXTURE;
+ 
+  - comment  := "rendered image";
+  
+Section Inherit
+  
+  + parent_image:IMAGE := IMAGE;
+  
+  + parent_state:Expanded STATE;
+  
+Section Public
+  
+  //
+  // texture parameters
+  //
+  
+  // filters: how to draw texture
+  - filter_nearest:INTEGER <- 1; 
+  - filter_linear:INTEGER <- 2;
+  - filter_mipmap:INTEGER <- 3;
+  
+  - filter:INTEGER := filter_mipmap;
+  
+  // texture functions: how to combine texture on its polygon
+  - decal:INTEGER <- 1;
+  - replace:INTEGER <- 2;
+  - modulate:INTEGER <- 3;
+  - blend:INTEGER <- 4;
+  
+  - drawing_mode:INTEGER := modulate;
+  
+  // border behaviour: what to draw when texels outside [0,1]
+  - clamp:INTEGER <- 1;
+  - repeat:INTEGER <- 2;
+  - clamp_to_edge:INTEGER <- 3;
+  
+  - wrapping_mode:INTEGER := repeat;
+  
+  //
+  // Create.
+  //
+  
+  - create_from image:IMAGE :SELF <- 
+  ( + result:SELF;  
+    result := SELF.clone;
+    result.make_from image;
+    result
+  );
+  
+  - create_from_data pixels:FAST_ARRAY(UINTEGER_8) size (w,h:INTEGER) type t:INTEGER :SELF <-
+  (  + result:SELF;  
+    result := SELF.clone;
+    result.make_from_data pixels size (w,h) type t;
+    result
+  );
+  
+  - create_from_framebuffer (x,y,w,h:INTEGER) type t:INTEGER :SELF <-
+  (  + result:SELF;  
+    result := SELF.clone;
+    result.make_from_framebuffer (x,y,w,h) type t;
+    result
+  );
+  
+  - create_empty (w,h:INTEGER) type t:INTEGER :SELF <-
+  (  + result:SELF;  
+    result := SELF.clone;
+    result.make_empty (w,h) type t;
+    result
+  );
+  
+  - make_from image:IMAGE <- deferred;
+  - make_from_data pixels:FAST_ARRAY(UINTEGER_8) size (w,h:INTEGER) type t:INTEGER <- deferred;
+  - make_from_framebuffer (x,y,w,h:INTEGER) type t:INTEGER <- deferred;
+  
+  - replace_region (x,y,w,h:INTEGER) with_data (pixels:FAST_ARRAY(UINTEGER_8),type:INTEGER) <- deferred;
+  - replace_region (x,y,w,h:INTEGER) with image:IMAGE <- deferred;
+  
+  - replace_region (x,y,w,h:INTEGER) with_framebuffer_at (x0,y0:INTEGER) <- deferred;
+  
+  - enable_unit n:INTEGER <- deferred;
+  - disable_unit n:INTEGER <- deferred;
+  
+  - bind <- deferred;
+  - bind_unit n:INTEGER <- deferred;
+  
+  - set_image image:IMAGE <-
+  (
+    parent_image := image;
+  ); 
+  
+  - draw (x,y:INTEGER) <- deferred;
+  
+  - draw_strech (x,y,w,h:INTEGER) <- deferred;
+  
+  - set_filter f:INTEGER <- (filter := f;);
+  - set_drawing_mode f:INTEGER <- (drawing_mode := f;);
+  
+  - set_wrapping_mode f:INTEGER :INTEGER <- (wrapping_mode := f);
+ 
+  
+  

@@ -1,0 +1,40 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_PROFILE;
+  - comment     :=" .";
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Public
+  
+  + x:INTEGER;           // current coordinate during sweep          
+  // JBJB UREAL_26_6
+  
+  + link:TT_PROFILE;        // link to next profile - various purpose   
+  + offset:INTEGER;        // start of profile's data in render pool   
+  + flow:INTEGER;          // Profile orientation: Asc/Descending      
+  + height:INTEGER;        // profile's height in scanlines            
+  + start:INTEGER;         // profile's starting scanline              
+  
+  + countl:USHORTINT;      // number of lines to step before this      
+  // profile becomes drawable                 
+  
+  + next:TT_PROFILE;        // next profile in same contour, used       
+  // during drop-out control                  

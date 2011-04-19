@@ -1,0 +1,409 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_VERTEX_ARRAY;
+  
+Section Inherit
+  
+  - parent_vertex_buffer:VERTEX_BUFFER := VERTEX_BUFFER;
+  
+Section Public
+  
+  + vertex:FAST_ARRAY(REAL_32);
+  + texels:FAST_ARRAY(REAL_32);
+  + normals:FAST_ARRAY(REAL_32);
+  + colors:FAST_ARRAY(REAL_32);
+  
+  + vertex_id:UINTEGER_32;
+  + texels_id:UINTEGER_32;
+  + normals_id:UINTEGER_32;
+  + colors_id:UINTEGER_32;
+  
+  + drawing_mode:INTEGER;
+  
+  + capacity:INTEGER;
+  
+  
+  - make sz:INTEGER <- 
+  (
+    vertex := FAST_ARRAY(REAL_32).create_with_capacity sz;
+    texels := FAST_ARRAY(REAL_32).create_with_capacity sz;
+    normals := FAST_ARRAY(REAL_32).create_with_capacity sz;
+    colors := FAST_ARRAY(REAL_32).create_with_capacity sz;
+    
+    capacity := sz;
+  );
+  
+  - points:INTEGER <- `GL_POINTS`:INTEGER;
+  - lines:INTEGER <- `GL_LINES`:INTEGER;
+  - polygon:INTEGER <- `GL_POLYGON`:INTEGER;
+  - triangles:INTEGER <- `GL_TRIANGLES`:INTEGER;
+  - quads:INTEGER <- `GL_QUADS`:INTEGER;
+  - line_strip:INTEGER <- `GL_LINE_STRIP`:INTEGER;
+  - line_loop:INTEGER <-  `GL_LINE_LOOP`:INTEGER;
+  - triangle_strip:INTEGER <- `GL_TRIANGLE_STRIP`:INTEGER;
+  - triangle_fan:INTEGER <- `GL_TRIANGLE_FAN`:INTEGER;
+  - quad_strip:INTEGER <- `GL_QUAD_STRIP`:INTEGER;
+  
+  
+  - build <- 
+  (
+    + p:POINTER;
+    
+    (OPENGL.arb_vertex_buffer_object != NULL).if {
+      // create vertex array
+      (vertex.count > 0).if {
+        vertex_id := OPENGL.arb_vertex_buffer_object.genbuffer;
+        OPENGL.arb_vertex_buffer_object.bind vertex_id;
+        
+        // load data into GPU cache
+        p := vertex.to_external;
+        OPENGL.arb_vertex_buffer_object.buffer_data p size (3*vertex.count*REAL_32.object_size);
+      };
+      (texels.count > 0).if {
+        texels_id := OPENGL.arb_vertex_buffer_object.genbuffer;
+        OPENGL.arb_vertex_buffer_object.bind texels_id;
+        
+        // load data into GPU cache
+        p := texels.to_external;
+        OPENGL.arb_vertex_buffer_object.buffer_data p size (2*texels.count*REAL_32.object_size);
+      };
+      (colors.count > 0).if {
+        colors_id := OPENGL.arb_vertex_buffer_object.genbuffer;
+        OPENGL.arb_vertex_buffer_object.bind colors_id;
+        
+        // load data into GPU cache
+        p := colors.to_external;
+        OPENGL.arb_vertex_buffer_object.buffer_data p size (3*colors.count*REAL_32.object_size);
+      };
+      (normals.count > 0).if {
+        normals_id := OPENGL.arb_vertex_buffer_object.genbuffer;
+        OPENGL.arb_vertex_buffer_object.bind normals_id;
+        
+        // load data into GPU cache
+        p := normals.to_external;
+        OPENGL.arb_vertex_buffer_object.buffer_data p size (3*normals.count*REAL_32.object_size);
+      };
+    };
+  );
+  
+  - disable <-
+  (
+    // disable pointers
+    (vertex.count > 0).if {
+      `glDisableClientState (GL_VERTEX_ARRAY)`;
+    };
+    (texels.count > 0).if {
+      `glDisableClientState (GL_TEXTURE_COORD_ARRAY)`;
+    };
+    (colors.count > 0).if {
+      `glDisableClientState (GL_COLOR_ARRAY)`;
+    };
+    (normals.count > 0).if {
+      `glDisableClientState (GL_NORMAL_ARRAY)`;
+    };
+  );
+  
+  - draw <-
+  (
+    + sz,mode:INTEGER;
+    
+    // render all at once
+    sz := capacity;
+    mode := drawing_mode;
+    `glDrawArrays (@mode, 0, @sz)`;
+    
+    disable;
+  );
+  
+  - draw_using index_array:INDEX_BUFFER <-
+  (
+    index_array.bind;
+    index_array.draw drawing_mode size capacity;
+    disable;
+  ); 
+  
+  - bind <-
+  (
+    + p:POINTER;
+    
+    (vertex.count > 0).if {
+      `glEnableClientState(GL_VERTEX_ARRAY)`;
+      (OPENGL.arb_vertex_buffer_object != NULL).if {
+        // use GPU vertex buffer
+        OPENGL.arb_vertex_buffer_object.bind vertex_id;
+        `glVertexPointer(3, GL_FLOAT, 0, (char*)NULL)`;
+      } else {    
+        p := vertex.to_external;
+        `glVertexPointer(3, GL_FLOAT, 0, @p)`;
+      };
+    };    
+    
+    (texels.count > 0).if {
+      `glEnableClientState(GL_TEXTURE_COORD_ARRAY)`;
+      (OPENGL.arb_vertex_buffer_object != NULL).if {
+        OPENGL.arb_vertex_buffer_object.bind texels_id;
+        `glTexCoordPointer(2, GL_FLOAT, 0, (char*)NULL)`;
+      } else {
+        p := texels.to_external;
+        `glTexCoordPointer(2, GL_FLOAT, 0, @p)`;
+      };
+    };
+    
+    (colors.count > 0).if {
+      `glEnableClientState(GL_COLOR_ARRAY)`;
+      (OPENGL.arb_vertex_buffer_object != NULL).if {
+        OPENGL.arb_vertex_buffer_object.bind colors_id;
+        `glColorPointer(3, GL_FLOAT, 0, (char*)NULL)`;
+      } else {
+        p := colors.to_external;
+        `glColorPointer(3, GL_FLOAT, 0, @p)`;
+      };
+    };
+    
+    (normals.count > 0).if {
+      `glEnableClientState(GL_NORMAL_ARRAY)`;
+      (OPENGL.arb_vertex_buffer_object != NULL).if {
+        OPENGL.arb_vertex_buffer_object.bind normals_id;
+        `glNormalPointer(GL_FLOAT, 0, (char*)NULL)`;
+      } else {
+        p := normals.to_external;
+        `glNormalPointer(GL_FLOAT, 0, @p)`;
+      };
+    };
+  );
+  
+  - bind_unit n:INTEGER <-
+  (
+    + p:POINTER;
+    
+    (vertex.count > 0).if {
+      `glEnableClientState(GL_VERTEX_ARRAY)`;
+      (OPENGL.arb_vertex_buffer_object != NULL).if {
+        // use GPU vertex buffer
+        OPENGL.arb_vertex_buffer_object.bind vertex_id;
+        `glVertexPointer(3, GL_FLOAT, 0, (char*)NULL)`;
+      } else {    
+        p := vertex.to_external;
+        `glVertexPointer(3, GL_FLOAT, 0, @p)`;
+      };
+    };    
+    
+    (texels.count > 0).if {
+      `glEnableClientState(GL_TEXTURE_COORD_ARRAY)`;
+      
+      (OPENGL.arb_multitexture != NULL).if {
+        OPENGL.arb_multitexture.client_active_texture n;
+      };
+      (OPENGL.arb_vertex_buffer_object != NULL).if {
+        OPENGL.arb_vertex_buffer_object.bind texels_id;
+        `glTexCoordPointer(2, GL_FLOAT, 0, (char*)NULL)`;
+      } else {
+        p := texels.to_external;
+        `glTexCoordPointer(2, GL_FLOAT, 0, @p)`;
+      };
+    };
+    
+    (colors.count > 0).if {
+      `glEnableClientState(GL_COLOR_ARRAY)`;
+      (OPENGL.arb_vertex_buffer_object != NULL).if {
+        OPENGL.arb_vertex_buffer_object.bind colors_id;
+        `glColorPointer(3, GL_FLOAT, 0, (char*)NULL)`;
+      } else {
+        p := colors.to_external;
+        `glColorPointer(3, GL_FLOAT, 0, @p)`;
+      };
+    };
+    
+    (normals.count > 0).if {
+      `glEnableClientState(GL_NORMAL_ARRAY)`;
+      (OPENGL.arb_vertex_buffer_object != NULL).if {
+        OPENGL.arb_vertex_buffer_object.bind normals_id;
+        `glNormalPointer(GL_FLOAT, 0, (char*)NULL)`;
+      } else {
+        p := normals.to_external;
+        `glNormalPointer(GL_FLOAT, 0, @p)`;
+      };
+    };
+  );
+  
+  
+  - begin_triangles <-
+  (
+    drawing_mode := triangles;
+  );
+  
+  - begin_lines <-
+  (
+    drawing_mode := lines;
+  );
+  
+  - begin_points <-
+  (
+    drawing_mode := points;
+  );
+  
+  - begin_quads <-
+  (
+    drawing_mode := quads;
+  );
+  
+  - begin_polygon <-
+  (
+    drawing_mode := polygon;
+  );
+  
+  - begin_line_strip <-
+  (
+    drawing_mode := line_strip;
+  );
+  
+  - begin_line_loop <-
+  (
+    drawing_mode := line_loop;
+  );
+  
+  - begin_triangle_strip <-
+  (
+    drawing_mode := triangle_strip;
+  );
+  
+  - begin_triangle_fan <-
+  (
+    drawing_mode := triangle_fan;
+  );
+  
+  - begin_quads_strip <-
+  (
+    drawing_mode := quad_strip;
+  );
+  
+  - end <- 
+  (
+    build;
+  );
+  
+  - add_vertex2f (x,y:REAL_32) <-
+  (
+    vertex.add_last x;
+    vertex.add_last y;
+    vertex.add_last 0;
+  );
+  
+  - add_vertex3f (x,y,z:REAL_32) <-
+  (
+    vertex.add_last x;
+    vertex.add_last y;
+    vertex.add_last z;
+  );
+  
+  - add_vertex3f (x,y,z:REAL_32) color col:COLOR <-
+  (
+    add_vertex3f (x,y,z);
+    add_color col;
+  );
+  
+  - add_vertex v:VERTEX <- 
+  (
+    vertex.add_last (v.x);
+    vertex.add_last (v.y);
+    vertex.add_last (v.z);    
+  );
+  
+  - add_vertex v:VERTEX color col:COLOR <- 
+  (
+    add_vertex v;
+    add_color col;
+  );
+  
+  - add_texel2f (s,t:REAL_32) <-
+  (
+    texels.add_last s;
+    texels.add_last t;
+  );
+  
+  - add_normal3f (x,y,z:REAL_32) <-
+  (
+    normals.add_last x;
+    normals.add_last y;
+    normals.add_last z;
+  );
+  
+  - add_normal v:VECTOR3(REAL_32) <-
+  (
+    add_normal3f (v.x, v.y, v.z);
+  );
+  
+  - add_color (c:COLOR) <-
+  (
+    colors.add_last (c.r);
+    colors.add_last (c.g);
+    colors.add_last (c.b); 
+  );
+  
+  - add_color3f (r,g,b:REAL_32) <-
+  ( 
+    colors.add_last r; 
+    colors.add_last g;  
+    colors.add_last b;
+  );
+  
+  - get_vertex_data:FAST_ARRAY(REAL_32) <- 
+  (
+    vertex
+  );
+  
+  - get_texels_data:FAST_ARRAY(REAL_32) <- 
+  (
+    texels
+  );
+  
+  - get_normals_data:FAST_ARRAY(REAL_32) <- 
+  (
+    normals
+  );
+  
+  - get_colors_data:FAST_ARRAY(REAL_32) <- 
+  (
+    colors
+  );
+  
+  
+  - destroy <-
+  // bug!!!
+  (
+    (OPENGL.arb_vertex_buffer_object != NULL).if {
+      (vertex.count > 0).if {
+        OPENGL.arb_vertex_buffer_object.delete vertex_id;
+      };
+      (texels.count > 0).if {
+        OPENGL.arb_vertex_buffer_object.delete texels_id;
+      };
+      (colors.count > 0).if {
+        OPENGL.arb_vertex_buffer_object.delete colors_id;
+      };
+      (normals.count > 0).if {
+        OPENGL.arb_vertex_buffer_object.delete normals_id;
+      };
+    };
+  );

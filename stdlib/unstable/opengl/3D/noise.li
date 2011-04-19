@@ -1,0 +1,167 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Math-Library                                  //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := NOISE;
+  
+  - comment  := "3D Perlin noise";
+  
+  - external := `
+  
+  static const char  gradient[12][3] =
+  {
+    {1, 1, 0}, {1, -1, 0}, {-1, 1, 0}, {-1, -1, 0},
+    {1, 0, 1}, {1, 0, -1}, {-1, 0, 1}, {-1, 0, -1},
+    {0, 1, 1}, {0, -1, 1}, {0, 1, -1}, {0, -1, -1},
+  };`;
+  
+Section Inherit
+  
+  - parent_framework:FRAMEWORK_ANY := FRAMEWORK_ANY;
+  
+Section Public  
+  
+  + permutation:FAST_ARRAY(INTEGER);
+  
+  
+  
+  //
+  // Creation.
+  //
+  
+  - create:SELF <-
+  ( + result:SELF;
+    result := clone;
+    result.make;
+    result
+  );
+  
+  - make <-
+  ( 
+    permutation := FAST_ARRAY(INTEGER).create 256;
+    0.to 255 do { i:INTEGER;
+      permutation.put (random & 0ffh) to i;
+    };
+  );
+  
+  - get (x,y,z:REAL_32) :REAL_32 <-
+  // return Perlin noise at (x,y,z) point
+  ( 
+    + x1,y1,z1, x2,y2,z2:INTEGER;
+    + gx,gy,gz:INTEGER;
+    + dx1,dy1,dz1, dx2,dy2,dz2:REAL_32;
+    + dot1,dot2,dot3,dot4,dot5,dot6,dot7,dot8:REAL_32;
+    + idx,idy,idz:REAL_32;
+    + v0,v1, v00,v01,v10,v11:REAL_32;
+    
+    // integer unit cube containing the point
+    x1 := x.to_integer;
+    y1 := y.to_integer;
+    z1 := z.to_integer;
+    
+    x2 := x1 + 1;
+    y2 := y1 + 1;
+    z2 := z1 + 1;
+    
+    // vectors from the corners of the cube to the point
+    dx1 := x - x1;
+    dy1 := y - y1;
+    dz1 := z - z1;
+    
+    dx2 := x - x2;
+    dy2 := y - y2;
+    dz2 := z - z2;
+    
+    
+    // the corresponding gradients
+    (gx,gy,gz) := get_gradient (get_index (x1,y1,z1));
+    dot1 := dot (dx1,gx, dy1,gy, dz1,gz);
+    (gx,gy,gz) := get_gradient (get_index (x1,y1,z2));
+    dot2 := dot (dx1,gx, dy1,gy, dz2,gz);
+    (gx,gy,gz) := get_gradient (get_index (x1,y2,z1));
+    dot3 := dot (dx1,gx, dy2,gy, dz1,gz);
+    (gx,gy,gz) := get_gradient (get_index (x1,y2,z2));
+    dot4 := dot (dx1,gx, dy2,gy, dz2,gz);
+    (gx,gy,gz) := get_gradient (get_index (x2,y1,z1));
+    dot5 := dot (dx2,gx, dy1,gy, dz1,gz);
+    (gx,gy,gz) := get_gradient (get_index (x2,y1,z2));
+    dot6 := dot (dx2,gx, dy1,gy, dz2,gz);
+    (gx,gy,gz) := get_gradient (get_index (x2,y2,z1));
+    dot7 := dot (dx2,gx, dy2,gy, dz1,gz);
+    (gx,gy,gz) := get_gradient (get_index (x2,y2,z2));
+    dot8 := dot (dx2,gx, dy2,gy, dz2,gz);
+    
+    // interpolations
+    idx := spline dx1;
+    idy := spline dy1; 
+    idz := spline dz1;
+    
+    v11 := linear (dot7, dot8, idz);
+    v10 := linear (dot5, dot6, idz);
+    v01 := linear (dot3, dot4, idz);
+    v00 := linear (dot1, dot2, idz);
+    
+    v0 := linear (v10, v11, idy);
+    v1 := linear (v00, v01, idy);
+    
+    linear (v0, v1, idx)
+  );
+  
+Section Private
+  
+  - get_gradient i:INTEGER :(INTEGER,INTEGER,INTEGER) <-
+  (
+    (`gradient[@i][0]`:INTEGER,`gradient[@i][1]`:INTEGER,`gradient[@i][2]`:INTEGER)
+  );
+  
+  - get_index (x,y,z:INTEGER) :INTEGER <- 
+  (
+    permutation.item ((x + permutation.item ((y + permutation.item (z & 0ffh)) & 0ffh)) & 0ffh) & 0ch
+  );
+  
+  - prod (a,b:REAL_32) :REAL_32 <-
+  ( + result:REAL_32;
+    (b > 0).if {
+      result := a;
+    }.elseif {b < 0} then {
+      result := -a;
+    };
+    result
+  );
+  
+  - dot (x1,x2, y1,y2, z1,z2:REAL_32) :REAL_32 <-
+  (
+    prod (x1, x2) + prod (y1, y2) + prod (z1, z2)
+  );
+  
+  - spline val:REAL_32 :REAL_32 <-
+  // 3x^2 + 2x^3 curve
+  (  + val2:REAL_32;
+    
+    val2 := val * val;
+    val2 * (3.0 + val * 2.0)
+  );
+  
+  - linear (start, end, t:REAL_32) :REAL_32 <-
+  (
+    start + (end - start) * t
+  );

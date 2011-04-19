@@ -1,0 +1,25 @@
+Section Header
+  // Canvas
+
+  + name      := CANVAS;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP Canvas";
+
+Section Inherit
+
+  + parent:Expanded CONTROL := CONTROL;
+
+Section Public
+  
+  - make :SELF <-
+  ( + result:SELF;
+    + h:POINTER;
+
+    h := `IupCanvas(NULL)`:POINTER;
+
+    result := SELF.clone;
+    result.set_handle hndl;
+    result
+  );

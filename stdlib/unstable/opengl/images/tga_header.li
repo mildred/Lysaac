@@ -1,0 +1,74 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TGA_HEADER;
+  
+  - comment     := "Mapping TGA Image File Header structure";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Mapping
+  
+  //
+  // TGA Header
+  //
+  
+  + data_offset:UINTEGER_8;
+  + reserved:UINTEGER_8;
+  
+  + type:UINTEGER_8;
+  
+  + not_used1:UINTEGER_32;// skip 9byte
+  + not_used2:UINTEGER_32;
+  + not_used3:UINTEGER_8;
+  
+  + map_width:UINTEGER_16;
+  + map_height:UINTEGER_16;
+  + bpp:UINTEGER_8;
+  
+  + flags:UINTEGER_8;
+  
+Section Public
+  
+  - width:INTEGER <- map_width;
+  - height:INTEGER <- map_height; 
+  
+  - bits_per_pixel:INTEGER <- bpp;
+  
+  - is_compressed:BOOLEAN <-
+  (
+    type = 10
+  );
+  
+  - need_flip:BOOLEAN <-
+  (
+    flags & 020h = 1
+  );
+  
+  - print <-
+  (
+    
+    '\n'.print;
+  );

@@ -1,0 +1,612 @@
+Section Header
+
+  + name := PARSER;
+
+  - author        := "Mildred Ki'Lya <mildred593(at)online.fr>";
+  - copyright     := "2008 Mildred Ki'Lya";
+  - comment       := "";
+
+  // Copyright (c) 2008 Mildred Ki'Lya <mildred593(at)online.fr>
+  //
+  // Permission is hereby granted, free of charge, to any person
+  // obtaining a copy of this software and associated documentation
+  // files (the "Software"), to deal in the Software without
+  // restriction, including without limitation the rights to use,
+  // copy, modify, merge, publish, distribute, sublicense, and/or sell
+  // copies of the Software, and to permit persons to whom the
+  // Software is furnished to do so, subject to the following
+  // conditions:
+  //
+  // The above copyright notice and this permission notice shall be
+  // included in all copies or substantial portions of the Software.
+  //
+  // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  // NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  // HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  // OTHER DEALINGS IN THE SOFTWARE.
+
+  - external := `#include <expat.h>`;
+
+Section Inherit
+
+  + parent :Expanded EXPAT_OBJECT;
+
+Section Private
+
+  + parser :POINTER;
+
+  - reset <-
+  ( + p:POINTER;
+    + self :POINTER;
+    p := parser;
+    self := Self;
+    `XML_SetUserData(@p, @self)`;
+    `XML_SetExternalEntityRefHandlerArg(@p, @self);`;
+  );
+
+Section Public
+
+  + handlers :HANDLERS := HANDLERS;
+
+  - set_handlers h:HANDLERS <- handlers := h;
+
+  - create encoding:ABSTRACT_STRING :SELF <-
+  ( + res :SELF;
+    res := clone;
+    res.make encoding;
+    res
+  );
+
+  - create_ns (encoding:ABSTRACT_STRING, sep:CHAR) :SELF <-
+  ( + res :SELF;
+    res := clone;
+    res.make_ns (encoding, sep);
+    res
+  );
+
+  - create_mm encoding:ABSTRACT_STRING :SELF <- not_yet_implemented;
+
+  - make encoding:ABSTRACT_STRING <-
+  ( + enc :NATIVE_ARRAY(CHAR);
+    enc := to_external encoding;
+    parser := `XML_ParserCreate(@enc)`:POINTER;
+    reset;
+  );
+
+  - make_ns (encoding:ABSTRACT_STRING, sep:CHAR) <-
+  ( + enc :NATIVE_ARRAY(CHAR);
+    enc := to_external encoding;
+    parser := `XML_ParserCreateNS(@enc, @sep)`:POINTER;
+    reset;
+  );
+
+  - free <-
+  ( + p:POINTER;
+    p := parser;
+    `XML_ParserFree(@p)`;
+  );
+
+  - reset_with encoding:ABSTRACT_STRING :BOOLEAN <-
+  ( + p   :POINTER;
+    + enc :NATIVE_ARRAY(CHAR);
+    + res :BOOLEAN;
+    enc := to_external encoding;
+    p := parser;
+    res := `XML_ParserReset(@p, @enc) == XML_TRUE`:(BOOLEAN);
+    subscriptions := 0;
+    reset;
+    res
+  );
+
+  - parse (buf:ABSTRACT_STRING, is_final:BOOLEAN) :STATUS <-
+  ( + p :POINTER;
+    + s :NATIVE_ARRAY(CHARACTER);
+    + n :INTEGER;
+    p := parser;
+    s := buf.to_external;
+    n := buf.count;
+    `XML_Parse(@p, @s, @n, @is_final)`:STATUS
+  );
+
+  - parse_buffer (len:INTEGER, is_final:BOOLEAN) :STATUS <-
+  ( + p :POINTER;
+    p := parser;
+    `XML_ParseBuffer(@p, @len, @is_final)`:STATUS
+  );
+
+  - get_buffer len:INTEGER :NATIVE_ARRAY(CHARACTER) <-
+  ( + p :POINTER;
+    p := parser;
+    `XML_GetBuffer(@p, @len)`:NATIVE_ARRAY(CHARACTER)
+  );
+
+  - stop_parser resumable:BOOLEAN :STATUS <-
+  ( + p :POINTER;
+    p := parser;
+    `XML_StopParser(@p, @resumable)`:STATUS
+  );
+
+  - resume_parser :STATUS <-
+  ( + p :POINTER;
+    p := parser;
+    `XML_ResumeParser(@p)`:STATUS
+  );
+
+  - get_parsing_status :PARSING_STATUS <-
+  ( + p :POINTER;
+    p := parser;
+    `XML_ParsingStatus status`;
+    `XML_GetParsingStatus(@p, &status)`;
+    (`&status`:NATIVE_ARRAY(PARSING_STATUS)).item 0;
+  );
+
+  - get_error_code :ERROR <-
+  ( + p :POINTER;
+    p := parser;
+    `XML_GetErrorCode(@p)`:ERROR
+  );
+
+  - get_current_byte_index :INTEGER <-
+  ( + p :POINTER;
+    p := parser;
+    `XML_GetCurrentByteIndex(@p)`:INTEGER
+  );
+
+  - get_current_line_number :INTEGER <-
+  ( + p :POINTER;
+    p := parser;
+    `XML_GetCurrentLineNumber(@p)`:INTEGER
+  );
+
+  - get_current_column_number :INTEGER <-
+  ( + p :POINTER;
+    p := parser;
+    `XML_GetCurrentColumnNumber(@p)`:INTEGER
+  );
+
+  - get_current_byte_count :INTEGER <-
+  ( + p :POINTER;
+    p := parser;
+    `XML_GetCurrentByteCount(@p)`:INTEGER
+  );
+
+  - get_input_context :CONTEXT <-
+  ( + p :POINTER;
+    + s :NATIVE_ARRAY(CHARACTER);
+    p := parser;
+    `int o, sz;`;
+    s := `XML_GetInputContext(@p, &o, &sz)`:NATIVE_ARRAY(CHARACTER);
+    CONTEXT.create (from_external_copy s, (`o`:INTEGER), (`sz`:INTEGER))
+  );
+
+  - set_base base:ABSTRACT_STRING :STATUS <-
+  ( + p :POINTER;
+    + na :NATIVE_ARRAY(CHAR);
+    p := parser;
+    na := to_external base;
+    `XML_SetBase(@p, @na)`:STATUS
+  );
+
+  - get_base :ABSTRACT_STRING <-
+  ( + p :POINTER;
+    p := parser;
+    from_external (`XML_GetBase(@p)`:NATIVE_ARRAY(CHAR))
+  );
+
+  - get_specified_attribute_count :INTEGER <-
+  ( + p :POINTER;
+    p := parser;
+    `XML_GetSpecifiedAttributeCount(@p)`:INTEGER
+  );
+
+  - get_id_attribute_index :INTEGER <-
+  ( + p :POINTER;
+    p := parser;
+    `XML_GetIdAttributeIndex(@p)`:INTEGER
+  );
+
+  - set_encoding env:ABSTRACT_STRING :STATUS <-
+  ( + p :POINTER;
+    + na :NATIVE_ARRAY(CHAR);
+    p := parser;
+    na := to_external env;
+    `XML_SetEncoding(@p, @na)`:STATUS
+  );
+
+  - set_param_entity_parsing_never <-
+  ( + p :POINTER;
+    p := parser;
+    `SetParamEntityParsing(@p, XML_PARAM_ENTITY_PARSING_NEVER)`;
+  );
+
+  - set_param_entity_parsing_unless_standalone <-
+  ( + p :POINTER;
+    p := parser;
+    `SetParamEntityParsing(@p, XML_PARAM_ENTITY_PARSING_UNLESS_STANDALONE)`;
+  );
+
+  - set_param_entity_parsing_always <-
+  ( + p :POINTER;
+    p := parser;
+    `SetParamEntityParsing(@p, XML_PARAM_ENTITY_PARSING_ALWAYS)`;
+  );
+
+  - use_foreign_dtd b:BOOLEAN :ERROR <-
+  ( + p :POINTER;
+    p := parser;
+    `XML_UseForeignDTD(@p, @b)`:ERROR
+  );
+
+  - set_return_ns_triplet b:BOOLEAN <-
+  ( + p :POINTER;
+    p := parser;
+    `XML_SetReturnNSTriplet(@p, @b)`;
+  );
+
+  - default_current <-
+  ( + p :POINTER;
+    p := parser;
+    `XML_DefaultCurrent(@p)`;
+  );
+
+Section Private
+
+  - from_external a:NATIVE_ARRAY(CHAR) length l:INTEGER :ABSTRACT_STRING <-
+  (
+    copy_strings.if {
+      from_external_copy a length l;
+    } else {
+      from_external_const a length l;
+    };
+  );
+
+  - from_external a:NATIVE_ARRAY(CHAR):ABSTRACT_STRING <-
+  (
+    copy_strings.if {
+      from_external_copy a;
+    } else {
+      from_external_const a;
+    };
+  );
+
+Section Public
+
+  + copy_strings :BOOLEAN := FALSE;
+  - set_copy_strings b:BOOLEAN <- copy_strings := b;
+
+  + subscriptions :UINTEGER_32 := 0;
+  + expand_internal_entities_using_default_handler :BOOLEAN := TRUE;
+
+  - subscribe_start_element         :UINTEGER_32 := 00000000_00000000_00000001b;
+  - subscribe_end_element           :UINTEGER_32 := 00000000_00000000_00000010b;
+  - subscribe_character_data        :UINTEGER_32 := 00000000_00000000_00000100b;
+  - subscribe_processing_instruction:UINTEGER_32 := 00000000_00000000_00001000b;
+  - subscribe_comment               :UINTEGER_32 := 00000000_00000000_00010000b;
+  - subscribe_start_cdata_section   :UINTEGER_32 := 00000000_00000000_00100000b;
+  - subscribe_end_cdata_section     :UINTEGER_32 := 00000000_00000000_01000000b;
+  - subscribe_default               :UINTEGER_32 := 00000000_00000000_10000000b;
+  - subscribe_external_entity_ref   :UINTEGER_32 := 00000000_00000001_00000000b;
+  - subscribe_skipped_entity        :UINTEGER_32 := 00000000_00000010_00000000b;
+  - subscribe_unknown_encoding      :UINTEGER_32 := 00000000_00000100_00000000b;
+  - subscribe_start_namespace_decl  :UINTEGER_32 := 00000000_00001000_00000000b;
+  - subscribe_end_namespace_decl    :UINTEGER_32 := 00000000_00010000_00000000b;
+  - subscribe_xml_decl              :UINTEGER_32 := 00000000_00100000_00000000b;
+  - subscribe_start_doctype_decl    :UINTEGER_32 := 00000000_01000000_00000000b;
+  - subscribe_end_doctype_decl      :UINTEGER_32 := 00000000_10000000_00000000b;
+  - subscribe_element_decl          :UINTEGER_32 := 00000001_00000000_00000000b;
+  - subscribe_attlist_decl          :UINTEGER_32 := 00000010_00000000_00000000b;
+  - subscribe_entity_decl           :UINTEGER_32 := 00000100_00000000_00000000b;
+  - subscribe_notation_decl         :UINTEGER_32 := 00001000_00000000_00000000b;
+  - subscribe_not_standalone        :UINTEGER_32 := 00010000_00000000_00000000b;
+
+  - refresh_subscriptions <-
+  ( + p :POINTER;
+    p := parser;
+
+    has subscribe_start_element         .if {
+      `XML_SetStartElementHandler(@p, lisaac_expat_handler_start_element)`;
+    };
+    has subscribe_end_element           .if {
+      `XML_SetEndElementHandler(@p, lisaac_expat_handler_end_element)`;
+    };
+    has subscribe_character_data        .if {
+      `XML_SetCharacterDataHandler(@p, lisaac_expat_handler_character_data)`;
+    };
+    has subscribe_processing_instruction.if {
+      `XML_SetProcessingInstructionHandler(@p, lisaac_expat_handler_processing_instruction)`;
+    };
+    has subscribe_comment               .if {
+      `XML_SetCommentHandler(@p, lisaac_expat_handler_comment)`;
+    };
+    has subscribe_start_cdata_section   .if {
+      `XML_SetStartCdataSectionHandler(@p, lisaac_expat_handler_start_cdata_section)`;
+    };
+    has subscribe_end_cdata_section     .if {
+      `XML_SetEndCdataSectionHandler(@p, lisaac_expat_handler_end_cdata_section)`;
+    };
+    has subscribe_default               .if {
+      handlers.expand_internal_entities_using_default_handler.if {
+        `XML_SetDefaultHandlerExpand(@p, lisaac_expat_handler_default)`;
+      } else {
+        `XML_SetDefaultHandler(@p, lisaac_expat_handler_default)`;
+      };
+    };
+    has subscribe_external_entity_ref   .if {
+      + self :SELF;
+      self := Self;
+      `XML_SetExternalEntityRefHandlerArg(@p, @self);`;
+      `XML_SetExternalEntityRefHandler(@p, lisaac_expat_handler_external_entity_ref)`;
+    };
+    has subscribe_skipped_entity        .if {
+      `XML_SetSkippedEntityHandler(@p, lisaac_expat_handler_skipped_entity)`;
+    };
+    has subscribe_unknown_encoding      .if {
+      `XML_SetUnknownEncodingHandler(@p, lisaac_expat_handler_unknown_encoding)`;
+    };
+    has subscribe_start_namespace_decl  .if {
+      `XML_SetStartNamespaceDeclHandler(@p, lisaac_expat_handler_start_namespace_decl)`;
+    };
+    has subscribe_end_namespace_decl    .if {
+      `XML_SetEndNamespaceDeclHandler(@p, lisaac_expat_handler_end_namespace_decl)`;
+    };
+    has subscribe_xml_decl              .if {
+      `XML_SetXmlDeclHandler(@p, lisaac_expat_handler_xml_decl)`;
+    };
+    has subscribe_start_doctype_decl    .if {
+      `XML_SetStartDoctypeDeclHandler(@p, lisaac_expat_handler_start_doctype_decl)`;
+    };
+    has subscribe_end_doctype_decl      .if {
+      `XML_SetEndDoctypeDeclHandler(@p, lisaac_expat_handler_end_doctype_decl)`;
+    };
+    has subscribe_element_decl          .if {
+      `XML_SetElementDeclHandler(@p, lisaac_expat_handler_element_decl)`;
+    };
+    has subscribe_attlist_decl          .if {
+      `XML_SetAttlistDeclHandler(@p, lisaac_expat_handler_attlist_decl)`;
+    };
+    has subscribe_entity_decl           .if {
+      `XML_SetEntityDeclHandler(@p, lisaac_expat_handler_entity_decl)`;
+    };
+    has subscribe_notation_decl         .if {
+      `XML_SetNotationDeclHandler(@p, lisaac_expat_handler_notation_decl)`;
+    };
+    has subscribe_not_standalone        .if {
+      `XML_SetNotStandaloneHandler(@p, lisaac_expat_handler_not_standalone)`;
+    };
+  );
+
+Section Private
+
+  - has mask:UINTEGER_32 :BOOLEAN <- (subscriptions | mask) != 0;
+
+Section External
+
+  - lisaac_expat_handler_start_element (ud:POINTER, name:NATIVE_ARRAY(CHAR),
+      atts:NATIVE_ARRAY(NATIVE_ARRAY(CHAR))) <-
+  ( + self :SELF;
+    + i :INTEGER;
+    + attributes :FAST_ARRAY(ATTRIBUTE);
+    self := `@ud`:SELF;
+    i := 0;
+    attributes := FAST_ARRAY(ATTRIBUTE).create_with_capacity 0;
+    { atts.item i != NULL }.while_do {
+      + a :ATTRIBUTE;
+      a := ATTRIBUTE.create (atts.item i, atts.item (i+1));
+      attributes.add_last a;
+      i := i + 2;
+    };
+    self.handlers.start_element(from_external name, attributes);
+  );
+
+  - lisaac_expat_handler_end_element (ud:POINTER, name:NATIVE_ARRAY(CHAR)) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.end_element(from_external name);
+  );
+
+  - lisaac_expat_handler_character_data (ud:POINTER,
+      s:NATIVE_ARRAY(CHAR), len:INTEGER) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.character_data(from_external name length len);
+  );
+
+  - lisaac_expat_handler_processing_instruction (ud:POINTER,
+      target:NATIVE_ARRAY(CHAR),
+      data  :NATIVE_ARRAY(CHAR)) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.processing_instruction(
+      from_external target,
+      from_external data);
+  );
+
+  - lisaac_expat_handler_comment (ud:POINTER, data:NATIVE_ARRAY(CHAR)) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.comment(from_external data);
+  );
+
+  - lisaac_expat_handler_start_cdata_section (ud:POINTER) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.start_cdata_section;
+  );
+
+  - lisaac_expat_handler_end_cdata_section (ud:POINTER) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.end_cdata_section;
+  );
+
+  - lisaac_expat_handler_default (ud:POINTER,
+      s:NATIVE_ARRAY(CHAR), len:INTEGER) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.default(from_external s length len);
+  );
+
+  - lisaac_expat_handler_external_entity_ref (ud:POINTER,
+      context  :NATIVE_ARRAY(CHAR),
+      base     :NATIVE_ARRAY(CHAR),
+      system_id:NATIVE_ARRAY(CHAR),
+      public_id:NATIVE_ARRAY(CHAR)) :INTEGER <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.external_entity_ref(
+      from_external context,
+      from_external base,
+      from_external system_id,
+      from_external public_id)
+  );
+
+  - lisaac_expat_handler_skipped_entity (ud:POINTER,
+      entity_name:NATIVE_ARRAY(CHAR),
+      is_parameter_entity:INTEGER) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.skipped_entity (
+      from_external entity_name,
+      is_parameter_entity != 0);
+  );
+
+  - lisaac_expat_handler_unknown_encoding (ud:POINTER, name:NATIVE_ARRAY(CHAR),
+      info:POINTER) :INTEGER <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.unknown_encoding(from_external name, ENCODING.create info)
+  );
+
+  - lisaac_expat_handler_start_namespace_decl (ud:POINTER,
+      prefix:NATIVE_ARRAY(CHAR),
+      uri   :NATIVE_ARRAY(CHAR)) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.start_namespace_decl(from_external prefix, from_external uri);
+  );
+
+  - lisaac_expat_handler_end_namespace_decl (ud:POINTER,
+      prefix:NATIVE_ARRAY(CHAR)) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.end_namespace_decl(from_external prefix);
+  );
+
+  - lisaac_expat_handler_xml_decl (ud:POINTER,
+      version :NATIVE_ARRAY(CHAR),
+      encoding:NATIVE_ARRAY(CHAR),
+      standalone:INTEGER) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.xml_decl(
+      from_external version,
+      from_external encoding,
+      standalone);
+  );
+
+  - lisaac_expat_handler_start_doctype_decl (ud:POINTER,
+      doctype_name:NATIVE_ARRAY(CHAR),
+      sysid       :NATIVE_ARRAY(CHAR),
+      pubid       :NATIVE_ARRAY(CHAR),
+      has_internal_subset:INTEGER) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.start_doctype_decl(
+      from_external doctype_name,
+      from_external sysid,
+      from_external pubid,
+      has_internal_subset != 0);
+  );
+
+  - lisaac_expat_handler_end_doctype_decl (ud:POINTER) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.end_doctype_decl;
+  );
+
+  - lisaac_expat_handler_element_decl (ud:POINTER, name:NATIVE_ARRAY(CHAR),
+      model:POINTER) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.element_decl(from_external name, model);
+  );
+
+  - lisaac_expat_handler_attlist_decl (ud:POINTER,
+      elname  :NATIVE_ARRAY(CHAR),
+      attname :NATIVE_ARRAY(CHAR),
+      att_type:NATIVE_ARRAY(CHAR),
+      dflt    :NATIVE_ARRAY(CHAR),
+      isrequired:INTEGER) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.attlist_decl(
+      from_external elname,
+      from_external attname,
+      from_external att_type,
+      from_external dflt,
+      isrequired != 0);
+  );
+
+  - lisaac_expat_handler_entity_decl (ud:POINTER,
+      entity_name       :NATIVE_ARRAY(CHAR),
+      is_parameter_entry:INTEGER,
+      value             :NATIVE_ARRAY(CHAR),
+      value_length      :INTEGER,
+      base              :NATIVE_ARRAY(CHAR),
+      system_id         :NATIVE_ARRAY(CHAR),
+      public_id         :NATIVE_ARRAY(CHAR),
+      notation_name     :NATIVE_ARRAY(CHAR)) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.entity_decl(
+      from_external entity_name,
+      is_parameter_entry != 0,
+      from_external value length value_length,
+      from_external base,
+      from_external system_id,
+      from_external public_id,
+      from_external notation_name);
+  );
+
+  - lisaac_expat_handler_unparsed_entity_decl (ud:POINTER,
+      entity_name       :NATIVE_ARRAY(CHAR),
+      base              :NATIVE_ARRAY(CHAR),
+      system_id         :NATIVE_ARRAY(CHAR),
+      public_id         :NATIVE_ARRAY(CHAR),
+      notation_name     :NATIVE_ARRAY(CHAR)) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.unparsed_entity_decl(
+      from_external entity_name,
+      from_external base,
+      from_external system_id,
+      from_external public_id,
+      from_external notation_name);
+  );
+
+  - lisaac_expat_handler_notation_decl (ud:POINTER,
+      notation_name     :NATIVE_ARRAY(CHAR),
+      base              :NATIVE_ARRAY(CHAR),
+      system_id         :NATIVE_ARRAY(CHAR),
+      public_id         :NATIVE_ARRAY(CHAR)) <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.notation_decl(
+      from_external notation_name,
+      from_external base,
+      from_external system_id,
+      from_external public_id);
+  );
+
+  - lisaac_expat_handler_not_standalone (ud:POINTER) :INTEGER <-
+  ( + self :SELF;
+    self := `@ud`:SELF;
+    self.handlers.not_standalone
+  );
+
+// kate: hl Lisaac v0.2; indent-width 2; space-indent on; replace-tabs off;
+// kate: tab-width 8; remove-trailing-space on;

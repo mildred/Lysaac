@@ -1,0 +1,267 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header	
+  
+  + name        := TT_VIEW;
+  - comment     :="A font viewer.";
+  
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Public
+  
+  + main <-
+  ( + file:STD_FILE;
+    + buffer:FAST_ARRAY(UINTEGER_16);
+    + table_directory:TT_TABLE_DIR;
+    + tmp_table_direntry:TT_TABLE_DIRENTRY;
+    + table_direntry:MAP_FAST_ARRAY(TT_TABLE_DIRENTRY);    
+    + b:BITMAP;
+    + maxp:TT_MAXP;
+    + cmap:TT_CMAP;
+    + glyph:TT_GLYPH_TABLE;
+    + name:TT_NAME;
+    + head:TT_HEAD;
+    + hhea:TT_HHEA;
+    + hmtx:TT_HMTX;
+    + hdmx:TT_HDMX;
+    + loca:TT_LOCA;
+    + os2:TT_OS2;
+    + number_glyph,number_of_hmetrics:UINTEGER_8; 
+    + loc_version:INTEGER_8;
+    + idx_head,idx_hhea,idx_maxp,idx_name,idx_os2,idx_cmap:INTEGER;
+    + idx_hmtx,idx_hdmx,idx_loca,idx_glyph:INTEGER;
+
+    file := STD_FILE.create;
+    file.connect_to "font.ttf";
+    table_directory := TT_TABLE_DIR.clone;
+    file.read table_directory;
+    table_directory.to_big_endian;
+    //table_directory.print;
+    
+    // Read in file order.
+
+    table_direntry := MAP_FAST_ARRAY(TT_TABLE_DIRENTRY).create_with_capacity (table_directory.numtables);
+    file.read table_direntry size ((TT_TABLE_DIRENTRY.object_size) * (table_directory.numtables));
+
+    0.to (table_directory.numtables - 1) do { i:INTEGER;
+      table_direntry.item i.to_big_endian;
+      
+      //@@@@@@@@ HEAD TABLE
+      table_direntry.item i.is_head.if {
+	idx_head := i;
+      };
+      
+      //@@@@@@@@ HHEA TABLE
+      table_direntry.item i.is_hhea.if {
+	idx_hhea := i;
+      };
+      
+      //@@@@@@@@ MAXP TABLE
+      table_direntry.item i.is_maxp.if {
+	idx_maxp := i;
+      };
+      
+      //@@@@@@@@  NAME TABLE
+      
+      table_direntry.item i.is_name.if {
+	idx_name := i;
+      };
+      
+      //@@@@@@@@ OS2 TABLE
+      table_direntry.item i.is_os2.if {
+	idx_os2 := i;
+      };
+      
+      //@@@@@@@@ CMAP TABLE
+      
+      table_direntry.item i.is_cmap.if {
+	idx_cmap := i;
+      };
+      
+      //@@@@@@@@ HMTX TABLE
+      table_direntry.item i.is_hmtx.if {
+	idx_hmtx := i;
+      };
+      
+      //@@@@@@@@ LOCA TABLE
+      table_direntry.item i.is_loca.if {
+	idx_loca := i;
+      };
+      
+      //@@@@@@@@  GLYPH TABLE
+      table_direntry.item i.is_glyf.if {
+	idx_glyph := i;
+      };
+
+      //@@@@@@@@ HDMX TABLE
+      table_direntry.item i.is_hdmx.if {
+	idx_hdmx := i;
+      };
+
+      //table_direntry.item i.print;
+    };
+    
+    //
+    // Read in logical order
+    //
+
+    //@@@@@@@@ HEAD TABLE
+    //table_direntry.item idx_head.print;
+    head := TT_HEAD.clone;
+    file.set_cursor (table_direntry.item idx_head.offset);
+    file.read head;
+    head.to_big_endian;
+    loc_version := head.index_to_loc_format;
+    //head.print;    
+    //IO.read_character;
+    
+
+    //@@@@@@@@ HHEA TABLE
+    //table_direntry.item idx_hhea.print;
+    hhea := TT_HHEA.clone;
+    file.set_cursor (table_direntry.item idx_hhea.offset);   
+    file.read hhea;
+    hhea.to_big_endian;
+    number_of_hmetrics := hhea.number_of_hmetrics;
+    //hhea.print;   
+    //IO.read_character;
+    
+    //@@@@@@@@ MAXP TABLE
+    //table_direntry.item idx_maxp.print;
+    maxp := TT_MAXP.clone;
+    file.set_cursor (table_direntry.item idx_maxp.offset);
+    file.read maxp;
+    maxp.to_big_endian;
+    number_glyph := maxp.num_glyphs;
+    //maxp.print;
+    //IO.read_character;
+    
+    //@@@@@@@@  NAME TABLE
+    //table_direntry.item idx_name.print;
+    file.set_cursor (table_direntry.item idx_name.offset);
+    name := TT_NAME.create file;
+    //name.print;
+    //IO.read_character;
+    
+    //@@@@@@@@ OS2 TABLE 
+    //table_direntry.item idx_os2.print;
+    os2 := TT_OS2.clone;
+    file.set_cursor (table_direntry.item idx_os2.offset);
+    file.read os2;
+    os2.to_big_endian;
+    //os2.print;
+    //IO.read_character;
+    
+    //@@@@@@@@ CMAP TABLE
+    
+    //table_direntry.item idx_cmap.print;
+    file.set_cursor (table_direntry.item idx_cmap.offset);
+    cmap := TT_CMAP.create file;
+    //cmap.print;
+    //IO.read_character;
+    
+    /*
+    // HMTX TABLE
+    table_direntry.item idx_hmtx.print;
+    hmtx := TT_HMTX.create number_of_hmetrics,number_glyph,(buffer + (table_direntry.item idx_hmtx.offset));
+    hmtx.print;
+    */
+    
+    //@@@@@@@@ LOCA TABLE
+    //table_direntry.item idx_loca.print;
+    file.set_cursor (table_direntry.item idx_loca.offset);
+    (loc_version = 0).if {
+      loca := TT_LOCA_SHORT.create number_glyph my_file file;
+    }.elseif {loc_version = 1} then {
+      loca := TT_LOCA_LONG.create number_glyph my_file file;
+    } else {
+      "\nWrong Version loca".print;
+      crash;
+    };
+    //loca.print;
+    //IO.read_character;
+
+    //@@@@@@@@  GLYPH TABLE
+    //table_direntry.item idx_glyph.print;
+    file.set_cursor (table_direntry.item idx_glyph.offset);    
+    glyph := TT_GLYPH_TABLE.create loca my_file file;
+    //glyph.print;
+    //IO.read_character;
+    
+    /*
+    //@@@@@@@@HDMX TABLE
+    //table_direntry.item idx_hdmx.print;
+    hdmx := TT_HDMX.create number_glyph,(buffer + (table_direntry.item idx_hdmx.offset));
+    //hdmx.print;
+
+    
+    //
+    // Display
+    //
+
+    table_direntry.item idx_head.print;
+    head.print;
+    
+    table_direntry.item idx_hhea.print;
+    hhea.print;
+    
+    table_direntry.item idx_maxp.print;
+    maxp.print;
+    
+    table_direntry.item idx_name.print;
+    name.print;
+    
+    table_direntry.item idx_os2.print;
+    os2.print;
+    
+    table_direntry.item idx_cmap.print;
+    cmap.print;
+    
+    //table_direntry.item idx_hmtx.print;
+    //hmtx.print;
+    
+    table_direntry.item idx_loca.print;
+    loca.print;
+    
+    table_direntry.item idx_glyph.print;
+    glyph.print;
+    
+    //table_direntry.item idx_hdmx.print;
+    //hdmx.print;
+    */
+    
+    VIDEO.create;
+    
+    0.to (glyph.glyph.upper) do { i:INTEGER;
+      (glyph.glyph.item i.with_contour && {!glyph.glyph.item i.composite}).if {
+	"\n\n------> Glyph #".print;
+	i.print;
+	TT_DRAW.make (glyph.glyph.item i) bitmap VIDEO;
+	IO.read_character;
+	VIDEO.clear;
+      };
+    };
+    VIDEO.close;
+  );
+  
+  
+  
+  
+  
+  

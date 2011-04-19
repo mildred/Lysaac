@@ -1,0 +1,100 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Application                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := PARTICLE;
+  
+  - comment  := "part of particle engine";
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public
+  
+  //
+  // Particle properties
+  //
+  
+  + position:VECTOR3(REAL_32);
+  + dir:VECTOR3(REAL_32);
+  
+  + size:REAL_32;
+  + life:REAL_32;
+  + initial_life:REAL_32;
+  
+  - is_dead:BOOLEAN <- life <= 0;
+  
+  
+  - create (p,d:VECTOR3(REAL_32)) size sz:REAL_32 life t:REAL_32 :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make (p,d) size sz life t;
+    result
+  );
+  
+  - make (p,d:VECTOR3(REAL_32)) size sz:REAL_32 life t:REAL_32 <-
+  (
+    position := p;
+    dir := d;
+    size := sz;
+    
+    initial_life := t;
+    life := initial_life;
+  );
+  
+  - set_position p:VECTOR3(REAL_32) <- 
+  (
+    position := p;
+  );
+  
+  - set_direction d:VECTOR3(REAL_32) <- 
+  (
+    dir := d;
+  );
+  
+  - kill <-
+  (
+    life := 0;
+  ); 
+  
+  //
+  //  Update
+  //
+  
+  - update_life time:REAL_32 <-
+  (
+    life := life - time;
+  );
+  
+  - update time:REAL_32 <-
+  (
+    position.set_x (position.x + dir.x * time); 
+    position.set_y (position.y + dir.y * time); 
+    position.set_z (position.z + dir.z * time); 
+  );
+ 
+  
+  
+  
+  
+  

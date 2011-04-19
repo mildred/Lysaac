@@ -1,0 +1,269 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := OPENGL;
+  
+  - external :=   
+  `#include <windows.h>
+  #include <GL/gl.h>
+  #include <GL/glu.h>
+  
+  #define GPA(funcname)  wglGetProcAddress(funcname);
+  
+  struct glwin_window_t
+  {
+    HWND   hwnd;  // window handle
+    RECT   rect;  // window rect
+    HDC    hdc;   // device gdi
+    HGLRC  hrc;   // device ogl
+    
+    HINSTANCE  instance;
+    WNDCLASS   class;
+  };
+  
+  struct glwin_window_t   win;
+  DEVMODE   settings;
+  int  fullscreen;
+  
+  PIXELFORMATDESCRIPTOR pfd; 
+  int pixelformat; 
+  /*
+  int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+  LPSTR lpCmdLine, int nCmdShow)
+  {
+    win.instance = hInstance;
+    main (0, NULL);
+    return 0;
+  }*/
+`;
+  
+Section Inherit
+  
+  - parent_opengl_abstract:OPENGL_ABSTRACT := OPENGL_ABSTRACT;
+   
+Section Public
+  
+  - swap_buffers <-
+  // post rendering
+  (
+    // flip double buffer
+    `SwapBuffers (win.hdc)`;
+  );
+  
+Section Public  
+  
+  - auto_make <-
+  (
+    make (800,600);
+  );
+  
+  - make (w,h:INTEGER) <-
+  (
+    do_make (w,h) title "OpenGL application";
+    SCENE.set_renderer Self; // make Self current
+  );
+  
+  - make (w,h:INTEGER) title s:ABSTRACT_STRING <-
+  ( 
+    do_make (w,h) title s;
+    SCENE.set_renderer Self; // make Self current
+  );
+
+  - do_make (w,h:INTEGER) title s:ABSTRACT_STRING <- 
+  (    
+    + style,size:INTEGER;
+    + wintitle:NATIVE_ARRAY(CHARACTER); 
+    + b:BOOLEAN;
+    
+    width := w;
+    height := h;
+    viewport := VIEWPORT.create (0,0,w,h);
+    b := is_fullscreen;
+     
+    // Creation fenetre: 
+    `fullscreen = @b;
+    
+    memset(&win.class, 0, sizeof(WNDCLASS));
+    win.class.style = CS_HREDRAW | CS_VREDRAW;
+    win.class.lpfnWndProc = MainWndProc;
+    win.class.hInstance = win.instance;
+    win.class.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+    win.class.hCursor = LoadCursor(NULL, IDC_ARROW);
+    win.class.hbrBackground = (HBRUSH) (COLOR_WINDOW+1);
+    win.class.lpszClassName = "IsaacClass";
+    
+    RegisterClass(&win.class);`;
+    
+    is_fullscreen.if {
+      style := `WS_POPUP | WS_CLIPSIBLINGS | WS_CLIPCHILDREN`:INTEGER;
+      
+      gl_fullscreen;
+      //`ShowCursor(FALSE)`;
+    } else {
+      // simple window
+      style := `WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN`:INTEGER;
+    };
+    
+    `win.rect.left = 0;
+    win.rect.right = @w;
+    win.rect.top = 0;
+    win.rect.bottom = @h;
+    
+    AdjustWindowRect (&win.rect, @style, 0);`;
+    
+    // create window
+    wintitle := s.to_external;
+    `win.hwnd = CreateWindow("IsaacClass", @wintitle, @style, 0, 0, win.rect.right  - win.rect.left, win.rect.bottom - win.rect.top, NULL, NULL, win.instance, NULL);`;
+    (`win.hwnd`:INTEGER = 0).if {
+      fatal_error "failed to create window";
+    };
+     `ShowWindow (win.hwnd, SW_SHOWNORMAL);
+     UpdateWindow (win.hwnd);
+    SetFocus (win.hwnd);
+    
+    win.hdc = GetDC (win.hwnd);`;
+
+    // choose pixel format compatible for OpenGL
+    `pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+    pfd.nVersion = 1;
+    pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL;`;
+    has_doublebuffer.if {
+      `pfd.dwFlags |= PFD_DOUBLEBUFFER`;
+    };
+    `pfd.dwLayerMask = PFD_MAIN_PLANE;
+    pfd.iPixelType = PFD_TYPE_RGBA;`; // PFD_TYPE_COLORINDEX;
+    
+    size := buffer_size;
+    `pfd.cColorBits = @size`;
+    
+    has_depth_buffer.if {
+      size := depth_size;
+      `pfd.cDepthBits = @size`;
+    } else {
+      `pfd.cDepthBits = 0`;
+    };
+    has_stencil_buffer.if {
+      size := stencil_size;
+      `pfd.cStencilBits = @size`;
+    } else {
+      `pfd.cStencilBits = 0`;
+    };
+    has_accum_buffer.if {
+      size := accum_red_size;
+      `pfd.cAccumRedBits = @size`;
+      size := accum_green_size;
+      `pfd.cAccumGreenBits = @size`;
+      size := accum_blue_size;
+      `pfd.cAccumBlueBits = @size`; 
+      size := accum_alpha_size;
+      `pfd.cAccumAlphaBits = @size`;
+      size := accum_red_size+accum_green_size+accum_blue_size+accum_alpha_size;
+      `pfd.cAccumBits = @size`;
+    } else {
+      `pfd.cAccumBits = 0`;
+    };
+    size := red_size;
+    `pfd.cRedBits = @size`;
+    size := green_size;
+    `pfd.cGreenBits = @size`;
+    size := blue_size;
+    `pfd.cBlueBits = @size`; 
+    size := alpha_size;
+    `pfd.cAlphaBits = @size`;
+    
+    `pixelformat = ChoosePixelFormat(win.hdc, &pfd);`;
+    (`pixelformat`:INTEGER = 0).if {
+      fatal_error "ChoosePixelFormat failed";
+    };
+    (`SetPixelFormat(win.hdc, pixelformat, &pfd)`:INTEGER = 0).if {
+      fatal_error "SetPixelFormat failed";
+    };
+    
+    `DescribePixelFormat(win.hdc, pixelformat, sizeof(pfd), &pfd)`;
+    
+    // create OpenGL rendering context
+    `win.hrc = wglCreateContext (win.hdc);
+    wglMakeCurrent(win.hdc, win.hrc);
+    `;  
+    
+    initialize;
+    resize (width,height);
+  );
+  
+  - gl_fullscreen <-
+  (
+    + w,h,result:INTEGER;
+    
+    w := width;
+    h := height;
+    
+    `memset(&settings,0,sizeof(settings))`;
+    (`EnumDisplaySettings(NULL,ENUM_CURRENT_SETTINGS,&settings)`:INTEGER = 0).if {
+      fatal_error "failed to display display settings";
+    };
+    `settings.dmPelsWidth = @w;
+    settings.dmPelsHeight = @h;
+    settings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;`;
+    
+    result := `ChangeDisplaySettings(&settings,CDS_FULLSCREEN)`:INTEGER;
+    (result != `DISP_CHANGE_SUCCESSFUL`:INTEGER).if {
+      fatal_error "Fullscreen mode not compatible";
+    };
+  );
+  
+Section External
+  
+  - resize (w,h:INTEGER) <-
+  (     
+    (h != 0).if {
+      width := w;
+      height := h;
+      
+      viewport.make (0, 0, w, h);
+      //
+      reshape.on_resize (w,h);
+      //
+    };
+  );
+  
+Section Public
+  
+  - close <-
+  (
+    // release OpenGl context
+    (`win.hrc`:INTEGER != 0).if {
+      `wglMakeCurrent (NULL, NULL)`;
+      `wglDeleteContext (win.hrc)`;
+    };
+    // release gdi context
+    (`win.hdc`:INTEGER != 0).if {
+      `ReleaseDC(win.hwnd, win.hdc)`;
+    };
+    is_fullscreen.if {
+      `ChangeDisplaySettings(NULL,0)`;
+      `ShowCursor(TRUE)`;
+    };
+    `UnregisterClass("IsaacClass", win.instance)`;
+    `PostQuitMessage(0)`;
+  );
+ 

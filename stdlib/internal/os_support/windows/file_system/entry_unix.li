@@ -1,0 +1,150 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        := ENTRY_UNIX;
+
+  - copyright   := "2003-2008 Benoit Sonntag";
+
+  - bibliography:= "http://IsaacOS.com";
+
+  - author      := "Benoit Sonntag (bsonntag@loria.fr)";
+
+  - comment     := "Entry ANSI C";
+
+Section Inherit
+
+  + parent_entry:Expanded ENTRY;
+
+Section Public
+
+  - access:UINTEGER_16 <-
+  ( + pe:NATIVE_ARRAY(CHARACTER);
+    + result:UINTEGER_16;
+    pe := path.to_external;
+    `{ struct stat t; stat(@pe,&t)`;
+      result := `t.st_mode`:UINTEGER_16 & 111_111_111b;
+    `}`;
+    result
+  );
+
+  - access_time:TIME <-
+  ( + pe:NATIVE_ARRAY(CHARACTER);
+    + tt:POINTER;
+    + result:TIME;
+    pe := path.to_external;
+    `{ struct stat t; stat(@pe,&t)`;
+      tt := `localtime(&(t.st_atime))`:POINTER;
+      result := to_time tt;
+    `}`;
+    result
+  );
+
+  - access_date:DATE <-
+  ( + pe:NATIVE_ARRAY(CHARACTER);
+    + tt:POINTER;
+    + result:DATE;
+    pe := path.to_external;
+    `{ struct stat t; stat(@pe,&t)`;
+      tt := `localtime(&(t.st_atime))`:POINTER;
+      result := to_date tt;
+    `}`;
+    result
+  );
+
+  - update_time:TIME   <-
+  ( + pe:NATIVE_ARRAY(CHARACTER);
+    + tt:POINTER;
+    + result:TIME;
+    pe := path.to_external;
+    `{ struct stat t; stat(@pe,&t)`;
+      tt := `localtime(&(t.st_mtime))`:POINTER;
+      result := to_time tt;
+    `}`;
+    result
+  );
+
+  - update_date:DATE <-
+  ( + pe:NATIVE_ARRAY(CHARACTER);
+    + tt:POINTER;
+    + result:DATE;
+    pe := path.to_external;
+    `{ struct stat t; stat(@pe,&t)`;
+      tt := `localtime(&(t.st_mtime))`:POINTER;
+      result := to_date tt;
+    `}`;
+    result
+  );
+
+  - create_time:TIME <-
+  ( + pe:NATIVE_ARRAY(CHARACTER);
+    + tt:POINTER;
+    + result:TIME;
+    pe := path.to_external;
+    `{ struct stat t; stat(@pe,&t)`;
+      tt := `localtime(&(t.st_ctime))`:POINTER;
+      result := to_time tt;
+    `}`;
+    result
+  );
+
+  - create_date:DATE <-
+  ( + pe:NATIVE_ARRAY(CHARACTER);
+    + tt:POINTER;
+    + result:DATE;
+    pe := path.to_external;
+    `{ struct stat t; stat(@pe,&t)`;
+      tt := `localtime(&(t.st_ctime))`:POINTER;
+      result := to_date tt;
+    `}`;
+    result
+  );
+
+Section Private
+
+  //
+  // Time / Date: Unix -> Lisaac
+  //
+
+  - to_date t:POINTER :DATE <-
+  ( + result:DATE;
+    + wd,md,m:UINTEGER_8;
+    + y:UINTEGER_16;
+
+    y  := `((struct tm *)@t)->tm_year`:UINTEGER_16 + 1900;
+    m  := `((struct tm *)@t)->tm_mon` :UINTEGER_8 + 1;
+    md := `((struct tm *)@t)->tm_mday`:UINTEGER_8;
+    wd := `((struct tm *)@t)->tm_wday`:UINTEGER_8;
+    (! wd.in_range 1 to 7).if { // Bug in UNIX ?
+      wd := 1;
+    };
+    result := DATE.create (y,m,md,wd)
+  );
+
+  - to_time t:POINTER :TIME <-
+  (
+    TIME.create
+    ((`((struct tm *)@t)->tm_hour`:UINTEGER_8),
+    (`((struct tm *)@t)->tm_min` :UINTEGER_8),
+    (`((struct tm *)@t)->tm_sec` :UINTEGER_8),
+    0)
+  );
+

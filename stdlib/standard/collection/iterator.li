@@ -1,0 +1,186 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name      := ITERATOR(V);
+
+  - copyright := "2008 Mildred Ki'Lya";
+  - comment   := "Iterate over TRAVERSABLE(V)";
+
+  - import    := TRAVERSABLE(V), ARRAY(V), FAST_ARRAY(V);
+
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Private
+
+  - make_index i:INTEGER :SELF <-
+  (
+    index := i;
+    Self
+  );
+
+Section Public
+
+  //
+  // Properties:
+  //
+
+  + traversable :TRAVERSABLE(V);
+
+  + index :INTEGER;
+
+  + increment :INTEGER;
+
+  - set_increment inc:INTEGER <- increment := inc;
+
+  //
+  // Creation:
+  //
+
+  - from_traversable_of_v t:TRAVERSABLE(V) :ITERATOR(V) <- create t;
+  - from_array_of_v       t:TRAVERSABLE(V) :ITERATOR(V) <- create t;
+  - from_fast_array_of_v  t:TRAVERSABLE(V) :ITERATOR(V) <- create t;
+
+  - create t:TRAVERSABLE(V) :SELF <- clone.make t;
+
+  - create_reverse t:TRAVERSABLE(V) :SELF <- clone.make_reverse t;
+
+  - create t:TRAVERSABLE(V) index i:INTEGER :SELF <- clone.make t index i;
+
+  - create t:TRAVERSABLE(V) increment inc:INTEGER :SELF <-
+    clone.make t increment inc;
+
+  - create t:TRAVERSABLE(V) index i:INTEGER increment inc:INTEGER :SELF <-
+    clone.make t index i increment inc;
+
+  - make_reverse t:TRAVERSABLE(V) :SELF <-
+    make t index (t.upper) increment (-1);
+
+  - make t:TRAVERSABLE(V) :SELF <- make t index (t.lower);
+
+  - make t:TRAVERSABLE(V) increment inc:INTEGER :SELF <-
+    make t index (t.lower) increment inc;
+
+  - make t:TRAVERSABLE(V) index i:INTEGER increment inc:INTEGER :SELF <-
+  [
+    -? {inc != 0};
+    -? {t != NULL};
+  ]
+  (
+    increment := inc;
+    traversable := t;
+    index := i;
+    Self
+  );
+
+  - make t:TRAVERSABLE(V) index i:INTEGER :SELF <-
+  (
+    make t index i increment 1
+  );
+
+  //
+  // Check:
+  //
+
+  - valid :BOOLEAN <- traversable.valid_index index;
+
+  - valid_relative di:INTEGER :BOOLEAN <- traversable.valid_index (index+di);
+
+  - valid_next :BOOLEAN <- valid_relative (+increment);
+  - valid_prev :BOOLEAN <- valid_relative (-increment);
+  - valid_previous :BOOLEAN <- valid_prev;
+  - first :BOOLEAN <- ! valid_prev;
+  - last  :BOOLEAN <- ! valid_next;
+
+  //
+  // Move:
+  //
+
+  - reset :SELF <-
+  (
+    (increment >= 0).if {
+      reset_first;
+    } else {
+      reset_last;
+    };
+    Self
+  );
+
+  - reset_first :SELF <- (index := traversable.lower; Self);
+  - reset_last  :SELF <- (index := traversable.upper;  Self);
+
+  - next :BOOLEAN <- (index := index + increment; valid);
+
+  - prev :BOOLEAN <- (index := index - increment; valid);
+  - previous :BOOLEAN <- prev;
+
+  - move di:INTEGER :BOOLEAN <- (index := index + di; valid);
+  - move_absolute i:INTEGER :BOOLEAN <- (index := i; valid);
+
+  - Self:SELF '+' Left 80 di:INTEGER :SELF <- clone.make_index (index+di);
+  - Self:SELF '-' Left 80 di:INTEGER :SELF <- clone.make_index (index-di);
+  - Self:SELF '+=' Right 100 di:INTEGER :SELF <- (index := index+di; Self);
+  - Self:SELF '-=' Right 100 di:INTEGER :SELF <- (index := index-di; Self);
+
+  //
+  // Get current:
+  //
+
+  - get :V <-
+  [
+    "Iterator.get past upper bound" ? { valid };
+  ]
+  (
+    traversable.item index
+  );
+
+
+  - get_relative di:INTEGER :V <-
+  [
+    "Iterator.get past upper bound" ? { valid_relative di };
+  ]
+  (
+    traversable.item (index+di)
+  );
+
+  //
+  // Iterate:
+  //
+
+  - stop <-
+  (
+    (increment >= 0).if {
+      reset_last.next;
+    } else {
+      reset_first.prev;
+    };
+  )
+  [
+    ? { ! valid };
+  ];
+
+
+  - loop b:{} <- { valid }.while_do { b.value; next; };
+
+  - loop_v b:{V;} <- { valid }.while_do { b.value get; next; };
+

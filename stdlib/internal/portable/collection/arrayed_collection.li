@@ -1,0 +1,224 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := ARRAYED_COLLECTION(V);
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := "Common root for ARRAY(V) and FAST_ARRAY(V).";
+
+Section Inherit
+
+  - parent_arrayed:ARRAYED := ARRAYED;
+
+  - parent_collection:COLLECTION(V) := COLLECTION(V);
+
+Section Public //ARRAYED_COLLECTION, BMP_FILE, TYPES
+
+  + storage:NATIVE_ARRAY(V);
+  // Internal access to storage location.
+
+Section Public
+
+  - element_sizeof:INTEGER <-
+  // The size in number of bytes for type `E'.
+  ( + result:INTEGER;
+
+    (V.is_expanded_type).if {
+      result := V.object_size;
+    } else {
+      result := POINTER.object_size;
+    };
+    result
+  );
+
+  + capacity:INTEGER;
+  // Internal storage capacity in number of item.
+
+  + upper:INTEGER;
+  // Upper index bound.
+
+  - subarray min:INTEGER to max:INTEGER :SELF <-
+  // New collection consisting of items at indexes in [`min' .. `max'].
+  // Result has the same dynamic type as `Current'.
+  // See also `slice'.
+  [
+    -? { lower <= min };
+    -? { max <= upper };
+    -? { min <= max + 1 };
+  ]
+  (
+    deferred;
+    NULL
+  )
+  [
+    +? { same_dynamic_type result };
+    +? { result.count = max - min + 1 };
+    +? { result.lower = min | (result.lower = 0) };
+  ];
+
+  //
+  // Implementation of deferred:
+  //
+
+  - first:V <- storage.item 0;
+
+  - second:V <- storage.item 1;
+
+  - last :V <- item upper;
+
+  - add element:V to index:INTEGER <-
+  (
+    (index = upper + 1).if {
+      add_last element;
+    } else {
+      add_last element;
+      move index to (upper - 1) by 1;
+      put element to index;
+    };
+  );
+
+  - remove_last <-
+  (
+    upper := upper - 1;
+  );
+
+  - remove_tail n:INTEGER <-
+  (
+    upper := upper - n;
+  );
+
+  - replace_all old_value:V with new_value:V <-
+  (
+    storage.replace_all old_value with new_value until (count - 1);
+  );
+
+  - fast_replace_all old_value:V with new_value:V <-
+  (
+    storage.fast_replace_all old_value with new_value until (count - 1);
+  );
+
+  - reverse <-
+  ( + i,j:INTEGER;
+
+    i := lower;
+    j := upper;
+    {i >= j}.until_do {
+      swap i with j;
+      i := i + 1;
+      j := j - 1;
+    };
+  );
+
+  //
+  // Interfacing with C:
+  //
+
+  - to_external:POINTER <-
+  // Gives C access into the internal `storage' of the ARRAY.
+  // Result is pointing the element at index `lower'.
+  //
+  // NOTE: do not free/realloc the Result. Resizing of the array
+  //       can makes this pointer invalid.
+  [
+    -? {! is_empty};
+  ]
+  (
+    storage.to_pointer
+  )
+  [
+    +? {Result.is_not_null};
+  ];
+
+  - to_native_array:NATIVE_ARRAY(V) <-
+  // Gives C access into the internal `storage' of the ARRAY.
+  // Result is pointing the element at index `lower'.
+  //
+  // NOTE: do not free/realloc the Result. Resizing of the array
+  //       can makes this pointer invalid.
+  [
+    -? {! is_empty};
+  ]
+  (
+    storage
+  )
+  [
+    +? {Result.is_not_null};
+  ];
+
+Section ARRAYED_COLLECTION
+
+  - set_upper new_upper:INTEGER <-
+  (
+    upper := new_upper;
+  );
+
+  //
+  // invariant
+  //
+
+//  [
+//    -? {capacity >= (upper - lower + 1)};
+//    -? {(capacity > 0) ->> {storage.is_not_null}};
+//  ];
+
+Section Public
+
+  - set_count new_count:INTEGER <-
+  (
+    upper := new_count + lower - 1;
+  );
+
+  - to_native_array_uinteger_8:NATIVE_ARRAY(UINTEGER_8) <-
+  (
+    CONVERT(NATIVE_ARRAY(V),NATIVE_ARRAY(UINTEGER_8)).on storage
+  );
+
+  - add_last_buffer buf:FAST_ARRAY(UINTEGER_8) from beg:INTEGER to end:INTEGER <-
+  ( + tab:NATIVE_ARRAY(UINTEGER_8);
+    + pos_beg,size,new_capacity:INTEGER;
+
+    pos_beg := count * element_sizeof; // + ofs_buf;
+    size    := end - beg + 1;
+
+    new_capacity := (pos_beg + end - beg + element_sizeof) / element_sizeof;
+    (capacity < new_capacity).if {
+      "cap:".print;
+      capacity.print;
+      "new:".print;
+      new_capacity.print;
+      "Crash !\n".print;
+      crash;
+    };
+
+    tab := CONVERT(NATIVE_ARRAY(V),NATIVE_ARRAY(UINTEGER_8)).on storage;
+    tab.copy (buf.storage + beg) to pos_beg until size;
+    //ofs_buf := (pos_beg + size) % element_sizeof;
+    upper   := (pos_beg + size - 1) / element_sizeof;
+  );
+
+  - get_buffer_from_byte i:INTEGER size_bytes s:INTEGER :FAST_ARRAY(UINTEGER_8) <-
+  ( + tab:NATIVE_ARRAY(UINTEGER_8);
+    tab := CONVERT(NATIVE_ARRAY(V),NATIVE_ARRAY(UINTEGER_8)).on storage;
+    FAST_ARRAY(UINTEGER_8).create_with_native_array_byte (tab + i) size s
+  );

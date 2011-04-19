@@ -1,0 +1,780 @@
+Section Header
+
+  + name := Expanded LUA_STATE;
+
+  - external := `
+    #include <lua.h>
+    #include <lualib.h>
+    #include <lauxlib.h>`;
+
+  - author        := "Mildred <mildred593(at)online.fr>";
+  - bibliography  := "http://lua.org";
+  - comment       := "The binding for lua_State";
+
+  // Copyright (c) 2007 Mildred <mildred593(at)online.fr>
+  //
+  // Permission is hereby granted, free of charge, to any person
+  // obtaining a copy of this software and associated documentation
+  // files (the "Software"), to deal in the Software without
+  // restriction, including without limitation the rights to use,
+  // copy, modify, merge, publish, distribute, sublicense, and/or sell
+  // copies of the Software, and to permit persons to whom the
+  // Software is furnished to do so, subject to the following
+  // conditions:
+  //
+  // The above copyright notice and this permission notice shall be
+  // included in all copies or substantial portions of the Software.
+  //
+  // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  // EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+  // OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  // NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+  // HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+  // WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+  // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+  // OTHER DEALINGS IN THE SOFTWARE.
+
+Section Public
+
+  + pointer :POINTER := NULL;
+
+Section Public
+
+  //
+  // Misc
+  //
+
+  - atpanic block:BLOCK :POINTER <- not_yet_implemented;
+  // Can't be implemented right now because there is no way we can pass userdata
+  // to the panic function. This can be changed either by Lisaac by allowing to
+  // get a pointer to some slot of any object or by Lua by allowing to have
+  // upvalues in the panic function
+
+  - checkstack n:INTEGER :BOOLEAN <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_checkstack((lua_State*) @state, @n)`:(BOOLEAN)
+  );
+
+  - concat n:INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_concat((lua_State*) @state, @n)`;
+  );
+
+  - equal (index1, index2 :INTEGER) :BOOLEAN <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_equal((lua_State*) @state, @index1, @index2)`:(BOOLEAN)
+  );
+
+  - error <-
+    // Generates a Lua error. The error message (which can actually be a Lua
+    // value of any type) must be on the stack top. This function does a long
+    // jump, and therefore never returns. (see luaL_error).
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_error((lua_State*) @state)`;
+  );
+
+  - gettop :INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_gettop((lua_State*) @state)`:INTEGER
+  );
+
+  - settop top:INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_settop((lua_State*) @state, @top)`;
+  );
+
+  - pop n:INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_pop((lua_State*) @state, @n)`:INTEGER
+  );
+
+  - rawequal (index1, index2 :INTEGER) :BOOLEAN <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_rawequal((lua_State*) @state, @index1, @index2)`:BOOLEAN(TRUE, FALSE)
+  );
+
+  - remove index:INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_remove((lua_State*) @state, @index)`;
+  );
+
+  - replace index:INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_replace((lua_State*) @state, @index)`;
+  );
+
+  - insert index:INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_insert((lua_State*) @state, @index)`;
+  );
+
+  - setallocf (fn, ud :POINTER) <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_setallocf((lua_State*) @state, (lua_Alloc) @fm, @ud)`;
+  );
+
+  - getfenv n:INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_getfenv((lua_State*) @state, @n)`;
+  );
+
+  - setfenv index:INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_setfenv((lua_State*) @state, @index)`;
+  );
+
+Section Public
+
+  //
+  // Coroutine, Threads
+  //
+
+  - lua_yield :INTEGER := `LUA_YIELD`:INTEGER;
+
+  - resume narg:INTEGER :INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_resume((lua_State*) @state, @narg)`:INTEGER
+  );
+
+  - yield nresults:INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_yield((lua_State*) @state, @nresults)`:INTEGER
+  );
+
+  - xmove (other:LUA_STATE, index:INTEGER) <-
+  (
+    + state1 :POINTER;
+    + state2 :POINTER;
+    state1 := pointer;
+    state2 := other.pointer;
+    `lua_xmove((lua_State*) @state1, @state2, @index)`;
+  );
+
+  - status :INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_xmove((lua_State*) @state)`:INTEGER
+  );
+
+Section Public
+
+  //
+  // Table management
+  //
+
+  - globalsindex   :INTEGER := `LUA_GLOBALSINDEX`:INTEGER;
+  - registeryindex :INTEGER := `LUA_REGISTERYINDEX`:INTEGER;
+
+  - createtable (narr, nrec:INTEGER) <- createtable_arr narr rec nrec;
+  - createtable_arr narr:INTEGER rec nrec:INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_createtable_arr((lua_State*) @state, @narr, @nrec)`;
+  );
+
+  - newtable <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_newtable((lua_State*) @state)`;
+  );
+
+  - rawget index:INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_rawget((lua_State*) @state, @index)`;
+  );
+
+  - rawgeti (index:INTEGER, key:INTEGER) <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_rawgeti((lua_State*) @state, @index, @key)`;
+  );
+
+  - rawset index:INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_rawset((lua_State*) @state, @index)`;
+  );
+
+  - rawseti (index:INTEGER, key:INTEGER) <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_rawseti((lua_State*) @state, @index, @key)`;
+  );
+
+  - setfield (index:INTEGER, name:ABSTRACT_STRING) <-
+  (
+    + state :POINTER;
+    + key :NATIVE_ARRAY(CHARACTER);
+    key := name.to_external;
+    state := pointer;
+    `lua_setfield((lua_State*) @state, @index, @key)`;
+  );
+
+  - setglobal name:ABSTRACT_STRING <- setfield (globalsindex, name);
+  // Pops a value from the stack and sets it as the new value of global name.
+
+  - register name:STRING call block:BLOCK <- register (name, block);
+  - register (name:STRING, block:BLOCK) <-
+  (
+    pushcfunction block;
+    setglobal name;
+  );
+
+  - settable index:INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_settable((lua_State*) @state, @index)`;
+  );
+
+Section Public
+
+  //
+  // Metatables
+  //
+
+  - setmetatable index:INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_setmetatable((lua_State*) @state, @index)`;
+  );
+
+Section Public
+
+  //
+  // Call
+  //
+
+  - multret :INTEGER := `LUA_MULTRET`:INTEGER;
+  - errrun  :INTEGER := `LUA_ERRRUN`:INTEGER;
+  - errmem  :INTEGER := `LUA_ERRMEM`:INTEGER;
+  - errerr  :INTEGER := `LUA_ERRERR`:INTEGER;
+
+  - call (param, results :INTEGER) <-
+    // Calls a function.
+    // To call a function you must use the following protocol: first, the
+    // function to be called is pushed onto the stack; then, the arguments to
+    // the function are pushed in direct order; that is, the first argument is
+    // pushed first. Finally you call lua_call; nargs is the number of arguments
+    // that you pushed onto the stack. All arguments and the function value are
+    // popped from the stack when the function is called. The function results
+    // are pushed onto the stack when the function returns. The number of
+    // results is adjusted to nresults, unless nresults is LUA_MULTRET. In this
+    // case, all results from the function are pushed. Lua takes care that the
+    // returned values fit into the stack space. The function results are pushed
+    // onto the stack in direct order (the first result is pushed first), so
+    // that after the call the last result is on the top of the stack.
+    // Any error inside the called function is propagated upwards (with a
+    // longjmp).
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_call((lua_State*) @state, @param, @results)`;
+  );
+
+  - call_multret param :INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_call((lua_State*) @state, @param, LUA_MULTRET)`;
+  );
+
+  - pcall (param, results, errfunc :INTEGER) :INTEGER <-
+    // Calls a function in protected mode.
+    // Both nargs and nresults have the same meaning as in lua_call. If there
+    // are no errors during the call, lua_pcall behaves exactly like lua_call.
+    // However, if there is any error, lua_pcall catches it, pushes a single
+    // value on the stack (the error message), and returns an error code. Like
+    // lua_call, lua_pcall always removes the function and its arguments from
+    // the stack.
+    // If errfunc is 0, then the error message returned on the stack is exactly
+    // the original error message. Otherwise, errfunc is the stack index of an
+    // error handler function. (In the current implementation, this index cannot
+    // be a pseudo-index.) In case of runtime errors, this function will be
+    // called with the error message and its return value will be the message
+    // returned on the stack by lua_pcall.
+    // Typically, the error handler function is used to add more debug
+    // information to the error message, such as a stack traceback. Such
+    // information cannot be gathered after the return of lua_pcall, since by
+    // then the stack has unwound.
+    // The lua_pcall function returns 0 in case of success or one of the
+    // following error codes (defined in lua.h):
+    //  * errrun (LUA_ERRRUN): a runtime error.
+    //  * errmem (LUA_ERRMEM): memory allocation error. For such errors, Lua
+    //    does not call the error handler function.
+    //  * errerr (LUA_ERRERR): error while running the error handler function.
+
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_pcall((lua_State*) @state, @param, @results, @errfunc)`:(INTEGER)
+  );
+
+  - pcall_multret (param, errfunc :INTEGER) :INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_pcall((lua_State*) @state, @param, LUA_MULTRET, @errfunc)`:(INTEGER)
+  );
+
+  - cpcall block:BLOCK :INTEGER <-
+  (
+    + state :POINTER;
+    + cfn :LUA_CFUNCTION;
+    + fn :POINTER;
+    + ud :POINTER;
+    state := pointer;
+    cfn := LUA_CFUNCTION.create block;
+    fn := cfn.get_pointer;
+    ud := cfn.to_pointer;
+    `lua_cpcall((lua_State*) @state, (lua_CFunction) @fn, @ud)`:(INTEGER)
+  );
+
+Section Public
+
+  //
+  // Push
+  //
+
+  - pushboolean bool:BOOLEAN <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_pushboolean((lua_State*) @state, @bool)`;
+  );
+
+  - pushcclosure n:INTEGER call b:BLOCK <- pushcclosure (b, n);
+
+  - pushcclosure (block:BLOCK, nupvalues_:INTEGER) <-
+  (
+    + state :POINTER;
+    + cfn :LUA_CFUNCTION;
+    + fn :POINTER;
+    + nupvalues :INTEGER;
+    state := pointer;
+    cfn := LUA_CFUNCTION.create block;
+    fn :=cfn.get_pointer;
+    nupvalues := nupvalues_ + 1;
+    pushlightuserdata (cfn.to_pointer);
+    insert (-nupvalues);
+    `lua_pushcclosure((lua_State*) @state, (lua_CFunction) @fn, @nupvalues)`;
+    //`lua_pushcfunction((lua_State*) @state, (lua_CFunction) @fn)`;
+  );
+
+  - pushcfunction block:BLOCK <-
+  (
+    + state :POINTER;
+    + cfn :LUA_CFUNCTION;
+    + fn :POINTER;
+    state := pointer;
+    cfn := LUA_CFUNCTION.create block;
+    fn :=cfn.get_pointer;
+    pushlightuserdata (cfn.to_pointer);
+    `lua_pushcclosure((lua_State*) @state, (lua_CFunction) @fn, 1)`;
+    //`lua_pushcfunction((lua_State*) @state, (lua_CFunction) @fn)`;
+  );
+
+  - pushinteger integer:INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_pushinteger((lua_State*) @state, @integer)`;
+  );
+
+  - pushlightuserdata p:POINTER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_pushlightuserdata((lua_State*) @state, @p)`;
+  );
+
+  - pushstring string:ABSTRACT_STRING <-
+  (
+    + size :UNSIGNED_INTEGER;
+    + array :NATIVE_ARRAY(CHARACTER);
+    + state :POINTER;
+    state := pointer;
+    size := string.count;
+    array := LUA_STRING.get_storage string;
+    `lua_pushlstring(@state, @array, @size)`;
+  );
+
+  - pushnil <-
+    // Pushes a nil value onto the stack.
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_pushnil((lua_State*) @state)`;
+  );
+
+  - pushnumber n:NUMERIC <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_pushnumber((lua_State*) @state, @n)`;
+  );
+
+  - pushthread <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_pushthread((lua_State*) @state)`;
+  );
+
+  - upvalueindex n_:INTEGER :INTEGER <-
+  ( + n :INTEGER;
+    n := n_ + 1;
+    `lua_upvalueindex(@n)`:INTEGER
+  );
+
+Section Public
+
+  //
+  // To
+  //
+
+  - toboolean index:INTEGER :BOOLEAN <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_toboolean((lua_State*) @state, @index)`:BOOLEAN(TRUE, FALSE)
+  );
+
+  - tocfunction index:INTEGER :POINTER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_tocfunction((lua_State*) @state, @index)`:POINTER
+  );
+
+  - tointeger index:INTEGER :INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_tointeger((lua_State*) @state, @index)`:INTEGER
+  );
+
+  - tostring index:INTEGER :LUA_STRING <-
+    // Converts the Lua value at the given acceptable index to a C string. If
+    // len is not NULL, it also sets *len with the string length. The Lua value
+    // must be a string or a number; otherwise, the function returns NULL. If
+    // the value is a number, then lua_tolstring also changes the actual value
+    // in the stack to a string. (This change confuses lua_next when
+    // lua_tolstring is applied to keys during a table traversal.)
+    // lua_tolstring returns a fully aligned pointer to a string inside the Lua
+    // state. This string always has a zero ('\0') after its last character (as
+    // in C), but may contain other zeros in its body. Because Lua has garbage
+    // collection, there is no guarantee that the pointer returned by
+    // lua_tolstring will be valid after the corresponding value is removed from
+    // the stack.
+  (
+    + state :POINTER;
+    + len :INTEGER;
+    + arr :NATIVE_ARRAY(CHARACTER);
+    state := pointer;
+    `size_t len;`;
+    arr := `lua_tolstring((lua_State*) @state, @index, &len)`:NATIVE_ARRAY(CHARACTER);
+    len := `len`:INTEGER;
+    LUA_STRING.create_from_external arr count len
+  );
+
+  - tonumber index:INTEGER :NUMERIC <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_tonumber((lua_State*) @state, @index)`:DOUBLE
+  );
+
+  - topointer index:INTEGER :POINTER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_topointer((lua_State*) @state, @index)`:POINTER
+  );
+
+  - tothread index:INTEGER :LUA_STATE <-
+  (
+    + state :POINTER;
+    + ptr :POINTER;
+    state := pointer;
+    ptr := `lua_tothread((lua_State*) @state, @index)`:POINTER;
+    LUA_STATE.create_import ptr
+  );
+
+  - touserdata index:INTEGER :POINTER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_touserdata((lua_State*) @state, @index)`:POINTER
+  );
+
+Section Public
+
+  //
+  // Types
+  //
+
+  - type index:INTEGER :INTEGER <-
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_type((lua_State*) @state, @index)`:INTEGER
+  );
+
+  - typename type:INTEGER :ABSTRACT_STRING <-
+  (
+    + state :POINTER;
+    + array :NATIVE_ARRAY(CHARACTER);
+    state := pointer;
+    array := `lua_typename((lua_State*) @state, @type)`:NATIVE_ARRAY(CHARACTER);
+    STRING.from_external arr
+  );
+
+  - tnone     :INTEGER := `LUA_TNONE`:INTEGER;
+  - tnil      :INTEGER := `LUA_TNIL`:INTEGER;
+  - tnumber   :INTEGER := `LUA_TNUMBER`:INTEGER;
+  - tboolean  :INTEGER := `LUA_TBOOLEAN`:INTEGER;
+  - tstring   :INTEGER := `LUA_TSTRING`:INTEGER;
+  - ttable    :INTEGER := `LUA_TTABLE`:INTEGER;
+  - tfunction :INTEGER := `LUA_TFUNCTION`:INTEGER;
+  - tuserdata :INTEGER := `LUA_TUSERDATA`:INTEGER;
+  - tthread   :INTEGER := `LUA_TTHREAD`:INTEGER;
+  - tlightuserdata:INTEGER := `LUA_TLIGHTUSERDATA`:INTEGER;
+
+Section Public
+
+  //
+  // Check
+  //
+
+  - checkstring narg:INTEGER :LUA_STRING <-
+    // Checks whether the function argument narg is a string and returns this
+    // string.
+  (
+    + state :POINTER;
+    + len :INTEGER;
+    + arr :NATIVE_ARRAY(CHARACTER);
+    state := pointer;
+    `size_t len;`;
+    arr := `luaL_checklstring((lua_State*) @state, @narg, &len)`
+      :(NATIVE_ARRAY(CHARACTER));
+    len := `len`:INTEGER;
+    LUA_STRING.create_from_external arr count len
+  );
+
+Section Public
+
+  - loadfile filename:ABSTRACT_STRING :INTEGER <-
+    // Loads a file as a Lua chunk. This function uses lua_load to load the
+    // chunk in the file named filename. If filename is NULL, then it loads from
+    // the standard input. The first line in the file is ignored if it starts
+    // with a #.
+    // This function returns the same results as lua_load, but it has an extra
+    // error code errfile (LUA_ERRFILE) if it cannot open/read the file. The
+    // other error cores are: 0 for no error, errsyntax (LUA_ERRSYNTAX) if
+    // syntax error during pre-compilation and errmem (LUA_ERRMEM) if memory
+    // allocation error.
+    // As lua_load, this function only loads the chunk; it does not run it.
+  ( + state :POINTER;
+    + array :NATIVE_ARRAY(CHARACTER);
+    array := filename.to_external;
+    `luaL_loadfile((lua_State*) @state, @array)`:(INTEGER)
+  );
+
+  - load_file file:ABSTRACT_FILE :INTEGER <-
+    // Loads a file as a Lua chunk. This function uses lua_load to load the
+    // chunk in the file given. The first line in the file is ignored if it
+    // starts with a #.
+    // This function returns the same results as lua_load, but it has an extra
+    // error code errfile (LUA_ERRFILE) if it cannot open/read the file. The
+    // other error cores are: 0 for no error, errsyntax (LUA_ERRSYNTAX) if
+    // syntax error during pre-compilation and errmem (LUA_ERRMEM) if memory
+    // allocation error.
+    // As lua_load, this function only loads the chunk; it does not run it.
+  (
+    loadfile (file.path)
+  );
+
+  - load_raw (reader, data:POINTER, chunkname:ABSTRACT_STRING) :INTEGER <-
+    // Loads a Lua chunk. If there are no errors, lua_load pushes the compiled
+    // chunk as a Lua function on top of the stack. Otherwise, it pushes an
+    // error message. The return values of lua_load are:
+    //  * 0: no errors;
+    //  * errsyntax (LUA_ERRSYNTAX): syntax error during pre-compilation;
+    //  * errmem (LUA_ERRMEM): memory allocation error.
+    // This function only loads a chunk; it does not run it.
+    // lua_load automatically detects whether the chunk is text or binary, and
+    // loads it accordingly (see program luac).
+    // The lua_load function uses a user-supplied reader function to read the
+    // chunk (see lua_Reader). The data argument is an opaque value passed to
+    // the reader function.
+    // The chunkname argument gives a name to the chunk, which is used for error
+    // messages and in debug information (see §3.8).
+  ( + state :POINTER;
+    + array :NATIVE_ARRAY(CHARACTER);
+    array := chunkname.to_external;
+    `lua_load((lua_State*) @state, (lua_Reader) @reader, @data, @array)`
+      :(INTEGER)
+  );
+
+  - load chunkname:ABSTRACT_STRING with blc:BLOCK :INTEGER <-
+    // Loads a Lua chunk. If there are no errors, lua_load pushes the compiled
+    // chunk as a Lua function on top of the stack. Otherwise, it pushes an
+    // error message. The return values of lua_load are:
+    //  * 0: no errors;
+    //  * errsyntax (LUA_ERRSYNTAX): syntax error during pre-compilation;
+    //  * errmem (LUA_ERRMEM): memory allocation error.
+    // This function only loads a chunk; it does not run it.
+    // lua_load automatically detects whether the chunk is text or binary, and
+    // loads it accordingly (see program luac).
+    // The lua_load function uses a user-supplied block to read the chunk. Every
+    // time it needs another piece of the chunk, lua_load calls the reader
+    // block. The reader block must return a NATIVE_ARRAY(UINTEGER_8) object
+    // that must remain in memory until the reader block function is called
+    // again. To signal the end of the chunk, the reader must return NULL. The
+    // reader function may return pieces of any size greater than zero.
+    // The chunkname argument gives a name to the chunk, which is used for error
+    // messages and in debug information (see §3.8).
+  (
+    + reader :LUA_READER;
+    reader := LUA_READER.create blc;
+    load_raw (reader.get_pointer, reader.to_pointer, chunkname)
+  );
+
+  - errfile   :INTEGER := `LUA_ERRFILE`:INTEGER;
+  - errsyntax :INTEGER := `LUA_ERRSYNTAX`:INTEGER;
+
+Section Public
+
+  //
+  // Make
+  //
+
+  - make <-
+    // Creates a new Lua state. It calls lua_newstate with an allocator based on
+    // the standard C realloc function and then sets a panic function (see
+    // lua_atpanic) that prints an error message to the standard error output in
+    // case of fatal errors.
+    // Change the current object to the new state, or to the NULL state if there
+    // is a memory allocation error.
+  (
+    pointer := `luaL_newstate()`:POINTER;
+  );
+
+  - make_with_allocation (fn, ud :POINTER) <-
+    // Makes a new, independent state. Makes the NULL state if cannot create the
+    // state (due to lack of memory). The argument fn is the allocator function;
+    // Lua does all memory allocation for this state through this function. The
+    // second argument, ud, is an opaque pointer that Lua simply passes to the
+    // allocator in every call.
+  (
+    pointer := `lua_newstate((lua_Alloc) @fn, @ud)`;
+  );
+
+  - make_import pointer_:POINTER <-
+    // Change the current object to the state pointer by the pointer given.
+  (
+    pointer := pointer_;
+  );
+
+Section Public
+
+  //
+  // Creation
+  //
+
+  - create :SELF <-
+    // Creates a new Lua state. It calls lua_newstate with an allocator based on
+    // the standard C realloc function and then sets a panic function (see
+    // lua_atpanic) that prints an error message to the standard error output in
+    // case of fatal errors.
+    // Returns the new state, or NULL if there is a memory allocation error.
+  (
+    + res :SELF;
+    res.make;
+    res
+  );
+
+  - create_with_allocation (fn, ud :POINTER) <-
+    // Creates a new, independent state. Returns NULL if cannot create the state
+    // (due to lack of memory). The argument fn is the allocator function; Lua
+    // does all memory allocation for this state through this function. The
+    // second argument, ud, is an opaque pointer that Lua simply passes to the
+    // allocator in every call.
+  (
+    + res :SELF;
+    res.make_with_allocation (fn, ud);
+    res
+  );
+
+  - create_import pointer:POINTER :SELF <-
+    // Return a new state that references the state pointed by the given
+    // pointer.
+  (
+    + res :SELF;
+    res.make_import pointer;
+    res
+  );
+
+  - close <-
+    // Destroys all objects in the current Lua state (calling the corresponding
+    // garbage-collection metamethods, if any) and frees all dynamic memory used
+    // by this state. On several platforms, you may not need to call this
+    // function, because all resources are naturally released when the host
+    // program ends. On the other hand, long-running programs, such as a daemon
+    // or a web server, might need to release states as soon as they are not
+    // needed, to avoid growing too large.
+  (
+    + state :POINTER;
+    state := pointer;
+    `lua_close((lua_State*) @state)`;
+    pointer := NULL;
+  );
+
+  - is_valid :BOOLEAN <- (pointer != NULL);
+    // Return TRUE if the current state is valid (non NULL state), FALSE
+    // otherwise.
+
+// kate: hl Lisaac v0.2; indent-width 2; space-indent on; replace-tabs off;
+// kate: tab-width 8; remove-trailing-space on;

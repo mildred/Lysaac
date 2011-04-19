@@ -1,0 +1,73 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_CULLING;
+  
+  - comment  := "OpenGL Culling Mode";
+  
+Section Inherit
+  
+  - parent_culling:CULLING := CULLING;
+  
+Section Public
+  
+  // culling modes
+  - front:INTEGER <- `GL_FRONT`:INTEGER;
+  - back:INTEGER <- `GL_BACK`:INTEGER;
+  - clockwise:INTEGER <- `GL_CW`:INTEGER;
+  - counter_clockwise:INTEGER <- `GL_CCW`:INTEGER;
+  
+  
+  - apply mode:INTEGER <-
+  (
+    `glCullFace(@mode)`;
+  );
+  
+  - set_orientation o:INTEGER <-
+  (
+    `glFrontFace(@o)`;
+  );
+  
+  - enable <-
+  (
+    parent_state.enable;
+    `glEnable(GL_CULL_FACE)`;
+  );
+  
+  - disable <-
+  ( 
+    parent_state.disable;
+    `glDisable(GL_CULL_FACE)`;
+  );
+  
+  - push_attrib <-
+  (
+    `glPushAttrib(GL_ENABLE_BIT)`;
+  );
+  
+  - pop_attrib <-
+  (
+    `glPopAttrib()`;
+  );
+  
+  

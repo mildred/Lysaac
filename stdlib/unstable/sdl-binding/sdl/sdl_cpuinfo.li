@@ -1,0 +1,82 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac-SDL Library                             //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name      := SDL_CPUINFO;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>";
+  - comment   := "CPU instruction detection";
+
+Section Public
+
+  //
+  // CPU instruction detection: 
+  //
+
+  - has_rdtsc :BOOLEAN<-
+  // Returns true if the CPU has the RDTSC instruction 
+  ( 
+    `SDL_HasRDTSC()`:BOOLEAN{TRUE,FALSE}
+  );
+
+  - has_mmx :BOOLEAN<-
+  // Returns true if the CPU has MMX features
+  (
+    `SDL_HasMMX()`:BOOLEAN{TRUE,FALSE}
+  );
+
+  - has_mmx_ext :BOOLEAN<-
+  // Returns true if the CPU has MMX Ext. features
+  (
+    `SDL_HasMMXExt()`:BOOLEAN{TRUE,FALSE}
+  );
+
+  - has_3dnow :BOOLEAN<-
+  // Returns true if the CPU has 3DNow features
+  (
+    `SDL_Has3DNow()`:BOOLEAN{TRUE,FALSE}
+  );
+
+  - has_3dnow_ext :BOOLEAN<-
+  // Returns true if the CPU has 3DNow! Ext. features
+  ( 
+    `SDL_Has3DNowExt()`:BOOLEAN{TRUE,FALSE}
+  );
+
+  - has_sse :BOOLEAN<-
+  // Returns true if the CPU has SSE features
+  ( 
+    `SDL_HasSSE()`:BOOLEAN{TRUE,FALSE}
+  );
+
+  - has_sse2 :BOOLEAN<-
+  // Returns true if the CPU has SSE2 features
+  ( 
+    `SDL_HasSSE2()`:BOOLEAN{TRUE,FALSE}
+  );
+
+  - has_altivec :BOOLEAN<-
+  // Returns true if the CPU has AltiVec features
+  (
+    `SDL_HasAltiVec()`:BOOLEAN{TRUE,FALSE}
+  );

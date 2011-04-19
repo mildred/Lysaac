@@ -1,0 +1,122 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := PLATFORM;
+  - comment  := "Platform dependant utility toolkit";
+  
+  - external := `
+
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <mmsystem.h>
+
+LARGE_INTEGER freq, count;
+double timer_start;
+  `;
+  
+Section Inherit
+  
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public  
+  
+  //
+  // Time handling.
+  //
+  
+  - init_time <-
+  (
+    (`QueryPerformanceFrequency(&freq)`:INTEGER = 0).if {
+      `freq.QuadPart = 0`;
+      `timer_start = timeGetTime() / 1000.0f`;
+    } else {
+      `QueryPerformanceCounter(&count)`;
+      `timer_start = (double)(count.QuadPart) / (double) (freq.QuadPart)`;
+    };
+  );
+  
+  - get_milliseconds:UINTEGER_32 <-
+  (
+    (get_current_time * 1000.0).to_uinteger_32 // fixme
+  );
+  
+  - get_current_time:REAL_32 <-
+  ( + result:REAL_32;
+    
+    (`freq.QuadPart`:INTEGER = 0).if {
+      // no performance timer
+      result :=  `(float)(timeGetTime() / 1000.0f - timer_start)`:REAL_32;
+    } else {
+      `QueryPerformanceCounter(&count)`;
+      result := `(float)(((double)(count.QuadPart) / (double)(freq.QuadPart)) - timer_start)`:REAL_32;
+    };
+    result
+  );
+  
+  /*
+  - start_ticks <- 
+  (
+    start := get_ticks;
+  );
+  
+  - get_ticks:UINTEGER_32 <-
+  (
+    now := `timeGetTime()`:UINTEGER_32;
+    (now < start).if {
+      ticks := (`TIME_WRAP_VALUE`:UINTEGER_32 - start) + now;
+    } else {
+      ticks := now - start;
+    };
+    ticks
+  );*/
+  
+  - delay ms:UINTEGER_32 <- 
+  (
+    `Sleep(@ms)`;
+  );
+  
+  - init_random <-
+  (
+    `srand((unsigned)time(NULL))`;
+  );
+  - random:INTEGER <-
+  (
+    `rand()`:INTEGER
+  );
+
+  - random_ratio:REAL_32 <-
+  (
+    `rand() / (float)(RAND_MAX)`:REAL_32
+  );
+  
+  
+  - frand:REAL_32 <- // 0 to 1
+  (
+    `(rand()&32767) * (1.0/32767)`:REAL_32
+  );
+  
+  - crand <- // -1 to 1
+  (
+    `(rand()&32767)* (2.0/32767) - 1`:REAL_32
+  );
+  

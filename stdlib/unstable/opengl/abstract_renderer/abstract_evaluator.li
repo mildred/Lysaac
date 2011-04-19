@@ -1,0 +1,147 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                             //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := ABSTRACT_EVALUATOR;
+  
+  - comment  := "Maps a spline function";
+  
+Section Inherit
+  
+  + parent_state:Expanded STATE;
+  
+Section Public
+  
+  // types of the control points
+  - vertex3:INTEGER <- 1;
+  - vertex4:INTEGER <- 2;
+  - index:INTEGER <- 3;
+  - normal:INTEGER <- 4;
+  - texture_coord1:INTEGER <- 5;
+  - texture_coord2:INTEGER <- 6;
+  - texture_coord3:INTEGER <- 7;
+  - texture_coord4:INTEGER <- 8;
+  - color4:INTEGER <- 9;
+  
+  
+  + type:INTEGER;
+  + capacity:INTEGER;
+  
+  + control_points:FAST_ARRAY(REAL_32);
+  
+  
+  - create (t, cap:INTEGER) :SELF <-
+  (
+    + result:SELF;
+    result := SELF.clone;
+    result.make (t,cap);
+    result
+  );
+  
+  - create_for_vertex3 cap:INTEGER :SELF <- 
+  (
+    create (vertex3,cap)
+  );
+  
+  - create_for_vertex4 cap:INTEGER :SELF <- 
+  (
+    create (vertex4,cap)
+  );
+  
+  - create_for_index cap:INTEGER :SELF <- 
+  (
+    create (index,cap)
+  );
+  
+  - create_for_normal cap:INTEGER :SELF <- 
+  (
+    create (normal,cap)
+  );
+  
+  - create_for_texture_coord1 cap:INTEGER :SELF <- 
+  (
+    create (texture_coord1,cap)
+  );
+  
+  - create_for_texture_coord2 cap:INTEGER :SELF <- 
+  (
+    create (texture_coord2,cap)
+  );
+  
+  - create_for_texture_coord3 cap:INTEGER :SELF <- 
+  (
+    create (texture_coord3,cap)
+  );
+  
+  - create_for_texture_coord4 cap:INTEGER :SELF <- 
+  (
+    create (texture_coord4,cap)
+  );
+  
+  - create_for_color4 cap:INTEGER :SELF <- 
+  (
+    create (color4,cap)
+  );
+  
+  - make (t,cap:INTEGER) <- 
+  (
+    type := t;
+    capacity := cap;
+  );
+  
+  - begin_control_points <-
+  (
+    control_points := FAST_ARRAY(REAL_32).create_with_capacity capacity;
+  );
+  - end <- ();
+  - new_control_points body:{} <-
+  (
+    begin_control_points;
+    body.value;
+    end;
+  );
+  
+  - add_point4f (x,y,z,w:REAL_32) <-
+  (
+    control_points.add_last x;
+    control_points.add_last y;
+    control_points.add_last z;
+    control_points.add_last w;
+  );
+  
+  - add_point3f (x,y,z:REAL_32) <-
+  (
+    control_points.add_last x;
+    control_points.add_last y;
+    control_points.add_last z;
+  );
+  
+  - add_point2f (x,y:REAL_32) <-
+  (
+    control_points.add_last x;
+    control_points.add_last y;
+  );
+  
+  - add_point1f (x:REAL_32) <-
+  (
+    control_points.add_last x;
+  );

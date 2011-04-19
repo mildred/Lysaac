@@ -1,0 +1,88 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := LINKED_LIST_NODE(V);
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := "To implement LINKED_LIST(V). .";
+
+Section Inherit
+
+  - parent_any_linked_list_node:ANY_LINKED_LIST_NODE := ANY_LINKED_LIST_NODE;
+
+Section Public
+
+  + item:V;
+
+  + next:LINKED_LIST_NODE(V);
+
+Section LINKED_LIST
+
+  - create i:V next n:LINKED_LIST_NODE(V) :SELF <-
+  ( + result:SELF;
+
+    result := clone;
+    result.make i next n;
+    result
+  );
+
+  - make i:V next n:LINKED_LIST_NODE(V) <-
+  (
+    item := i;
+    next := n;
+  )
+  [
+    +? {item = i};
+    +? {next = n};
+  ];
+
+
+Section LINKED_LIST_NODE,LINKED_LIST
+
+  - set_item i:V <-
+  (
+    item := i;
+  )
+  [
+    +? {item = i};
+  ];
+
+  - set_next n:LINKED_LIST_NODE(V) <-
+  (
+    next := n;
+  )
+  [
+    +? {next = n};
+  ];
+
+  - set_all_with v:V <-
+  ( + lnk:SELF;
+
+    lnk := Self;
+    {lnk = NULL}.until_do {
+      lnk.set_item v;
+      lnk := lnk.next;
+    };
+  );
+

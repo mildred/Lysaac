@@ -1,0 +1,171 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := IMAGE;
+  
+Section Inherit
+  
+  + parent_image_format:IMAGE_FORMAT := IMAGE_FORMAT;
+  
+Section IMAGE
+  
+  + image_data:FAST_ARRAY(UINTEGER_8);
+  
+Section Public
+  
+  + name:STRING;
+  
+  + width:INTEGER;
+  + height:INTEGER;
+  
+  + channels:INTEGER;
+  
+  
+  - create s:ABSTRACT_STRING :SELF <-
+  ( + result:SELF;  
+    result := SELF.clone;
+    result.make s;
+    result
+  );
+  
+  - make s:ABSTRACT_STRING <-
+  (
+    name := STRING.create_from_string s;
+    
+    set_format (IMAGE_FORMAT.get_format s);
+    load Self.if_false {
+      OPENGL.fatal_error ("Can't load image: "+s);
+    };
+  );
+  
+  - create_empty s:ABSTRACT_STRING size (w,h:INTEGER) type n:INTEGER allocate b:BOOLEAN :SELF <-
+  ( + result:SELF;  
+    result := SELF.clone;
+    result.make_empty (s,w,h,n,b);
+    result
+  );
+  
+  - make_empty (s:ABSTRACT_STRING,w,h,n:INTEGER,allocate:BOOLEAN) <-
+  (
+    name := STRING.create_from_string s;
+    width := w;
+    height := h;
+    channels := n;
+    
+    allocate.if {
+      image_data := FAST_ARRAY(UINTEGER_8).create (w*h*n);
+    };
+  );
+  
+  - get_red_value (x,y:INTEGER) :UINTEGER_8 <-
+  (
+    ? {channels >= 3};
+    image_data.item (channels * (x*width+y))
+  );
+  
+  - get_green_value (x,y:INTEGER) :UINTEGER_8 <-
+  (
+    ? {channels >= 3};
+    image_data.item (channels * (x*width+y)+1)
+  );
+  
+  - get_blue_value (x,y:INTEGER) :UINTEGER_8 <-
+  (
+    ? {channels >= 3};
+    image_data.item (channels * (x*width+y)+2)
+  );
+  
+  - get_alpha_value (x,y:INTEGER) :UINTEGER_8 <-
+  (
+    ? {channels > 3};
+    image_data.item (channels * (x*width+y)+3)
+  );
+  
+  - get_value (x,y:INTEGER) :UINTEGER_8 <-
+  (
+    image_data.item (channels * (x*width+y))
+  );
+  
+  - item val:INTEGER <-
+  (
+    image_data.item val;
+  );
+  
+  - get_pixels:FAST_ARRAY(UINTEGER_8) <- image_data;
+  
+  
+  - set_size (w,h:INTEGER) <-
+  (
+    width := w;
+    height := h;
+  );
+  
+  - set_channels ch:INTEGER <- (channels := ch;);
+  
+  
+  - set_format fmt:IMAGE_FORMAT <-
+  (
+    parent_image_format := fmt;
+  );
+  
+  - set_data data:FAST_ARRAY(UINTEGER_8) <-
+  (
+    image_data := data;
+  );  
+  
+  - calculate_stride :UINTEGER_32 <-
+  (
+    + bits_per_line,bits_to_add:UINTEGER_32;
+    
+    bits_per_line := width * (channels << 3);
+    ((bits_per_line % 32) != 0).if {
+      bits_to_add := 32 - (bits_per_line%32);
+    };
+    // return stride
+    (bits_per_line + bits_to_add) / 8
+  );
+  
+  - to_greyscale:IMAGE <-
+  (
+    + result:IMAGE;
+    + grey:UINTEGER_8;
+    + j:INTEGER;
+    
+    (channels = 1).if {
+      result := Self;
+    } else {
+      // create new image
+      result := create_empty name size (width,height) type 1 allocate TRUE;
+      
+      j := 0;
+      0.to (width*height - 1) do { i:INTEGER;
+        // convert pixels: 0.3*R + 0.59*G + 0.11*B
+        
+        grey := ((0.30 * image_data.item j.to_integer) + (0.59 * image_data.item (j+1).to_integer) + (0.11 * image_data.item (j+2).to_integer)).to_uinteger_8;
+        result.image_data.put grey to i;
+         
+        j := j + channels;
+      };
+    };    
+    result
+  );

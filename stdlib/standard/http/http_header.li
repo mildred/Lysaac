@@ -1,0 +1,136 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Example                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name      := HTTP_HEADER;
+
+  - copyright := "2010 Pierre-Alexandre Voye";
+
+  - author    := "Pierre-Alexandre Voye";
+  - comment   := "HTTP Header";
+
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+
+Section Public
+
+  + verb 	 					: ABSTRACT_STRING;
+	+ uri 						: ABSTRACT_STRING; 
+	+ host 						: ABSTRACT_STRING;
+	+ user_agent 			: ABSTRACT_STRING;
+	+ accept_mime 		: ABSTRACT_STRING;
+	+ accept_language : ABSTRACT_STRING;
+	+ accept_encoding : ABSTRACT_STRING;
+	+ accept_charset 	: ABSTRACT_STRING;
+	+ keep_alive 			: ABSTRACT_STRING;
+	+ connection 			: ABSTRACT_STRING;
+	+ referer 				: ABSTRACT_STRING;
+	+ modified_since 	: ABSTRACT_STRING;
+	+ cookie 					: ABSTRACT_STRING;
+
+
+  - set_verb pverb : ABSTRACT_STRING <- 
+  (
+   verb := pverb;
+  );
+
+
+  - set_uri puri : ABSTRACT_STRING <- 
+  (
+   uri := puri;
+  );
+
+
+  - set_host phost : ABSTRACT_STRING <- 
+  (
+   host := phost;
+  );
+
+
+  - set_user_agent puser_agent : ABSTRACT_STRING <- 
+  (
+   user_agent := puser_agent;
+  );
+
+
+  - set_accept_mime paccept_mime : ABSTRACT_STRING <- 
+  (
+   accept_mime := paccept_mime;
+  );
+
+
+  - set_accept_language paccept_language : ABSTRACT_STRING <- 
+  (
+   accept_language := paccept_language;
+  );
+
+
+  - set_accept_encoding paccept_encoding : ABSTRACT_STRING <- 
+  (
+   accept_encoding := paccept_encoding;
+  );
+
+
+  - set_accept_charset paccept_charset : ABSTRACT_STRING <- 
+  (
+   accept_charset := paccept_charset;
+  );
+
+
+  - set_keep_alive pkeep_alive : ABSTRACT_STRING <- 
+  (
+   keep_alive := pkeep_alive;
+  );
+
+
+  - set_connection pconnection : ABSTRACT_STRING <- 
+  (
+   connection := pconnection;
+  );
+
+
+  - set_referer preferer : ABSTRACT_STRING <- 
+  (
+   referer := preferer;
+  );
+
+
+  - set_modified_since pmodified_since : ABSTRACT_STRING <- 
+  (
+   modified_since := pmodified_since;
+  );
+
+
+  - set_cookie pcookie : ABSTRACT_STRING <- 
+  (
+   cookie := pcookie;
+  );
+
+
+
+
+ - create : SELF <-
+ (
+		clone
+ );
+
+  

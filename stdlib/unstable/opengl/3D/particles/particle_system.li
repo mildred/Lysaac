@@ -1,0 +1,302 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Application                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := PARTICLE_SYSTEM;
+  
+  - comment  := "part of particle engine";
+  
+Section Inherit
+  
+  - parent_framework:FRAMEWORK_ANY := FRAMEWORK_ANY;
+  
+Section Public
+  
+  //
+  // Particle System properties
+  //
+  
+  + position:VECTOR3(REAL_32);
+  + direction:VECTOR3(REAL_32);
+  
+  + particles:LINKED_LIST(PARTICLE);
+  + constraints:LINKED_LIST(CONSTRAINT);
+  
+  + palette:FAST_ARRAY(RGB);
+  
+  + spawn_rate:REAL_32;
+  + size:REAL_32;
+  + life:REAL_32;
+  + speed:REAL_32;
+    
+  + size_spread:REAL_32;
+  + life_spread:REAL_32;
+  + speed_spread:REAL_32;
+  
+  
+  - create p:VECTOR3(REAL_32) :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make p;
+    result
+  );
+  
+  - make p:VECTOR3(REAL_32) <-
+  (
+    position := p;
+    direction := VECTOR3(REAL_32).create (0.5,0.1,0.5);
+    
+    spawn_rate := 60;
+    
+    speed := 10;
+    speed_spread := 2;
+    
+    size := 1;
+    size_spread := 0.5;
+    
+    life := 5;
+    life_spread := 1;
+    
+    particles := LINKED_LIST(PARTICLE).create;
+    constraints := LINKED_LIST(CONSTRAINT).create;
+    
+    palette := FAST_ARRAY(RGB).create_with_capacity 12;
+    0.to 12 do { i:INTEGER;
+      palette.add_last (RGB.create (0,0,0));
+    };
+    set_color_fire;
+  );
+  
+  - add_constraint c:CONSTRAINT <-
+  (
+    constraints.add_last c;
+  );
+  
+  - set_spawn_rate sr:REAL_32 <-
+  (
+    spawn_rate := sr;
+  );
+  
+  - set_life (life0, spread:REAL_32) <-
+  (
+    life := life0;
+    life_spread := spread;
+  );
+  
+  - set_speed (speed0, spread:REAL_32) <-
+  (
+    speed := speed0;
+    speed_spread := spread;
+  );
+  
+  - set_size (size0, spread:REAL_32) <-
+  (
+    size := size0;
+    size_spread := spread;
+  );
+  
+  //
+  //  Update
+  //
+
+  - dir:VECTOR3(REAL_32) := VECTOR3(REAL_32).zero;
+  
+  - update time:REAL_32 <-
+  (
+    + nb_new_particles:INTEGER;
+    + p:PARTICLE;
+    + sz,lifetime:REAL_32;
+   // + dir:VECTOR3(REAL_32);
+    + k:INTEGER;
+ 
+    // spawn new particles
+    nb_new_particles := (time * spawn_rate).to_integer;
+    
+    0.to nb_new_particles do { i:INTEGER;
+      
+      //dir := random_vector direction spread (1,1,1);
+      get_random_vector direction spread (1,1,1) in dir;
+
+      dir.normalize;
+      dir := dir * speed;
+      
+      sz := random_around size spread size_spread;
+      lifetime := random_around life spread life_spread;
+      
+      p := PARTICLE.create (position.copy, dir) size sz life lifetime;
+      particles.add_last p;
+    };
+    
+    k := particles.lower;
+    {k <= particles.upper}.while_do {
+      p := particles.item k;
+      
+      p.update_life time;
+      p.is_dead.if {
+        // kill particle
+        particles.remove k;
+      } else {  
+        // apply constraints to the system
+        constraints.lower.to (constraints.upper) do { i:INTEGER;
+          constraints.item i.apply_to p time (time);
+          
+          p.is_dead.if {
+            // kill particle
+            particles.remove k;
+          };
+        };
+        
+        // update particle
+        p.update (time);
+        k := k + 1;
+      };
+    };
+  );
+  
+  
+  - render (dx,dy:VECTOR3(REAL_32)) <-
+  ( 
+    + v:VECTOR3(REAL_32);
+    + frac:REAL_32;
+    + col_int:INTEGER;
+    
+    renderer.vb.new_quads {
+      particles.lower.to (particles.upper) do { i:INTEGER;
+        
+        frac := (11.0*particles.item i.life)/particles.item i.initial_life;
+        col_int := frac.to_integer;
+        frac := frac - col_int;
+        
+        renderer.color_buffer.set_color3f (get_r col_int frac frac,get_g col_int frac frac,get_b col_int frac frac);
+        
+        
+        // render particle
+        renderer.vb.add_texel2f (0,0);
+        v := particles.item i.position + ((-dx + dy) * particles.item i.size);
+        renderer.vb.add_vertex3f (v.x, v.y, v.z);
+        
+        renderer.vb.add_texel2f (1,0);
+        v := particles.item i.position + ((dx + dy) * particles.item i.size);
+        renderer.vb.add_vertex3f (v.x, v.y, v.z);
+        
+        renderer.vb.add_texel2f (1,1);
+        v := particles.item i.position + ((dx - dy) * particles.item i.size);
+        renderer.vb.add_vertex3f (v.x, v.y, v.z);
+        
+        renderer.vb.add_texel2f (0,1);
+        v := particles.item i.position + ((-dx - dy) * particles.item i.size);
+        renderer.vb.add_vertex3f (v.x, v.y, v.z);
+      };
+    };
+  );
+  
+  - get_r idx:INTEGER frac frac:REAL_32 :REAL_32 <-
+  (
+    palette.item idx.r * (1.0 - frac) + palette.item (idx+1).r * frac
+  );
+  - get_g idx:INTEGER frac frac:REAL_32 :REAL_32 <-
+  (
+    palette.item idx.g * (1.0 - frac) + palette.item (idx+1).g * frac
+  );
+  - get_b idx:INTEGER frac frac:REAL_32 :REAL_32 <-
+  (
+    palette.item idx.b * (1.0 - frac) + palette.item (idx+1).b * frac
+  );
+  
+  - set_color_fire <-
+  (
+    0.to 4 do { i:INTEGER;
+      palette.item i.make (i.to_real/4.0, 0, 0);
+      palette.item (i+4).make (1.0, (i.to_real)/4.0, 0);
+      palette.item (i+8).make ((3-i).to_real/3.0, (3-i).to_real/3.0, 1);
+    };
+  );
+  
+  - set_color_ice <-
+  (
+    0.to 6 do { i:INTEGER;
+      palette.item i.make (0, 0, i.to_real/6.0);
+      palette.item (i+6).make (i.to_real/5.0, 1, 1);
+    };
+  );
+  
+  - set_color_smoke <-
+  (
+    + col:REAL_32;
+    
+    0.to 12 do { i:INTEGER;
+      col := i.to_real / 24.0;
+      palette.item i.make (col, col, col);
+    };
+  );
+  
+  - set_color_rainbow <-
+  (
+    palette.item 0.make (0, 0, 0);
+    palette.item 1.make (0, 0, 0.25);
+    palette.item 2.make (0, 0, 0.5);
+    palette.item 3.make (0, 0, 1);
+    palette.item 4.make (0, 0.5, 1);
+    palette.item 5.make (0, 1, 1);
+    palette.item 6.make (0, 1, 0.5);
+    palette.item 7.make (0, 1, 0);
+    palette.item 8.make (0.5, 1, 0); 
+    palette.item 9.make (1, 1, 0);
+    palette.item 10.make (1, 0.5, 0);
+    palette.item 11.make (1, 0, 0);
+  );
+  
+Section Private
+  
+  - random_around val:REAL_32 spread spread_val:REAL_32 :REAL_32 <-
+  (
+    + r:REAL_32;
+    
+    r := 2.0 * random_ratio - 1.0;
+    val + r * spread_val * r.abs 
+  );
+  
+  - random_vector v:VECTOR3(REAL_32) spread (sx,sy,sz:REAL_32) :VECTOR3(REAL_32) <-
+  (
+    + x,y,z:REAL_32;
+    
+    x := v.x * random_around 0 spread sx;
+    y := v.y * random_around 0 spread sy;
+    z := v.z * random_around 0 spread sz;
+    
+    VECTOR3(REAL_32).create (x, y, z)
+  );
+
+  - get_random_vector v:VECTOR3(REAL_32) spread (sx,sy,sz:REAL_32) in vec:VECTOR3(REAL_32) <-
+  (
+    + x,y,z:REAL_32;
+    
+    x := v.x * random_around 0 spread sx;
+    y := v.y * random_around 0 spread sy;
+    z := v.z * random_around 0 spread sz;
+    
+    vec.make (x, y, z);
+  );
+  
+  
+  
+  

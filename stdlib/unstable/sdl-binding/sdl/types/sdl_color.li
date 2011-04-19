@@ -1,0 +1,80 @@
+///////////////////////////////////////////////////////////////////////////////
+//                                  Lisaac                                   //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name      :=  SDL_COLOR;
+
+  - copyright := "2010 Xavier Oswald";
+  - author    := "Xavier Oswald <xoswald@debian.org>";
+  - comment   := "SDL Color structure";
+  - type      := `SDL_Color`;
+
+Section Inherit
+
+  - parent :OBJECT := OBJECT;
+
+Section Public
+
+  - create :SELF <- SELF.clone;
+
+//
+// Set:
+//
+
+  - set_all (r,g,b:UINTEGER_8) <-
+  // Set `Red', `Green' and `Blue' values
+  (
+    `@Self->r = @r`;
+    `@Self->g = @g`;
+    `@Self->b = @b`;
+  );
+
+  - set_r value:UINTEGER_8 <- 
+  // Set the `Red' value.
+  (
+    `@Self->r = @value`;
+  );
+
+  - set_g value:UINTEGER_8 <- 
+  // Set the `Green' value.
+  (
+    `@Self->g = @value`;
+  );
+  
+  - set_b value:UINTEGER_8 <- 
+  // Set the `Blue' value.
+  (
+    `@Self->b = @value`;
+  );
+
+//
+// Get:
+//
+
+  - get_all :(UINTEGER_8,UINTEGER_8,UINTEGER_8) <-
+  // Return a vector with 3 values (r,g,b).
+  (
+    (r,g,b)
+  );
+
+  - r :UINTEGER_8 <- `@Self->r`:UINTEGER_8; // Return the `Red' value.
+  - g :UINTEGER_8 <- `@Self->g`:UINTEGER_8; // Return the `Green' value.
+  - b :UINTEGER_8 <- `@Self->b`:UINTEGER_8; // Return the `Blue' value.

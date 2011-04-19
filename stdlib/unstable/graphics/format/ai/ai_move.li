@@ -1,0 +1,87 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := AI_MOVE;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment := "Operation: move.";
+  - version := 1;  
+  
+Section Inherit
+  
+  - parent_ai_operation:AI_OPERATION := AI_OPERATION;
+  
+Section Public
+  
+  + x:REAL_16_16;
+  + y:REAL_16_16;
+  
+  //
+  // Creation.
+  //
+  
+  - create (lx,ly:REAL_16_16) :SELF <-
+  ( + result:SELF;
+    result := SELF.clone;
+    result.make (lx,ly);
+    result
+  );
+  
+  - make (lx,ly:REAL_16_16) <-
+  (
+    x := lx;
+    y := ly;
+  );
+  
+  //
+  // Draw.
+  //
+  
+  - draw_stroke b:ABSTRACT_BITMAP scale s:REAL_16_16 <-
+  (    
+    b.move_to (((x * s).rounded),((y * s).rounded));
+  );
+  
+  - draw_fill b:ABSTRACT_BITMAP scale s:REAL_16_16 <-
+  (    
+    b.poly_move_to (((x * s).rounded),((y * s).rounded));    
+  );
+  
+  //  
+  // Display.
+  //
+  
+  - display <-
+  (
+    "poly_move_to ".print;
+    (x *# 8).rounded.print;
+    ','.print;
+    (y *# 8).rounded.print;
+    ";\n".print;
+  );
+
+  
+
+
+

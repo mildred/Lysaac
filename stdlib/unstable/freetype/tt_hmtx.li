@@ -1,0 +1,87 @@
+////////////////////////////////////////////////////////////////////////////////
+//                                                                            //
+//                               Lisaac Library                               //
+//                                                                            //
+//                        LORIA - UHP - INRIA - FRANCE                        //
+//               (c) INRIA (see `licence.txt' for more details)               //
+//                     Benoit SONNTAG - bsonntag@loria.fr                     //
+//                     Jerome BOUTET  - boutet@loria.fr                       //
+//                           http://www.IsaacOS.com                           //
+//                                                                            //
+////////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name        := TT_HMTX;
+  - comment     :=" hmtx: Horizontal Metrics .";
+  
+  
+  - bibliography:="http://IsaacOS.com";
+  - author      :="Boutet Jerome (boutet@loria.fr)";
+  
+Section Inherit
+  
+  - parent:OBJECT := OBJECT;
+  
+Section Public
+  
+  + hmetrics:MAP_NATIVE_ARRAY(TT_HMTX_DATA);
+  + number_of_hmetrics:UINTEGER_8;
+  
+  + left_side_bearing:NATIVE_ARRAY(INTEGER_8);
+  + number_lbs:UINTEGER_8;  
+  
+  - create (nmetrics,nglyph:NUMERIC,buf:NATIVE_ARRAY(UINTEGER_16)) :SELF <-
+  // nmetrics: number of hMetrics (hhea table) 
+  // nglyph: number of glyph (maxp table)
+  ( + result:SELF;
+    
+    result := SELF.clone;
+    result.make (nmetrics,nglyph,buf);
+    result
+  );
+  
+  - make (nmetrics,nglyph:NUMERIC,buf:NATIVE_ARRAY(UINTEGER_16)) <-
+  (
+    number_of_hmetrics := nmetrics;
+    hmetrics := MAP_NATIVE_ARRAY(TT_HMTX_DATA).calloc number_of_hmetrics;
+    hmetrics := MAP_NATIVE_ARRAY(TT_HMTX_DATA).force_conversion buf;
+    0.to (number_of_hmetrics - 1) do { i:INTEGER;
+      hmetrics.item i.to_big_endian;
+    };
+    
+    number_lbs := nglyph - number_of_hmetrics;
+    (number_lbs > 0).if {
+      buf := buf + (TT_HMTX_DATA.object_size * number_of_hmetrics);
+      left_side_bearing := NATIVE_ARRAY(INTEGER_8).calloc number_lbs;
+      left_side_bearing := NATIVE_ARRAY(INTEGER_8).force_conversion buf;
+      0.to (number_lbs - 1) do { i:INTEGER;
+	left_side_bearing.put (PROCESSOR.to_motorola_short (left_side_bearing.item i)) to i;
+      };
+    };
+  );
+    
+  - print <-
+  (
+    "\n********* HMTX TABLE *********\n".print;
+    "HMetrics: ".print;
+    0.to (number_of_hmetrics - 1) do { i:INTEGER;
+      hmetrics.item i.print;
+    };
+    '\n'.print;
+    "Left Side Bearing: ".print;
+    (number_lbs > 0).if {
+      0.to (number_lbs - 1) do { i:INTEGER;
+	left_side_bearing.item i.print;
+      };
+    } else {
+      " None".print;
+    };
+    '\n'.print;
+  );
+  
+  
+  
+  
+  
+  

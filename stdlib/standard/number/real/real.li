@@ -1,0 +1,311 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name   := Expanded REAL;
+
+  - export :=
+  REAL_32, REAL_64, REAL_80,
+  REAL_16_16,  REAL_24_8,  REAL_26_6,
+  UREAL_16_16, UREAL_24_8, UREAL_26_6;
+
+  - copyright   := "2003-2005 JÃ©rome Boutet, 2003-2007 Benoit Sonntag, 2007 Xavier Oswald";
+  - comment := "Generic real number.";
+
+  - type    := `float`;
+  - default := 0.0;
+
+  - lip     <-
+  (
+    add_lib "-lm";
+  );
+
+Section Insert
+
+  - inherit_numeric:NUMERIC := NUMERIC;
+
+Section Public
+
+  - Self:SELF '+'  Left 80  other:SELF :SELF <- `@Self + @other`:SELF;
+
+  - bound_test low:INTEGER_64 to up:UINTEGER_64 :BOOLEAN <-
+  (
+    TRUE
+  );
+
+  - pi   :SELF <- 3.14159265358979323846;
+  // Pi number
+
+  - atan :SELF <- `atan(@Self)`:SELF;
+  // Arctangent
+
+  - sqrt :SELF <- `sqrt(@Self)`:SELF;
+  // Square root
+
+  - log  :SELF <- `log(@Self)`:SELF;
+  // Logarithm
+
+  - sin  :SELF <- `sin(@Self)`:SELF;
+  // Sinus
+
+  - cos  :SELF <- `cos(@Self)`:SELF;
+  // Cosinus
+
+  - pow exp:SELF :SELF <- `pow(@Self,@exp)`:SELF;
+  // Power
+
+  - Self:SELF '**' Right 120 exp:SELF :SELF <-
+  // Power
+  (
+    Self.pow exp
+  );
+
+  - Self:SELF '^' Right 120 exp:SELF :SELF <-
+  // Power
+  (
+    Self.pow exp
+  );
+
+  //
+  // Convertion format with test.
+  //
+
+  - floor:INTEGER <-
+  // Greatest integral value no greater than Current.
+  (
+    to_raw_integer
+  );
+
+  - ceiling:INTEGER <-
+  // Smallest integral value no smaller than Current.
+  (
+    (Self + 0.9999).floor
+  );
+
+  - round:INTEGER <-
+  // Rounded integral value.
+  (
+    (Self + 0.5).floor
+  );
+
+  - truncated_to_integer:INTEGER <- floor;
+  // Integer part (largest absolute value no greater than Current).
+
+  //
+  // Comparaison.
+  //
+
+  - Self:SELF '~=' other:SELF :BOOLEAN <-
+  // Equal, close to 0.001
+  (
+    (Self - other).abs < 0.001
+  );
+
+  - is_not_a_number:BOOLEAN <- deferred;
+
+  - is_infinity:BOOLEAN <- deferred;
+
+  //
+  // Print.
+  //
+
+  - append_in buffer:STRING <-
+  // Append `Self' decimal representation in `buffer' with 4 decimal
+  (
+    append_in buffer decimal 4;
+  );
+
+  - to_string : STRING <-
+  // * French: Renvoi une chaîne représentant le nombre en base 10
+  // String of the number in base 10
+  ( + result : STRING;
+    result := STRING.create 0;
+    append_in result;
+    result
+  );
+
+  - append_in buffer:STRING format n:INTEGER decimal d:INTEGER <-
+  (
+    append_in buffer format n with ' ' decimal d;
+  );
+
+  - append_in buffer:STRING format n:INTEGER with c:CHARACTER decimal d:INTEGER <-
+  // String of the number in base 10 with `c' replacing blanck
+  [
+    -? {n >= 3};
+  ]
+  ( + old_count:INTEGER;
+
+    old_count := buffer.count;
+    append_in buffer decimal d;
+    buffer.insert c to old_count on (n - (buffer.count - old_count));
+  );
+
+  - append_in buffer:STRING decimal n:INTEGER <-
+  // String of the number in base 10 with 4 decimal
+  ( + val:SELF;
+    + val_10:INTEGER;
+    + char:CHARACTER;
+    + i:INTEGER;
+
+    get_map Self;
+    // Sign.
+    (sign).if {
+      val := Self;
+    } else {
+      buffer.add_last '-';
+      val := - Self;
+    };
+    (is_zero).if {
+      // Zero case.
+      buffer.add_last '0';
+    }.elseif {is_infinite} then {
+      // Infinite case.
+      buffer.append "Infinite";
+    }.elseif {is_nan} then {
+      // Nan case.
+      buffer.append "Nan";
+    } else {
+      // Value case = 1.mantisse x 2^(exp-127)
+      (val > INTEGER.maximum.to_real_32).if {
+        scientific_append_in buffer;
+      } else {
+        val_10 := val.to_integer;
+        val_10.append_in buffer;
+        val := val - val_10;
+        (n != 0).if {
+          buffer.add_last '.';
+          i := n;
+          {(val != 0) && {i > 0}}.while_do {
+            val := val * 10;
+            val_10 := val.to_integer;
+            char := val_10.decimal_digit;
+            buffer.add_last char;
+            val := val - val_10;
+            i := i - 1;
+          };
+          buffer.extend_multiple '0' by i;
+        };
+      };
+    };
+  );
+
+  - scientific_append_in buffer:STRING <-
+ // Scientific number representation
+  ( + val:SELF;
+    + val_10:INTEGER;
+    + exp_10:INTEGER;
+    + char:CHARACTER;
+
+    get_map Self;
+    // Sign.
+    (sign).if {
+      val := Self;
+    } else {
+      buffer.add_last '-';
+      val := - Self;
+    };
+    (is_zero).if {
+      // Zero case.
+      buffer.add_last '0';
+    }.elseif {is_infinite} then {
+      // Infinite case.
+      buffer.append "Infinite";
+    }.elseif {is_nan} then {
+      // Nan case.
+      buffer.append "Nan";
+    } else {
+      // Value case.
+      {val > 10}.while_do {
+        val    := val / 10;
+        exp_10 := exp_10 + 1;
+      };
+      {val < 0}.while_do {
+        val    := val * 10;
+        exp_10 := exp_10 - 1;
+      };
+      val_10 := val.to_integer;
+      char := val_10.decimal_digit;
+      buffer.add_last char;
+      buffer.add_last '.';
+      val := val - val_10;
+      {val != 0}.while_do {
+        val := val * 10;
+        val_10 := val.to_integer;
+        char := val_10.decimal_digit;
+        buffer.add_last char;
+        val := val - val_10;
+      };
+      buffer.add_last 'E';
+      exp_10.append_in buffer;
+    };
+  );
+
+  - append_in buffer:STRING format_c fmt:ABSTRACT_STRING <-
+  ( + nc_buf,nc_fmt:NATIVE_ARRAY(CHARACTER);
+    + old_count,cap:INTEGER;
+
+    old_count := buffer.count;
+    cap       := buffer.capacity - old_count;
+    nc_buf    := buffer.to_external + old_count;
+    nc_fmt    := fmt.to_external;
+    `snprintf(@nc_buf,@cap,@nc_fmt,@Self)`;
+    buffer.restore_after_external;
+  );
+
+  - print_decimal s:INTEGER <-
+  // print with `s' decimal
+  (
+    string_tmp.clear;
+    append_in string_tmp decimal s;
+    string_tmp.print;
+  );
+
+  - print_int i:INTEGER decimal d:INTEGER <-
+  (
+    print_format (i+d+1) decimal d;
+  );
+
+  - print_format s:INTEGER decimal d:INTEGER <-
+  [
+    -? {s > d};
+  ]
+  (
+    print_format s with ' ' decimal d;
+  );
+
+  - print_format s:INTEGER with c:CHARACTER decimal d:INTEGER <-
+  [
+    -? {s > d};
+  ]
+  (
+    string_tmp.clear;
+    append_in string_tmp format s with c decimal d;
+    string_tmp.print;
+  );
+
+  - print_format_c fmt:ABSTRACT_STRING <-
+  (
+    string_tmp.clear;
+    append_in string_tmp format_c fmt;
+    string_tmp.print;
+  );
+

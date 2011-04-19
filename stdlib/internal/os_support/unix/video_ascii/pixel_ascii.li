@@ -1,0 +1,125 @@
+///////////////////////////////////////////////////////////////////////////////
+//                            Lisaac OS Library                              //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name        := PIXEL_ASCII;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     := "Version Generic ASCII";
+
+  - bibliography:= "http://IsaacOS.com";
+
+  - author      := "Benoit Sonntag (bsonntag@loria.fr), Jerome Boutet (boutet@loria.fr)";
+
+Section Inherit
+
+  - parent_pixel:PIXEL := PIXEL;
+
+Section Mapping
+
+  + char:CHARACTER;
+
+Section Public
+
+  - red:UINTEGER_8 <-
+  ( + result:UINTEGER_8;
+
+    char
+    .when ' ' then { result := 31;  }
+    .when '.' then { result := 63;  }
+    .when '-' then { result := 95;  }
+    .when '=' then { result := 127; }
+    .when '+' then { result := 159; }
+    .when '*' then { result := 191; }
+    .when '%' then { result := 223; }
+    .when '#' then { result := 255; };
+    result
+  );
+
+  - green:UINTEGER_8 <- red;
+
+  - blue:UINTEGER_8 <- red;
+
+  - color col:UINTEGER_32 :UINTEGER_32 <-
+  ( + gray:UINTEGER_32;
+
+    gray := ((col >> 16)+ ((col & 00FF00h)>>8)+ ((col & 0000FFh) >> 3))/3;
+    gray
+    .when 0   to 31  then { char := ' '; }
+    .when 32  to 63  then { char := '.'; }
+    .when 64  to 95  then { char := '-'; }
+    .when 96  to 127 then { char := '='; }
+    .when 128 to 159 then { char := '+'; }
+    .when 160 to 191 then { char := '*'; }
+    .when 192 to 223 then { char := '%'; }
+    .when 224 to 255 then { char := '#'; };
+    col
+  );
+
+  - color_rgb (r,g,b:UINTEGER_8) <-
+  ( + gray:INTEGER;
+
+    gray := (r.to_integer+g+b)/3;
+    gray
+    .when 0   to 31  then { char := ' '; }
+    .when 32  to 63  then { char := '.'; }
+    .when 64  to 95  then { char := '-'; }
+    .when 96  to 127 then { char := '='; }
+    .when 128 to 159 then { char := '+'; }
+    .when 160 to 191 then { char := '*'; }
+    .when 192 to 223 then { char := '%'; }
+    .when 224 to 255 then { char := '#'; };
+  );
+
+  - size:UINTEGER_8          := 8;
+  - red_size:UINTEGER_8      := 3;
+  - red_pos:UINTEGER_8       := 0;
+  - green_size:UINTEGER_8    := 3;
+  - green_pos:UINTEGER_8     := 3;
+  - blue_size:UINTEGER_8     := 2;
+  - blue_pos:UINTEGER_8      := 6;
+  - reserved_size:UINTEGER_8 := 0;
+  - reserved_pos:UINTEGER_8  := 0;
+
+  - copy other:SELF <-
+  (
+    color_rgb ((other.red),(other.green),(other.blue));
+  );
+
+  - print <-
+  (
+    (char=0).if {
+      char:=' ';
+    };
+    char.print;
+  );
+
+  - set_char c:CHARACTER <-
+  (
+    char := c;
+  );
+
+  - to_pixel_ascii:PIXEL_ASCII <- Self;
+
+
+
+

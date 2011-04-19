@@ -1,0 +1,25 @@
+Section Header
+  // Cells
+
+  + name      := CELLS;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP Cells";
+
+Section Inherit
+
+  + parent:Expanded CONTROL := CONTROL;
+
+Section Public
+  
+  - make :SELF <-
+  ( + result:SELF;
+    + h:POINTER;
+
+    h := `IupCells()`:POINTER;
+
+    result := SELF.clone;
+    result.set_handle h;
+    result
+  );

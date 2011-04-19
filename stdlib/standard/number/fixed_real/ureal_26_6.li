@@ -1,0 +1,88 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := Expanded UREAL_26_6;
+
+  - export  := REAL_32, REAL_64;
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment := "unsigned 26.6 fixed float.";
+
+  - type    := `unsigned long`;
+  - default := (0.to_raw_ureal_26_6);
+
+Section Insert
+
+  - parent_unsigned_fixed_real:UNSIGNED_FIXED_REAL := UNSIGNED_FIXED_REAL;
+
+Section SELF
+
+  - shift_bits:INTEGER <- 6;
+
+Section Public
+
+  //
+  // Range.
+  //
+
+  - maximum:UINTEGER_64 <- 3FF_FFFFh.to_raw_uinteger_64;
+
+  //
+  // Convertion format with test.
+  //
+
+  - to_ureal_26_6:UREAL_26_6 <- Self;
+
+  //
+  // Convertion
+  //
+
+  - append_in buffer:STRING <-
+  // Append in the `buffer' the equivalent of `to_string'. No new STRING
+  // creation during the process.
+  ( + val:UINTEGER_32;
+    + old_count,new_count:INTEGER;
+    ? {buffer!=NULL};
+
+    val := to_raw_uinteger_32;
+    (val >> 6).append_in buffer;
+    buffer.extend '.';
+    old_count:=buffer.count;
+    //     1/64 = 0.015625 => 6 digit.
+    (((val & 63) * 1000000)>>6).append_in buffer;
+    new_count:=old_count+6;
+    {buffer.count!=new_count}.while_do {
+      buffer.insert '0' to old_count;
+    };
+
+  );
+
+
+
+
+
+
+
+
+
+

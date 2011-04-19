@@ -1,0 +1,77 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+
+  + name    := EVENT_KEYBOARD;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+
+  - comment     :="Keyboard event.";
+  
+Section Inherit
+
+  + parent_event:Expanded EVENT;
+  
+Section Public
+  
+  - source:INBOX := KEYBOARD;
+  
+  + key:UINTEGER_16;
+    
+  + prev:EVENT_KEYBOARD;
+  
+  - set_prev new_prev:EVENT_KEYBOARD <-
+  (
+    prev := new_prev;
+  );
+  
+  - make c:UINTEGER_16 <-
+  (
+    key := c;
+    destination := NULL;
+  );
+  
+  //
+  // Display.
+  // 
+  
+  - display <-
+  (
+    string_msg.copy "Keyb event: ";
+    string_msg.append ((key>>8).to_binary);
+    string_msg.add_last ' ';
+    string_msg.add_last ((key & 0FFh).to_character);
+    string_msg.add_last '\n';
+    VIDEO.message string_msg;
+  );
+  
+  - copy_from evt:EVENT_KEYBOARD <-
+  (
+    ? {evt != NULL};
+    key := evt.key;
+    destination := NULL;
+  );
+  
+    
+
+
+

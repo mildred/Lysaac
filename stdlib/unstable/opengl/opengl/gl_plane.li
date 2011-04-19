@@ -1,0 +1,82 @@
+///////////////////////////////////////////////////////////////////////////////
+//                         Lisaac-OpenGL Library                            //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+
+Section Header
+  
+  + name     := GL_PLANE;
+  
+  - comment  := "a*x+b*y+c*z+d >= 0 clipping plane";
+  
+Section Inherit
+  
+  + parent_plane:Expanded PLANE;
+  
+Section Public
+  
+  - nb_planes:INTEGER;
+  
+  + id:INTEGER; // OpenGL plane id
+  
+  - load_clipping_plane <- 
+  // called while plane creation 
+  (
+    // OpenGl allow only 6 clipping planes at a time.
+    (nb_planes >= 6).if {
+      GL_ERROR.send "too much clipping planes";
+    };    
+    id := `GL_CLIP_PLANE0`:INTEGER + nb_planes;
+    nb_planes := nb_planes + 1;
+  );
+  
+  - clip <- 
+  (
+    + i:INTEGER;
+    + p:POINTER;
+    
+    enable;
+    
+    i := id;
+    `glEnable(@i)`;
+    
+    p := getv.to_external;
+    `glClipPlane(@i, @p)`;
+  );
+  
+  - push_attrib <-
+  (
+    `glPushAttrib(GL_ENABLE_BIT)`;
+  );
+  
+  - pop_attrib <-
+  (
+    `glPopAttrib()`;
+  );
+  
+  - unclip <-
+  (
+    + i:INTEGER;
+    
+    disable;
+    
+    i := id;
+    `glDisable(@i)`;
+  );
+  

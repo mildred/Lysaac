@@ -1,0 +1,25 @@
+Section Header
+  // Vertical box container control
+
+  + name      := VERTICAL_BOX;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP Vertical Box";
+
+Section Inherit
+
+  + parent:Expanded CONTAINER_CONTROL := CONTAINER_CONTROL;
+
+Section Public
+  
+  - make :SELF <-
+  ( + result:SELF;
+    + h:POINTER;
+    
+    h := `IupVbox(NULL)`:POINTER;
+    
+    result := SELF.clone;
+    result.set_handle h;
+    result
+  );

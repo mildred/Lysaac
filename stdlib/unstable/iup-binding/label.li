@@ -1,0 +1,28 @@
+Section Header
+  // Label
+
+  + name      := LABEL;
+
+  - copyright := "2009, Jeremy Cowgar";
+
+  - comment   := "IUP Label";
+
+Section Inherit
+
+  + parent:Expanded CONTROL := CONTROL;
+
+Section Public
+  
+  - make title:ABSTRACT_STRING :SELF <-
+  ( + result:SELF;
+    + h:POINTER;
+    + n_title:NATIVE_ARRAY(CHARACTER);
+    
+    n_title := title.to_external;
+
+    h := `IupLabel(@n_title)`:POINTER;
+
+    result := SELF.clone;
+    result.set_handle h;
+    result
+  );

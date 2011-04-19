@@ -1,0 +1,260 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name      := MENU_V;
+  
+  - copyright := "Jonathan Ponte, Maxime Audrin, Benoit Sonntag";
+  
+  - comment   := "Vertical menu for GUII.";
+  
+Section Inherit
+  
+  - parent_internal_inode:INTERNAL_INODE := INTERNAL_INODE;
+  
+Section Public
+  
+  
+  - representation:STRING_CONSTANT := "MENU_V";
+  + parent:INTERNAL_INODE;
+  
+  - print <-
+  (
+    "MENU_V".print;
+  );
+  
+  - make_representation <-
+  (
+    list.foreach {
+      i:INODE;
+      
+      (i.priority>covering).if {
+        i.make_representation;
+        (content=NULL).if {
+          content:=i.content;
+        } else {
+          content:=content / i.content;
+        };
+      };
+    };
+    content.fix_width.fix_height;
+  );
+  
+  //
+  // Evaluation.
+  //
+  - compute_size_from_prc p:INTEGER <-
+  [ ? {! list.is_empty}; ]
+  (
+    reset_size;
+    list.foreach {
+      i:INODE;
+      +w,h:INTEGER;
+      (i.priority>p).if {
+        ((i.connector_width>0) && {i.connector_height>0}).if {
+          w:=i.connector_width;
+          h:=i.connector_height;
+        } else {
+          w:=i.width;
+          h:=i.height;
+        };
+        (width,height):=G_DIV_EXPR.predict_size (width,height) and (w,h);
+      };
+    };
+  );
+  
+  - predict_size :INTEGER <-
+  (
+    +w_predict:INTEGER;
+    list.foreach {
+      i:INODE;
+      +w,h:INTEGER;
+      (w,h):=G_BUTTON.predict_size (G_OUT.predict_size (i.name));
+      (w>w_predict).if {
+        w_predict:=w;
+      };
+    };
+    w_predict
+  );
+
+
+  - semantic_evaluation (w,h:INTEGER) :BOOLEAN<-
+  (
+    bugw_screen:=w;
+    bugh_screen:=h;
+    
+    !list.is_empty && {operator='^'} && {
+      browse_group { 
+        i:INODE;
+        (i.operator != '&')
+      }
+    } && {
+      +nb:INTEGER;
+      +predict_w:INTEGER;
+
+      predict_w:=predict_size;
+      list.foreach {
+        i:INODE;
+        +tmp:REAL_32;
+        +best_prc:REAL_32;
+        +son_width:INTEGER;
+        +son_height:INTEGER;
+        +son_connector_w:INTEGER;
+        +son_connector_h:INTEGER;
+        +w_tmp:INTEGER;
+
+        ((used_width+predict_w)>screen_width/2).if {
+          w_tmp:=used_width;
+        } else {
+          w_tmp:=screen_width-used_width-predict_w;
+        };
+
+        (!i.list.is_empty).if {
+          tmp:=MENU_V_OUT.evaluate i width w_tmp height screen_height;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            parent:=MENU_V_OUT;
+            son_connector_w:=i.connector_width;
+            son_connector_h:=i.connector_height;
+            son_width:=i.width;
+            son_height:=i.height;
+          };
+          tmp:=WINDOW.evaluate i width screen_width height screen_height;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            parent:=WINDOW;
+            son_connector_w:=i.connector_width;
+            son_connector_h:=i.connector_height;
+            son_width:=i.width;
+            son_height:=i.height;
+          };
+          /*tmp:=MENU_H_OUT.evaluate i width w_tmp height screen_height;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            parent:=MENU_H_OUT;
+            son_connector_w:=i.connector_width;
+            son_connector_h:=i.connector_height;
+            son_width:=i.width;
+            son_height:=i.height;
+          };*/
+        } else {
+          tmp:=CHECK.evaluate i width screen_width height screen_height;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            parent:=CHECK;
+            son_connector_w:=0;
+            son_connector_h:=0;
+            son_width:=i.width;
+            son_height:=i.height;
+          };
+          tmp:=ACTION.evaluate i width screen_width height screen_height;
+          (tmp > best_prc).if {
+            best_prc:=tmp;
+            parent:=ACTION;
+            son_connector_w:=0;
+            son_connector_h:=0;
+            son_width:=i.width;
+            son_height:=i.height;
+          };
+        };
+        
+        (best_prc > 0).if {
+          i.set_representation parent;
+          i.name.print;"===========================================>".print;i.print;"\n".print;
+          i.set_width son_width;
+          i.set_height son_height;
+          i.set_connector_w son_connector_w;
+          i.set_connector_h son_connector_h;
+          nb:=nb+1;
+        };
+      };
+      nb=list.count
+    }
+  );
+  
+  - space_evaluation (w,h:INTEGER) :REAL_32<-
+  (
+    + area,r,result:REAL_32;
+    
+    // Space evaluation
+    compute_size_from_prc 0;
+    ((height >= h) || {width >= w}).if {
+      "Priority 0 failed\n".print;
+      compute_size_from_prc 25;
+      ((height >= h) || {width >= w}).if {
+        "Priority 25 failed\n".print;
+        compute_size_from_prc 50;
+        ((height >= h) || {width >= w}).if {
+          "Priority 50 failed\n".print;
+          r:=0;
+          height:=0;
+          width:=0;
+        } else {
+          covering:=50;
+          r:=get_nitem_from_prc 50;
+        };
+      } else {
+        covering:=25;
+        r:=get_nitem_from_prc 25;
+      };
+    } else {
+      covering:=0;
+      r:=list.count;
+    };
+    r:=(r/list.count)*100;
+    (r>0).if {
+      area:=get_area_prc (w,h);
+      //name.print;" area := ".print;(get_area_prc (w,h)).print;"\n".print;
+      (r>area).if {
+        result:=r-area;
+      } else {
+        result:=0;
+      };
+    } else {
+      result:=0;
+    };
+    result
+  )
+  [ ? {Result.in_range 0 to 100}; ];
+  
+  
+  /*
+  // -> 1) R = Faisabilité de l'espace (% de recouvrement des items) (1:25%, 2:50%, 3:75%)
+  // -> 2) A = Note de calcul d'aire. (% sur l'écran total)
+  // Result = (R*100-A)/100  
+  */
+  - evaluate n:INODE width w:INTEGER height h:INTEGER : REAL_32<-
+  (
+    + result:REAL_32;
+    
+    n.set_representation MENU_V;
+    // Semantic evaluation && Space evaluation.
+    "MENU_V semantic evaluation of ".print;n.name.print;"\n".print;
+    (n.semantic_evaluation (w,h)).if {
+      //"MENU_V space evaluation of ".print;n.name.print;"\n".print;
+      result:=n.space_evaluation (w,h);
+    } else {
+      result:=0;
+    };
+    "MENU_V result for ".print;n.name.print;"= ".print;result.print;"%\n".print;
+    result
+  )
+  [ ? {Result.in_range 0 to 100}; ];

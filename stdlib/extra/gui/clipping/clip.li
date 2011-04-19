@@ -1,0 +1,184 @@
+///////////////////////////////////////////////////////////////////////////////
+//                             Lisaac Library                                //
+//                                                                           //
+//                   LSIIT - ULP - CNRS - INRIA - FRANCE                     //
+//                                                                           //
+//   This program is free software: you can redistribute it and/or modify    //
+//   it under the terms of the GNU General Public License as published by    //
+//   the Free Software Foundation, either version 3 of the License, or       //
+//   (at your option) any later version.                                     //
+//                                                                           //
+//   This program is distributed in the hope that it will be useful,         //
+//   but WITHOUT ANY WARRANTY; without even the implied warranty of          //
+//   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           //
+//   GNU General Public License for more details.                            //
+//                                                                           //
+//   You should have received a copy of the GNU General Public License       //
+//   along with this program.  If not, see <http://www.gnu.org/licenses/>.   //
+//                                                                           //
+//                     http://isaacproject.u-strasbg.fr/                     //
+///////////////////////////////////////////////////////////////////////////////
+Section Header
+  
+  + name    := CLIP;
+
+
+  - copyright   := "2003-2005 Jérome Boutet, 2003-2007 Benoit Sonntag";
+  
+  - comment := "Clip structure (Use for AREA).";
+  
+  - version := 1;
+  
+Section Inherit
+
+  - parent_object:OBJECT := OBJECT;
+  
+Section Public  
+  
+  //                 top
+  //                  /\ 
+  // (x_min,y_min) X--||----------+
+  //               |              |
+  //         left <=              |
+  //               |              |
+  //               |     CLIP     |
+  //               |              |
+  //               |              => right
+  //               |              |
+  //               +----------||--X (x_max,y_max)
+  //                          \/
+  //                        bottom
+    
+  // Coord. abs clip.
+  + x_min:INTEGER;
+  + y_min:INTEGER;
+  + x_max:INTEGER;
+  + y_max:INTEGER;
+  
+  + window:AREA;
+  
+  // Four clip links. 
+  + left:CLIP;
+  + right:CLIP;
+  + top:CLIP;
+  + bottom:CLIP;
+  
+Section Public  
+  
+  - make win:AREA at (x0,y0:INTEGER) to (x1,y1:INTEGER) <-
+  (
+    window:=win;
+    x_min:=x0;
+    y_min:=y0;
+    x_max:=x1;
+    y_max:=y1;
+  );
+    
+  - create win:AREA at (x0,y0:INTEGER) to (x1,y1:INTEGER) :CLIP <-
+  ( + result:CLIP;
+    
+    result:=CLIP.clone;
+    result.make win at (x0,y0) to (x1,y1);
+    result
+  );
+    
+  - set_left new_link:CLIP <-
+  (
+    left:=new_link;
+  );
+
+  - set_right new_link:CLIP <-
+  (
+    right:=new_link;
+  );
+  
+  - set_top new_link:CLIP <-
+  (
+    top:=new_link;
+  );
+
+  - set_bottom new_link:CLIP <-
+  (
+    bottom:=new_link;
+  );
+
+  - set_x_min new:INTEGER <-
+  (
+    x_min:=new;
+  );
+
+  - set_x_max new:INTEGER <-
+  (
+    x_max:=new;
+  );
+  
+  - set_y_min new:INTEGER <-
+  (
+    y_min:=new;
+  );
+
+  - set_y_max new:INTEGER <-
+  (
+    y_max:=new;
+  );
+
+  - display win:AREA <-
+  (
+    sub_display ((! flag), win);
+  );
+  
+Section Private
+
+  // Mark display flag.
+  + flag:BOOLEAN;
+
+  - sub_display (val:BOOLEAN, win:AREA) <-
+  // Display recurssive clipping. 
+  ( 
+    (window=win).if {
+      VIDEO.color white;
+    } else {
+      VIDEO.color gray;
+    };
+    //x_min.print; ','.print; y_min.print; " to ".print; 
+    //x_max.print; ','.print; y_max.print; '\n'.print;
+    VIDEO.rectangle (x_min,y_min) to (x_max,y_max);
+    
+    (top=NULL).if {
+      VIDEO.line_h (x_min,y_min) until x_max color 0FF6464h;
+    };
+    (bottom=NULL).if {
+      VIDEO.line_h (x_min,y_max) until x_max color 0FF6464h;
+    };
+    (left=NULL).if {
+      VIDEO.line_v (x_min,y_min) until y_max color 0FF6464h;
+    };
+    (right=NULL).if {
+      VIDEO.line_v (x_max,y_min) until y_max color 0FF6464h;
+    }; 
+       
+//    VIDEO.display_screen;
+//    IO.read_character;
+    //KEYBOARD.get_key;
+    flag:=val;
+    ((top!=NULL) && {top.flag!=val}).if { 
+      top.sub_display (val,win); 
+    };
+    ((bottom!=NULL) && {bottom.flag!=val}).if { 
+      bottom.sub_display (val,win); 
+    };
+    ((right!=NULL) && {right.flag!=val}).if { 
+      right.sub_display (val,win); 
+    };
+    ((left!=NULL) && {left.flag!=val}).if { 
+      left.sub_display (val,win); 
+    };
+  );
+
+
+
+
+
+
+
+
