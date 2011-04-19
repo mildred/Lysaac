@@ -132,10 +132,15 @@ Section Public
       typ_id := type_id_intern;
       //ptr := `malloc(((unsigned long)(@sz + 3)) & 0xFFFFFFFC)`:POINTER;
       clone_allocation_size := clone_allocation_size + sz;
-      (typ_id = -1).if {
-	ptr := MEMORY.alloc_size sz;
+      use_c_alloc.if {
+        ptr := `malloc(@sz)`:POINTER;
+        (ptr = NULL).if { crash_with_message "Out of memory"; };
       } else {
-	ptr := MEMORY.alloc_type (typ_id.to_uinteger_32) size sz;
+        (typ_id = -1).if {
+	  ptr := MEMORY.alloc_size sz;
+        } else {
+	  ptr := MEMORY.alloc_type (typ_id.to_uinteger_32) size sz;
+        };
       };
       result := CONVERT(POINTER,SELF).on ptr;
       //MEMORY.copy to_pointer to ptr size (CONVERT(POINTER,UINTEGER_32).on sz);
@@ -160,10 +165,14 @@ Section Public
       //ptr := `free(@Self)`;
       clone_allocation_size := clone_allocation_size - sz;
       ptr := to_pointer;
-      (typ_id = -1).if {
-	MEMORY.free ptr size sz;
+      use_c_alloc.if {
+        `free(@ptr)`;
       } else {
-	MEMORY.free ptr type (typ_id.to_uinteger_32);
+        (typ_id = -1).if {
+	  MEMORY.free ptr size sz;
+        } else {
+	  MEMORY.free ptr type (typ_id.to_uinteger_32);
+        };
       };
     };
   );
@@ -252,3 +261,8 @@ Section Public
   - foreach_intern_data action:{ (STRING_CONSTANT,STRING_CONSTANT,INTEGER,INTEGER); } <- `25`;
 
   - foreach_set_intern_data action:{ (STRING_CONSTANT,STRING_CONSTANT,T); T} <- `26`;
+
+Section Private
+
+  - use_c_alloc:BOOLEAN := FALSE;
+  

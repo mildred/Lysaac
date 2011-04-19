@@ -11,6 +11,9 @@ Section Public
   - main <-
   ( + c :CLUSTER;
     + dir, main :ABSTRACT_STRING;
+    
+    use_c_alloc := TRUE;
+    
     (COMMAND_LINE.upper >= 1).if {
       dir := COMMAND_LINE.item 1;
     };
