@@ -1,0 +1,63 @@
+Section Header
+
+  + name := PATH_HELPER;
+
+Section Public
+
+  - basename path:ABSTRACT_STRING :ABSTRACT_STRING <-
+  ( + i, last:INTEGER;
+    + result :ABSTRACT_STRING;
+    
+    ((path = NULL) || {path == ""}).if {
+      result := "";
+    } else {
+      last = path.last;
+      {(path.valid_index last) && {path.index last == '/'}}.while_do {
+        last := last - 1;
+      };
+      path.valid_index last.if_false {
+        result := "/";
+      } else {
+        i := path.last_index_of '/' since last;
+        path.valid_index i.if {
+          result := path.substring (i+1) to last
+        } else {
+          result := path.substring (path.lower) to last;
+        };
+      };
+    };
+    result
+  );
+
+  - dirname path:ABSTRACT_STRING :ABSTRACT_STRING <-
+  ( + i :INTEGER;
+    + result :ABSTRACT_STRING;
+    
+    (path = NULL).if {
+      result := ".";
+    } else {
+      i := path.last_index_of '/';
+      path.valid_index i.if {
+        (i == path.lower).if {
+          result := "/";
+        } else {
+          result := path.substring (path.lower) to (i-1);
+        };
+      } else {
+        result := ".";
+      };
+    };
+    result
+  );
+  
+  - compose path:ABSTRACT_STRING base base_path:ABSTRACT_STRING :ABSTRACT_STRING <-
+  ( + result :ABSTRACT_STRING;
+  
+    (path.lower = '/').if {
+      result := path;
+    } else {
+      result := base_path + "/" + path;
+    };
+    result
+  );
+

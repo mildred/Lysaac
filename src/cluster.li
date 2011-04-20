@@ -20,7 +20,7 @@ Section Private
     };
   );
 
-  - parse path:CSTRING <-
+  - parse path:CSTRING root root:BOOLEAN <-
   ( + p:POINTER;
     + s, s2:STRING;
     + nac:NATIVE_ARRAY(CHARACTER);
@@ -30,34 +30,38 @@ Section Private
     s2 := STRING.create 32;
 
     p := LIBC.opendir(path);
-    {(i, nac) := LIBC.readdir(p);
-     nac != NULL
-    }.while_do {
-      s := nac;
-      (i != LIBC.dt_dir).if {
-        ((s.has_suffix ".li") || {s.has_suffix ".cli"}).if {
-          find_name (s2, s);
-          has_source := TRUE;
-          s.add_first '/';
-          s.prepend path;
-          list.add_last (CLUSTER_ITEM.clone.make s2 file s);
-        };
-      };
-    };
-    LIBC.closedir(p);
-    has_source.if {
-      p := LIBC.opendir(path);
+    (p != NULL).if {
       {(i, nac) := LIBC.readdir(p);
        nac != NULL
       }.while_do {
         s := nac;
-        ((s !== ".") && {s !== ".."} && {i = LIBC.dt_dir}).if {
-          s.add_first '/';
-          s.prepend path;
-          parse s;
+        (i != LIBC.dt_dir).if {
+          ((s.has_suffix ".li") || {s.has_suffix ".cli"}).if {
+            find_name (s2, s);
+            has_source := TRUE;
+            s.add_first '/';
+            s.prepend path;
+            list.add_last (CLUSTER_ITEM.clone.make s2 file s);
+          };
         };
       };
       LIBC.closedir(p);
+    };
+    ((has_source) || {root}).if {
+      p := LIBC.opendir(path);
+      (p != NULL).if {
+        {(i, nac) := LIBC.readdir(p);
+         nac != NULL
+        }.while_do {
+          s := nac;
+          ((s !== ".") && {s !== ".."} && {i = LIBC.dt_dir}).if {
+            s.add_first '/';
+            s.prepend path;
+            parse s root FALSE;
+          };
+        };
+        LIBC.closedir(p);
+      };
     };
   );
   
@@ -102,13 +106,8 @@ Section PARSER_CLI
 
   - set_path p:CSTRING <-
   (
-    path := p;
-  );
-
-  - find_path_by_name name:CSTRING <-
-  // find the path to the cluster `name' and return TRUE if successfull (`path'
-  // set) or FALSE if not.
-  (
+    path := PATH_HELPER.compose p base (PATH_HELPER.dirname filename);
+    parse path root TRUE;
   );
 
 Section Public
@@ -135,7 +134,7 @@ Section Public
     list := FAST_ARRAY(CLUSTER_ITEM).create 0;
     path := p;
     filename := NULL;
-    parse path;
+    parse path root TRUE;
     Self
   );
   

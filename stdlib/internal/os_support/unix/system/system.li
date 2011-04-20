@@ -137,6 +137,7 @@ Section SYSTEM,MEMORY
 
   - realloc_c (beg:UINTEGER_32,nb:INTEGER) :UINTEGER_32 <-
   ( + result:UINTEGER_32;
+    crash_with_message "realloc_c";
     result := `(unsigned long)realloc((void *)@beg,@nb+15)`:UINTEGER_32;
     ((beg != 0) && {result != beg}).if {
       MEMORY.print_nbx beg;
