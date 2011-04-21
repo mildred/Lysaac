@@ -51,13 +51,65 @@ Section Public
   );
   
   - compose path:ABSTRACT_STRING base base_path:ABSTRACT_STRING :ABSTRACT_STRING <-
+  [ -? {path != NULL};
+    -? {base_path != NULL};
+  ]
   ( + result :ABSTRACT_STRING;
   
-    (path.lower = '/').if {
+    ((path.first = '/') || {base_path.count = 0}).if {
       result := path;
+    }.elseif {base_path.last = '/'} then {
+      result := base_path + path;
     } else {
       result := base_path + "/" + path;
     };
     result
   );
+  
+  - home :CSTRING <-
+  ( + env :STRING;
+    env := ENVIRONMENT.get_environment_variable "HOME";
+    (env = NULL).if {
+      home := "";
+    } else {
+      home := env;
+    };
+    home
+  );
+  
+  - xdg_data_home :CSTRING <-
+  ( + env :STRING;
+    env := ENVIRONMENT.get_environment_variable "XDG_DATA_HOME";
+    (env = NULL).if {
+      xdg_data_home := (home + "/.local/share").to_string;
+    } else {
+      xdg_data_home := env;
+    };
+    xdg_data_home
+  );
+  
+  - xdg_data_dirs :FAST_ARRAY(CSTRING) <-
+  ( + env :STRING;
+    + res :FAST_ARRAY(CSTRING);
+    + arr :FAST_ARRAY(STRING);
+    
+    env := ENVIRONMENT.get_environment_variable "XDG_DATA_DIRS";
+    res := FAST_ARRAY(CSTRING).create_with_capacity 2;
+    (env = NULL).if {
+      res.add_last ("/usr/local/share/");
+      res.add_last ("/usr/share/");
+    } else {
+      arr := FAST_ARRAY(STRING).create 2;
+      env.split_str ":" in arr;
+      arr.iterate.loop_v { s:STRING;
+        (s != NULL).if {
+          res.add_last s;
+        };
+      };
+    };
+    xdg_data_dirs := res
+  )
+  [
+    +? { ! Result.fast_has NULL };
+  ];
 

@@ -105,8 +105,24 @@ Section Private
 Section PARSER_CLI
 
   - set_path p:CSTRING <-
-  (
-    path := PATH_HELPER.compose p base (PATH_HELPER.dirname filename);
+  ( + ptr :POINTER;
+    + it :ITERATOR(CSTRING);
+    
+    ((p.first = '/') || {p.first = '.'}).if {
+      path := PATH_HELPER.compose p base (PATH_HELPER.dirname filename);
+    } else {
+      (it := lisaac_path.iterate).loop_v { s:CSTRING;
+        path := PATH_HELPER.compose p base s;
+        ptr := LIBC.fopen(path, "r");
+        (ptr != NULL).if {
+          LIBC.fclose(ptr);
+          it.stop;
+        };
+      };
+      (ptr = NULL).if {
+        path := p;
+      };
+    };
     parse path root TRUE;
   );
 
@@ -115,6 +131,38 @@ Section Public
   + path :CSTRING;
   
   + filename :CSTRING;
+  
+  - lisaac_path :FAST_ARRAY(CSTRING) <-
+  ( + result :FAST_ARRAY(CSTRING);
+    + arr :FAST_ARRAY(STRING);
+    + env :STRING;
+    
+    result := FAST_ARRAY(CSTRING).create_with_capacity 4;
+  
+    env := ENVIRONMENT.get_environment_variable "LYSAAC_PATH";
+    (env = NULL).if {
+      result.add_last ((PATH_HELPER.xdg_data_home + "/lysaac/lib").to_string);
+      PATH_HELPER.xdg_data_dirs.iterate.loop_v { s:CSTRING;
+        result.add_last ((s + "/lysaac/lib").to_string);
+      };
+      result.add_last ("/usr/local/share/lysaac/lib");
+      result.add_last ("/usr/share/lysaac/lib");
+    } else {
+      arr := FAST_ARRAY(STRING).create_with_capacity 2;
+      env.split_str ":" in arr;
+      arr.iterate.loop_v { s:STRING;
+        (s != NULL).if {
+          result.add_last s;
+        };
+      };
+    };
+    
+    
+    lisaac_path := result
+  )
+  [
+    +? { ! Result.fast_has NULL };
+  ];
   
   - name :CSTRING <-
   ( + result :CSTRING;

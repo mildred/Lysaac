@@ -2,7 +2,7 @@ Section Header
 
   + name   := CSTRING;
   
-  - import := STRING, ABSTRACT_STRING, STRING_CONSTANT;
+  - import := STRING, ABSTRACT_STRING, STRING_CONSTANT, STRING_BUFFER;
   - export := STRING, NATIVE_ARRAY(CHARACTER);
 
   - comment := "Aliased string";
@@ -30,6 +30,7 @@ Section Public
   
   - from_abstract_string s:ABSTRACT_STRING :SELF <- create s;
   - from_string_constant s:STRING_CONSTANT :SELF <- create s;
+  - from_string_buffer   s:STRING_BUFFER   :SELF <- create s;
   - from_string          s:STRING          :SELF <- create s;
 
 Section Private
