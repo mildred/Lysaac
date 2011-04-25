@@ -5,3 +5,13 @@ Lysaac is the rewriting of Lisaac compiler using a better design.
 
 See http://lisaac.org
 
+
+Testing
+=======
+
+You need `ruby`, `rubygems` and the `bundler` gem (`gem install bundler`).
+In the project, run `bundle install`, it should install everything you need.
+Then:
+
+    cucumber
+
