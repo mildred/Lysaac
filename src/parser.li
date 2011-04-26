@@ -8,6 +8,7 @@ Section Inherit
 
 Section SELF
 
+  + filename :CSTRING := "";
   + source :STRING;
   + position :INTEGER;
   + line :INTEGER;
@@ -15,7 +16,7 @@ Section SELF
   
   - print_warning <-
   (
-    "Warning:".print; line.print; ":".print; column.print; ": ".print;
+    "Warning: ".print; filename.print; ":".print; line.print; ":".print; column.print; ": ".print;
   );
   
   - character i:INTEGER :CHARACTER <-
@@ -330,6 +331,7 @@ Section SELF
   ( + file:POINTER;
     + sz:INTEGER;
 
+    filename := f;
     file := LIBC.fopen (f.to_external, "rb".to_external);
     sz := LIBC.file_size file;
     source := STRING.create (sz+1);
