@@ -1,4 +1,6 @@
 *.c
 *.o
 /lysaac
+/lysaac.cov
+/cov/
 

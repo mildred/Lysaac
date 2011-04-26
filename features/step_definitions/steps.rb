@@ -6,7 +6,7 @@ Given /^a file "([^"]*)"$/ do |file|
 end
 
 When /^I run lysaac (.*)$/ do |args|
-  @cmd = "#{$homedir}/bin/lysaac #{args}"
+  @cmd = "#{$homedir}/bin/lysaac.cov #{args}"
   @cmd_text = `#{@cmd}`;
 end
 

@@ -3,8 +3,40 @@ Lysaac
 
 Lysaac is the rewriting of Lisaac compiler using a better design.
 
-See http://lisaac.org
+See http://lisaac.org and http://lisaac-users.org
 
+
+Requirements
+============
+
+You need lisaac with my release r2 (mildred-r2). See the git repository of
+Lisaac at: http://git.debian.org/?p=lisaac/compiler.git
+
+The tag is f1803b827e96b16b744ce27a3d9ff4db0ec1aed2
+
+    object dfb10a5c45413175f59f097f7241ce65551bbe35
+    type commit
+    tag mildred-r2
+    tagger Mildred Ki'Lya <silkensedai@online.fr> 1303813632 +0200
+
+    Stable release r2 (not tested)
+    -----BEGIN PGP SIGNATURE-----
+    Version: GnuPG v1.4.11 (GNU/Linux)
+
+    iEYEABECAAYFAk22ngEACgkQb52o1pp9LiuwFgCgueo9fVkhw3r29ua16VbTfx/Z
+    mNEAn3VnJT/xDkYgUbUxqjnTAtxcbTtm
+    =yUvz
+    -----END PGP SIGNATURE-----
+
+You will also need redo: https://github.com/apenwarr/redo
+
+If you don't want to install redo, you can always use `tools/do` instead if
+`redo` in all the commands.
+
+Compiling
+=========
+
+    redo all
 
 Testing
 =======
@@ -14,4 +46,12 @@ In the project, run `bundle install`, it should install everything you need.
 Then:
 
     cucumber
+
+Then, just
+
+    redo tests
+    redo coverage
+
+Reports are in the `reports` directory. You can see code coverage.
+
 
