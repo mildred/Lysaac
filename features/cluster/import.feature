@@ -7,7 +7,7 @@ Feature: Cluster import
       Section Header
       
         + name := Cluster TOTO;
-        - path := "deps/toto";
+        - path := "./deps/toto";
       
       """
       And a file "c/deps/toto/toto.li"
@@ -17,7 +17,7 @@ Feature: Cluster import
       ◆ Root Cluster
       │ Cluster in: c
       ├─◆ TOTO (c/toto.cli)
-      │ │ Cluster in: deps/toto
+      │ │ Cluster in: c/deps/toto
       │ ╰─◇ TOTO (c/deps/toto/toto.li)
       ╰─◇ MAIN (c/main.li)
       
