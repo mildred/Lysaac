@@ -18,7 +18,10 @@ When /^I run lysaac (.*)$/ do |args|
   @cmd_text = `#{@cmd}`;
 end
 
-Then /^I should see$/ do |string|
-  @cmd_text.should == string
+When /^I set ([a-zA-Z0-9_]+)="([^"]*)"$/ do |env, val|
+  ENV[env]=val.gsub("$CWD", FileUtils.pwd())
 end
 
+Then /^I should see$/ do |string|
+  @cmd_text.gsub(FileUtils.pwd(), "$CWD").should == string
+end

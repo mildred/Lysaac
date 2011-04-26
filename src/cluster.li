@@ -114,16 +114,17 @@ Section PARSER_CLI
       (it := lisaac_path.iterate).loop_v { s:CSTRING;
         path := PATH_HELPER.compose p base s;
         ptr := LIBC.fopen(path, "r");
-        (ptr != NULL).if {
+        (ptr = NULL).if {
+          path := NULL;
+        } else {
           LIBC.fclose(ptr);
           it.stop;
         };
       };
-      (ptr = NULL).if {
-        path := p;
-      };
     };
-    parse path root TRUE;
+    (path != NULL).if {
+      parse path root TRUE;
+    };
   );
 
 Section Public
