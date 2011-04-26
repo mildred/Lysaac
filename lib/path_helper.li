@@ -55,13 +55,19 @@ Section Public
     -? {base_path != NULL};
   ]
   ( + result :ABSTRACT_STRING;
+    + p :STRING;
+    
+    p := path.to_string;
+    { p.first_substring_index "./" = p.lower }.while_do {
+      p := p.substring (p.lower + 2) to (p.upper);
+    };
   
     ((path.first = '/') || {base_path.count = 0}).if {
-      result := path;
+      result := p;
     }.elseif {base_path.last = '/'} then {
-      result := base_path + path;
+      result := base_path + p;
     } else {
-      result := base_path + "/" + path;
+      result := base_path + "/" + p;
     };
     result
   );
