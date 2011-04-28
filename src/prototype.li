@@ -19,7 +19,13 @@ Section Public
   
   - parse; // Done during construction
   
-  - compile <- not_yet_implemented;
+  - compile <-
+  (
+    //compile_prototype_data;
+    slots.iterate.loop_v { s:SLOT;
+      //s.compile;
+    };
+  );
 
 Section CLUSTER_ITEM
 
@@ -29,4 +35,10 @@ Section CLUSTER_ITEM
     PARSER_LI.clone.make Self.parse;
     Self
   );
+
+Section Private
+
+  + slots :FAST_ARRAY(SLOT) := FAST_ARRAY(SLOT).create 0;
+
+  - compile_prototype_data;
 

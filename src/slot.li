@@ -1,0 +1,11 @@
+Section Header
+
+  + name := SLOT;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+
+Section PROTOTYPE
+
+  - compile <- not_yet_implemented;
