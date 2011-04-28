@@ -20,11 +20,20 @@ Section Public
   - parse; // Done during construction
   
   - compile <-
-  (
-    //compile_prototype_data;
-    slots.iterate.loop_v { s:SLOT;
-      //s.compile;
-    };
+  ( + slots :FAST_ARRAY(SLOT);
+    
+    slots := FAST_ARRAY(SLOT).create 1; // BUG: (create 0) will make the lisaac compiler crash
+    // Impossible to iterate over a collection you are sure that it is empty.
+    compile_prototype_data;
+    slots.lower.println;
+    slots.upper.println;
+    /*slots.lower.to (slots.upper) do { i:INTEGER;
+      /*
+      + s :SLOT;
+      s := slots.item i;
+      s.compile;
+      */
+    };*/
   );
 
 Section CLUSTER_ITEM
