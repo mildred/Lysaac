@@ -11,8 +11,8 @@ Section Public
     ((path = NULL) || {path == ""}).if {
       result := "";
     } else {
-      last = path.last;
-      {(path.valid_index last) && {path.index last == '/'}}.while_do {
+      last := path.upper;
+      {(path.valid_index last) && {path.item last = '/'}}.while_do {
         last := last - 1;
       };
       path.valid_index last.if_false {
@@ -20,7 +20,7 @@ Section Public
       } else {
         i := path.last_index_of '/' since last;
         path.valid_index i.if {
-          result := path.substring (i+1) to last
+          result := path.substring (i+1) to last;
         } else {
           result := path.substring (path.lower) to last;
         };

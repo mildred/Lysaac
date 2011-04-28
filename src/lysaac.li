@@ -6,29 +6,71 @@ Section Inherit
 
   + parent_any :Expanded ANY;
 
+Section Private
+
+  - init <-
+  (
+    use_c_alloc := TRUE;
+  );
+  
+  - parse_command_line <-
+  ( 
+    (1 > COMMAND_LINE.upper).if {
+      usage;
+    } else {
+      COMMAND_LINE.item 1
+      .case "show" then {
+        parse_show (2);
+      }
+      .case "compile" then {
+        parse_compile (2);
+      }
+      .case_else {
+        usage;
+      };
+    };
+  );
+  
+  - parse_show i:INTEGER <-
+  ( + c   :CLUSTER;
+    + dir :ABSTRACT_STRING;
+    
+    (i > COMMAND_LINE.upper).if {
+      usage;
+    } else {
+      dir :=COMMAND_LINE.item i;
+      c   := CLUSTER.clone.make_path dir;
+      c.display;
+    };
+  );
+  
+  - parse_compile i:INTEGER <-
+  ( + c   :CLUSTER;
+    + dir :ABSTRACT_STRING;
+    
+    (i > COMMAND_LINE.upper).if {
+      usage;
+    } else {
+      dir :=COMMAND_LINE.item i;
+      c   := CLUSTER.clone.make_path dir;
+      c.compile;
+    };
+  );
+
+  - usage <-
+  (
+    "Usage: lysaac COMMAND [OPTIONS]\n\
+    \\n\
+    \  show DIR      Show cluster in DIR\n\
+    \  compile DIR   Compile cluster DIR\n\
+    \".print;
+  );
+
 Section Public
 
   - main <-
-  ( + c :CLUSTER;
-    + dir, main :ABSTRACT_STRING;
-    
-    use_c_alloc := TRUE;
-    
-    (COMMAND_LINE.upper >= 1).if {
-      dir := COMMAND_LINE.item 1;
-    };
-    (COMMAND_LINE.upper >= 2).if {
-      main := COMMAND_LINE.item 2;
-    };
-    (dir != NULL).if {
-      c := CLUSTER.clone.make_path dir;
-      (main != NULL).if {
-        not_yet_implemented;
-      } else {
-        c.display;
-      };
-    } else {
-      "Usage: lysaac DIR [PROTO]".println;
-    };
+  (
+    init;
+    parse_command_line;
   );
 

@@ -1,0 +1,32 @@
+Section Header
+
+  + name := PROTOTYPE;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+
+Section Public
+  
+  + filename :CSTRING;
+  
+  + name :CSTRING <-
+  ( + str :ABSTRACT_STRING;
+    
+    str := PATH_HELPER.basename filename;
+    name := str.substring (str.lower) to (str.upper - 3)
+  );
+  
+  - parse; // Done during construction
+  
+  - compile <- not_yet_implemented;
+
+Section CLUSTER_ITEM
+
+  - make_file file:CSTRING :SELF <-
+  (
+    filename := file;
+    PARSER_LI.clone.make Self.parse;
+    Self
+  );
+

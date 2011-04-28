@@ -13,19 +13,19 @@ Given /^a file "([^"]*)" with$/ do |file, content|
   end
 end
 
-When /^I run lysaac (.*)$/ do |args|
-  @cmd = "#{$homedir}/bin/lysaac.cov #{args}"
-  @cmd_text = `#{@cmd}`;
-  @cmd_code = $?
-end
-
 When /^I set ([a-zA-Z0-9_]+)="([^"]*)"$/ do |env, val|
   ENV[env]=val.gsub("$CWD", FileUtils.pwd())
 end
 
-When /^I execute "([^"]*)" "([^"]*)"$/ do |cluster, expr|
-  @bc_file = "#{cluster}.#{expr}.bc"
-  @cmd = "#{$homedir}/bin/lysaac.cov '#{cluster}' '#{expr}' >'#{@bc_file}'"
+When /^I (show|compile) the cluster "([^"]*)"$/ do |action, cluster|
+  @cmd = "#{$homedir}/bin/lysaac.cov #{action} '#{cluster}'"
+  @cmd_text = `#{@cmd}`;
+  @cmd_code = $?
+end
+
+When /^I execute the cluster "([^"]*)"$/ do |cluster|
+  @bc_file = "#{cluster}.bc"
+  @cmd = "#{$homedir}/bin/lysaac.cov compile '#{cluster}' >'#{@bc_file}'"
   @cmd_text = `#{@cmd}`
   @cmd_code = $?
   if @cmd_code != 0 then

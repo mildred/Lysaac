@@ -11,7 +11,7 @@ Feature: Cluster import
       
       """
       And a file "c/deps/toto/toto.li"
-     When I run lysaac c
+     When I show the cluster "c"
      Then I should see
       """
       ◆ Root Cluster
@@ -35,7 +35,7 @@ Feature: Cluster import
       """
       And a file "toto/toto.li"
      When I set LYSAAC_PATH="$CWD"
-      And I run lysaac c
+      And I show the cluster "c"
      Then I should see
       """
       ◆ Root Cluster
@@ -57,7 +57,7 @@ Feature: Cluster import
         - path := "toto";
       
       """
-     When I run lysaac c
+     When I show the cluster "c"
      Then I should see
       """
       ◆ Root Cluster

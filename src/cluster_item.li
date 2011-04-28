@@ -31,10 +31,9 @@ Section Public
     cluster := CLUSTER.clone.make_file filename
   );
 
-  + prototype :POINTER <-
+  + prototype :PROTOTYPE <-
   [ -? {is_prototype}; ]
-  ( + proto :POINTER;
-    // do the parsing;
-    prototype := proto
+  (
+    prototype := PROTOTYPE.clone.make_file filename
   );
 

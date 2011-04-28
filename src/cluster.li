@@ -6,6 +6,73 @@ Section Inherit
 
   + parent_any :Expanded ANY;
 
+Section Public
+
+  + path :CSTRING;
+  
+  + filename :CSTRING;
+  
+  + name :CSTRING <-
+  ( + str :ABSTRACT_STRING;
+    
+    str := PATH_HELPER.basename filename;
+    name := str.substring (str.lower) to (str.upper - 4)
+  );
+  
+  - display <-
+  (
+    "◆ Root Cluster".println;
+    display_indent "";
+  );
+  
+  - compile <-
+  (
+    parse_my_prototypes;
+    compile_my_prototypes;
+  );
+
+  - make_path p:CSTRING :SELF <-
+  (
+    list := FAST_ARRAY(CLUSTER_ITEM).create 0;
+    path := p;
+    filename := NULL;
+    parse path root TRUE;
+    Self
+  );
+  
+  - make_file f:CSTRING :SELF <-
+  (
+    list := FAST_ARRAY(CLUSTER_ITEM).create 0;
+    filename := f;
+    PARSER_CLI.clone.make Self.parse;
+    Self
+  );
+
+Section PARSER_CLI
+
+  - set_path p:CSTRING <-
+  ( + ptr :POINTER;
+    + it :ITERATOR(CSTRING);
+    
+    ((p.first = '/') || {p.first = '.'}).if {
+      path := PATH_HELPER.compose p base (PATH_HELPER.dirname filename);
+    } else {
+      (it := lisaac_path.iterate).loop_v { s:CSTRING;
+        path := PATH_HELPER.compose p base s;
+        ptr := LIBC.fopen(path, "r");
+        (ptr = NULL).if {
+          path := NULL;
+        } else {
+          LIBC.fclose(ptr);
+          it.stop;
+        };
+      };
+    };
+    (path != NULL).if {
+      parse path root TRUE;
+    };
+  );
+
 Section Private
 
   + list :FAST_ARRAY(CLUSTER_ITEM) := FAST_ARRAY(CLUSTER_ITEM).create 0;
@@ -101,37 +168,6 @@ Section Private
       };
     };
   );
-
-Section PARSER_CLI
-
-  - set_path p:CSTRING <-
-  ( + ptr :POINTER;
-    + it :ITERATOR(CSTRING);
-    
-    ((p.first = '/') || {p.first = '.'}).if {
-      path := PATH_HELPER.compose p base (PATH_HELPER.dirname filename);
-    } else {
-      (it := lisaac_path.iterate).loop_v { s:CSTRING;
-        path := PATH_HELPER.compose p base s;
-        ptr := LIBC.fopen(path, "r");
-        (ptr = NULL).if {
-          path := NULL;
-        } else {
-          LIBC.fclose(ptr);
-          it.stop;
-        };
-      };
-    };
-    (path != NULL).if {
-      parse path root TRUE;
-    };
-  );
-
-Section Public
-
-  + path :CSTRING;
-  
-  + filename :CSTRING;
   
   - lisaac_path :FAST_ARRAY(CSTRING) <-
   ( + result :FAST_ARRAY(CSTRING);
@@ -164,40 +200,21 @@ Section Public
   [
     +? { ! Result.fast_has NULL };
   ];
-  
-  - name :CSTRING <-
-  ( + result :CSTRING;
-    + i:INTEGER;
-    
-    i := filename.last_index_of '/';
-    filename.valid_index i.if {
-      result := filename.substring (i+1) to (filename.upper - 4);
-    } else {
-      result := filename.substring (name.lower) to (filename.upper - 4);
+
+  - parse_my_prototypes <-
+  (
+    list.iterate.loop_v { i:CLUSTER_ITEM;
+      i.is_prototype.if {
+        i.prototype.parse;
+      };
     };
-    result
   );
 
-  - make_path p:CSTRING :SELF <-
+  - compile_my_prototypes <-
   (
-    list := FAST_ARRAY(CLUSTER_ITEM).create 0;
-    path := p;
-    filename := NULL;
-    parse path root TRUE;
-    Self
+    list.iterate.loop_v { i:CLUSTER_ITEM;
+      i.is_prototype.if {
+        i.prototype.compile;
+      };
+    };
   );
-  
-  - make_file f:CSTRING :SELF <-
-  (
-    list := FAST_ARRAY(CLUSTER_ITEM).create 0;
-    filename := f;
-    PARSER_CLI.clone.make Self.parse;
-    Self
-  );
-  
-  - display <-
-  (
-    "◆ Root Cluster".println;
-    display_indent "";
-  );
-

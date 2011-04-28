@@ -14,7 +14,7 @@ Feature: Simple external procedure call
       """
       Section Header
         
-        + name := MAIN
+        + name := MAIN;
         
       Section Public
       
@@ -26,7 +26,7 @@ Feature: Simple external procedure call
         );
       
       """
-     When I execute "c" "MAIN"
+     When I execute the cluster "c"
      Then I should see
       """
       Hello World

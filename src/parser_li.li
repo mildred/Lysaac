@@ -1,0 +1,48 @@
+Section Header
+
+  + name      := PARSER_LI;
+
+Section Inherit
+
+  + parent_parser :Expanded PARSER;
+
+Section Private
+
+  + prototype :PROTOTYPE;
+
+  - read_li <-
+  (
+    read_section_header;
+  );
+  
+  - hook_h_slot (ident:CSTRING, style:ITM_STYLE) <-
+  (
+    (ident == "name").if {
+      (last_h_constant = h_constant_proto).if {
+        (last_prototype.as_lower == prototype.name).if_false {
+          print_warning;
+          "expected ".print; prototype.name.as_upper.println;
+        };
+      } else {
+        print_warning;
+        "expected prototype constant".println;
+      };
+    } else {
+      print_warning;
+      "unknown slot ".print; ident.println;
+    };
+  );
+
+Section PROTOTYPE
+
+  - make p:PROTOTYPE :SELF <-
+  (
+    prototype := p;
+    Self
+  );
+  
+  - parse <-
+  (
+    open_source (prototype.filename);
+    read_li;
+  );
