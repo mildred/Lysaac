@@ -5,3 +5,21 @@ Section Header
 Section Inherit
 
   - parent_object : OBJECT := OBJECT;
+
+Section Public
+
+  - is_a obj:T :BOOLEAN <- same_dynamic_type obj;
+  
+  - if_a obj:T then true:{SELF;} :BOOLEAN <-
+  (
+    is_a T.if {
+      true.value Self;
+    }
+  );
+  
+  - if_a obj:T then true:{SELF;} else false:{} :BOOLEAN <-
+  (
+    is_a T.if {
+      true.value Self;
+    } else false
+  );

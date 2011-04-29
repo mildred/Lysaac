@@ -1,0 +1,22 @@
+Section Header
+
+  + name := ITM_EXPR_SYM;
+
+Section Inherit
+
+  + parent_itm_expr :Expanded ITM_EXPR;
+
+Section Public
+
+  - is_void :BOOLEAN <- FALSE;
+
+  + symbol :CSTRING;
+
+Section PARSER
+  
+  - make s:CSTRING :SELF <-
+  (
+    symbol := s;
+    Self
+  );
+

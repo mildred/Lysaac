@@ -1,0 +1,12 @@
+Section Header
+
+  + name := ITM_EXPR;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+
+Section Public
+
+  - is_void :BOOLEAN <- (deferred; TRUE);
+

@@ -1,0 +1,28 @@
+Section Header
+
+  + name := ITM_EXPR_GROUP;
+
+Section Inherit
+
+  + parent_itm_expr :Expanded ITM_EXPR;
+
+Section Public
+
+  - is_void :BOOLEAN <- FALSE;
+
+Section PARSER
+
+  - make :SELF <-
+  (
+    instructions := FAST_ARRAY(ITM_INST).create 0;
+    Self
+  );
+  
+  - add_inst inst:ITM_INST <-
+  (
+    instructions.add_last inst;
+  );
+
+Section Private
+
+  + instructions :FAST_ARRAY(ITM_INST);

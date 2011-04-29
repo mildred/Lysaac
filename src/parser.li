@@ -56,18 +56,21 @@ Section SELF
   
   - read_maybe str:ABSTRACT_STRING :BOOLEAN <-
   ( + i:INTEGER;
+    + res :BOOLEAN;
     i := str.lower;
     {(i <= str.upper) && {character (i - str.lower) = str.item i}}.while_do {
       i := i + 1;
     };
-    (i > str.upper)
+    res := (i > str.upper);
+    res.if {
+      read_characters (str.count);
+    };
+    res
   );
 
   - read_always str:ABSTRACT_STRING <-
   (
-    read_maybe str.if {
-      read_characters (str.count);
-    } else {
+    read_maybe str.if_false {
       print_warning;
       "expected \"".print; str.print; "\"".println;
     };
@@ -101,13 +104,10 @@ Section SELF
   (
     read_maybe ":=".if {
       last_affect := ITM_AFFECT.clone.make ':';
-      read_characters 2;
     }.elseif {read_maybe "<-"} then {
       last_affect := ITM_AFFECT.clone.make '<';
-      read_characters 2;
     }.elseif {read_maybe "?="} then {
       last_affect := ITM_AFFECT.clone.make '?';
-      read_characters 2;
     } else {
       last_affect := ITM_AFFECT.clone.make (0.to_character);
     };
@@ -179,7 +179,7 @@ Section SELF
   //-- string -> '"' string_content* '"'
   //-- string_content -> [^"] | '""'
   
-  - last_string :STRING := STRING.create 128;
+  + last_string :STRING := STRING.create 128;
   
   - read_string :BOOLEAN <-
   ( + result :BOOLEAN;
@@ -204,16 +204,51 @@ Section SELF
       last_string.add_last last_character;
       read_character;
       read_string_content;
-    } else {
+    };
+  );
+  
+  //-- symbol -> '`' symbol_content* '`'
+  //-- symbol_content -> [^"] | '""'
+  
+  + last_symbol :STRING := STRING.create 128;
+  
+  - read_symbol :BOOLEAN <-
+  ( + result :BOOLEAN;
+    last_string.clear;
+    (last_character = '`').if {
+      read_character;
+      read_symbol_content;
+      read_always "`";
+      result := TRUE;
+    };
+    result
+  );
+  
+  - read_symbol_content <-
+  (
+    ((character 0 = '`') && {character 1 = '`'}).if {
+      last_symbol.add_last '`';
+      read_character;
+      read_character;
+      read_symbol_content;
+    }.elseif {last_character != '`'} then {
+      last_symbol.add_last last_character;
+      read_character;
+      read_symbol_content;
     };
   );
   
   //++ PROTOTYPE -> cap_identifier
   
-  - last_prototype :STRING  <- last_cap_identifier;
-  - read_prototype :BOOLEAN <- read_cap_identifier;
+  - read_prototype :ITM_EXPR_PROTO <-
+  ( + res :ITM_EXPR_PROTO;
+    read_cap_identifier.if {
+      res := ITM_EXPR_PROTO.clone.make last_cap_identifier;
+    };
+    res
+  );
   
-  //++ SECTIONE_HEADER -> "Section" "Header" H_SLOTS
+  //++ SECTION_HEADER -> . "Section" "Header" H_SLOTS
   
   - read_section_header <-
   (
@@ -241,6 +276,7 @@ Section SELF
     + style :ITM_STYLE;
     + ident :CSTRING;
     + affect :ITM_AFFECT;
+    + expr :ITM_EXPR;
     
     read_spaces;
     style := read_style;
@@ -267,17 +303,14 @@ Section SELF
     };
     result.if {
       read_spaces;
-      result := read_h_constant;
-      result.if_false {
-        print_warning; "expected constant".println;
-      };
+      expr := read_h_constant;
     };
     has_slot.if {
       read_spaces;
       read_always ";";
     };
     result.if {
-      hook_h_slot (ident, style);
+      hook_h_slot (ident, style, expr);
     }.elseif {has_slot} then {
       print_warning;
       "ignored slot".println;
@@ -286,7 +319,7 @@ Section SELF
     result
   );
   
-  - hook_h_slot (ident:CSTRING, style:ITM_STYLE);
+  - hook_h_slot (ident:CSTRING, style:ITM_STYLE, expr:ITM_EXPR);
   
   //++ KEYWORDS -> keyword*
   
@@ -298,35 +331,201 @@ Section SELF
     };
   );
   
-  //++ H_CONSTANT -> integer | identifier | prototype | string
+  //++ H_CONSTANT -> integer | identifier | prototype | string | <void>
   
-  - last_h_constant :INTEGER;
-  - h_constant_ident  :INTEGER := 1;
-  - h_constant_proto  :INTEGER := 2;
-  - h_constant_string :INTEGER := 2;
+  - read_h_constant :ITM_EXPR <-
+  ( + result :ITM_EXPR;
+    result := ITM_EXPR_VOID;
+    read_spaces;    
+    (result.is_void).if {
+      read_identifier.if {
+        result := ITM_EXPR_IDENT.clone.make last_identifier;
+      };
+    };
+    (result.is_void).if {
+      + p:ITM_EXPR_PROTO;
+      ((p := read_prototype) != NULL).if {
+        result := p;
+      };
+    };
+    (result.is_void).if {
+      read_string.if {
+        result := ITM_EXPR_STR.clone.make last_string;
+      };
+    };
+    result
+  );
   
-  - read_h_constant :BOOLEAN <-
-  ( + found :BOOLEAN;
+  //++ SECTIONS -> SECTION*
+  
+  - read_sections <-
+  (
+    read_section.if {
+      read_sections;
+    };
+  );
+  
+  //++ SECTION -> "Section" . "Public" SECTION_CODE
+  
+  - read_section :BOOLEAN <-
+  ( + res:BOOLEAN;
+  
     read_spaces;
-    //found.if_false {
-    //  found := read_integer;
-    //  found.if { last_h_constant := h_constant_int; };
-    //};
-    found.if_false {
-      found := read_identifier;
-      found.if { last_h_constant := h_constant_ident; };
+    read_maybe "Section".if {
+      read_spaces;
+      read_always "Public";
+      read_spaces;
+      res := TRUE;
+      read_section_code;
     };
-    found.if_false {
-      found := read_prototype;
-      found.if { last_h_constant := h_constant_proto; };
-    };
-    found.if_false {
-      found := read_string;
-      found.if { last_h_constant := h_constant_string; };
-    };
-    found
+    res
+  );
+  
+  //++ SECTION_CODE -> C_SLOTS
+  
+  - read_section_code <-
+  (
+    read_c_slots;
   );
 
+  //++ C_SLOTS -> C_SLOT*
+  
+  - read_c_slots <-
+  (
+    read_c_slot.if {
+      read_c_slots;
+    };
+  );
+
+  //++ C_SLOT -> style . identifier C_ARG? (affect keyword* EXPR)? ";"
+  
+  - read_c_slot :BOOLEAN <-
+  ( + style :ITM_STYLE;
+    + affect :ITM_AFFECT;
+    + expr :ITM_EXPR;
+    + expr :BOOLEAN;
+    + res :BOOLEAN;
+    + ident :CSTRING;
+    
+    read_spaces;
+    style := read_style;
+    style.valid.if {
+      hook_c_slot_start;
+      res := TRUE;
+      read_spaces;
+      read_identifier.if {
+        ident := last_identifier;
+      } else {
+        ident := "";
+      };
+      read_spaces;
+      read_c_arg;
+      read_spaces;
+      hook_c_slot_end(ident);
+      affect := read_affect;
+      affect.valid.if {
+        read_keywords;
+        hook_c_slot_value (affect, read_expr);
+      };
+      read_always ";";
+    };
+    res
+  );
+  
+  - hook_c_slot_start;
+  
+  - hook_c_slot_end (identifier:CSTRING);
+  
+  - hook_c_slot_value (affect:ITM_AFFECT, expr:ITM_EXPR);
+  
+  //++ C_ARG -> identifier . ":" PROTOTYPE
+  
+  - read_c_arg :BOOLEAN <-
+  ( + res :BOOLEAN;
+    + idf :CSTRING;
+    + type :ITM_EXPR_PROTO;
+  
+    read_identifier.if {
+      read_spaces;
+      idf := last_identifier;
+      read_always ":";
+      type := read_prototype;
+      (type = NULL).if {
+        print_warning;
+        "Expected prototype".println;
+      } else {
+        hook_c_arg (idf, type);
+      };
+    };
+    res
+  );
+  
+  - hook_c_arg (identifier:CSTRING, type:ITM_EXPR_PROTO);
+  
+  //++ EXPR -> symbol
+  //++       | string
+  //++       | "(" GROUP ")"
+  //++       | identifier EXPR?
+  
+  - read_expr :ITM_EXPR <-
+  ( + res :ITM_EXPR;
+    res := ITM_EXPR_VOID;
+    
+    read_symbol.if {
+      res := ITM_EXPR_SYM.clone.make last_symbol;
+    }.elseif {read_string} then {
+      res := ITM_EXPR_STR.clone.make last_string;
+    }.elseif {last_character = '('} then {
+      read_always "(";
+      read_spaces;
+      res := read_group;
+      read_always ")";
+    }.elseif {read_identifier} then {
+      + expr :ITM_EXPR;
+      + idf :CSTRING;
+      idf := last_identifier;
+      read_spaces;
+      expr := read_expr;
+      res := ITM_EXPR_READ.clone.make (idf, expr);
+    };
+    res
+  );
+  
+  //++ GROUP -> INSTS
+  
+  - read_group :ITM_EXPR_GROUP <-
+  ( + res :ITM_EXPR_GROUP;
+    res := ITM_EXPR_GROUP.clone.make;
+    read_insts res;
+    res
+  );
+  
+  //++ INSTS -> INST*
+  
+  - read_insts group:ITM_EXPR_GROUP <-
+  ( + inst :ITM_INST;
+    ((inst := read_inst) != NULL).if {
+      group.add_inst inst;
+      read_insts group;
+    };
+  );
+  
+  //++ INST -> EXPR ";"
+  
+  - read_inst :ITM_INST <-
+  ( + expr :ITM_EXPR;
+    + res :ITM_INST;
+  
+    read_spaces;
+    expr := read_expr;
+    expr.is_void.if_false {
+      read_spaces;
+      read_always ";";
+      res := ITM_INST_EXPR.clone.make expr;
+    };
+    res
+  );
+  
   - open_source f:ABSTRACT_STRING <-
   ( + file:POINTER;
     + sz:INTEGER;

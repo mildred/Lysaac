@@ -6,20 +6,22 @@ Section Inherit
 
   + parent_parser :Expanded PARSER;
 
-Section Private
+Section SELF
 
   + prototype :PROTOTYPE;
 
   - read_li <-
   (
     read_section_header;
+    read_sections;
   );
   
-  - hook_h_slot (ident:CSTRING, style:ITM_STYLE) <-
+  - hook_h_slot (ident:CSTRING, style:ITM_STYLE, expr:ITM_EXPR) <-
   (
     (ident == "name").if {
-      (last_h_constant = h_constant_proto).if {
-        (last_prototype.as_lower == prototype.name).if_false {
+      expr.is_a ITM_EXPR_PROTO.if { + p:ITM_EXPR_PROTO;
+        p ?= expr;
+        (p.prototype.as_lower == prototype.name).if_false {
           print_warning;
           "expected ".print; prototype.name.as_upper.println;
         };

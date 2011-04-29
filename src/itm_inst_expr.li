@@ -1,0 +1,17 @@
+Section Header
+
+  + name := ITM_INST_EXPR;
+
+Section Inherit
+
+  + parent_itm_inst :Expanded ITM_INST;
+
+Section Public
+
+  + expression :ITM_EXPR;
+  
+  - make e:ITM_EXPR :SELF <-
+  (
+    expression := e;
+    Self
+  );

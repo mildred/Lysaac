@@ -1,0 +1,11 @@
+Section Header
+
+  + name := ITM_EXPR_VOID;
+
+Section Inherit
+
+  + parent_itm_expr :Expanded ITM_EXPR;
+
+Section Public
+
+  - is_void :BOOLEAN <- TRUE;

@@ -1,0 +1,22 @@
+Section Header
+
+  + name := ITM_EXPR_PROTO;
+
+Section Inherit
+
+  + parent_itm_expr :Expanded ITM_EXPR;
+
+Section Public
+
+  - is_void :BOOLEAN <- FALSE;
+
+  + prototype :CSTRING;
+
+Section PARSER
+  
+  - make p:CSTRING :SELF <-
+  (
+    prototype := p;
+    Self
+  );
+

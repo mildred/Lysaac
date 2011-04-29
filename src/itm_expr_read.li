@@ -1,0 +1,24 @@
+Section Header
+
+  + name := ITM_EXPR_READ;
+
+Section Inherit
+
+  + parent_itm_expr :Expanded ITM_EXPR;
+
+Section Public
+
+  - is_void :BOOLEAN <- FALSE;
+
+  + slot     :CSTRING;
+  + argument :ITM_EXPR;
+
+Section PARSER
+  
+  - make (s:CSTRING, arg:ITM_EXPR) :SELF <-
+  (
+    slot := s;
+    argument := arg;
+    Self
+  );
+
