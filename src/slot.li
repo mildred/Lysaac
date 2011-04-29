@@ -6,6 +6,50 @@ Section Inherit
 
   + parent_any :Expanded ANY;
 
+Section Public
+
+  - name :CSTRING <- ast.identifier;
+  
+  + list :LIST;
+  
+  + external :BOOLEAN;
+  
+  + external_name :CSTRING <- name;
+
 Section PROTOTYPE
 
-  - compile <- not_yet_implemented;
+  - make s:ITM_SLOT :SELF <-
+  (
+    list := LIST.clone.make;
+    ast := s;
+    external := ast.is_external;
+    Self
+  );
+
+  - compile <-
+  (
+    external.if {
+      + sym :ITM_EXPR_SYM;
+      sym ?= ast.expression;
+      ? { sym != NULL };
+      external_name := sym.symbol;
+    } else {
+      ast.expression.compile_in list;
+    };
+  );
+  
+  - generate gen:GENERATOR <-
+  (
+    external.if {
+      gen.sub_declare external_name;
+    } else {
+      gen.sub external_name do {
+        list.generate gen;
+      };
+    };
+  );
+  
+Section Private
+
+  + ast :ITM_SLOT;
+

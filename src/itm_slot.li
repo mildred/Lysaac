@@ -14,9 +14,15 @@ Section Public
   
   + identifier :CSTRING;
   
-  + keywords :ITM_KEYWORDS;
-  
   + expression :ITM_EXPR;
+  
+  - is_external :BOOLEAN <-
+  ( + res :BOOLEAN;
+    (keywords != NULL).if {
+      res := keywords.has "External";
+    };
+    res
+  );
   
 Section PARSER
 
@@ -66,6 +72,8 @@ Section PARSER
   );
   
 Section Private
+  
+  + keywords :ITM_KEYWORDS;
   
   + argument :CSTRING;
   

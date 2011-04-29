@@ -10,3 +10,8 @@ Section Public
 
   - is_void :BOOLEAN <- (deferred; TRUE);
 
+  - compile_in list:LIST <-
+  (
+    crash_with_message ("Cannot compile " + type_name);
+  );
+

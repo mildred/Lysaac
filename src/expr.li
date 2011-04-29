@@ -1,0 +1,19 @@
+Section Header
+
+  + name := EXPR;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+
+Section SLOT
+
+  - make e:ITM_EXPR :SELF <-
+  (
+    ast := e;
+    Self
+  );
+
+Section Private
+
+  + ast :ITM_INST;

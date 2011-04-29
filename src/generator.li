@@ -1,0 +1,66 @@
+Section Header
+
+  + name := GENERATOR;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+
+Section Private
+
+  + decl :STRING := STRING.create 1024;
+  + code :STRING := STRING.create 1024;
+  
+  - output :STRING <- decl + "\n\n" + code + "\n";
+  
+  - indent   <- (indent_level := indent_level + 1;);
+  - unindent <- (indent_level := indent_level - 1;);
+  + indent_level :INTEGER := 0;
+  - indent_str :ABSTRACT_STRING <-
+  ( + res :ABSTRACT_STRING;
+    (indent_level == 0).if {
+      res := "";
+    }.elseif {indent_level == 1} then {
+      res := "  ";
+    }.elseif {indent_level == 2} then {
+      res := "    ";
+    }.elseif {indent_level == 3} then {
+      res := "      ";
+    }.elseif {indent_level == 4} then {
+      res := "        ";
+    }.elseif {indent_level == 5} then {
+      res := "          ";
+    }.elseif {indent_level == 6} then {
+      res := "            ";
+    }.elseif {indent_level == 7} then {
+      res := "              ";
+    } else {
+      res := "                ";
+    };
+    res
+  );
+
+Section Public
+
+  - sub_declare name:CSTRING <-
+  (
+    decl.append indent_str;
+    decl.append "declare void @";
+    decl.append name;
+    decl.append " ()\n";
+  );
+  
+  - sub name:CSTRING do blc:{} <-
+  (
+    sub_declare name;
+    code.append indent_str;
+    code.append "define void @";
+    code.append name;
+    code.append " () {\n";
+    indent;
+    blc.value;
+    unindent;
+    code.append indent_str;
+    code.append "}\n";
+  );
+

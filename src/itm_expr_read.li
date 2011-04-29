@@ -13,6 +13,12 @@ Section Public
   + slot     :CSTRING;
   + argument :ITM_EXPR;
 
+  - compile_in list:LIST <-
+  (
+    not_yet_implemented;
+    list.add_instruction NULL;
+  );
+
 Section PARSER
   
   - make (s:CSTRING, arg:ITM_EXPR) :SELF <-

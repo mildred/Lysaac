@@ -5,6 +5,10 @@ Section Header
 Section Inherit
 
   + parent_any :Expanded ANY;
+
+Section Public
+
+  + slots :FAST_ARRAY(ITM_SLOT);
   
 Section PARSER
 
@@ -19,7 +23,3 @@ Section PARSER
     slots.add_last s;
     Self
   );
-
-Section Private
-
-  + slots :FAST_ARRAY(ITM_SLOT);

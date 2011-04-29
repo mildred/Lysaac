@@ -20,10 +20,18 @@ Section Public
   - parse; // Done during construction
   
   - compile <-
-  ( 
+  (
+    create_slots;
     compile_prototype_data;
     slots.iterate.loop_v { s:SLOT;
       s.compile;
+    };
+  );
+  
+  - generate gen:GENERATOR <-
+  (
+    slots.iterate.loop_v { s:SLOT;
+      s.generate gen;
     };
   );
 
@@ -40,11 +48,14 @@ Section Private
 
   + ast :ITM_PROTOTYPE;
 
-  + slots :FAST_ARRAY(SLOT) <-
-  ( // create 0 makes the compiler crash when trying to use slots.
-    slots := FAST_ARRAY(SLOT).create 1;
-    slots.remove_last;
-    slots
+  + slots :FAST_ARRAY(SLOT);
+  
+  - create_slots <-
+  (
+    slots := FAST_ARRAY(SLOT).create 0;
+    ast.slots.iterate.loop_v { s:ITM_SLOT;
+      slots.add_last (SLOT.clone.make s);
+    };
   );
 
   - compile_prototype_data;

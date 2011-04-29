@@ -25,10 +25,11 @@ Section Public
     display_indent "";
   );
   
-  - compile <-
+  - compile gen:GENERATOR <-
   (
     parse_my_prototypes;
     compile_my_prototypes;
+    generate_my_prototypes gen;
   );
 
   - make_path p:CSTRING :SELF <-
@@ -215,6 +216,15 @@ Section Private
     list.iterate.loop_v { i:CLUSTER_ITEM;
       i.is_prototype.if {
         i.prototype.compile;
+      };
+    };
+  );
+
+  - generate_my_prototypes gen:GENERATOR <-
+  (
+    list.iterate.loop_v { i:CLUSTER_ITEM;
+      i.is_prototype.if {
+        i.prototype.generate gen;
       };
     };
   );

@@ -1,0 +1,33 @@
+Section Header
+
+  + name := LIST;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+
+Section SLOT
+
+  - make :SELF <-
+  (
+    instructions := FAST_ARRAY(INSTR).create 0;
+    Self
+  );
+
+  - generate gen:GENERATOR <-
+  (
+    instructions.iterate.loop_v { i:INSTR;
+      i.generate gen;
+    };
+  );
+
+Section ITM_EXPR, ITM_INST
+
+  - add_instruction i:INSTR <-
+  (
+    instructions.add_last i;
+  );
+
+Section Private
+
+  + instructions :FAST_ARRAY(INSTR);

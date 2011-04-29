@@ -51,9 +51,10 @@ Section Private
     (i > COMMAND_LINE.upper).if {
       usage;
     } else {
-      dir :=COMMAND_LINE.item i;
+      dir := COMMAND_LINE.item i;
       c   := CLUSTER.clone.make_path dir;
-      c.compile;
+      c.compile GENERATOR;
+      GENERATOR.output.print;
     };
   );
 

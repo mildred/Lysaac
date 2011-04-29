@@ -10,6 +10,13 @@ Section Public
 
   - is_void :BOOLEAN <- FALSE;
 
+  - compile_in list:LIST <-
+  (
+    instructions.iterate.loop_v { i:ITM_INST;
+      i.compile_in list;
+    };
+  );
+
 Section PARSER
 
   - make :SELF <-

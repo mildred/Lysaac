@@ -10,6 +10,10 @@ Section Public
 
   + expression :ITM_EXPR;
   
+  - compile_in list:LIST <- expression.compile_in list;
+
+Section PARSER
+  
   - make e:ITM_EXPR :SELF <-
   (
     expression := e;

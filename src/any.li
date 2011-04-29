@@ -23,3 +23,8 @@ Section Public
       true.value Self;
     } else false
   );
+
+  - deferred <-
+  (
+    crash_with_message ("Slot deferred in " + type_name);
+  );

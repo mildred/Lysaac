@@ -6,6 +6,13 @@ Section Inherit
 
   + parent_any :Expanded ANY;
 
+Section Public
+
+  - has k:CSTRING :BOOLEAN <-
+  (
+    keywords.valid_index (keywords.first_index_of k)
+  );
+
 Section PARSER
 
   - make :SELF <-
