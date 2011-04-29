@@ -259,7 +259,7 @@ Section SELF
     read_h_slots;
   );
   
-  //++ H_SLOTS -> H_SLOT*
+  //++ H_SLOTS -> C_SLOT*
   
   - read_h_slots <-
   ( + slot :ITM_SLOT;
@@ -271,58 +271,6 @@ Section SELF
   );
   
   - hook_header_slot slot:ITM_SLOT;
-  
-  //++ H_SLOT -> style identifier affect keyword* H_CONSTANT ";"
-  
-  - read_h_slot :BOOLEAN <-
-  ( + result :BOOLEAN;
-    + has_slot :BOOLEAN;
-    + style :ITM_STYLE;
-    + key :ITM_KEYWORDS;
-    + ident :CSTRING;
-    + affect :ITM_AFFECT;
-    + expr :ITM_EXPR;
-    
-    read_spaces;
-    style := read_style;
-    result := style.valid;
-    has_slot := result;
-    result.if {
-      read_spaces;
-      result := read_identifier;
-      ident := last_identifier;
-      result.if_false {
-        print_warning; "expected style".println;
-      };
-    };
-    result.if {
-      read_spaces;
-      affect := read_affect;
-      result := (affect != 0.to_character);
-      result.if_false {
-        print_warning; "expected affect".println;
-      };
-    };
-    result.if {
-      key := read_keywords;
-      read_spaces;
-      expr := read_h_constant;
-    };
-    has_slot.if {
-      read_spaces;
-      read_always ";";
-    };
-    result.if {
-      hook_h_slot (ident, style, key, expr);
-    }.elseif {has_slot} then {
-      print_warning;
-      "ignored slot".println;
-      last_string.println;
-    };
-    result
-  );
-  
-  - hook_h_slot (ident:CSTRING, style:ITM_STYLE, key:ITM_KEYWORDS, expr:ITM_EXPR);
   
   //++ KEYWORDS -> keyword*
   
@@ -348,31 +296,6 @@ Section SELF
     keywords
   );
   
-  //++ H_CONSTANT -> integer | identifier | prototype | string | <void>
-  
-  - read_h_constant :ITM_EXPR <-
-  ( + result :ITM_EXPR;
-    result := ITM_EXPR_VOID;
-    read_spaces;    
-    (result.is_void).if {
-      read_identifier.if {
-        result := ITM_EXPR_IDENT.clone.make last_identifier;
-      };
-    };
-    (result.is_void).if {
-      + p:ITM_EXPR_PROTO;
-      ((p := read_prototype) != NULL).if {
-        result := p;
-      };
-    };
-    (result.is_void).if {
-      read_string.if {
-        result := ITM_EXPR_STR.clone.make last_string;
-      };
-    };
-    result
-  );
-  
   //++ SECTIONS -> SECTION*
   
   - read_sections <-
@@ -386,31 +309,35 @@ Section SELF
   
   - read_section :BOOLEAN <-
   ( + res:BOOLEAN;
+    + sec :ITM_SECTION;
   
     read_spaces;
     read_maybe "Section".if {
+      sec := ITM_SECTION.clone.make;
       read_spaces;
       read_always "Public";
       read_spaces;
       res := TRUE;
-      read_section_code;
+      read_section_code sec;
     };
     res
   );
   
   //++ SECTION_CODE -> C_SLOTS
   
-  - read_section_code <-
+  - read_section_code sec:ITM_SECTION <-
   (
-    read_c_slots;
+    read_c_slots sec;
   );
 
   //++ C_SLOTS -> C_SLOT*
   
-  - read_c_slots <-
+  - read_c_slots sec:ITM_SECTION <-
   ( + slot :ITM_SLOT;
     ((slot := read_c_slot) != NULL).if {
-      read_c_slots;
+      slot.set_section sec;
+      handle_slot slot;
+      read_c_slots sec;
     };
   );
 
@@ -448,7 +375,7 @@ Section SELF
     slot
   );
   
-  - hook_c_slot_value (affect:ITM_AFFECT, key:ITM_KEYWORDS, expr:ITM_EXPR);
+  - handle_slot slot:ITM_SLOT;
   
   //++ C_ARG -> identifier . ":" PROTOTYPE
   

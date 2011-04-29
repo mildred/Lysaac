@@ -8,6 +8,8 @@ Section Inherit
   
 Section Public
 
+  + section :ITM_SECTION;
+
   + style :ITM_STYLE;
   
   + identifier :CSTRING;
@@ -20,6 +22,12 @@ Section PARSER
 
   - make :SELF <-
   (
+    Self
+  );
+  
+  - set_section s:ITM_SECTION :SELF <-
+  (
+    section := s;
     Self
   );
   

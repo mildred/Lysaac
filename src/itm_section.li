@@ -1,0 +1,15 @@
+Section Header
+
+  + name := ITM_SECTION;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+  
+Section PARSER
+
+  - make :SELF <-
+  (
+    Self
+  );
+

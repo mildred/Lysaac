@@ -32,11 +32,13 @@ Section CLUSTER_ITEM
   - make_file file:CSTRING :SELF <-
   (
     filename := file;
-    PARSER_LI.clone.make Self.parse;
+    ast      := PARSER_LI.clone.make Self.parse;
     Self
   );
 
 Section Private
+
+  + ast :ITM_PROTOTYPE;
 
   + slots :FAST_ARRAY(SLOT) <-
   ( // create 0 makes the compiler crash when trying to use slots.

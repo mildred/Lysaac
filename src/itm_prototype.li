@@ -1,0 +1,25 @@
+Section Header
+
+  + name := ITM_PROTOTYPE;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+  
+Section PARSER
+
+  - make :SELF <-
+  (
+    slots := FAST_ARRAY(ITM_SLOT).create 0;
+    Self
+  );
+  
+  - add_slot s:ITM_SLOT :SELF <-
+  (
+    slots.add_last s;
+    Self
+  );
+
+Section Private
+
+  + slots :FAST_ARRAY(ITM_SLOT);

@@ -9,6 +9,8 @@ Section Inherit
 Section SELF
 
   + prototype :PROTOTYPE;
+  
+  + ast :ITM_PROTOTYPE;
 
   - read_li <-
   (
@@ -36,26 +38,10 @@ Section SELF
       "unknown slot ".print; slot.identifier.println;
     };
   );
-  
-  - hook_h_slot (ident:CSTRING, style:ITM_STYLE, key:ITM_KEYWORDS, expr:ITM_EXPR) <-
+
+  - handle_slot slot:ITM_SLOT <-
   (
-    (ident == "name").if {
-      expr.is_a ITM_EXPR_PROTO.if { + p:ITM_EXPR_PROTO;
-        p ?= expr;
-        (p.prototype.as_lower == prototype.name).if_false {
-          print_warning;
-          "expected ".print; prototype.name.as_upper.println;
-        };
-      } else {
-        print_warning;
-        "expected prototype constant".println;
-      };
-    }.elseif {ident == "constant"} then {
-      // Do something with keywords
-    } else {
-      print_warning;
-      "unknown slot ".print; ident.println;
-    };
+    ast.add_slot slot;
   );
 
 Section PROTOTYPE
@@ -63,11 +49,13 @@ Section PROTOTYPE
   - make p:PROTOTYPE :SELF <-
   (
     prototype := p;
+    ast := ITM_PROTOTYPE.clone.make;
     Self
   );
   
-  - parse <-
+  - parse :ITM_PROTOTYPE <-
   (
     open_source (prototype.filename);
     read_li;
+    ast
   );
