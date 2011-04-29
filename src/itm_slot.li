@@ -1,0 +1,64 @@
+Section Header
+
+  + name := ITM_SLOT;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+  
+Section Public
+
+  + style :ITM_STYLE;
+  
+  + identifier :CSTRING;
+  
+  + keywords :ITM_KEYWORDS;
+  
+  + expression :ITM_EXPR;
+  
+Section PARSER
+
+  - make :SELF <-
+  (
+    Self
+  );
+  
+  - set_style s:ITM_STYLE :SELF <-
+  (
+    style := s;
+    Self
+  );
+  
+  - add_identifier idf:CSTRING :SELF <-
+  [ -? {identifier = NULL}; ]
+  (
+    identifier := idf;
+    Self
+  );
+  
+  - add_argument (idf:CSTRING, type:ITM_EXPR_PROTO) :SELF <-
+  [ -? {argument = NULL};
+    -? {argument_type = NULL}; ]
+  (
+    argument := idf;
+    argument_type := type;
+    Self
+  );
+  
+  - set_keywords k:ITM_KEYWORDS :SELF <-
+  (
+    keywords := k;
+    Self
+  );
+  
+  - set_expression e:ITM_EXPR :SELF <-
+  (
+    expression := e;
+    Self
+  );
+  
+Section Private
+  
+  + argument :CSTRING;
+  
+  + argument_type :ITM_EXPR_PROTO;

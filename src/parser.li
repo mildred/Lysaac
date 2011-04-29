@@ -262,11 +262,15 @@ Section SELF
   //++ H_SLOTS -> H_SLOT*
   
   - read_h_slots <-
-  (
-    read_h_slot.if {
+  ( + slot :ITM_SLOT;
+  
+    ((slot := read_c_slot) != NULL).if {
+      hook_header_slot slot;
       read_h_slots;
     };
   );
+  
+  - hook_header_slot slot:ITM_SLOT;
   
   //++ H_SLOT -> style identifier affect keyword* H_CONSTANT ";"
   
@@ -274,6 +278,7 @@ Section SELF
   ( + result :BOOLEAN;
     + has_slot :BOOLEAN;
     + style :ITM_STYLE;
+    + key :ITM_KEYWORDS;
     + ident :CSTRING;
     + affect :ITM_AFFECT;
     + expr :ITM_EXPR;
@@ -299,9 +304,7 @@ Section SELF
       };
     };
     result.if {
-      read_keywords;
-    };
-    result.if {
+      key := read_keywords;
       read_spaces;
       expr := read_h_constant;
     };
@@ -310,7 +313,7 @@ Section SELF
       read_always ";";
     };
     result.if {
-      hook_h_slot (ident, style, expr);
+      hook_h_slot (ident, style, key, expr);
     }.elseif {has_slot} then {
       print_warning;
       "ignored slot".println;
@@ -319,16 +322,30 @@ Section SELF
     result
   );
   
-  - hook_h_slot (ident:CSTRING, style:ITM_STYLE, expr:ITM_EXPR);
+  - hook_h_slot (ident:CSTRING, style:ITM_STYLE, key:ITM_KEYWORDS, expr:ITM_EXPR);
   
   //++ KEYWORDS -> keyword*
   
-  - read_keywords <-
+  - read_keywords :ITM_KEYWORDS <-
+  ( + keywords:ITM_KEYWORDS;
+    
+    read_spaces;
+    read_keyword.if {
+      keywords := ITM_KEYWORDS.clone.make;
+      keywords.add_keyword last_keyword;
+      read_keywords_in keywords;
+    };
+    keywords
+  );
+  
+  - read_keywords_in keywords:ITM_KEYWORDS :ITM_KEYWORDS <-
   (
     read_spaces;
     read_keyword.if {
-      read_keywords;
+      keywords.add_keyword last_keyword;
+      read_keywords_in keywords;
     };
+    keywords
   );
   
   //++ H_CONSTANT -> integer | identifier | prototype | string | <void>
@@ -391,56 +408,51 @@ Section SELF
   //++ C_SLOTS -> C_SLOT*
   
   - read_c_slots <-
-  (
-    read_c_slot.if {
+  ( + slot :ITM_SLOT;
+    ((slot := read_c_slot) != NULL).if {
       read_c_slots;
     };
   );
 
   //++ C_SLOT -> style . identifier C_ARG? (affect keyword* EXPR)? ";"
   
-  - read_c_slot :BOOLEAN <-
-  ( + style :ITM_STYLE;
+  - read_c_slot :ITM_SLOT <-
+  ( + slot :ITM_SLOT;
+    + style :ITM_STYLE;
     + affect :ITM_AFFECT;
+    + key :ITM_KEYWORDS;
     + expr :ITM_EXPR;
-    + expr :BOOLEAN;
-    + res :BOOLEAN;
     + ident :CSTRING;
     
     read_spaces;
     style := read_style;
     style.valid.if {
-      hook_c_slot_start;
-      res := TRUE;
+      slot := ITM_SLOT.clone.make;
+      slot.set_style style;
       read_spaces;
       read_identifier.if {
-        ident := last_identifier;
-      } else {
-        ident := "";
+        slot.add_identifier last_identifier;
       };
       read_spaces;
-      read_c_arg;
+      read_c_arg slot;
       read_spaces;
-      hook_c_slot_end(ident);
       affect := read_affect;
       affect.valid.if {
-        read_keywords;
-        hook_c_slot_value (affect, read_expr);
+        ((key := read_keywords) != NULL).if {
+          slot.set_keywords key;
+        };
+        slot.set_expression read_expr;
       };
       read_always ";";
     };
-    res
+    slot
   );
   
-  - hook_c_slot_start;
-  
-  - hook_c_slot_end (identifier:CSTRING);
-  
-  - hook_c_slot_value (affect:ITM_AFFECT, expr:ITM_EXPR);
+  - hook_c_slot_value (affect:ITM_AFFECT, key:ITM_KEYWORDS, expr:ITM_EXPR);
   
   //++ C_ARG -> identifier . ":" PROTOTYPE
   
-  - read_c_arg :BOOLEAN <-
+  - read_c_arg slot:ITM_SLOT :BOOLEAN <-
   ( + res :BOOLEAN;
     + idf :CSTRING;
     + type :ITM_EXPR_PROTO;
@@ -454,27 +466,29 @@ Section SELF
         print_warning;
         "Expected prototype".println;
       } else {
-        hook_c_arg (idf, type);
+        slot.add_argument (idf, type);
       };
     };
     res
   );
   
-  - hook_c_arg (identifier:CSTRING, type:ITM_EXPR_PROTO);
-  
   //++ EXPR -> symbol
   //++       | string
+  //++       | PROTOTYPE
   //++       | "(" GROUP ")"
   //++       | identifier EXPR?
   
   - read_expr :ITM_EXPR <-
   ( + res :ITM_EXPR;
+    + proto :ITM_EXPR_PROTO;
     res := ITM_EXPR_VOID;
     
     read_symbol.if {
       res := ITM_EXPR_SYM.clone.make last_symbol;
     }.elseif {read_string} then {
       res := ITM_EXPR_STR.clone.make last_string;
+    }.elseif {(proto := read_prototype) != NULL} then {
+      res := proto;
     }.elseif {last_character = '('} then {
       read_always "(";
       read_spaces;

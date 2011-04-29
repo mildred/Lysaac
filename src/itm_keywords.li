@@ -1,0 +1,26 @@
+Section Header
+
+  + name := ITM_KEYWORDS;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+
+Section PARSER
+
+  - make :SELF <-
+  (
+    keywords := FAST_ARRAY(CSTRING).create 0;
+    Self
+  );
+  
+  - add_keyword k:CSTRING <-
+  (
+    keywords.add_last k;
+  );
+
+Section Private
+
+  + keywords :FAST_ARRAY(CSTRING);
+  
+

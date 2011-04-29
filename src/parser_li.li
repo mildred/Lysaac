@@ -16,7 +16,28 @@ Section SELF
     read_sections;
   );
   
-  - hook_h_slot (ident:CSTRING, style:ITM_STYLE, expr:ITM_EXPR) <-
+  - hook_header_slot slot:ITM_SLOT <-
+  (
+    (slot.identifier == "name").if {
+      slot.expression.is_a ITM_EXPR_PROTO.if { + p:ITM_EXPR_PROTO;
+        p ?= slot.expression;
+        (p.prototype.as_lower == prototype.name).if_false {
+          print_warning;
+          "expected ".print; prototype.name.as_upper.println;
+        };
+      } else {
+        print_warning;
+        "expected prototype constant".println;
+      };
+    }.elseif {slot.identifier == "constant"} then {
+      // Do something with keywords
+    } else {
+      print_warning;
+      "unknown slot ".print; slot.identifier.println;
+    };
+  );
+  
+  - hook_h_slot (ident:CSTRING, style:ITM_STYLE, key:ITM_KEYWORDS, expr:ITM_EXPR) <-
   (
     (ident == "name").if {
       expr.is_a ITM_EXPR_PROTO.if { + p:ITM_EXPR_PROTO;
@@ -29,6 +50,8 @@ Section SELF
         print_warning;
         "expected prototype constant".println;
       };
+    }.elseif {ident == "constant"} then {
+      // Do something with keywords
     } else {
       print_warning;
       "unknown slot ".print; ident.println;

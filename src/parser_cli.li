@@ -15,7 +15,35 @@ Section SELF
     read_section_header;
   );
   
-  - hook_h_slot (ident:CSTRING, style:ITM_STYLE, expr:ITM_EXPR) <-
+  - hook_header_slot slot:ITM_SLOT <-
+  (
+    (slot.identifier == "name").if {
+      slot.expression.is_a ITM_EXPR_PROTO.if { + p:ITM_EXPR_PROTO;
+        p ?= slot.expression;
+        (p.prototype.as_lower == cluster.name).if_false {
+          print_warning;
+          "expected ".print; cluster.name.as_upper.println;
+        };
+      } else {
+        print_warning;
+        "expected prototype constant".println;
+      };
+    }.elseif {slot.identifier == "path"} then {
+      slot.expression.is_a ITM_EXPR_STR.if { + s:ITM_EXPR_STR;
+        s ?= slot.expression;
+        cluster.set_path (s.string);
+      } else {
+        print_warning;
+        "expected string constant".println;
+      };
+    } else {
+      print_warning;
+      "unknown slot ".print; slot.identifier.println;
+    };
+    
+  );
+  
+  - hook_h_slot (ident:CSTRING, style:ITM_STYLE, key:ITM_KEYWORDS, expr:ITM_EXPR) <-
   (
     (ident == "name").if {
       expr.is_a ITM_EXPR_PROTO.if { + p:ITM_EXPR_PROTO;
