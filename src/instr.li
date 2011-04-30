@@ -10,15 +10,3 @@ Section LIST
 
   - generate gen:GENERATOR <- deferred;
 
-Section SLOT
-
-  - make i:ITM_INST :SELF <-
-  (
-    ast := i;
-    Self
-  );
-
-Section Private
-
-  + ast :ITM_INST;
-

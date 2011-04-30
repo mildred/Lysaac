@@ -15,8 +15,7 @@ Section Public
 
   - compile_in list:LIST <-
   (
-    not_yet_implemented;
-    list.add_instruction NULL;
+    list.add_instruction (INSTR_CALL.clone.make slot);
   );
 
 Section PARSER

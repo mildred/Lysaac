@@ -1,0 +1,26 @@
+Section Header
+
+  + name := INSTR_CALL;
+
+Section Inherit
+
+  + parent_instr :Expanded INSTR;
+
+Section Public
+
+  + name :CSTRING;
+
+Section IRM_EXPR_READ
+
+  - make n:CSTRING :SELF <-
+  (
+    name := n;
+    Self
+  );
+
+Section LIST
+
+  - generate gen:GENERATOR <-
+  (
+    gen.call name;
+  );

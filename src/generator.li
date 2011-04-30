@@ -59,8 +59,19 @@ Section Public
     code.append " () {\n";
     indent;
     blc.value;
+    code.append indent_str;
+    code.append "ret void\n";
     unindent;
     code.append indent_str;
     code.append "}\n";
   );
+  
+  - call name:CSTRING <-
+  (
+    code.append indent_str;
+    code.append "tail call void @";
+    code.append name;
+    code.append "()\n";
+  );
+
 
