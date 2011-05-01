@@ -8,14 +8,17 @@ Section Inherit
 
 Section CLUSTER
 
-  - make n:CSTRING file f:CSTRING :SELF <-
+  - make n:CSTRING file f:CSTRING parent c:CLUSTER :SELF <-
   (
+    cluster_parent := c;
     name     := n;
     filename := f;
     Self
   );
 
 Section Public
+  
+  + cluster_parent :CLUSTER;
 
   + filename  :CSTRING := NULL;
 
@@ -34,6 +37,6 @@ Section Public
   + prototype :PROTOTYPE <-
   [ -? {is_prototype}; ]
   (
-    prototype := PROTOTYPE.clone.make_file filename
+    prototype := PROTOTYPE.clone.make_file filename cluster cluster_parent
   );
 

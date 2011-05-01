@@ -10,6 +10,8 @@ Section Public
 
   + result :VAR := VAR;
 
+  - generate gen:GENERATOR <- deferred;
+
 Section ITM_EXPR
 
   - add_in list:LIST :SELF <-
@@ -17,8 +19,4 @@ Section ITM_EXPR
     list.add_instruction Self;
     Self
   );
-
-Section LIST
-
-  - generate gen:GENERATOR <- deferred;
 

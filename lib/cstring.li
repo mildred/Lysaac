@@ -69,7 +69,9 @@ Section Private
     bucket.add CSTRING;
     bucket
   );
-  
+
+Section Public
+
   //
   // Inherit
   //

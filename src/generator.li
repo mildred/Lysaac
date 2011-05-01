@@ -6,6 +6,79 @@ Section Inherit
 
   + parent_any :Expanded ANY;
 
+Section Public
+
+  - declare_string string:ABSTRACT_STRING in var:VAR <-
+  (
+    var.realize "@" id get_var;
+    put_var var in const;
+    const.append " = ";
+    const.append "private constant [";
+    (string.count+1).append_in const;
+    const.append " x i8] c\"";
+    string.lower.to (string.upper) do { i:INTEGER;
+      + c:CHARACTER;
+      c := string.item i;
+      c.code.in_range 32 to 127.if {
+        const.add_last c;
+      } else {
+        const.add_last '\\';
+        c.to_hexadecimal_in const;
+      };
+    };
+    const.append "\\00\"\n";
+    
+  );
+
+  - declare_sub name:CSTRING <-
+  (
+    code.append indent_str;
+    code.append "declare void @";
+    code.append name;
+    code.append " ()\n\n";
+  );
+  
+  - sub name:CSTRING do blc:{} <-
+  (
+    code.append indent_str;
+    code.append "define void @";
+    code.append name;
+    code.append " () {\n";
+    indent;
+    blc.value;
+    code.append indent_str;
+    code.append "ret void\n";
+    unindent;
+    code.append indent_str;
+    code.append "}\n\n";
+  );
+  
+  + call_has_arg :BOOLEAN;
+  
+  - call name:CSTRING args blc:{} <-
+  (
+    code.append indent_str;
+    code.append "tail call void @";
+    code.append name;
+    code.append "(";
+    call_has_arg := FALSE;
+    blc.value;
+    code.append ")\n";
+  );
+  
+  - call_arg var:VAR <-
+  (
+    call_has_arg.if {
+      code.append ", ";
+    };
+    call_has_arg := TRUE;
+    put_var var in code;
+  );
+
+Section LYSAAC
+
+  - output :STRING <- const + "\n\n" + code + "\n";
+
 Section Private
 
   + last_var :INTEGER := 0;
@@ -16,10 +89,7 @@ Section Private
   );
 
   + const :STRING := STRING.create 1024;
-  + decl  :STRING := STRING.create 1024;
   + code  :STRING := STRING.create 1024;
-  
-  - output :STRING <- const + "\n\n" + decl + "\n\n" + code + "\n";
   
   - indent   <- (indent_level := indent_level + 1;);
   - unindent <- (indent_level := indent_level - 1;);
@@ -54,76 +124,6 @@ Section Private
     (var.identifier != 0).if {
       (var.identifier - 1).append_in str;
     };
-  );
-
-Section Public
-
-  - declare_string string:ABSTRACT_STRING in var:VAR <-
-  (
-    var.realize "@" id get_var;
-    put_var var in const;
-    const.append " = ";
-    const.append "private constant [";
-    (string.count+1).append_in const;
-    const.append " x i8] c\"";
-    string.lower.to (string.upper) do { i:INTEGER;
-      + c:CHARACTER;
-      c := string.item i;
-      c.code.in_range 32 to 127.if {
-        const.add_last c;
-      } else {
-        const.add_last '\\';
-        c.to_hexadecimal_in const;
-      };
-    };
-    const.append "\\00\"\n";
-    
-  );
-
-  - declare_sub name:CSTRING <-
-  (
-    decl.append indent_str;
-    decl.append "declare void @";
-    decl.append name;
-    decl.append " ()\n";
-  );
-  
-  - sub name:CSTRING do blc:{} <-
-  (
-    declare_sub name;
-    code.append indent_str;
-    code.append "define void @";
-    code.append name;
-    code.append " () {\n";
-    indent;
-    blc.value;
-    code.append indent_str;
-    code.append "ret void\n";
-    unindent;
-    code.append indent_str;
-    code.append "}\n";
-  );
-  
-  + call_has_arg :BOOLEAN;
-  
-  - call name:CSTRING args blc:{} <-
-  (
-    code.append indent_str;
-    code.append "tail call void @";
-    code.append name;
-    code.append "(";
-    call_has_arg := FALSE;
-    blc.value;
-    code.append ")\n";
-  );
-  
-  - call_arg var:VAR <-
-  (
-    call_has_arg.if {
-      code.append ", ";
-    };
-    call_has_arg := TRUE;
-    put_var var in code;
   );
 
 

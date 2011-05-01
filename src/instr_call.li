@@ -10,22 +10,20 @@ Section Public
 
   - name :CSTRING <- ast.slot;
 
-Section IRM_EXPR_READ
+  - generate gen:GENERATOR <-
+  (
+    gen.call name args {
+      gen.call_arg arg;
+    };
+  );
+
+Section ITM_EXPR_READ
 
   - make_itm i:ITM_EXPR_READ argument v:VAR :SELF <-
   (
     arg := v;
     ast := i;
     Self
-  );
-
-Section LIST
-
-  - generate gen:GENERATOR <-
-  (
-    gen.call name args {
-      gen.call_arg arg;
-    };
   );
 
 Section Private

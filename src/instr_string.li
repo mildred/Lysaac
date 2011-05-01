@@ -9,8 +9,6 @@ Section Inherit
 Section Public
 
   + string :CSTRING;
-  
-Section INSTR
 
   - generate gen:GENERATOR <-
   (

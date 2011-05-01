@@ -19,6 +19,11 @@ Section Public
     name := str.substring (str.lower) to (str.upper - 4)
   );
   
+  - prototype_for_role r:CSTRING :PROTOTYPE <-
+  (
+    prototype_roles.fast_reference_at r
+  );
+  
   - display <-
   (
     "◆ Root Cluster".println;
@@ -34,6 +39,7 @@ Section Public
 
   - make_path p:CSTRING :SELF <-
   (
+    prototype_roles := HASHED_DICTIONARY(PROTOTYPE,CSTRING).create;
     list := FAST_ARRAY(CLUSTER_ITEM).create 0;
     path := p;
     filename := NULL;
@@ -43,10 +49,19 @@ Section Public
   
   - make_file f:CSTRING :SELF <-
   (
+    prototype_roles := HASHED_DICTIONARY(PROTOTYPE,CSTRING).create;
     list := FAST_ARRAY(CLUSTER_ITEM).create 0;
     filename := f;
     PARSER_CLI.clone.make Self.parse;
     Self
+  );
+
+Section PARSER_LI
+
+  - set_prototype p:PROTOTYPE role r:CSTRING <-
+  [ -?{ (p = NULL) || {! prototype_roles.fast_has r} }; ]
+  (
+    prototype_roles.fast_put p to r;
   );
 
 Section PARSER_CLI
@@ -75,6 +90,8 @@ Section PARSER_CLI
   );
 
 Section Private
+
+  + prototype_roles :HASHED_DICTIONARY(PROTOTYPE,CSTRING);
 
   + list :FAST_ARRAY(CLUSTER_ITEM) := FAST_ARRAY(CLUSTER_ITEM).create 0;
   
@@ -109,7 +126,7 @@ Section Private
             has_source := TRUE;
             s.add_first '/';
             s.prepend path;
-            list.add_last (CLUSTER_ITEM.clone.make s2 file s);
+            list.add_last (CLUSTER_ITEM.clone.make s2 file s parent Self);
           };
         };
       };

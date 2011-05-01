@@ -16,10 +16,13 @@ Section Public
   
   + expression :ITM_EXPR;
   
-  - is_external :BOOLEAN <-
-  ( + res :BOOLEAN;
+  - is_external :BOOLEAN <- ( has_keyword "External" );
+  
+  - has_keyword k:CSTRING :BOOLEAN <-
+  (
+     + res :BOOLEAN;
     (keywords != NULL).if {
-      res := keywords.has "External";
+      res := keywords.has k;
     };
     res
   );

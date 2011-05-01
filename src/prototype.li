@@ -10,6 +10,8 @@ Section Public
   
   + filename :CSTRING;
   
+  + cluster :CLUSTER;
+  
   + name :CSTRING <-
   ( + str :ABSTRACT_STRING;
     
@@ -37,8 +39,9 @@ Section Public
 
 Section CLUSTER_ITEM
 
-  - make_file file:CSTRING :SELF <-
+  - make_file file:CSTRING cluster c:CLUSTER :SELF <-
   (
+    cluster  := c;
     filename := file;
     ast      := PARSER_LI.clone.make Self.parse;
     Self

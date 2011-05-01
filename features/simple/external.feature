@@ -1,13 +1,13 @@
 Feature: Simple external procedure call
 
   Scenario: puts Hello World
-    Given a file "c/string.li" with
+    Given a file "c/cstring.li" with
       """
       Section Header
       
-        + name := STRING;
+        + name := CSTRING;
         
-        - constant := String; // const char*
+        - role := String; // const char*
       
       """
       And a file "c/main.li" with
