@@ -6,6 +6,18 @@ Section Inherit
 
   + parent_any :Expanded ANY;
 
+Section Public
+
+  + result :VAR := VAR;
+
+Section ITM_EXPR
+
+  - add_in list:LIST :SELF <-
+  ( 
+    list.add_instruction Self;
+    Self
+  );
+
 Section LIST
 
   - generate gen:GENERATOR <- deferred;

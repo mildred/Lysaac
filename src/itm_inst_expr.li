@@ -10,7 +10,7 @@ Section Public
 
   + expression :ITM_EXPR;
   
-  - compile_in list:LIST <- expression.compile_in list;
+  - compile_in list:LIST :VAR <- expression.compile_in list;
 
 Section PARSER
   

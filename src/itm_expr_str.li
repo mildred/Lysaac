@@ -12,6 +12,11 @@ Section Public
 
   + string :CSTRING;
 
+  - compile_in list:LIST :VAR <-
+  (
+    INSTR_STRING.clone.make string.add_in list.result
+  );
+  
 Section PARSER
   
   - make s:CSTRING :SELF <-

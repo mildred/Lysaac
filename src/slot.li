@@ -41,7 +41,7 @@ Section PROTOTYPE
   - generate gen:GENERATOR <-
   (
     external.if {
-      gen.sub_declare external_name;
+      gen.declare_sub external_name;
     } else {
       gen.sub external_name do {
         list.generate gen;

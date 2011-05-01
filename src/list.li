@@ -21,7 +21,7 @@ Section SLOT
     };
   );
 
-Section ITM_EXPR, ITM_INST
+Section INSTR
 
   - add_instruction i:INSTR <-
   (

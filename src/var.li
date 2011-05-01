@@ -1,0 +1,48 @@
+Section Header
+
+  + name := VAR;
+  
+  // A var is a promise between a SINGLE producer (writer) and a consumer
+  // (reader). It is realized when the generator gives it a name or an
+  // identifier.
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+  
+Section Public
+
+  - is_realized :BOOLEAN <- ( name.count != 0 );
+  
+  - is_valid :BOOLEAN <- ( writer != NULL );
+  - is_null  :BOOLEAN <- ( ! is_valid );
+  
+  + writer :INSTR := NULL;
+
+  - make w:INSTR :SELF <-
+  (
+    writer := w;
+    name := "";
+    identifier := 0;
+    Self
+  );
+
+Section GENERATOR
+
+  + identifier :INTEGER := 0;
+  + name :CSTRING;
+
+  - realize n:CSTRING :SELF <-
+  (
+    name := n;
+    identifier := 0;
+    Self
+  );
+
+  - realize n:CSTRING id id:INTEGER :SELF <-
+  (
+    name := n;
+    identifier := id;
+    Self
+  );
+

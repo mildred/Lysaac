@@ -348,8 +348,6 @@ Section SELF
     + style :ITM_STYLE;
     + affect :ITM_AFFECT;
     + key :ITM_KEYWORDS;
-    + expr :ITM_EXPR;
-    + ident :CSTRING;
     
     read_spaces;
     style := read_style;

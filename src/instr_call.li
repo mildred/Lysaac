@@ -8,13 +8,14 @@ Section Inherit
 
 Section Public
 
-  + name :CSTRING;
+  - name :CSTRING <- ast.slot;
 
 Section IRM_EXPR_READ
 
-  - make n:CSTRING :SELF <-
+  - make_itm i:ITM_EXPR_READ argument v:VAR :SELF <-
   (
-    name := n;
+    arg := v;
+    ast := i;
     Self
   );
 
@@ -22,5 +23,12 @@ Section LIST
 
   - generate gen:GENERATOR <-
   (
-    gen.call name;
+    gen.call name args {
+      gen.call_arg arg;
+    };
   );
+
+Section Private
+
+  + ast :ITM_EXPR_READ;
+  + arg :VAR;

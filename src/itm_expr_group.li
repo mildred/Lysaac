@@ -10,11 +10,12 @@ Section Public
 
   - is_void :BOOLEAN <- FALSE;
 
-  - compile_in list:LIST <-
+  - compile_in list:LIST :VAR <-
   (
     instructions.iterate.loop_v { i:ITM_INST;
       i.compile_in list;
     };
+    VAR
   );
 
 Section PARSER

@@ -13,9 +13,10 @@ Section Public
   + slot     :CSTRING;
   + argument :ITM_EXPR;
 
-  - compile_in list:LIST <-
-  (
-    list.add_instruction (INSTR_CALL.clone.make slot);
+  - compile_in list:LIST :VAR <-
+  ( + arg :VAR;
+    arg := argument.compile_in list;
+    INSTR_CALL.clone.make_itm Self argument arg.add_in list.result
   );
 
 Section PARSER

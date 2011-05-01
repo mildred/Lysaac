@@ -1,0 +1,36 @@
+Section Header
+
+  + name := INSTR_STRING;
+
+Section Inherit
+
+  + parent_instr :Expanded INSTR;
+
+Section Public
+
+  + string :CSTRING;
+  
+Section INSTR
+
+  - generate gen:GENERATOR <-
+  (
+    has_been_declared.if_false {
+      gen.declare_string string in result;
+      has_been_declared := TRUE;
+    };
+  );
+  
+Section ITM_EXPR_STR
+
+  - make s:CSTRING :SELF <-
+  (
+    has_been_declared := FALSE;
+    string := s;
+    result := VAR.clone.make Self;
+    Self
+  );
+
+Section Private
+
+  - has_been_declared :BOOLEAN;
+
