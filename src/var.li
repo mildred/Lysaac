@@ -17,17 +17,26 @@ Section Public
   - is_valid :BOOLEAN <- ( writer != NULL );
   - is_null  :BOOLEAN <- ( ! is_valid );
   
-  + writer :INSTR := NULL;
+  - has_writer :BOOLEAN <- (writer_instruction != NULL);
+  
+  - writer :INSTR <-
+  [ -? {has_writer}; ]
+  ( writer_instruction );
   
   + type :TYPE := NULL;
 
-  - make writer_instruction:INSTR static_type t:TYPE :SELF <-
+  - make writer_instr:INSTR static_type t:TYPE :SELF <-
   (
-    writer := writer_instruction;
+    writer_instruction := writer_instr;
     type := t;
     name := "";
     identifier := 0;
     Self
+  );
+  
+  - generate_arg gen:GENERATOR name n:CSTRING <-
+  (
+    gen.arg_name n variable Self type { type.generate gen; };
   );
 
 Section GENERATOR
@@ -49,3 +58,6 @@ Section GENERATOR
     Self
   );
 
+Section Private
+
+  + writer_instruction :INSTR;

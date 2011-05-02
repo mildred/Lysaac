@@ -10,6 +10,10 @@ Section Public
 
   - is_void :BOOLEAN <- (deferred; TRUE);
 
+  // TODO: Refactoring: compile_in should return SELF but the object should
+  // have a slot result:VAR. This would allow ITM_EXPR to compile to multiple
+  // instructions, each having a different VAR.
+
   - compile_in list:LIST :VAR <-
   (
     crash_with_message ("Cannot compile " + type_name);

@@ -16,20 +16,22 @@ Section Public
   
   + external_name :CSTRING <- name;
   
-  + argument_type :TYPE;
+  + argument :VAR;
   
   + prototype :PROTOTYPE;
+
+  + self :VAR;
 
 Section ITM_SLOT
 
   - make s:ITM_SLOT :SELF <-
-  (
+  ( + argument_type:TYPE;
+  
     list := LIST.clone.make Self;
     ast := s;
-    (ast.argument_type = NULL).if {
-      argument_type := NULL;
-    } else {
+    (ast.argument_type != NULL).if {
       argument_type := ast.argument_type.to_type;
+      argument := VAR.clone.make NULL static_type (argument_type);
     };
     prototype := ast.prototype_parent;
     self := VAR.clone.make NULL static_type (prototype.to_type);
@@ -62,20 +64,20 @@ Section LIST_SLOT
   (
     external.if {
       gen.declare_sub external_name args {
-        (argument_type != NULL).if {
-          gen.arg { argument_type.generate gen; };
+        (argument != NULL).if {
+          gen.arg { argument.type.generate gen; };
         };
       };
     } else {
-      gen.sub external_name self self args {} do {
+      gen.sub external_name self self args {
+        (argument != NULL).if {
+          argument.generate_arg gen name (ast.argument);
+        };
+      } do {
         list.generate gen;
       };
     };
   );
-
-Section LIST
-
-  + self :VAR;
 
 Section Private
 

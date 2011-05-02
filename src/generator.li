@@ -106,6 +106,16 @@ Section Public
     blc.value;
   );
   
+  - arg_name n:ABSTRACT_STRING variable var:VAR type type:{} <-
+  (
+    arg {
+      type.value;
+      put " %";
+      put n;
+      var.realize (("%" + n).to_string);
+    };
+  );
+  
   - call_arg var:VAR type t:{} <-
   (
     arg {

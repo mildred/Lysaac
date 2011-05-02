@@ -38,7 +38,7 @@ Section Public
   - generate gen:GENERATOR <-
   (
     gen.call (slot.name) args {
-      gen.call_arg arg type { slot.argument_type.generate gen };
+      gen.call_arg arg type { slot.argument.type.generate gen };
     };
   );
 
