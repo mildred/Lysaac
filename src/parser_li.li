@@ -23,34 +23,38 @@ Section SELF
     (slot.identifier == "name").if {
       slot.expression.is_a ITM_EXPR_PROTO.if { + p:ITM_EXPR_PROTO;
         p ?= slot.expression;
-        (p.prototype.as_lower == prototype.name).if_false {
-          print_warning;
-          "expected ".print; prototype.name.as_upper.println;
+        (p.prototype == prototype.name).if_false {
+          warning ("expected "+prototype.name);
         };
       } else {
-        print_warning;
-        "expected prototype constant".println;
+        warning("expected prototype constant");
+      };
+    }.elseif {slot.identifier == "type"} then {
+      slot.has_keyword "Integer".if {
+        slot.expression.is_a ITM_EXPR_INT.if {
+          + p:ITM_EXPR_INT;
+          p ?= slot.expression;
+          prototype.set_base_type (BASE_TYPE.create_integer (p.value));
+        } else {
+          warning("expected integer constant");
+        };
       };
     }.elseif {slot.identifier == "role"} then {
       slot.expression.is_void.if_false {
-        print_warning;
-        "expected void expression".println;
+        warning("expected void expression");
       };
       slot.has_keyword "String".if {
         + p :PROTOTYPE;
         p := prototype.cluster.prototype_for_role "String";
         (p = NULL).if {
-          prototype.cluster.set_prototype prototype role "String";
+          prototype.set_role "String";
         } else {
-          prototype.cluster.set_prototype NULL role "String";
-          print_warning;
-          "There is already a prototype with the role ".print; "String".print;
-          " in ".print; p.filename.println;
+          p.set_role NULL;
+          warning("There is already a prototype with the role String in "+p.filename);
         };
       };
     } else {
-      print_warning;
-      "unknown slot ".print; slot.identifier.println;
+      warning("unknown slot "+slot.identifier);
     };
   );
 
@@ -64,7 +68,7 @@ Section PROTOTYPE
   - make p:PROTOTYPE :SELF <-
   (
     prototype := p;
-    ast := ITM_PROTOTYPE.clone.make;
+    ast := ITM_PROTOTYPE.clone.make p;
     Self
   );
   

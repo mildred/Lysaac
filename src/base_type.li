@@ -1,0 +1,55 @@
+Section Header
+
+  + name := BASE_TYPE;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+
+Section Public
+
+  - integer :BOOLEAN <- (i_size > 0);
+  - integer_size :INTEGER <- [ -?{integer}; ] i_size;
+    
+  - pointer :BOOLEAN <- (p_type != NULL);
+  - pointer_type :BASE_TYPE <- [ -?{pointer}; ] p_type;
+  
+  - i8  :BASE_TYPE := create_integer 8;
+  - i16 :BASE_TYPE := create_integer 16;
+  - i32 :BASE_TYPE := create_integer 32;
+  - i64 :BASE_TYPE := create_integer 64;
+  
+  - create_integer size:INTEGER  :SELF <- clone.make_integer size;
+  - create_pointer ptr:BASE_TYPE :SELF <- clone.make_pointer ptr;
+  
+  - generate gen:GENERATOR <-
+  (
+    integer.if {
+      gen.type_integer integer_size;
+    }.elseif {pointer} then {
+      gen.type_pointer {
+        pointer_type.generate gen;
+      };
+    } else {
+      not_yet_implemented;
+    };
+  );
+
+Section Private
+
+  + i_size :INTEGER := 0;
+  + p_type :BASE_TYPE := NULL;
+  
+  - make_integer size:INTEGER :SELF <-
+  (
+    i_size := size;
+    p_type := NULL;
+    Self
+  );
+  
+  - make_pointer ptr:BASE_TYPE :SELF <-
+  (
+    i_size := 0;
+    p_type := ptr;
+    Self
+  );

@@ -16,7 +16,19 @@ Section SELF
   
   - print_warning <-
   (
-    "Warning: ".print; filename.print; ":".print; line.print; ":".print; column.print; ": ".print;
+    STD_ERROR.put_string filename;
+    STD_ERROR.put_string ":";
+    STD_ERROR.put_integer line;
+    STD_ERROR.put_string ":";
+    STD_ERROR.put_integer column;
+    STD_ERROR.put_string ": ";
+  );
+  
+  - warning s:ABSTRACT_STRING <-
+  (
+    print_warning;
+    STD_ERROR.put_string s;
+    STD_ERROR.put_string "\n";
   );
   
   - character i:INTEGER :CHARACTER <-
@@ -71,8 +83,7 @@ Section SELF
   - read_always str:ABSTRACT_STRING <-
   (
     read_maybe str.if_false {
-      print_warning;
-      "expected \"".print; str.print; "\"".println;
+      warning ("expected \""+str+"\"");
     };
   );
   
@@ -81,6 +92,36 @@ Section SELF
     {(last_character = 0.to_character) || {last_character > ' '}}.until_do {
       read_character;
     };
+    ((last_character = '/') && {character 1 = '/'}).if {
+      read_line_comment;
+    }.elseif {(last_character = '/') && {character 1 = '*'}} then {
+      read_nested_comment;
+    };
+  );
+  
+  - read_line_comment <-
+  (
+    ((last_character = '/') && {character 1 = '/'}).if {
+      {(last_character = 0.to_character) || {last_character = '\n'} || {last_character = '\r'}}.until_do
+      {
+        read_character;
+      };
+    };
+    read_spaces;
+  );
+  
+  - read_nested_comment <-
+  (
+    ((last_character = '/') && {character 1 = '*'}).if {
+      {(last_character = 0.to_character) || {(last_character = '*') && {character 1 = '/'}}}.until_do
+      {
+        read_character;
+        ((last_character = '/') && {character 1 = '*'}).if {
+          read_nested_comment;
+        };
+      };
+    };
+    read_spaces;
   );
   
   //-- style -> [+-]
@@ -112,6 +153,232 @@ Section SELF
       last_affect := ITM_AFFECT.clone.make (0.to_character);
     };
     last_affect
+  );
+
+  //-- integer       -> [0-9a-fA-F_]*
+  - read_integer base:INTEGER :(INTEGER, INTEGER) <-
+  ( + res :INTEGER;
+    + val :INTEGER;
+    + shift :INTEGER;
+
+    { (next_char.is_digit)            ||
+      {next_char.in_range 'a' to 'f'} ||
+      {next_char.in_range 'A' to 'F'} ||
+      {next_char = '_'}
+    }.while_do {
+      read_char;
+      (last_char != '_').if {
+        val := last_char.hexadecimal_value;
+        (val >= base).if {
+          warning ("Character '" + last_char.to_string + "' ignored: not allowed in base " + base.to_string);
+        } else {
+          res   := res * base + val;
+          shift := shift + 1;
+        };
+      };
+    };
+    res, shift
+  );
+
+  //-- num_base      -> 0[xbod]
+  //--                | 0([2-9a-fA-F]|1[0-6]):
+
+  - read_num_base :INTEGER <-
+  ( + base :INTEGER;
+    + c1, c2, c3 :CHARACTER;
+    (next_char = '0').if {
+      c1 := get_char 2;
+      c2 := get_char 3;
+      c3 := get_char 4;
+      ((c1 = '1') && {c2.in_range '0' to '6'} && {c3 = ':'}).if {
+        ? {read_char = '0'};
+        ? {read_char = '1'};
+        ? {read_char.in_range '0' to '6'};
+        base := 10 + last_char.decimal_value;
+        ? {read_char = ':'};
+        ? {base != 0};
+      }.elseif {
+        (c2 = ':') &&
+        { (c1.in_range '2' to '9') ||
+          {c1.in_range 'a' to 'f'} ||
+          {c1.in_range 'A' to 'F'} }
+      } then {
+        ? {read_char = '0'};
+        base := read_char.hexadecimal_value;
+        ? {read_char = ':'};
+        ? {base != 0};
+      }.elseif {
+        (c1 = 'x') || {c1 = 'b'} || {c1 = 'o'} || {c1 = 'd'}
+      } then {
+        ? {read_char = '0'};
+        read_char
+        .when 'b' then { base := 2;  }
+        .when 'o' then { base := 8;  }
+        .when 'd' then { base := 10; }
+        .when 'x' then { base := 16; };
+        ? {base != 0};
+      };
+    };
+    base
+  );
+
+  //-- num_ext_part  -> [eE][+-]?[0-9][0-9_]*
+  - read_num_ext_part :INTEGER <-
+  ( + sign   :CHARACTER;
+    + res, n :INTEGER;
+
+    ((next_char = 'e') || {next_char = 'E'}).if {
+      read_char;
+      sign := read_num_sign;
+      (res, n) := read_integer 10;
+      (sign = '-').if {
+        res := -res;
+      };
+    };
+
+    res
+  );
+  
+  //-- num_unit      -> ([yzafpnumkMGTPEZY]|[MGTPEZY]i)
+  //--                  y  is  e-24
+  //--                  ...
+  //--                  f  is  e-15
+  //--                  p  is  e-12
+  //--                  n  is  e-9
+  //--                  u  is  e-6
+  //--                  m  is  e-3
+  //--                  k  is  e3       Ki  is  1024
+  //--                  M  is  e6       Mi  is  1024^2
+  //--                  G  is  e9       Gi  is  1024^3
+  //--                  T  is  e12      Ti  is  1024^4
+  //--                  P  is  e15      Pi  is  1024^5
+  //--                  ...
+  //--                  Y  is  e24      Yi  is  1024^8
+  //--                  Note: there is no K (with an uppercase K) suffix !!
+  - read_num_unit :(INTEGER, INTEGER) <-
+  ( + base, exp :INTEGER;
+    base := 10;
+    exp  := 0;
+
+    next_char
+    .when 'y' then { read_char; exp := -24; }
+    .when 'z' then { read_char; exp := -21; }
+    .when 'a' then { read_char; exp := -18; }
+    .when 'f' then { read_char; exp := -15; }
+    .when 'p' then { read_char; exp := -12; }
+    .when 'n' then { read_char; exp :=  -9; }
+    .when 'u' then { read_char; exp :=  -6; }
+    .when 'm' then { read_char; exp :=  -3; }
+    .when 'k' then { read_char; exp :=   3; }
+    .when 'K' then {
+      (get_char 2 = 'i').if {
+        read_char;
+        read_char;
+        (base, exp) := (1024, 1);
+      };
+    }
+    .when 'M' then {         read_char; (base, exp) := (10,    6);
+      (next_char = 'i').if { read_char; (base, exp) := (1024,  2); }; }
+    .when 'G' then {         read_char; (base, exp) := (10,    9);
+      (next_char = 'i').if { read_char; (base, exp) := (1024,  3); }; }
+    .when 'T' then {         read_char; (base, exp) := (10,   12);
+      (next_char = 'i').if { read_char; (base, exp) := (1024,  4); }; }
+    .when 'P' then {         read_char; (base, exp) := (10,   15);
+      (next_char = 'i').if { read_char; (base, exp) := (1024,  5); }; }
+    .when 'E' then {         read_char; (base, exp) := (10,   18);
+      (next_char = 'i').if { read_char; (base, exp) := (1024,  6); }; }
+    .when 'Z' then {         read_char; (base, exp) := (10,   21);
+      (next_char = 'i').if { read_char; (base, exp) := (1024,  7); }; }
+    .when 'Y' then {         read_char; (base, exp) := (10,   24);
+      (next_char = 'i').if { read_char; (base, exp) := (1024,  8); }; };
+
+    base, exp
+  );
+  
+  //-- num_mult      -> num_ext_part
+  //--                | num_unit
+  - read_num_mult :(INTEGER, INTEGER) <-
+  ( + base, exp :INTEGER;
+    base := 10;
+
+    ((exp := read_num_ext_part) = 0).if {
+      (base, exp) := read_num_unit;
+    };
+
+    base, exp
+  );
+  
+  //-- num_sign      -> [+-]
+  - read_num_sign :CHARACTER <-
+  ( + sign :CHARACTER;
+    sign := '+';
+    (((next_char = '+') || {next_char = '-'}) && {get_char 2.is_digit}).if {
+      sign := read_char;
+    };
+    sign
+  );
+  
+  //-- numeric       -> num_sign? num_base? integer ( '.' integer )? num_mult?
+  - read_numeric :NUMBER <-
+  ( + res :NUMBER;
+    + sign :CHARACTER;
+    + base, n :INTEGER;
+    + num, dec, dec_shift :INTEGER;
+    + mul, exp :INTEGER;
+
+    sign := read_num_sign;
+    next_char.is_digit.if {
+      // Read base
+      base := read_num_base;
+      (base = 0).if { base := 10; };
+      // Read entire part
+      (num, n) := read_integer base;
+      (sign = '-').if {
+        num := -num;
+      };
+      res.set_numeric_part num;
+      // Read decimal part
+      ((next_char = '.') && {get_char 2.is_digit}).if {
+        read_char;
+        (dec, dec_shift) := read_integer base;
+      };
+      res.set_decimal dec shift dec_shift base base;
+      // Read multiplier
+      (mul, exp) := read_num_mult;
+      res.set_exponent exp multiplier mul;
+    };
+    res
+  );
+  
+  //-- int           -> [+-]?[0-9]+
+  
+  + last_int :INTEGER;
+  
+  - read_int :BOOLEAN <-
+  ( + sign :INTEGER;
+    + res  :BOOLEAN;
+    
+    sign := 1;
+    ((last_character = '-') || {last_character = '+'}).if {
+      (last_character = '-').if {
+        sign := -1;
+      };
+      character 1.is_digit.if {
+        read_character;
+      };
+    };
+    last_character.is_digit.if {
+      res := TRUE;
+      last_int := 0;
+      { last_character.is_digit }.while_do {
+        last_int := 10*last_int + last_character.decimal_value;
+        read_character;
+      };
+      last_int := last_int * sign;
+    } else {
+      res := FALSE;
+    };
+    res
   );
   
   //-- identifier -> [a-zA-Z_][a-zA-Z0-9_]*
@@ -388,8 +655,7 @@ Section SELF
       read_always ":";
       type := read_prototype;
       (type = NULL).if {
-        print_warning;
-        "Expected prototype".println;
+        warning ("Expected prototype");
       } else {
         slot.add_argument (idf, type);
       };
@@ -399,6 +665,7 @@ Section SELF
   
   //++ EXPR -> symbol
   //++       | string
+  //++       | int
   //++       | PROTOTYPE
   //++       | "(" GROUP ")"
   //++       | identifier EXPR?
@@ -412,6 +679,8 @@ Section SELF
       res := ITM_EXPR_SYM.clone.make last_symbol;
     }.elseif {read_string} then {
       res := ITM_EXPR_STR.clone.make last_string;
+    }.elseif {read_int} then {
+      res := ITM_EXPR_INT.clone.make last_int;
     }.elseif {(proto := read_prototype) != NULL} then {
       res := proto;
     }.elseif {last_character = '('} then {

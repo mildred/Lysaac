@@ -23,6 +23,7 @@ Section PARSER
   
   - make (s:CSTRING, arg:ITM_EXPR) :SELF <-
   (
+    arg.set_itm_parent Self;
     slot := s;
     argument := arg;
     Self

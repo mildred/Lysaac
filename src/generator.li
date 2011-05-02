@@ -8,71 +8,107 @@ Section Inherit
 
 Section Public
 
-  - declare_string string:ABSTRACT_STRING in var:VAR <-
+  - type_integer size:INTEGER <-
   (
-    var.realize "@" id get_var;
-    put_var var in const;
-    const.append " = ";
-    const.append "private constant [";
-    (string.count+1).append_in const;
-    const.append " x i8] c\"";
-    string.lower.to (string.upper) do { i:INTEGER;
-      + c:CHARACTER;
-      c := string.item i;
-      c.code.in_range 32 to 127.if {
-        const.add_last c;
-      } else {
-        const.add_last '\\';
-        c.to_hexadecimal_in const;
-      };
-    };
-    const.append "\\00\"\n";
-    
+    context.add_last 'i';
+    size.append_in code;
   );
 
-  - declare_sub name:CSTRING <-
+  - type_pointer blc:{} <-
   (
-    code.append indent_str;
-    code.append "declare void @";
-    code.append name;
-    code.append " ()\n\n";
+    blc.value;
+    context.add_last '*';
+  );
+
+  - declare_string string:ABSTRACT_STRING in var:VAR <-
+  (
+    context_const {
+      var.realize "@" id get_var;
+      put_var var in const;
+      context.append " = ";
+      context.append "private constant [";
+      (string.count+1).append_in const;
+      context.append " x i8] c\"";
+      string.lower.to (string.upper) do { i:INTEGER;
+        + c:CHARACTER;
+        c := string.item i;
+        c.code.in_range 32 to 127.if {
+          context.add_last c;
+        } else {
+          context.add_last '\\';
+          c.to_hexadecimal_in const;
+        };
+      };
+      context.append "\\00\"\n";
+    };
+  );
+
+  - declare_sub name:CSTRING args args:{} <-
+  (
+    context.append indent_str;
+    context.append "declare void @";
+    context.append name;
+    context.append " (";
+    args.value;
+    context.append ")\n\n";
   );
   
-  - sub name:CSTRING do blc:{} <-
+  - sub name:CSTRING args args:{} do blc:{} <-
   (
-    code.append indent_str;
-    code.append "define void @";
-    code.append name;
-    code.append " () {\n";
+    context.append indent_str;
+    context.append "define void @";
+    context.append name;
+    context.append " (";
+    args.value;
+    context.append ") {\n";
     indent;
     blc.value;
-    code.append indent_str;
-    code.append "ret void\n";
+    context.append indent_str;
+    context.append "ret void\n";
     unindent;
-    code.append indent_str;
-    code.append "}\n\n";
+    context.append indent_str;
+    context.append "}\n\n";
   );
-  
-  + call_has_arg :BOOLEAN;
   
   - call name:CSTRING args blc:{} <-
   (
-    code.append indent_str;
-    code.append "tail call void @";
-    code.append name;
-    code.append "(";
-    call_has_arg := FALSE;
+    context.append indent_str;
+    context.append "tail call void @";
+    context.append name;
+    context.append "(";
     blc.value;
-    code.append ")\n";
+    context.append ")\n";
+  );
+  
+  - arg blc:{} <-
+  (
+    (context.last = '(').if_false {
+      context.append ", ";
+    };
+    blc.value;
   );
   
   - call_arg var:VAR <-
   (
-    call_has_arg.if {
-      code.append ", ";
+    arg {
+      put_var var in code;
     };
-    call_has_arg := TRUE;
-    put_var var in code;
+  );
+  
+  - context_code blc:{} <-
+  ( + old:STRING;
+    old := context;
+    context := code;
+    blc.value;
+    context := old;
+  );
+  
+  - context_const blc:{} <-
+  ( + old:STRING;
+    old := context;
+    context := const;
+    blc.value;
+    context := old;
   );
 
 Section LYSAAC
@@ -90,6 +126,7 @@ Section Private
 
   + const :STRING := STRING.create 1024;
   + code  :STRING := STRING.create 1024;
+  + context :STRING <- code;
   
   - indent   <- (indent_level := indent_level + 1;);
   - unindent <- (indent_level := indent_level - 1;);

@@ -28,6 +28,7 @@ Section PARSER
   
   - add_inst inst:ITM_INST <-
   (
+    inst.set_itm_parent Self;
     instructions.add_last inst;
   );
 

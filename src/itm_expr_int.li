@@ -1,0 +1,22 @@
+Section Header
+
+  + name := ITM_EXPR_INT;
+
+Section Inherit
+
+  + parent_itm_expr :Expanded ITM_EXPR;
+
+Section Public
+
+  - is_void :BOOLEAN <- FALSE;
+
+  + value :INTEGER;
+
+Section PARSER
+  
+  - make v:INTEGER :SELF <-
+  (
+    value := v;
+    Self
+  );
+

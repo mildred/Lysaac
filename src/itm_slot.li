@@ -4,9 +4,15 @@ Section Header
 
 Section Inherit
 
-  + parent_any :Expanded ANY;
+  + parent_itm :Expanded ITM;
   
+  - parent_i_find_type :Expanded I_FIND_TYPE;
+
 Section Public
+
+  - find_type type_name:CSTRING :TYPE <- prototype_parent.find_type type_name;
+  
+  - slot_parent :ITM_SLOT <- Self;
 
   + section :ITM_SECTION;
 
@@ -26,6 +32,10 @@ Section Public
     };
     res
   );
+  
+  + argument :CSTRING;
+  
+  + argument_type :ITM_EXPR_PROTO;
   
 Section PARSER
 
@@ -57,6 +67,7 @@ Section PARSER
   [ -? {argument = NULL};
     -? {argument_type = NULL}; ]
   (
+    type.set_itm_parent Self;
     argument := idf;
     argument_type := type;
     Self
@@ -70,6 +81,7 @@ Section PARSER
   
   - set_expression e:ITM_EXPR :SELF <-
   (
+    e.set_itm_parent Self;
     expression := e;
     Self
   );
@@ -77,7 +89,4 @@ Section PARSER
 Section Private
   
   + keywords :ITM_KEYWORDS;
-  
-  + argument :CSTRING;
-  
-  + argument_type :ITM_EXPR_PROTO;
+

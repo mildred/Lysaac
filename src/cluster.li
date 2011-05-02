@@ -6,6 +6,8 @@ Section Inherit
 
   + parent_any :Expanded ANY;
 
+  - parent_i_find_type :Expanded I_FIND_TYPE;
+
 Section Public
 
   + path :CSTRING;
@@ -16,7 +18,7 @@ Section Public
   ( + str :ABSTRACT_STRING;
     
     str := PATH_HELPER.basename filename;
-    name := str.substring (str.lower) to (str.upper - 4)
+    name := str.substring (str.lower) to (str.upper - 4).as_upper
   );
   
   - prototype_for_role r:CSTRING :PROTOTYPE <-
@@ -55,10 +57,23 @@ Section Public
     PARSER_CLI.clone.make Self.parse;
     Self
   );
+  
+  - find_type type_name:CSTRING :TYPE <-
+  ( + it :ITERATOR(CLUSTER_ITEM);
+    + res :TYPE;
+  
+    (it := list.iterate).loop_v { i:CLUSTER_ITEM;
+      ((i.is_prototype) && {i.name == type_name}).if {
+        it.stop;
+        res := i.prototype.to_type;
+      };
+    };
+    res
+  );
 
-Section PARSER_LI
+Section PROTOTYPE
 
-  - set_prototype p:PROTOTYPE role r:CSTRING <-
+  - set_prototype p:PROTOTYPE for_role r:CSTRING <-
   [ -?{ (p = NULL) || {! prototype_roles.fast_has r} }; ]
   (
     prototype_roles.fast_put p to r;

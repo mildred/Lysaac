@@ -16,6 +16,7 @@ Section PARSER
   
   - make e:ITM_EXPR :SELF <-
   (
+    e.set_itm_parent Self;
     expression := e;
     Self
   );

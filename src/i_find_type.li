@@ -1,0 +1,7 @@
+Section Header
+
+  + name := I_FIND_TYPE;
+
+Section Public
+
+  - find_type type_name:CSTRING :TYPE <- (deferred; NULL);

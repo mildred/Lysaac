@@ -1,0 +1,36 @@
+Section Header
+
+  + name := TYPE;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+  
+Section Public
+
+  + prototype :PROTOTYPE;
+  
+  + base_type :BASE_TYPE;
+
+  - generate gen:GENERATOR <-
+  (
+    (base_type = NULL).if {
+      crash_with_message ("Cannot generate type for "+prototype.name);
+      not_yet_implemented;
+    } else {
+      base_type.generate gen;
+    };
+  );
+
+Section PROTOTYPE
+
+  - make p:PROTOTYPE :SELF <-
+  (
+    prototype := p;
+    prototype.expanded.if {
+      base_type := prototype.base_type;
+    } else {
+      base_type := BASE_TYPE.create_pointer (prototype.base_type);
+    };
+    Self
+  );

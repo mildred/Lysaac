@@ -5,9 +5,10 @@ Feature: Simple external procedure call
       """
       Section Header
       
-        + name := CSTRING;
+        + name := Reference CSTRING;
         
         - role := String; // const char*
+        - type := Integer 8;
       
       """
       And a file "c/main.li" with
@@ -18,7 +19,7 @@ Feature: Simple external procedure call
         
       Section Public
       
-        - puts str:STRING <- External `puts`;
+        - puts str:CSTRING <- External `puts`;
       
         - main <-
         (

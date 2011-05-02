@@ -5,18 +5,28 @@ Section Header
 Section Inherit
 
   + parent_any :Expanded ANY;
+  
+  - parent_i_find_type :Expanded I_FIND_TYPE;
 
 Section Public
+
+  - find_type type_name:CSTRING :TYPE <- cluster.find_type type_name;
+  
+  + base_type :BASE_TYPE;
   
   + filename :CSTRING;
   
+  + role :CSTRING;
+  
   + cluster :CLUSTER;
+  
+  + expanded :BOOLEAN;
   
   + name :CSTRING <-
   ( + str :ABSTRACT_STRING;
     
     str := PATH_HELPER.basename filename;
-    name := str.substring (str.lower) to (str.upper - 3)
+    name := str.substring (str.lower) to (str.upper - 3).as_upper
   );
   
   - parse; // Done during construction
@@ -37,14 +47,39 @@ Section Public
     };
   );
 
+Section CLUSTER
+
+  - to_type :TYPE <-
+  (
+    TYPE.clone.make Self
+  );
+
 Section CLUSTER_ITEM
 
   - make_file file:CSTRING cluster c:CLUSTER :SELF <-
   (
+    base_type := NULL;
+    expanded := FALSE;
     cluster  := c;
     filename := file;
     ast      := PARSER_LI.clone.make Self.parse;
     Self
+  );
+
+Section PARSER_LI
+
+  - set_role r:CSTRING <-
+  (
+    role := r;
+    cluster.set_prototype Self for_role "String";
+  );
+
+  - set_base_type t:BASE_TYPE <-
+  [
+    -? { t != NULL };
+  ]
+  (
+    base_type := t;
   );
 
 Section Private

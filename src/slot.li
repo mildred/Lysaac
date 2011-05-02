@@ -12,9 +12,11 @@ Section Public
   
   + list :LIST;
   
-  + external :BOOLEAN;
+  - external :BOOLEAN <- ast.is_external;
   
   + external_name :CSTRING <- name;
+  
+  + argument_type :TYPE;
 
 Section PROTOTYPE
 
@@ -22,7 +24,11 @@ Section PROTOTYPE
   (
     list := LIST.clone.make;
     ast := s;
-    external := ast.is_external;
+    (ast.argument_type = NULL).if {
+      argument_type := NULL;
+    } else {
+      argument_type := ast.argument_type.to_type;
+    };
     Self
   );
 
@@ -41,9 +47,13 @@ Section PROTOTYPE
   - generate gen:GENERATOR <-
   (
     external.if {
-      gen.declare_sub external_name;
+      gen.declare_sub external_name args {
+        (argument_type != NULL).if {
+          gen.arg { argument_type.generate gen; };
+        };
+      };
     } else {
-      gen.sub external_name do {
+      gen.sub external_name args {} do {
         list.generate gen;
       };
     };

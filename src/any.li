@@ -28,3 +28,15 @@ Section Public
   (
     crash_with_message ("Slot deferred in " + type_name);
   );
+  
+  - warn s:ABSTRACT_STRING <-
+  (
+    STD_ERROR.put_string s;
+  );
+  
+  - warnln s:ABSTRACT_STRING <-
+  (
+    STD_ERROR.put_string s;
+    STD_ERROR.put_string "\n";
+  );
+

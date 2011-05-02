@@ -4,22 +4,32 @@ Section Header
 
 Section Inherit
 
-  + parent_any :Expanded ANY;
+  + parent_itm :Expanded ITM;
 
 Section Public
 
   + slots :FAST_ARRAY(ITM_SLOT);
   
+  + itm_parent :ITM <-
+  (
+    crash_with_message "Trying to get parent of prototype";
+    NULL
+  );
+  
+  + prototype_parent :PROTOTYPE;
+  
 Section PARSER
 
-  - make :SELF <-
+  - make p:PROTOTYPE :SELF <-
   (
+    prototype_parent := p;
     slots := FAST_ARRAY(ITM_SLOT).create 0;
     Self
   );
   
   - add_slot s:ITM_SLOT :SELF <-
   (
+    s.set_itm_parent Self;
     slots.add_last s;
     Self
   );
