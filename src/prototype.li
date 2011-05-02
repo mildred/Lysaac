@@ -10,6 +10,12 @@ Section Inherit
 
 Section Public
 
+  - made      :BOOLEAN <- state >= state_made;
+  - parsing   :BOOLEAN <- state >= state_parsing;
+  - parsed    :BOOLEAN <- state >= state_parsed;
+  - compiled  :BOOLEAN <- state >= state_compiled;
+  - generated :BOOLEAN <- state >= state_generated;
+
   - find_type type_name:CSTRING :TYPE <- cluster.find_type type_name;
   
   + base_type :BASE_TYPE;
@@ -29,27 +35,57 @@ Section Public
     name := str.substring (str.lower) to (str.upper - 3).as_upper
   );
   
-  - parse; // Done during construction
+  - parse <-
+  [ -? {made}; -? {! parsed}; ]
+  (
+    ast := parser.parse;
+    state := state_parsing;
+    create_slots;
+    state := state_parsed;
+  )
+  [ +? {parsed}; ];
   
   - compile <-
+  [ -? {parsed}; -? {! compiled}; ]
   (
-    create_slots;
     compile_prototype_data;
     slots.iterate.loop_v { s:SLOT;
       s.compile;
     };
-  );
+    state := state_compiled;
+  )
+  [ +? {compiled}; ];
   
   - generate gen:GENERATOR <-
+  [ -? {compiled}; -? {! generated}; ]
   (
     slots.iterate.loop_v { s:SLOT;
       s.generate gen;
     };
+    state := state_generated;
+  )
+  [ +? {generated}; ];
+
+Section INSTR_CALL
+
+  - find_slot name:CSTRING :SLOT <-
+  [ -? {parsed}; ]
+  ( + it:ITERATOR(SLOT);
+    + res :SLOT;
+    
+    (it := slots.iterate).loop_v { s:SLOT;
+      (s.name = name).if {
+        res := s;
+        it.stop;
+      };
+    };
+    res
   );
 
 Section CLUSTER
 
   - to_type :TYPE <-
+  [ -? {parsing}; ]
   (
     TYPE.clone.make Self
   );
@@ -62,7 +98,9 @@ Section CLUSTER_ITEM
     expanded := FALSE;
     cluster  := c;
     filename := file;
-    ast      := PARSER_LI.clone.make Self.parse;
+    ast      := NULL;
+    parser   := PARSER_LI.clone.make Self;
+    state    := state_made;
     Self
   );
 
@@ -84,11 +122,23 @@ Section PARSER_LI
 
 Section Private
 
+  + state :INTEGER;
+  
+  - state_none      :INTEGER := 0;
+  - state_made      :INTEGER := 1;
+  - state_parsing   :INTEGER := 2;
+  - state_parsed    :INTEGER := 3;
+  - state_compiled  :INTEGER := 4;
+  - state_generated :INTEGER := 5;
+
+  + parser :PARSER_LI;
+
   + ast :ITM_PROTOTYPE;
 
   + slots :FAST_ARRAY(SLOT);
   
   - create_slots <-
+  [ -? {(made) && {! parsed}}; ]
   (
     slots := FAST_ARRAY(SLOT).create 0;
     ast.slots.iterate.loop_v { s:ITM_SLOT;
@@ -96,5 +146,9 @@ Section Private
     };
   );
 
-  - compile_prototype_data;
+  - compile_prototype_data <-
+  [ -? {(parsed) && {! compiled}}; ]
+  (
+    // Empty
+  );
 

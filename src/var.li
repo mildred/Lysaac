@@ -19,9 +19,9 @@ Section Public
   
   + writer :INSTR := NULL;
 
-  - make w:INSTR :SELF <-
+  - make writer_instruction:INSTR :SELF <-
   (
-    writer := w;
+    writer := writer_instruction;
     name := "";
     identifier := 0;
     Self

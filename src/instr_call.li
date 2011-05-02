@@ -8,12 +8,30 @@ Section Inherit
 
 Section Public
 
-  - name :CSTRING <- ast.slot;
+  //
+  // Receiver
+  //
+
+  - receiver :PROTOTYPE <- ast.prototype_parent;
+  // Only suited for implicit receiver.
+
+  - is_receiver_implicit :BOOLEAN <- TRUE;
+  // Only suited for implicit receiver.
+  
+  //
+  // Slot
+  //
+  
+  - slot :SLOT <- receiver.find_slot name;
+
+  //
+  // Generate
+  //
 
   - generate gen:GENERATOR <-
   (
-    gen.call name args {
-      gen.call_arg arg;
+    gen.call (slot.name) args {
+      gen.call_arg arg type { slot.argument_type.generate gen };
     };
   );
 
@@ -28,5 +46,8 @@ Section ITM_EXPR_READ
 
 Section Private
 
+  - name :CSTRING <- ast.slot;
+  
   + ast :ITM_EXPR_READ;
   + arg :VAR;
+

@@ -23,24 +23,35 @@ Section Public
   - declare_string string:ABSTRACT_STRING in var:VAR <-
   (
     context_const {
-      var.realize "@" id get_var;
-      put_var var in const;
-      context.append " = ";
-      context.append "private constant [";
-      (string.count+1).append_in const;
-      context.append " x i8] c\"";
+      var.realize "@" id get_global;
+      put_var var;
+      put " = private constant [";
+      put_int (string.count+1);
+      put " x i8] c\"";
       string.lower.to (string.upper) do { i:INTEGER;
         + c:CHARACTER;
         c := string.item i;
         c.code.in_range 32 to 127.if {
-          context.add_last c;
+          put_c c;
         } else {
-          context.add_last '\\';
+          put_c '\\';
           c.to_hexadecimal_in const;
         };
       };
-      context.append "\\00\"\n";
+      put "\\00\"\n";
     };
+  );
+  
+  - get_string_pointer_from from:VAR string s:ABSTRACT_STRING to to:VAR <-
+  (
+    to.realize "%" id get_local;
+    put_indent;
+    put_var to;
+    put " = getelementptr [";
+    put_int (s.count+1);
+    put " x i8]* ";
+    put_var from;
+    put ", i32 0, i32 0\n";
   );
 
   - declare_sub name:CSTRING args args:{} <-
@@ -61,6 +72,7 @@ Section Public
     context.append " (";
     args.value;
     context.append ") {\n";
+    last_local := 0;
     indent;
     blc.value;
     context.append indent_str;
@@ -88,9 +100,11 @@ Section Public
     blc.value;
   );
   
-  - call_arg var:VAR <-
+  - call_arg var:VAR type t:{} <-
   (
     arg {
+      t.value;
+      context.add_last ' ';
       put_var var in code;
     };
   );
@@ -117,11 +131,18 @@ Section LYSAAC
 
 Section Private
 
-  + last_var :INTEGER := 0;
-  - get_var :INTEGER <-
+  + last_global :INTEGER := 0;
+  - get_global :INTEGER <-
   (
-    last_var := last_var + 1;
-    last_var
+    last_global := last_global + 1;
+    last_global
+  );
+
+  + last_local :INTEGER := 0;
+  - get_local :INTEGER <-
+  (
+    last_local := last_local + 1;
+    last_local
   );
 
   + const :STRING := STRING.create 1024;
@@ -155,11 +176,21 @@ Section Private
     res
   );
   
+  - put s:ABSTRACT_STRING <- context.append s;
+  - put_c c:CHARACTER     <- context.add_last c;
+  - put_int i:INTEGER     <- i.append_in context;
+  - put_indent            <- put indent_str;
+  - put_var var:VAR       <- put_var var in context;
+  
   - put_var var:VAR in str:STRING <-
   (
     str.append (var.name);
-    (var.identifier != 0).if {
+    (var.name == "@").if {
+      ? { var.identifier > 0 };
       (var.identifier - 1).append_in str;
+    }.elseif {var.name == "%"} then {
+      ? { var.identifier > 0 };
+      var.identifier.append_in str;
     };
   );
 

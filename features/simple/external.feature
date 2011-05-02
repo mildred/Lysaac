@@ -31,4 +31,5 @@ Feature: Simple external procedure call
      Then I should see
       """
       Hello World
+      
       """
