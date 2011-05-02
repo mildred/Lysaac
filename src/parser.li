@@ -642,23 +642,38 @@ Section SELF
   
   - handle_slot slot:ITM_SLOT;
   
-  //++ C_ARG -> identifier . ":" PROTOTYPE
+  //++ C_ARG -> identifier . ":" TYPE
   
   - read_c_arg slot:ITM_SLOT :BOOLEAN <-
   ( + res :BOOLEAN;
     + idf :CSTRING;
-    + type :ITM_EXPR_PROTO;
+    + type :ITM_TYPE;
   
     read_identifier.if {
       read_spaces;
       idf := last_identifier;
       read_always ":";
-      type := read_prototype;
+      type := read_type;
       (type = NULL).if {
-        warning ("Expected prototype");
+        warning ("Expected type");
       } else {
         slot.add_argument (idf, type);
       };
+    };
+    res
+  );
+  
+  //++ TYPE -> PROTOTYPE
+  
+  - read_type :ITM_TYPE <-
+  ( + proto :ITM_EXPR_PROTO;
+    + res   :ITM_TYPE;
+
+    proto := read_prototype;
+    (proto = NULL).if {
+      warning ("Expected prototype");
+    } else {
+      res := ITM_TYPE.clone.make proto;
     };
     res
   );

@@ -35,7 +35,7 @@ Section Public
   
   + argument :CSTRING;
   
-  + argument_type :ITM_EXPR_PROTO;
+  + argument_type :ITM_TYPE;
   
 Section PARSER
 
@@ -63,7 +63,7 @@ Section PARSER
     Self
   );
   
-  - add_argument (idf:CSTRING, type:ITM_EXPR_PROTO) :SELF <-
+  - add_argument (idf:CSTRING, type:ITM_TYPE) :SELF <-
   [ -? {argument = NULL};
     -? {argument_type = NULL}; ]
   (

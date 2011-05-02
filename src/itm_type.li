@@ -1,0 +1,29 @@
+Section Header
+
+  + name := ITM_TYPE;
+
+Section Inherit
+
+  + parent_itm :Expanded ITM;
+
+Section Public
+
+  + prototype :ITM_EXPR_PROTO;
+  
+  - to_type :TYPE <-
+  ( + res :TYPE;
+    res := slot_parent.find_type (prototype.prototype);
+    (res = NULL).if {
+      warnln ("Could not find type " + (prototype.prototype));
+    };
+    res
+  );
+
+Section PARSER
+  
+  - make p:ITM_EXPR_PROTO :SELF <-
+  (
+    prototype := p;
+    Self
+  );
+

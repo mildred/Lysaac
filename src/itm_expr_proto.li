@@ -11,15 +11,6 @@ Section Public
   - is_void :BOOLEAN <- FALSE;
 
   + prototype :CSTRING;
-  
-  - to_type :TYPE <-
-  ( + res :TYPE;
-    res := slot_parent.find_type prototype;
-    (res = NULL).if {
-      warnln ("Could not find type " + prototype);
-    };
-    res
-  );
 
 Section PARSER
   

@@ -39,7 +39,7 @@ Section PROTOTYPE
       sym ?= ast.expression;
       ? { sym != NULL };
       external_name := sym.symbol;
-    } else {
+    }.elseif {ast.expression != NULL} then {
       ast.expression.compile_in list;
     };
   );
