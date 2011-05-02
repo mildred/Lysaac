@@ -12,17 +12,24 @@ Section Public
   // Receiver
   //
 
-  - receiver :PROTOTYPE <- ast.prototype_parent;
-  // Only suited for implicit receiver.
-
-  - is_receiver_implicit :BOOLEAN <- TRUE;
-  // Only suited for implicit receiver.
+  + receiver :VAR;
   
   //
   // Slot
   //
   
-  - slot :SLOT <- receiver.find_slot name;
+  - slot :SLOT <- receiver.type.prototype.find_slot name;
+
+  //
+  // Link
+  //
+  
+  - link <-
+  (
+    (slot = NULL).if {
+      crash_with_message ("Cannot find slot "+name+" in "+receiver.type.prototype.name);
+    };
+  );
 
   //
   // Generate
@@ -37,8 +44,9 @@ Section Public
 
 Section ITM_EXPR_READ
 
-  - make_itm i:ITM_EXPR_READ argument v:VAR :SELF <-
+  - make_itm i:ITM_EXPR_READ receiver r:VAR argument v:VAR :SELF <-
   (
+    receiver := r;
     arg := v;
     ast := i;
     Self

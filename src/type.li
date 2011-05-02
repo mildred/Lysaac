@@ -10,6 +10,8 @@ Section Public
 
   + prototype :PROTOTYPE;
   
+  + block :BOOLEAN;
+  
   + base_type :BASE_TYPE;
 
   - generate gen:GENERATOR <-
@@ -26,11 +28,20 @@ Section PROTOTYPE
 
   - make p:PROTOTYPE :SELF <-
   (
+    block := FALSE;
     prototype := p;
     prototype.expanded.if {
       base_type := prototype.base_type;
     } else {
       base_type := BASE_TYPE.create_pointer (prototype.base_type);
     };
+    Self
+  );
+  
+  - make_block p:PROTOTYPE :SELF <-
+  (
+    block := TRUE;
+    prototype := p;
+    base_type.create_function_pointer;
     Self
   );

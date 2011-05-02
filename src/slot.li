@@ -9,7 +9,7 @@ Section Inherit
 Section Public
 
   - name :CSTRING <- ast.identifier;
-  
+    
   + list :LIST;
   
   - external :BOOLEAN <- ast.is_external;
@@ -17,20 +17,27 @@ Section Public
   + external_name :CSTRING <- name;
   
   + argument_type :TYPE;
+  
+  + prototype :PROTOTYPE;
 
-Section PROTOTYPE
+Section ITM_SLOT
 
   - make s:ITM_SLOT :SELF <-
   (
-    list := LIST.clone.make;
+    list := LIST.clone.make Self;
     ast := s;
     (ast.argument_type = NULL).if {
       argument_type := NULL;
     } else {
       argument_type := ast.argument_type.to_type;
     };
+    prototype := ast.prototype_parent;
+    self := VAR.clone.make NULL static_type (prototype.to_type);
+    ast.prototype_parent.add_slot Self;
     Self
   );
+
+Section LIST_SLOT
 
   - compile <-
   (
@@ -44,6 +51,13 @@ Section PROTOTYPE
     };
   );
   
+  - link <-
+  (
+    external.if_false {
+      list.link;
+    };
+  );
+  
   - generate gen:GENERATOR <-
   (
     external.if {
@@ -53,12 +67,16 @@ Section PROTOTYPE
         };
       };
     } else {
-      gen.sub external_name args {} do {
+      gen.sub external_name self self args {} do {
         list.generate gen;
       };
     };
   );
-  
+
+Section LIST
+
+  + self :VAR;
+
 Section Private
 
   + ast :ITM_SLOT;

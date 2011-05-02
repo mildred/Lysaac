@@ -18,10 +18,13 @@ Section Public
   - is_null  :BOOLEAN <- ( ! is_valid );
   
   + writer :INSTR := NULL;
+  
+  + type :TYPE := NULL;
 
-  - make writer_instruction:INSTR :SELF <-
+  - make writer_instruction:INSTR static_type t:TYPE :SELF <-
   (
     writer := writer_instruction;
+    type := t;
     name := "";
     identifier := 0;
     Self

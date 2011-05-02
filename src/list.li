@@ -8,10 +8,18 @@ Section Inherit
 
 Section SLOT
 
-  - make :SELF <-
+  - make s:SLOT :SELF <-
   (
+    slot := s;
     instructions := FAST_ARRAY(INSTR).create 0;
     Self
+  );
+  
+  - link <-
+  (
+    instructions.iterate.loop_v { i:INSTR;
+      i.link;
+    };
   );
 
   - generate gen:GENERATOR <-
@@ -28,6 +36,12 @@ Section INSTR
     instructions.add_last i;
   );
 
+Section ITM_EXPR
+
+  - self :VAR <- slot.self;
+
 Section Private
+
+  + slot:SLOT;
 
   + instructions :FAST_ARRAY(INSTR);

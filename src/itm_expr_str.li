@@ -13,8 +13,13 @@ Section Public
   + string :CSTRING;
 
   - compile_in list:LIST :VAR <-
-  (
-    INSTR_STRING.clone.make string.add_in list.result
+  ( + t:TYPE;
+    
+    t := cluster_parent.type_for_role "String";
+    (t = NULL).if {
+      warnln "Could not find role for String";
+    };
+    INSTR_STRING.clone.make string static_type t.add_in list.result
   );
   
 Section PARSER

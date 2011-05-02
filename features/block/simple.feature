@@ -12,6 +12,15 @@ Feature: Simple blocks
         - type := Integer 8;
       
       """
+      And a file "c/block.li" with
+      """
+      Section Header
+      
+        + name := BLOCK;
+        
+        - role := Block;
+      
+      """
       And a file "c/main.li" with
       """
       Section Header

@@ -10,10 +10,14 @@ Section Public
 
   - is_void :BOOLEAN <- FALSE;
 
+  + is_block :BOOLEAN;
+
   - compile_in list:LIST :VAR <-
   (
-    instructions.iterate.loop_v { i:ITM_INST;
-      i.compile_in list;
+    is_block.if_false {
+      instructions.iterate.loop_v { i:ITM_INST;
+        i.compile_in list;
+      };
     };
     VAR
   );
@@ -22,7 +26,15 @@ Section PARSER
 
   - make :SELF <-
   (
+    is_block := FALSE;
     instructions := FAST_ARRAY(ITM_INST).create 0;
+    Self
+  );
+  
+  - set_block :SELF <-
+  [ -?{ ! is_block }; ]
+  (
+    is_block := TRUE;
     Self
   );
   

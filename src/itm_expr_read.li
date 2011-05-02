@@ -10,13 +10,19 @@ Section Public
 
   - is_void :BOOLEAN <- FALSE;
 
+  + receiver :ITM_EXPR;
   + slot     :CSTRING;
   + argument :ITM_EXPR;
-
+  
   - compile_in list:LIST :VAR <-
-  ( + arg :VAR;
-    arg := argument.compile_in list;
-    INSTR_CALL.clone.make_itm Self argument arg.add_in list.result
+  ( + arg, self :VAR;
+    (receiver = NULL).if {
+      self := list.self;
+    } else {
+      self := receiver.compile_in list;
+    };
+    arg  := argument.compile_in list;
+    INSTR_CALL.clone.make_itm Self receiver self argument arg.add_in list.result
   );
 
 Section PARSER
@@ -26,6 +32,13 @@ Section PARSER
     arg.set_itm_parent Self;
     slot := s;
     argument := arg;
+    receiver := NULL;
     Self
+  );
+  
+  - set_self s:ITM_EXPR <-
+  [ -?{ receiver = NULL }; ]
+  (
+    receiver := s;
   );
 

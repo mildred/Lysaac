@@ -10,6 +10,12 @@ Section Inherit
 
 Section Public
 
+  - made      :BOOLEAN <- state >= state_made;
+  - parsed    :BOOLEAN <- state >= state_parsed;
+  - compiled  :BOOLEAN <- state >= state_compiled;
+  - linked    :BOOLEAN <- state >= state_linked;
+  - generated :BOOLEAN <- state >= state_generated;
+
   + path :CSTRING;
   
   + filename :CSTRING;
@@ -22,8 +28,20 @@ Section Public
   );
   
   - prototype_for_role r:CSTRING :PROTOTYPE <-
+  [ -? {parsed}; ]
   (
     prototype_roles.fast_reference_at r
+  );
+  
+  - type_for_role r:CSTRING :TYPE <-
+  [ -? {parsed}; ]
+  ( + p:PROTOTYPE;
+    + res:TYPE;
+    
+    ((p := prototype_for_role r) != NULL).if {
+      res := p.to_type;
+    };
+    res
   );
   
   - display <-
@@ -33,10 +51,12 @@ Section Public
   );
   
   - compile gen:GENERATOR <-
+  [ -? {made}; ]
   (
     parse_my_prototypes;
     compile_my_prototypes;
-    generate_my_prototypes gen;
+    link_my_slots;
+    generate_my_slots gen;
   );
 
   - make_path p:CSTRING :SELF <-
@@ -45,7 +65,9 @@ Section Public
     list := FAST_ARRAY(CLUSTER_ITEM).create 0;
     path := p;
     filename := NULL;
+    slots := LIST_SLOT.clone.make;
     parse path root TRUE;
+    state := state_made;
     Self
   );
   
@@ -54,11 +76,14 @@ Section Public
     prototype_roles := HASHED_DICTIONARY(PROTOTYPE,CSTRING).create;
     list := FAST_ARRAY(CLUSTER_ITEM).create 0;
     filename := f;
+    slots := LIST_SLOT.clone.make;
     PARSER_CLI.clone.make Self.parse;
+    state := state_made;
     Self
   );
   
   - find_type type_name:CSTRING :TYPE <-
+  [ -? {made}; ]
   ( + it :ITERATOR(CLUSTER_ITEM);
     + res :TYPE;
   
@@ -74,14 +99,26 @@ Section Public
 Section PROTOTYPE
 
   - set_prototype p:PROTOTYPE for_role r:CSTRING <-
-  [ -?{ (p = NULL) || {! prototype_roles.fast_has r} }; ]
+  [
+    -? {made};
+    -? { (p = NULL) || {! prototype_roles.fast_has r} };
+  ]
   (
+    warnln ("Info: Role "+r+" is provided by "+p.name);
     prototype_roles.fast_put p to r;
+  );
+
+Section PARSER
+
+  - check_prototype_for_role r:CSTRING :PROTOTYPE <-
+  (
+    prototype_roles.fast_reference_at r
   );
 
 Section PARSER_CLI
 
   - set_path p:CSTRING <-
+  [ -? {! made}; ]
   ( + ptr :POINTER;
     + it :ITERATOR(CSTRING);
     
@@ -106,9 +143,20 @@ Section PARSER_CLI
 
 Section Private
 
+  + state :INTEGER;
+  
+  - state_none      :INTEGER := 0;
+  - state_made      :INTEGER := 1;
+  - state_parsed    :INTEGER := 2;
+  - state_compiled  :INTEGER := 3;
+  - state_linked    :INTEGER := 4;
+  - state_generated :INTEGER := 5;
+
   + prototype_roles :HASHED_DICTIONARY(PROTOTYPE,CSTRING);
 
   + list :FAST_ARRAY(CLUSTER_ITEM) := FAST_ARRAY(CLUSTER_ITEM).create 0;
+  
+  + slots :LIST_SLOT;
   
   - find_name (name:STRING, file:ABSTRACT_STRING) <-
   ( + i :INTEGER;
@@ -241,22 +289,28 @@ Section Private
         i.prototype.parse;
       };
     };
+    state := state_parsed;
   );
 
   - compile_my_prototypes <-
   (
     list.iterate.loop_v { i:CLUSTER_ITEM;
       i.is_prototype.if {
-        i.prototype.compile;
+        i.prototype.compile_in slots;
       };
     };
+    slots.compile;
+    state := state_compiled;
+  );
+  
+  - link_my_slots <-
+  (
+    slots.link;
+    state := state_linked;
   );
 
-  - generate_my_prototypes gen:GENERATOR <-
+  - generate_my_slots gen:GENERATOR <-
   (
-    list.iterate.loop_v { i:CLUSTER_ITEM;
-      i.is_prototype.if {
-        i.prototype.generate gen;
-      };
-    };
+    slots.generate gen;
+    state := state_generated;
   );

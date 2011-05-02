@@ -45,7 +45,7 @@ Section SELF
       };
       slot.has_keyword "String".if {
         + p :PROTOTYPE;
-        p := prototype.cluster.prototype_for_role "String";
+        p := prototype.cluster.check_prototype_for_role "String";
         (p = NULL).if {
           prototype.set_role "String";
         } else {

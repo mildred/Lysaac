@@ -17,7 +17,16 @@ Section Public
   );
   
   + prototype_parent :PROTOTYPE;
-  
+
+Section PROTOTYPE
+
+  - compile_in list:LIST_SLOT <-
+  (
+    slots.iterate.loop_v { s:ITM_SLOT;
+      s.compile_in list;
+    };
+  );
+
 Section PARSER
 
   - make p:PROTOTYPE :SELF <-

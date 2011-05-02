@@ -9,3 +9,6 @@ Section Inherit
 Section Public
 
   - is_void :BOOLEAN <- TRUE;
+  
+  - compile_in list:LIST :VAR <- VAR; // NOP
+

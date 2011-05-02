@@ -14,6 +14,8 @@ Section Public
   - pointer :BOOLEAN <- (p_type != NULL);
   - pointer_type :BASE_TYPE <- [ -?{pointer}; ] p_type;
   
+  - function_pointer :BOOLEAN <- f_ptr;
+  
   - i8  :BASE_TYPE := create_integer 8;
   - i16 :BASE_TYPE := create_integer 16;
   - i32 :BASE_TYPE := create_integer 32;
@@ -21,6 +23,7 @@ Section Public
   
   - create_integer size:INTEGER  :SELF <- clone.make_integer size;
   - create_pointer ptr:BASE_TYPE :SELF <- clone.make_pointer ptr;
+  - create_function_pointer      :SELF <- clone.make_function_pointer;
   
   - generate gen:GENERATOR <-
   (
@@ -30,6 +33,8 @@ Section Public
       gen.type_pointer {
         pointer_type.generate gen;
       };
+    }.elseif {function_pointer} then {
+      gen.type_function_pointer;
     } else {
       not_yet_implemented;
     };
@@ -39,11 +44,13 @@ Section Private
 
   + i_size :INTEGER := 0;
   + p_type :BASE_TYPE := NULL;
+  + f_ptr :BOOLEAN := FALSE;
   
   - make_integer size:INTEGER :SELF <-
   (
     i_size := size;
     p_type := NULL;
+    f_ptr  := FALSE;
     Self
   );
   
@@ -51,5 +58,14 @@ Section Private
   (
     i_size := 0;
     p_type := ptr;
+    f_ptr  := FALSE;
+    Self
+  );
+  
+  - make_function_pointer :SELF <-
+  (
+    i_size := 0;
+    p_type := NULL;
+    f_ptr  := TRUE;
     Self
   );

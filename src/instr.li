@@ -9,6 +9,8 @@ Section Inherit
 Section Public
 
   + result :VAR := VAR;
+  
+  - link <- deferred;
 
   - generate gen:GENERATOR <- deferred;
 

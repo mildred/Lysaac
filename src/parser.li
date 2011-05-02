@@ -664,16 +664,22 @@ Section SELF
   );
   
   //++ TYPE -> PROTOTYPE
+  //++       | '{' '}'
   
   - read_type :ITM_TYPE <-
   ( + proto :ITM_EXPR_PROTO;
     + res   :ITM_TYPE;
 
     proto := read_prototype;
-    (proto = NULL).if {
-      warning ("Expected prototype");
-    } else {
+    (proto != NULL).if {
       res := ITM_TYPE.clone.make proto;
+    }.elseif {read_spaces; last_character = '{'} then {
+      read_character;
+      read_spaces;
+      read_always "}";
+      res := ITM_TYPE.clone.make_block;
+    } else {
+      warning ("Expected type");
     };
     res
   );
@@ -683,10 +689,12 @@ Section SELF
   //++       | int
   //++       | PROTOTYPE
   //++       | "(" GROUP ")"
-  //++       | identifier EXPR?
+  //++       | "{" GROUP "}"
+  //++       | EXPR_CALL
   
   - read_expr :ITM_EXPR <-
   ( + res :ITM_EXPR;
+    + tmp :ITM_EXPR;
     + proto :ITM_EXPR_PROTO;
     res := ITM_EXPR_VOID;
     
@@ -703,13 +711,37 @@ Section SELF
       read_spaces;
       res := read_group;
       read_always ")";
-    }.elseif {read_identifier} then {
+    }.elseif {last_character = '{'} then {
+      read_always "{";
+      read_spaces;
+      res := read_group.set_block;
+      read_always "}";
+    }.elseif {(tmp := read_expr_call) != NULL} then {
+      res := tmp;
+    };
+    res
+  );
+  
+  //++ EXPR_CALL -> identifier . EXPR? ("." . EXPR_CALL)?
+  
+  - read_expr_call :ITM_EXPR_READ <-
+  ( + res :ITM_EXPR_READ;
+  
+    (read_identifier).if {
+      + self :ITM_EXPR;
       + expr :ITM_EXPR;
       + idf :CSTRING;
       idf := last_identifier;
       read_spaces;
       expr := read_expr;
       res := ITM_EXPR_READ.clone.make (idf, expr);
+      read_spaces;
+      (last_character = '.').if {
+        read_always ".";
+        self := res;
+        res := read_expr_call;
+        res.set_self self;
+      };
     };
     res
   );

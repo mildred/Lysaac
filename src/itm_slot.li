@@ -37,6 +37,13 @@ Section Public
   
   + argument_type :ITM_TYPE;
   
+Section ITM_PROTOTYPE
+
+  - compile_in list:LIST_SLOT <-
+  (
+    list.add_slot (SLOT.clone.make Self);
+  );
+  
 Section PARSER
 
   - make :SELF <-

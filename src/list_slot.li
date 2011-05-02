@@ -1,0 +1,50 @@
+Section Header
+
+  + name := LIST_SLOT;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+
+Section Public
+
+  - compile <-
+  (
+    slots.iterate.loop_v { s:SLOT;
+      s.compile;
+    };
+  );
+  
+  - link <-
+  (
+    slots.iterate.loop_v { s:SLOT;
+      s.link;
+    };
+  );
+
+  - generate gen:GENERATOR <-
+  (
+    slots.iterate.loop_v { s:SLOT;
+      s.generate gen;
+    };
+  );
+  
+Section CLUSTER
+
+  - make :SELF <-
+  (
+    slots := FAST_ARRAY(SLOT).create 0;
+    Self
+  );
+
+Section ITM_SLOT
+
+  - add_slot s:SLOT <-
+  (
+    slots.add_last s;
+  );
+
+Section Private
+
+  + slots :FAST_ARRAY(SLOT);
+

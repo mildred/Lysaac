@@ -24,17 +24,22 @@ When /^I (show|compile) the cluster "([^"]*)"$/ do |action, cluster|
 end
 
 When /^I execute the cluster "([^"]*)"$/ do |cluster|
+  @ll_file = "#{cluster}.ll"
   @bc_file = "#{cluster}.bc"
-  @cmd = "#{$homedir}/bin/lysaac.cov compile '#{cluster}' >'#{@bc_file}'"
-  @cmd_text = `#{@cmd}`
+  cmd="#{$homedir}/bin/lysaac.cov compile '#{cluster}' >'#{@ll_file}'"
+  system(cmd)
   @cmd_code = $?
-  if @cmd_code != 0 then
-    puts "Failure: see LLVM source in: #{FileUtils.pwd()}/#{@bc_file}"
-    puts @cmd_text
-    @cmd_code.should == 0
+  if $? != 0 then
+    puts cmd
+    File.open(@ll_file, 'r') { |f| puts f.read() }
+    $?.should == 0
   end
-  @cmd = "cat '#{@bc_file}' | llvm-as | lli"
-  @cmd_text = `#{@cmd}`;
+  system("llvm-as <'#{@ll_file}' >'#{@bc_file}'")
+  if $? != 0 then
+    puts "Failure: see LLVM source in: #{FileUtils.pwd()}/#{@ll_file}"
+    $?.should == 0
+  end
+  @cmd_text = `lli <'#{@bc_file}'`;
   @cmd_code = $?
 end
 
