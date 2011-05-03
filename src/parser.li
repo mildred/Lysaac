@@ -733,8 +733,11 @@ Section SELF
       + idf :CSTRING;
       idf := last_identifier;
       read_spaces;
+      res := ITM_EXPR_READ.clone.make idf;
       expr := read_expr;
-      res := ITM_EXPR_READ.clone.make (idf, expr);
+      expr.is_void.if_false {
+        res.add_argument expr;
+      };
       read_spaces;
       (last_character = '.').if {
         read_always ".";

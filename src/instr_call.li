@@ -38,24 +38,31 @@ Section Public
   - generate gen:GENERATOR <-
   (
     gen.call (slot.name) args {
-      gen.call_arg arg type { slot.argument.type.generate gen };
+      args.iterate.loop_v { a:VAR;
+        gen.call_arg a type { a.type.generate gen };
+      };
     };
   );
 
 Section ITM_EXPR_READ
 
-  - make_itm i:ITM_EXPR_READ receiver r:VAR argument v:VAR :SELF <-
+  - make_itm i:ITM_EXPR_READ receiver r:VAR :SELF <-
   (
     receiver := r;
-    arg := v;
-    ast := i;
+    ast      := i;
+    args     := FAST_ARRAY(VAR).create 0;
     Self
+  );
+  
+  - add_argument v:VAR <-
+  (
+    args.add_last v;
   );
 
 Section Private
 
   - name :CSTRING <- ast.slot;
   
-  + ast :ITM_EXPR_READ;
-  + arg :VAR;
+  + ast  :ITM_EXPR_READ;
+  + args :FAST_ARRAY(VAR);
 

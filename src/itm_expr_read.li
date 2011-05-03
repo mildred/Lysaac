@@ -12,28 +12,39 @@ Section Public
 
   + receiver :ITM_EXPR;
   + slot     :CSTRING;
-  + argument :ITM_EXPR;
+  
+  + arguments :FAST_ARRAY(ITM_EXPR);
   
   - compile_in list:LIST :VAR <-
-  ( + arg, self :VAR;
+  ( + self :VAR;
+    + res:INSTR_CALL;
+    
     (receiver = NULL).if {
       self := list.self;
     } else {
       self := receiver.compile_in list;
     };
-    arg  := argument.compile_in list;
-    INSTR_CALL.clone.make_itm Self receiver self argument arg.add_in list.result
+    res := INSTR_CALL.clone.make_itm Self receiver self;
+    arguments.iterate.loop_v { a:ITM_EXPR;
+      res.add_argument (a.compile_in list);
+    };
+    res.add_in list.result
   );
 
 Section PARSER
   
-  - make (s:CSTRING, arg:ITM_EXPR) :SELF <-
+  - make s:CSTRING :SELF <-
+  (
+    slot      := s;
+    receiver  := NULL;
+    arguments := FAST_ARRAY(ITM_EXPR).create 0;
+    Self
+  );
+  
+  - add_argument arg:ITM_EXPR <-
   (
     arg.set_itm_parent Self;
-    slot := s;
-    argument := arg;
-    receiver := NULL;
-    Self
+    arguments.add_last arg;
   );
   
   - set_self s:ITM_EXPR <-
