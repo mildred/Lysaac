@@ -18,7 +18,16 @@ Section Public
   // Slot
   //
   
-  - slot :SLOT <- receiver.type.prototype.find_slot name;
+  - slot :SLOT <-
+  ( + res :SLOT;
+    args.is_empty.if {
+      not_yet_implemented; // Look for local variables
+    };
+    (res = NULL).if {
+      res := receiver.type.prototype.find_slot name;
+    };
+    res
+  );
 
   //
   // Link

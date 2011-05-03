@@ -42,6 +42,8 @@ Section Public
     pretty_name := n;
     Self
   );
+
+  - generate_arg gen:GENERATOR <- generate_arg gen name pretty_name;
   
   - generate_arg gen:GENERATOR name n:CSTRING <-
   (

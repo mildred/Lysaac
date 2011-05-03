@@ -33,9 +33,7 @@ Section Public
     res
   );
   
-  + argument :CSTRING;
-  
-  + argument_type :ITM_TYPE;
+  + arguments :FAST_ARRAY(ITM_EXPR_LOCAL);
   
 Section ITM_PROTOTYPE
 
@@ -48,6 +46,7 @@ Section PARSER
 
   - make :SELF <-
   (
+    arguments := FAST_ARRAY(ITM_EXPR_LOCAL).create 0;
     Self
   );
   
@@ -71,12 +70,8 @@ Section PARSER
   );
   
   - add_argument (idf:CSTRING, type:ITM_TYPE) :SELF <-
-  [ -? {argument = NULL};
-    -? {argument_type = NULL}; ]
   (
-    type.set_itm_parent Self;
-    argument := idf;
-    argument_type := type;
+    arguments.add_last (ITM_EXPR_LOCAL.clone.make (idf, type).set_itm_parent Self);
     Self
   );
   

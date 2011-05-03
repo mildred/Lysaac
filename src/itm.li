@@ -16,7 +16,10 @@ Section Public
 
 Section ITM
 
-  - set_itm_parent i:ITM <-
+  - set_itm_parent i:ITM :SELF <-
   (
     itm_parent := i;
+    Self
   );
+  
+
