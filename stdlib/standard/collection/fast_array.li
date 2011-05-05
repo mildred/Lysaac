@@ -65,7 +65,11 @@ Section Public
   ( + result:SELF;
 
     result := clone;
-    result.make new_count;
+    (new_count = 0).if {
+      result.with_capacity 1;
+    } else {
+      result.make new_count;
+    };
     result
   );
 
