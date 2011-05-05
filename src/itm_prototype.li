@@ -18,10 +18,6 @@ Section Public
   
   + prototype_parent :PROTOTYPE;
 
-Section ITM
-  
-  - lookup_local name:CSTRING :ITM_EXPR_LOCAL <- NULL;
-
 Section PROTOTYPE
 
   - compile_in list:LIST_SLOT <-

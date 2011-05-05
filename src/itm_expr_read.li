@@ -16,26 +16,18 @@ Section Public
   + arguments :FAST_ARRAY(ITM_EXPR);
   
   - compile_in list:LIST :VAR <-
-  ( + self  :VAR;
-    + res   :INSTR;
-    + local :ITM_EXPR_LOCAL;
+  ( + self :VAR;
+    + res:INSTR_CALL;
     
-    ((receiver = NULL) && {(local := lookup_local slot) != NULL}).if {
-      res := INSTR_LOAD.clone.make_variable (local.compile_in list);
+    (receiver = NULL).if {
+      self := list.self;
     } else {
-      + call :INSTR_CALL;
-      (receiver = NULL).if {
-        self := list.self;
-      } else {
-        self := receiver.compile_in list;
-      };
-      call := INSTR_CALL.clone.make_itm Self receiver self;
-      arguments.iterate.loop_v { a:ITM_EXPR;
-        call.add_argument (a.compile_in list);
-      };
-      res := call;
+      self := receiver.compile_in list;
     };
-
+    res := INSTR_CALL.clone.make_itm Self receiver self;
+    arguments.iterate.loop_v { a:ITM_EXPR;
+      res.add_argument (a.compile_in list);
+    };
     res.add_in list.result
   );
 
@@ -58,7 +50,6 @@ Section PARSER
   - set_self s:ITM_EXPR <-
   [ -?{ receiver = NULL }; ]
   (
-    s.set_itm_parent Self;
     receiver := s;
   );
 

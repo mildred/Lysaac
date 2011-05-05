@@ -12,3 +12,13 @@ Section Public
   
   + type :ITM_TYPE;
 
+Section ITM_SLOT
+
+  - make (n:CSTRING, t:ITM_TYPE) :SELF <-
+  (
+    t.set_itm_parent Self;
+    name := n;
+    type := t;
+    Self
+  );
+

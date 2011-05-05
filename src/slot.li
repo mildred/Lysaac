@@ -28,13 +28,20 @@ Section ITM_SLOT
   (
     arguments := FAST_ARRAY(VAR).create 0;
     list := LIST.clone.make Self;
-    ast  := s;
-    self := VAR.clone.make NULL static_type (prototype.to_type);
+    ast := s;
+    ast.arguments.iterate.loop_v { arg:ITM_EXPR_LOCAL;
+      arguments.add_last (
+        VAR.clone
+          .make NULL static_type (arg.type.to_type)
+          .make_pretty_name (arg.name)
+      );
+    };
+    prototype := ast.prototype_parent;
+    self := VAR.clone
+      .make NULL static_type (prototype.to_type);
     ast.prototype_parent.add_slot Self;
     Self
   );
-  
-  - add_argument v:VAR <- arguments.add_last v;
 
 Section LIST_SLOT
 
