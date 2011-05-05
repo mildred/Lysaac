@@ -33,20 +33,43 @@ Section Public
     res
   );
   
-  + arguments :FAST_ARRAY(ITM_EXPR_LOCAL);
-  
+  + arguments :FAST_ARRAY(ITM_EXPR_ARG);
+
+Section ITM
+
+  - lookup_local name:CSTRING :ITM_EXPR_LOCAL <-
+  ( + it :ITERATOR(ITM_EXPR_ARG);
+    + res :ITM_EXPR_LOCAL;
+    
+    (it := arguments.iterate).loop_v { l:ITM_EXPR_ARG;
+      (l.name = name).if {
+        it.stop;
+        res := l;
+      };
+    };
+    (res = NULL).if {
+      res := itm_parent.lookup_local name;
+    };
+    res
+  );
+
 Section ITM_PROTOTYPE
 
   - compile_in list:LIST_SLOT <-
-  (
-    list.add_slot (SLOT.clone.make Self);
+  ( + slot:SLOT;
+  
+    slot := SLOT.clone.make Self;
+    arguments.iterate.loop_v { l:ITM_EXPR_ARG;
+      slot.add_argument (l.get_argument_variable);
+    };
+    list.add_slot slot;
   );
   
 Section PARSER
 
   - make :SELF <-
   (
-    arguments := FAST_ARRAY(ITM_EXPR_LOCAL).create 0;
+    arguments := FAST_ARRAY(ITM_EXPR_ARG).create 0;
     Self
   );
   
@@ -71,7 +94,7 @@ Section PARSER
   
   - add_argument (idf:CSTRING, type:ITM_TYPE) :SELF <-
   (
-    arguments.add_last (ITM_EXPR_LOCAL.clone.make (idf, type).set_itm_parent Self);
+    arguments.add_last (ITM_EXPR_ARG.clone.make (idf, type).set_itm_parent Self);
     Self
   );
   

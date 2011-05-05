@@ -10,6 +10,8 @@ Section Public
 
   + result :VAR := VAR;
   
+  + list_parent :LIST;
+  
   - link <- deferred;
 
   - generate gen:GENERATOR <- deferred;
@@ -17,8 +19,11 @@ Section Public
 Section ITM_EXPR
 
   - add_in list:LIST :SELF <-
+  [ -? { list_parent = NULL }; ]
   ( 
+    list_parent := list;
     list.add_instruction Self;
     Self
   );
+
 

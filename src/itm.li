@@ -22,4 +22,6 @@ Section ITM
     Self
   );
   
+  - lookup_local name:CSTRING :ITM_EXPR_LOCAL <- itm_parent.lookup_local name;
+  
 

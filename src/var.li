@@ -49,6 +49,11 @@ Section Public
   (
     gen.arg_name n variable Self type { type.generate gen; };
   );
+  
+  - realize_using v:VAR <-
+  (
+    realize (v.name) id (v.identifier);
+  );
 
 Section GENERATOR
 
@@ -56,6 +61,10 @@ Section GENERATOR
   + name :CSTRING;
 
   - realize n:CSTRING :SELF <-
+  [
+    -? { name = NULL };
+    -? { identifier = 0 };
+  ]
   (
     name := n;
     identifier := 0;
