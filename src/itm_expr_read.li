@@ -16,6 +16,9 @@ Section Public
   + arguments :FAST_ARRAY(ITM_EXPR);
   
   - compile_in list:LIST :VAR <-
+  [
+    ? { list.self.is_valid };
+  ]
   ( + self  :VAR;
     + res   :INSTR;
     + local :ITM_EXPR_LOCAL;
@@ -30,7 +33,12 @@ Section Public
         self := receiver.compile_in list;
       };
       self.is_null.if {
-        warnln "Cannot INSTR_CALL, the receiver doesn't have a type !!!";
+        warn "Cannot INSTR_CALL, the receiver doesn't have a type ";
+        (receiver = NULL).if {
+          warnln "(implicit receiver)";
+        } else {
+          warnln "(explicit receiver)";
+        };
         res := INSTR_NOP;
       } else {
         ? {self.type != NULL};
