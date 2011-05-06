@@ -9,23 +9,23 @@ See http://lisaac.org and http://lisaac-users.org
 Requirements
 ============
 
-You need lisaac with my release r2 (mildred-r2). See the git repository of
+You need lisaac with my release r4 (mildred-r4). See the git repository of
 Lisaac at: http://git.debian.org/?p=lisaac/compiler.git
 
-The tag is f1803b827e96b16b744ce27a3d9ff4db0ec1aed2
+The tag is 45093e70b532276233a35eff500299c674e80d51
 
-    object dfb10a5c45413175f59f097f7241ce65551bbe35
+    object 94e153f61a811226f3eed5109b05ba1b6f97dd5e
     type commit
-    tag mildred-r2
-    tagger Mildred Ki'Lya <silkensedai@online.fr> 1303813632 +0200
-
-    Stable release r2 (not tested)
+    tag mildred-r4
+    tagger Mildred Ki'Lya <silkensedai@online.fr> Fri May 6 12:20:49 2011 +0200
+    
+    Release 4, include workarounds that can pass as bugfixes
     -----BEGIN PGP SIGNATURE-----
     Version: GnuPG v1.4.11 (GNU/Linux)
-
-    iEYEABECAAYFAk22ngEACgkQb52o1pp9LiuwFgCgueo9fVkhw3r29ua16VbTfx/Z
-    mNEAn3VnJT/xDkYgUbUxqjnTAtxcbTtm
-    =yUvz
+    
+    iEYEABECAAYFAk3Dy4IACgkQb52o1pp9LivG2gCeKEWF+oghonzUrVZe5+7Mq6BU
+    XNcAnAvXx7bpe0trjF7bflbOe953fthI
+    =yi11
     -----END PGP SIGNATURE-----
 
 You will also need redo: https://github.com/apenwarr/redo
