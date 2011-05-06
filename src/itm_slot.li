@@ -58,6 +58,8 @@ Section ITM_PROTOTYPE
   - compile_in list:LIST_SLOT <-
   ( + slot:SLOT;
   
+    ? {prototype_parent != NULL};
+  
     slot := SLOT.clone.make Self;
     arguments.iterate.loop_v { l:ITM_EXPR_ARG;
       slot.add_argument (l.get_argument_variable);

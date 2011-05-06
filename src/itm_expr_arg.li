@@ -10,14 +10,27 @@ Section Public
 
   + result :VAR;
 
-  - compile_in list:LIST :VAR <- result;
+  - compile_in list:LIST :VAR <-
+  [ -? { result != NULL }; ]
+  ( result );
 
 Section ITM_SLOT
 
   - get_argument_variable :VAR <-
-  (
-    result := VAR.clone.make NULL static_type (type.to_type).make_pretty_name name
-  );
+  ( + t:TYPE;
+    result := VAR.clone;
+    t := type.to_type;
+    (t != NULL).if {
+      result
+        .make NULL static_type t
+        .make_pretty_name name;
+    };
+    result
+  )
+  [
+    +? {result = Result};
+    +? {(result.is_null) || {result.type != NULL}};
+  ];
 
   - make (n:CSTRING, t:ITM_TYPE) :SELF <-
   (

@@ -29,8 +29,11 @@ Section ITM_SLOT
     arguments := FAST_ARRAY(VAR).create 0;
     list := LIST.clone.make Self;
     ast  := s;
+    prototype := ast.prototype_parent;
+    ? {prototype != NULL};
     self := VAR.clone.make NULL static_type (prototype.to_type);
-    ast.prototype_parent.add_slot Self;
+    ? { ! self.is_realized };
+    prototype.add_slot Self;
     Self
   );
   
@@ -66,6 +69,7 @@ Section LIST_SLOT
         };
       };
     } else {
+      ? { ! self.is_realized };
       gen.sub external_name self self args {
         arguments.iterate.loop_v { v:VAR;
           v.generate_arg gen;

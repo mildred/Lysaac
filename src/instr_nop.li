@@ -1,0 +1,14 @@
+Section Header
+
+  + name := INSTR_NOP;
+
+Section Inherit
+
+  + parent_instr :Expanded INSTR;
+
+Section Public
+
+  - link;
+
+  - generate gen:GENERATOR;
+

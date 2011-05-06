@@ -53,6 +53,7 @@ Section Public
 Section ITM_EXPR_READ
 
   - make_itm i:ITM_EXPR_READ receiver r:VAR :SELF <-
+  [ -? { r.type != NULL }; ]
   (
     receiver := r;
     ast      := i;

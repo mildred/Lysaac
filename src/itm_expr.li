@@ -18,5 +18,8 @@ Section Public
   (
     crash_with_message ("Cannot compile " + type_name);
     VAR
-  );
+  )
+  [
+    type_name +? { (Result.is_null) || {Result.type != NULL} };
+  ];
 

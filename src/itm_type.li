@@ -13,6 +13,7 @@ Section Public
   + block :BOOLEAN;
   
   - to_type :TYPE <-
+  // Return NULL if the type cannot be found
   ( + res :TYPE;
   
     block.if {

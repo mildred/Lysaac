@@ -73,6 +73,9 @@ Section Public
   - crash_on ptr:POINTER with_message msg:ABSTRACT_STRING <-
   (
     print_runtime_stack_on ptr;
+    "Dynamic type: ".print;
+    type_name.print;
+    '\n'.print;
     msg.print;
     '\n'.print;
     die_with_code exit_failure_code;

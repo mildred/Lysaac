@@ -29,11 +29,17 @@ Section Public
       } else {
         self := receiver.compile_in list;
       };
-      call := INSTR_CALL.clone.make_itm Self receiver self;
-      arguments.iterate.loop_v { a:ITM_EXPR;
-        call.add_argument (a.compile_in list);
+      self.is_null.if {
+        warnln "Cannot INSTR_CALL, the receiver doesn't have a type !!!";
+        res := INSTR_NOP;
+      } else {
+        ? {self.type != NULL};
+        call := INSTR_CALL.clone.make_itm Self receiver self;
+        arguments.iterate.loop_v { a:ITM_EXPR;
+          call.add_argument (a.compile_in list);
+        };
+        res := call;
       };
-      res := call;
     };
 
     res.add_in list.result
