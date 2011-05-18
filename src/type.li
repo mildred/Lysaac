@@ -42,6 +42,6 @@ Section PROTOTYPE
   (
     block := TRUE;
     prototype := p;
-    base_type.create_function_pointer;
+    base_type := BASE_TYPE.create_function_pointer;
     Self
   );

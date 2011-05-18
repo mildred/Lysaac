@@ -20,6 +20,7 @@ Section SELF
   
   - hook_header_slot slot:ITM_SLOT <-
   (
+    warnln (prototype.name+": Section Header, slot "+slot.identifier);
     (slot.identifier == "name").if {
       slot.expression.is_a ITM_EXPR_PROTO.if { + p:ITM_EXPR_PROTO;
         p ?= slot.expression;
@@ -40,19 +41,24 @@ Section SELF
         };
       };
     }.elseif {slot.identifier == "role"} then {
+      + check_role :{CSTRING;};
       slot.expression.is_void.if_false {
         warning("expected void expression");
       };
-      slot.has_keyword "String".if {
-        + p :PROTOTYPE;
-        p := prototype.cluster.check_prototype_for_role "String";
-        (p = NULL).if {
-          prototype.set_role "String";
-        } else {
-          p.set_role NULL;
-          warning("There is already a prototype with the role String in "+p.filename);
+      check_role := { k:CSTRING;
+        slot.has_keyword k.if {
+          + p :PROTOTYPE;
+          p := prototype.cluster.check_prototype_for_role k;
+          (p = NULL).if {
+            prototype.set_role k;
+          } else {
+            p.set_role NULL;
+            warning("There is already a prototype with the role "+k+" in "+p.filename);
+          };
         };
       };
+      check_role.value "String";
+      check_role.value "Block";
     } else {
       warning("unknown slot "+slot.identifier);
     };

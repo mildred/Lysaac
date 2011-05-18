@@ -114,7 +114,7 @@ Section PARSER_LI
   [ -? {made}; -? {! parsed}; ]
   (
     role := r;
-    cluster.set_prototype Self for_role "String";
+    cluster.set_prototype Self for_role r;
   );
 
   - set_base_type t:BASE_TYPE <-
