@@ -182,7 +182,14 @@ Section Public
 
   - to_pointer:POINTER <- CONVERT(SELF,POINTER).on Self;
 
-  - to_string :STRING <- to_pointer.to_string;
+  - to_string :STRING <-
+  ( + s :STRING;
+    s := type_name.to_string;
+    s.append "<0x";
+    to_pointer.to_string_in s;
+    s.add_last '>';
+    s
+  );
 
   - to_abstract_string :ABSTRACT_STRING <- to_string;
 

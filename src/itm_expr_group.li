@@ -14,12 +14,38 @@ Section Public
 
   - compile_in list:LIST :VAR <-
   (
-    is_block.if_false {
+    is_block.if {
+      list.list_procs.add_block (PROC_BLOCK.clone.make_block Self);
+    } else {
       instructions.iterate.loop_v { i:ITM_INST;
         i.compile_in list;
       };
     };
     VAR
+  )
+  [
+    +? {{ ! is_block } || { Result.type != NULL }};
+  ];
+  
+  - to_string :STRING <-
+  ( + res :STRING;
+    res := type_name.to_string;
+    is_block.if {
+      res.add_last '{';
+    } else {
+      res.add_last '(';
+    };
+    res.add_last ' ';
+    instructions.iterate.loop_v { i :ITM_INST;
+      res.append (i.to_abstract_string);
+      res.append "; ";
+    };
+    is_block.if {
+      res.add_last '}';
+    } else {
+      res.add_last ')';
+    };
+    res
   );
 
 Section PARSER

@@ -14,7 +14,7 @@ Section Public
 
   - is_realized :BOOLEAN <- ( name.count != 0 );
   
-  - is_valid :BOOLEAN <- ( has_writer );
+  - is_valid :BOOLEAN <- ( type != NULL );
   - is_null  :BOOLEAN <- ( ! is_valid );
   
   - has_writer :BOOLEAN <- (writer_instruction != NULL);

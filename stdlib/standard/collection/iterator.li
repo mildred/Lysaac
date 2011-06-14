@@ -181,6 +181,8 @@ Section Public
 
 
   - loop b:{} <- { valid }.while_do { b.value; next; };
+  // Loop elements. If an element is added at the end of the collection during
+  // the loop, it will be iterated.
 
   - loop_v b:{V;} <- { valid }.while_do { b.value get; next; };
 

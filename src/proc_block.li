@@ -1,0 +1,44 @@
+Section Header
+
+  + name := PROC_BLOCK;
+
+Section Inherit
+
+  + parent_proc :Expanded PROC;
+
+Section Public
+
+  - external_name :CSTRING <- ("block_" + to_pointer.to_string).to_string;
+
+Section ITM_EXPR_GROUP
+
+  - make_block ast:ITM_EXPR_GROUP :SELF <-
+  (
+    itm_expr := ast;
+    list     := LIST.clone.make Self;
+    Self
+  );
+
+Section LIST_PROC
+  
+  - compile list_procs:LIST_PROC <-
+  (
+    list.set_list_procs list_procs;
+    itm_expr.compile_in list;
+  );
+  
+  - link <- list.link;
+  
+  - generate gen:GENERATOR <-
+  (
+    gen.sub external_name self self args {} do {
+      list.generate gen;
+    };
+  );
+
+Section Private
+
+  + itm_expr:ITM_EXPR_GROUP;
+
+  + list:LIST;
+

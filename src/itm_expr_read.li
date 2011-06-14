@@ -24,8 +24,10 @@ Section Public
     + local :ITM_EXPR_LOCAL;
     
     ((receiver = NULL) && {(local := lookup_local slot) != NULL}).if {
+      // Local variable
       res := INSTR_LOAD.clone.make_variable (local.compile_in list);
     } else {
+      // Slot call
       + call :INSTR_CALL;
       (receiver = NULL).if {
         self := list.self;
@@ -44,6 +46,7 @@ Section Public
         ? {self.type != NULL};
         call := INSTR_CALL.clone.make_itm Self receiver self;
         arguments.iterate.loop_v { a:ITM_EXPR;
+          warnln ("Argument: " + a.to_string);
           call.add_argument (a.compile_in list);
         };
         res := call;
@@ -51,6 +54,22 @@ Section Public
     };
 
     res.add_in list.result
+  );
+  
+  - to_string :STRING <-
+  ( + res :STRING;
+    res := type_name + "<";
+    (receiver != NULL).if {
+      res.append (receiver.to_abstract_string);
+      res.add_last '.';
+    };
+    res.append slot;
+    arguments.iterate.loop_v { a:ITM_EXPR;
+      res.add_last ' ';
+      res.append (a.to_abstract_string);
+    };
+    res.add_last '>';
+    res
   );
 
 Section PARSER

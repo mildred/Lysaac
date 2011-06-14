@@ -4,7 +4,7 @@ Section Header
 
 Section Inherit
 
-  + parent_any :Expanded ANY;
+  + parent_proc :Expanded PROC;
 
 Section Public
 
@@ -42,13 +42,14 @@ Section ITM_SLOT
   
   - add_argument v:VAR <- arguments.add_last v;
 
-Section LIST_SLOT
+Section LIST_PROC
 
-  - compile <-
+  - compile list_procs:LIST_PROC <-
   [
    ? { self.is_valid };
   ]
   (
+    list.set_list_procs list_procs;
     external.if {
       + sym :ITM_EXPR_SYM;
       sym ?= ast.expression;
@@ -89,4 +90,5 @@ Section LIST_SLOT
 Section Private
 
   + ast :ITM_SLOT;
+
 

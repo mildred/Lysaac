@@ -11,7 +11,10 @@ Section Public
   + result :VAR;
 
   - compile_in list:LIST :VAR <-
-  [ -? { result != NULL }; ]
+  [
+    -? { result != NULL };
+    -? { result.is_valid };
+  ]
   ( result );
 
 Section ITM_SLOT
@@ -24,6 +27,9 @@ Section ITM_SLOT
       result
         .make NULL static_type t
         .make_pretty_name name;
+      ? { result.is_valid };
+    } else {
+      warnln("Cannot resolve type for "+name);
     };
     result
   )

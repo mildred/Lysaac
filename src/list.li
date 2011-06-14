@@ -6,11 +6,15 @@ Section Inherit
 
   + parent_any :Expanded ANY;
 
-Section SLOT
+Section Public
 
-  - make s:SLOT :SELF <-
+  + list_procs :LIST_PROC;
+
+Section PROC
+
+  - make s:PROC :SELF <-
   (
-    slot := s;
+    proc := s;
     instructions := FAST_ARRAY(INSTR).create 0;
     Self
   );
@@ -29,6 +33,8 @@ Section SLOT
     };
   );
 
+  - set_list_procs l:LIST_PROC <- (list_procs := l;);
+
 Section INSTR
 
   - add_instruction i:INSTR <-
@@ -38,10 +44,10 @@ Section INSTR
 
 Section ITM_EXPR
 
-  - self :VAR <- slot.self;
+  - self :VAR <- proc.self;
 
 Section Private
 
-  + slot:SLOT;
+  + proc:PROC;
 
   + instructions :FAST_ARRAY(INSTR);

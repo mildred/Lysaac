@@ -20,6 +20,10 @@ Feature: Simple blocks
         
         - role := Block;
       
+      Section Public
+      
+        - value <- Internal Value;
+      
       """
       And a file "c/main.li" with
       """

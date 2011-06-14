@@ -1,0 +1,22 @@
+Section Header
+
+  + name := PROC;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+
+Section Public
+
+  - external_name :CSTRING <- (deferred; CSTRING);
+
+  - self:VAR <- VAR;
+
+Section LIST_PROC
+
+  - compile list_procs:LIST_PROC <- deferred;
+  
+  - link <- deferred;
+  
+  - generate gen:GENERATOR <- deferred;
+

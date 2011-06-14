@@ -62,6 +62,8 @@ Section Public
 
   - to_string :STRING <- to_uinteger_cpu.to_hexadecimal;
 
+  - to_string_in s:STRING <- to_uinteger_cpu.to_hexadecimal_in s;
+
   //
   // Convertion format without test.
   //

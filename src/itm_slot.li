@@ -42,9 +42,10 @@ Section ITM
     + res :ITM_EXPR_LOCAL;
     
     (it := arguments.iterate).loop_v { l:ITM_EXPR_ARG;
-      (l.name = name).if {
+      (l.name = name).if { //??
         it.stop;
         res := l;
+        ? { l.result.is_valid };
       };
     };
     (res = NULL).if {
@@ -55,14 +56,18 @@ Section ITM
 
 Section ITM_PROTOTYPE
 
-  - compile_in list:LIST_SLOT <-
+  - compile_in list:LIST_PROC <-
   ( + slot:SLOT;
+    + v :VAR;
   
     ? {prototype_parent != NULL};
   
     slot := SLOT.clone.make Self;
     arguments.iterate.loop_v { l:ITM_EXPR_ARG;
-      slot.add_argument (l.get_argument_variable);
+      v := l.get_argument_variable;
+      v.is_valid.if {
+        slot.add_argument (v);
+      };
     };
     list.add_slot slot;
   );

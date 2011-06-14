@@ -45,6 +45,7 @@ Section Public
   (
     gen.call (slot.name) args {
       args.iterate.loop_v { a:VAR;
+        ? { a.type != NULL };
         gen.call_arg a type { a.type.generate gen };
       };
     };
@@ -62,6 +63,9 @@ Section ITM_EXPR_READ
   );
   
   - add_argument v:VAR <-
+  [
+    -? { v.type != NULL };
+  ]
   (
     args.add_last v;
   );

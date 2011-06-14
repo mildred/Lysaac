@@ -65,7 +65,7 @@ Section Public
     list := FAST_ARRAY(CLUSTER_ITEM).create 0;
     path := p;
     filename := NULL;
-    slots := LIST_SLOT.clone.make;
+    slots := LIST_PROC.clone.make;
     parse path root TRUE;
     state := state_made;
     Self
@@ -76,7 +76,7 @@ Section Public
     prototype_roles := HASHED_DICTIONARY(PROTOTYPE,CSTRING).create;
     list := FAST_ARRAY(CLUSTER_ITEM).create 0;
     filename := f;
-    slots := LIST_SLOT.clone.make;
+    slots := LIST_PROC.clone.make;
     PARSER_CLI.clone.make Self.parse;
     state := state_made;
     Self
@@ -157,7 +157,7 @@ Section Private
 
   + list :FAST_ARRAY(CLUSTER_ITEM) := FAST_ARRAY(CLUSTER_ITEM).create 0;
   
-  + slots :LIST_SLOT;
+  + slots :LIST_PROC;
   
   - find_name (name:STRING, file:ABSTRACT_STRING) <-
   ( + i :INTEGER;

@@ -24,7 +24,7 @@ Section ITM
 
 Section PROTOTYPE
 
-  - compile_in list:LIST_SLOT <-
+  - compile_in list:LIST_PROC <-
   (
     slots.iterate.loop_v { s:ITM_SLOT;
       s.compile_in list;

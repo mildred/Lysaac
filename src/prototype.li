@@ -43,7 +43,7 @@ Section Public
   )
   [ +? {parsed}; ];
   
-  - compile_in list:LIST_SLOT <-
+  - compile_in list:LIST_PROC <-
   [ -? {parsed}; -? {! compiled}; ]
   (
     warnln ("Compile "+name);
@@ -130,6 +130,13 @@ Section PARSER_LI
 Section SLOT
 
   - add_slot s:SLOT <-
+  (
+    slots.add_last s;
+  );
+
+Section SLOT_BLOCK
+
+  - add_slot_block s:SLOT_BLOCK <-
   (
     slots.add_last s;
   );

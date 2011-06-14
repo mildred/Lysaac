@@ -1,6 +1,6 @@
 Section Header
 
-  + name := INSTR_LOAD;
+  + name := INSTR_LOAD; // read local variable
 
 Section Inherit
 
@@ -23,6 +23,7 @@ Section Public
 Section ITM_EXPR_READ
 
   - make_variable v:VAR :SELF <-
+  [ -? { v.is_valid }; ]
   (
     result := v;
     Self

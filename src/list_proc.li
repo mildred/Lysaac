@@ -1,6 +1,6 @@
 Section Header
 
-  + name := LIST_SLOT;
+  + name := LIST_PROC;
 
 Section Inherit
 
@@ -10,21 +10,21 @@ Section Public
 
   - compile <-
   (
-    slots.iterate.loop_v { s:SLOT;
-      s.compile;
+    slots.iterate.loop_v { s:PROC;
+      s.compile Self;
     };
   );
   
   - link <-
   (
-    slots.iterate.loop_v { s:SLOT;
+    slots.iterate.loop_v { s:PROC;
       s.link;
     };
   );
 
   - generate gen:GENERATOR <-
   (
-    slots.iterate.loop_v { s:SLOT;
+    slots.iterate.loop_v { s:PROC;
       s.generate gen;
     };
   );
@@ -33,18 +33,23 @@ Section CLUSTER
 
   - make :SELF <-
   (
-    slots := FAST_ARRAY(SLOT).create 0;
+    slots := FAST_ARRAY(PROC).create 0;
     Self
   );
 
-Section ITM_SLOT
+Section ITM_SLOT, ITM_EXPR_GROUP
 
   - add_slot s:SLOT <-
   (
     slots.add_last s;
   );
+  
+  - add_block b:PROC_BLOCK <-
+  (
+    slots.add_last b;
+  );
 
 Section Private
 
-  + slots :FAST_ARRAY(SLOT);
+  + slots :FAST_ARRAY(PROC);
 

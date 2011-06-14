@@ -11,6 +11,9 @@ Section Public
   + expression :ITM_EXPR;
   
   - compile_in list:LIST :VAR <- expression.compile_in list;
+  
+  - to_string :STRING <-
+  ( type_name + "<" + expression.to_string + ">" );
 
 Section PARSER
   
