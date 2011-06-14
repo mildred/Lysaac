@@ -79,7 +79,7 @@ Section INSTR_CALL
     res
   );
 
-Section CLUSTER, ITM_TYPE, SLOT
+Section CLUSTER, ITM_TYPE, SLOT, INSTR_FNPTR
 
   - to_type :TYPE <-
   [ -? {parsed}; ]

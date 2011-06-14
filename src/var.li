@@ -62,7 +62,7 @@ Section GENERATOR
   + name :CSTRING := "";
 
   - realize n:CSTRING :SELF <-
-  [
+  [ -? { SELF != Self };
     -? { name.count = 0 };
     -? { identifier = 0 };
   ]
@@ -73,6 +73,7 @@ Section GENERATOR
   );
 
   - realize n:CSTRING id id:INTEGER :SELF <-
+  [ -? { SELF != Self }; ]
   (
     name := n;
     identifier := id;

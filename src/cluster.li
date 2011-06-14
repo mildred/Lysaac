@@ -44,6 +44,17 @@ Section Public
     res
   );
   
+  - type_block :TYPE <-
+  [ -? {parsed}; ]
+  ( + p:PROTOTYPE;
+    + res:TYPE;
+    
+    ((p := prototype_for_role "Block") != NULL).if {
+      res := p.to_type_block;
+    };
+    res
+  );
+  
   - display <-
   (
     "◆ Root Cluster".println;

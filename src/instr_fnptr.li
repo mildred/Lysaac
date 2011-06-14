@@ -1,0 +1,30 @@
+Section Header
+
+  + name := INSTR_FNPTR;
+
+Section Inherit
+
+  + parent_instr :Expanded INSTR;
+
+Section Public
+
+  - link;
+
+  - generate gen:GENERATOR <-
+  (
+    gen.expr_function_pointer function_name in result;
+  );
+
+Section ITM_EXPR_GROUP
+
+  - make fn:CSTRING cluster cluster:CLUSTER :SELF <-
+  (
+    function_name := fn;
+    result := VAR.clone.make Self static_type (cluster.type_block);
+    Self
+  );
+
+Section Private
+
+  + function_name :CSTRING;
+

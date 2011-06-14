@@ -13,15 +13,23 @@ Section Public
   + is_block :BOOLEAN;
 
   - compile_in list:LIST :VAR <-
-  (
+  ( + res :VAR;
+  
+    res := VAR;
+
     is_block.if {
-      list.list_procs.add_block (PROC_BLOCK.clone.make_block Self);
+      + block :PROC_BLOCK;
+      block := PROC_BLOCK.clone.make_block Self;
+      res := INSTR_FNPTR.clone.make (block.external_name) cluster cluster_parent.add_in list.result;
+      list.list_procs.add_block block;
+      ? { res.type != NULL };
     } else {
       instructions.iterate.loop_v { i:ITM_INST;
         i.compile_in list;
       };
     };
-    VAR
+
+    res
   )
   [
     +? {{ ! is_block } || { Result.type != NULL }};

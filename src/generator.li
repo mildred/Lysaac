@@ -24,6 +24,11 @@ Section Public
   (
     put "void () *";
   );
+  
+  - expr_function_pointer fn:CSTRING in var:VAR <-
+  (
+    var.realize (("@" + fn).to_string);
+  );
 
   - declare_string string:ABSTRACT_STRING in var:VAR <-
   (
