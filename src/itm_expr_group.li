@@ -19,9 +19,10 @@ Section Public
 
     is_block.if {
       + block :PROC_BLOCK;
-      block := PROC_BLOCK.clone.make_block Self;
+      block := PROC_BLOCK.clone.make_block Self list_parent list;
       res := INSTR_FNPTR.clone.make (block.external_name) cluster cluster_parent.add_in list.result;
       list.list_procs.add_block block;
+      is_block := FALSE;
       ? { res.type != NULL };
     } else {
       instructions.iterate.loop_v { i:ITM_INST;

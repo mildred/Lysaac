@@ -8,14 +8,20 @@ Section Inherit
 
 Section Public
 
-  - external_name :CSTRING <- ("block_" + to_pointer.to_string).to_string;
+  + external_name :CSTRING;
+  
+  + self :VAR;
 
 Section ITM_EXPR_GROUP
 
-  - make_block ast:ITM_EXPR_GROUP :SELF <-
+  - make_block ast:ITM_EXPR_GROUP list_parent l:LIST :SELF <-
   (
-    itm_expr := ast;
-    list     := LIST.clone.make Self;
+    sequence_number := sequence_number + 1;
+    external_name   := ("block_" + sequence_number.to_string).to_string;
+    warnln ("make block " + external_name);
+    itm_expr        := ast;
+    list            := LIST.clone.make Self;
+    self            := VAR.clone.make (not_yet_implemented; NULL) static_type (l.self.type);
     Self
   );
 
@@ -41,4 +47,6 @@ Section Private
   + itm_expr:ITM_EXPR_GROUP;
 
   + list:LIST;
+
+  - sequence_number :INTEGER;
 

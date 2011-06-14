@@ -11,6 +11,7 @@ Section Public
   - compile <-
   (
     slots.iterate.loop_v { s:PROC;
+      warnln ("compile " + s.external_name);
       s.compile Self;
     };
   );
