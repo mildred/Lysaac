@@ -113,7 +113,7 @@ Section Public
   - call_ptr var:VAR <-
   (
     context.append indent_str;
-    context.append "tail call void @";
+    context.append "tail call void ";
     put_var var;
     context.append "(";
     context.append ")\n";

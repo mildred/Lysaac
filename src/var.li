@@ -59,7 +59,9 @@ Section Public
   - generate_arg gen:GENERATOR name n:CSTRING <-
   [ -? { is_valid }; ]
   (
-    gen.arg_name n variable Self type { type.generate gen; };
+    type.base_type.void.if_false {
+      gen.arg_name n variable Self type { type.generate gen; };
+    };
   );
   
   - realize_using v:VAR <-

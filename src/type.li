@@ -30,12 +30,16 @@ Section PROTOTYPE
 
   - make p:PROTOTYPE :SELF <-
   (
-    block := FALSE;
-    prototype := p;
-    prototype.expanded.if {
-      base_type := prototype.base_type;
+    (p.role == "Block").if {
+      make_block p;
     } else {
-      base_type := BASE_TYPE.create_pointer (prototype.base_type);
+      block := FALSE;
+      prototype := p;
+      prototype.expanded.if {
+        base_type := prototype.base_type;
+      } else {
+        base_type := BASE_TYPE.create_pointer (prototype.base_type);
+      };
     };
     Self
   );
