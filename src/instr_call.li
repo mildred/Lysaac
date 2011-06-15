@@ -44,10 +44,20 @@ Section Public
   - generate gen:GENERATOR <-
   (
     gen.call (slot.name) args {
+      generate_arg receiver in gen;
       args.iterate.loop_v { a:VAR;
-        ? { a.type != NULL };
-        gen.call_arg a type { a.type.generate gen };
+        generate_arg a in gen;
       };
+    };
+  );
+
+Section Private
+
+  - generate_arg arg:VAR in gen:GENERATOR <-
+  [ -? { arg.type != NULL }; ]
+  (
+    arg.type.base_type.void.if_false {
+      gen.call_arg arg type { arg.type.generate gen };
     };
   );
 
