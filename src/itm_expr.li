@@ -22,4 +22,9 @@ Section Public
   [
     type_name +? { (Result.is_null) || {Result.type != NULL} };
   ];
+  
+  - has_multiple_results :BOOLEAN <- FALSE;
+  
+  - results :FAST_ARRAY(VAR) <- (deferred; NULL);
+
 

@@ -608,7 +608,7 @@ Section SELF
     };
   );
 
-  //++ C_SLOT -> style . identifier C_ARG? (affect keyword* EXPR)? ";"
+  //++ C_SLOT -> style . identifier C_ARGS? (affect keyword* EXPR)? ";"
   
   - read_c_slot :ITM_SLOT <-
   ( + slot :ITM_SLOT;
@@ -626,7 +626,7 @@ Section SELF
         slot.add_identifier last_identifier;
       };
       read_spaces;
-      read_c_arg slot;
+      read_c_args slot;
       read_spaces;
       affect := read_affect;
       affect.valid.if {
@@ -642,6 +642,29 @@ Section SELF
   
   - handle_slot slot:ITM_SLOT;
   
+  //++ C_ARGS -> "(" . (C_ARG ("," C_ARG)* )? ")"
+  //++         | C_ARG
+  
+  - read_c_args slot:ITM_SLOT :BOOLEAN <-
+  ( + res:BOOLEAN;
+    read_spaces;
+    read_maybe "(".if {
+      read_spaces;
+      (res := read_c_arg slot).if {
+        {read_spaces; {res} && {read_maybe ","}}.while_do {
+          read_spaces;
+          res := read_c_arg slot;
+        };
+        res := TRUE;
+      };
+      read_spaces;
+      read_always ")";
+    } else {
+      res := read_c_arg slot;
+    };
+    res
+  );
+
   //++ C_ARG -> identifier . ":" TYPE
   
   - read_c_arg slot:ITM_SLOT :BOOLEAN <-
@@ -658,6 +681,7 @@ Section SELF
         warning ("Expected type");
       } else {
         slot.add_argument (idf, type);
+        res := TRUE;
       };
     };
     res
@@ -749,41 +773,36 @@ Section SELF
     res
   );
   
-  //++ GROUP -> INSTS
+  //++ GROUP -> (EXPR . ";")* (EXPR . ("," EXPR)*)?
   
   - read_group :ITM_EXPR_GROUP <-
-  ( + res :ITM_EXPR_GROUP;
-    res := ITM_EXPR_GROUP.clone.make;
-    read_insts res;
-    res
+  ( + group :ITM_EXPR_GROUP;
+    + expr  :ITM_EXPR;
+    
+    group := ITM_EXPR_GROUP.clone.make;
+    { read_spaces;
+      expr := read_expr;
+      expr.is_void.if_false {
+        read_spaces;
+        read_maybe ";".if {
+          group.add_inst (ITM_INST_EXPR.clone.make expr);
+        } else {
+          group.add_expr expr;
+          {read_maybe ","}.while_do {
+            read_spaces;
+            expr := read_expr;
+            expr.is_void.if_false {
+              group.add_expr expr;
+            };
+            read_spaces;
+          };
+        };
+      };
+    }.do_until {expr.is_void};
+
+    group
   );
-  
-  //++ INSTS -> INST*
-  
-  - read_insts group:ITM_EXPR_GROUP <-
-  ( + inst :ITM_INST;
-    ((inst := read_inst) != NULL).if {
-      group.add_inst inst;
-      read_insts group;
-    };
-  );
-  
-  //++ INST -> EXPR ";"
-  
-  - read_inst :ITM_INST <-
-  ( + expr :ITM_EXPR;
-    + res :ITM_INST;
-  
-    read_spaces;
-    expr := read_expr;
-    expr.is_void.if_false {
-      read_spaces;
-      read_always ";";
-      res := ITM_INST_EXPR.clone.make expr;
-    };
-    res
-  );
-  
+
   - open_source f:ABSTRACT_STRING <-
   ( + file:POINTER;
     + sz:INTEGER;

@@ -46,8 +46,14 @@ Section Public
         ? {self.type != NULL};
         call := INSTR_CALL.clone.make_itm Self receiver self;
         arguments.iterate.loop_v { a:ITM_EXPR;
+          + arg :VAR;
           warnln ("Argument: " + a.to_string);
-          call.add_argument (a.compile_in list);
+          arg := a.compile_in list;
+          a.has_multiple_results.if {
+            a.results.iterate.loop_v { v:VAR; call.add_argument v; };
+          } else {
+            call.add_argument arg;
+          };
         };
         res := call;
       };

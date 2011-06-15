@@ -33,3 +33,37 @@ Feature: Simple external procedure call
       Hello World
       
       """
+
+  Scenario: puts Hello World (with braces)
+    Given a file "c/cstring.li" with
+      """
+      Section Header
+      
+        + name := Reference CSTRING;
+        
+        - role := String; // const char*
+        - type := Integer 8;
+      
+      """
+      And a file "c/main.li" with
+      """
+      Section Header
+        
+        + name := MAIN;
+        
+      Section Public
+      
+        - puts(str:CSTRING) <- External `puts`;
+      
+        - main <-
+        (
+          puts("Hello World");
+        );
+      
+      """
+     When I execute the cluster "c"
+     Then I should see
+      """
+      Hello World
+      
+      """

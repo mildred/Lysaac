@@ -11,6 +11,10 @@ Section Public
   - is_void :BOOLEAN <- FALSE;
 
   + is_block :BOOLEAN;
+  
+  + results :FAST_ARRAY(VAR);
+  
+  + has_multiple_results :BOOLEAN := FALSE;
 
   - compile_in list:LIST :VAR <-
   ( + res :VAR;
@@ -27,6 +31,10 @@ Section Public
     } else {
       instructions.iterate.loop_v { i:ITM_INST;
         i.compile_in list;
+      };
+      has_multiple_results := TRUE;
+      result_exprs.iterate.loop_v { e:ITM_EXPR;
+        results.add_last (e.compile_in list);
       };
     };
 
@@ -63,6 +71,8 @@ Section PARSER
   (
     is_block := FALSE;
     instructions := FAST_ARRAY(ITM_INST).create 0;
+    result_exprs := FAST_ARRAY(ITM_EXPR).create 0;
+    results      := FAST_ARRAY(VAR).create (result_exprs.count);
     Self
   );
   
@@ -78,7 +88,16 @@ Section PARSER
     inst.set_itm_parent Self;
     instructions.add_last inst;
   );
+  
+  - add_expr expr:ITM_EXPR <-
+  (
+    expr.set_itm_parent Self;
+    result_exprs.add_last expr;
+  );
 
 Section Private
 
   + instructions :FAST_ARRAY(ITM_INST);
+
+  + result_exprs :FAST_ARRAY(ITM_EXPR);
+  
