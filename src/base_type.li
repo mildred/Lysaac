@@ -8,6 +8,19 @@ Section Inherit
 
 Section Public
 
+  - to_string:STRING <-
+  ( + res :STRING;
+    res := type_name + "<" + i_size.to_string + "," + f_ptr.to_string;
+    (p_type = NULL).if {
+      res.append ",NULL";
+    } else {
+      res.append ",";
+      res.append (p_type.to_string);
+    };
+    res.append ">";
+    res
+  );
+
   - integer :BOOLEAN <- (i_size > 0);
   - integer_size :INTEGER <- [ -?{integer}; ] i_size;
     
@@ -15,6 +28,8 @@ Section Public
   - pointer_type :BASE_TYPE <- [ -?{pointer}; ] p_type;
   
   - function_pointer :BOOLEAN <- f_ptr;
+  
+  - void :BOOLEAN <- {! integer} && {! pointer} &&  {! function_pointer};
   
   - i8  :BASE_TYPE := create_integer 8;
   - i16 :BASE_TYPE := create_integer 16;
@@ -26,6 +41,7 @@ Section Public
   - create_function_pointer      :SELF <- clone.make_function_pointer;
   
   - generate gen:GENERATOR <-
+  [ -? { Self != SELF }; ]
   (
     integer.if {
       gen.type_integer integer_size;
@@ -36,7 +52,7 @@ Section Public
     }.elseif {function_pointer} then {
       gen.type_function_pointer;
     } else {
-      not_yet_implemented;
+      gen.type_void;
     };
   );
 

@@ -42,7 +42,7 @@ Section INSTR
     instructions.add_last i;
   );
 
-Section ITM_EXPR, PROC_BLOCK
+Section ITM_EXPR, PROC_BLOCK, SLOT
 
   - self :VAR <- proc.self;
 

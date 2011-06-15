@@ -69,6 +69,7 @@ Section LIST_PROC
   
   - generate gen:GENERATOR <-
   (
+    warnln ("generate "+name);
     external.if {
       gen.declare_sub external_name args {
         arguments.iterate.loop_v { v:VAR;
@@ -82,12 +83,22 @@ Section LIST_PROC
           v.generate_arg gen;
         };
       } do {
-        list.generate gen;
+        is_block_value_slot.if {
+          gen.call_ptr (list.self);
+        } else {
+          list.generate gen;
+        };
       };
     };
   );
 
 Section Private
+
+  - is_block_value_slot :BOOLEAN <-
+  ( (prototype.role == "Block") &&
+    {ast.has_keyword "Internal"} &&
+    {ast.has_keyword "Value"}
+  );
 
   + ast :ITM_SLOT;
 

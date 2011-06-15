@@ -23,6 +23,8 @@ Section Public
       base_type.generate gen;
     };
   );
+  
+  - to_string :STRING <- type_name + "<" + prototype.name + "," + base_type.to_string + ">";
 
 Section PROTOTYPE
 

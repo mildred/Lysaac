@@ -25,6 +25,11 @@ Section Public
     put "void () *";
   );
   
+  - type_void <-
+  (
+    put "void";
+  );
+  
   - expr_function_pointer fn:CSTRING in var:VAR <-
   (
     var.realize (("@" + fn).to_string);
@@ -75,12 +80,14 @@ Section Public
   );
   
   - sub name:CSTRING self s:VAR args args:{} do blc:{} <-
+  [ -? { s.is_valid }; ]
   (
-    s.realize "null";
+    s.make_pretty_name "_self";
     context.append indent_str;
     context.append "define void @";
     context.append name;
     context.append " (";
+    s.generate_arg Self;
     args.value;
     context.append ") {\n";
     last_local := 0;
@@ -103,6 +110,15 @@ Section Public
     context.append ")\n";
   );
   
+  - call_ptr var:VAR <-
+  (
+    context.append indent_str;
+    context.append "tail call void @";
+    put_var var;
+    context.append "(";
+    context.append ")\n";
+  );
+  
   - arg blc:{} <-
   (
     (context.last = '(').if_false {
@@ -114,10 +130,14 @@ Section Public
   - arg_name n:ABSTRACT_STRING variable var:VAR type type:{} <-
   (
     arg {
+      (n == "").if {
+        var.realize "%" id get_local;
+      } else {
+        var.realize (("%" + n).to_string);
+      };
       type.value;
-      put " %";
-      put n;
-      var.realize (("%" + n).to_string);
+      put " ";
+      put_var var;
     };
   );
   
@@ -205,6 +225,7 @@ Section Private
   
   - put_var var:VAR in str:STRING <-
   (
+    warnln ("put var " + var.to_string);
     str.append (var.name);
     (var.name == "@").if {
       ? { var.identifier > 0 };

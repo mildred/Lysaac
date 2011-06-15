@@ -21,7 +21,7 @@ Section Public
   
   + filename :CSTRING;
   
-  + role :CSTRING;
+  + role :CSTRING := "";
   
   + cluster :CLUSTER;
   

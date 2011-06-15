@@ -12,6 +12,17 @@ Section Inherit
   
 Section Public
 
+  - to_string :STRING <-
+  ( + res:STRING;
+    res := type_name + "<" + name + "," + identifier.to_string + "," + pretty_name + ",";
+    (type = NULL).if {
+      res.append "NULL>";
+    } else {
+      res.append (type.to_string + ">");
+    };
+    res
+  );
+
   - is_realized :BOOLEAN <- ( name.count != 0 );
   
   - is_valid :BOOLEAN <- ( type != NULL );

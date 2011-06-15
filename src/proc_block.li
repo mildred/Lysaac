@@ -21,7 +21,7 @@ Section ITM_EXPR_GROUP
     warnln ("make block " + external_name);
     itm_expr        := ast;
     list            := LIST.clone.make Self;
-    self            := VAR.clone.make (not_yet_implemented; NULL) static_type (l.self.type);
+    self            := VAR.clone.make NULL static_type (l.self.type);
     Self
   );
 
