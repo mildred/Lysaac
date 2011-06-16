@@ -32,12 +32,7 @@ Section Public
   
   - expr_integer_value value:INTEGER in var:REG <-
   (
-    var.realize "%" id get_local;
-    put_indent;
-    put_var var;
-    put " = add i32 0, ";
-    put_int value;
-    put " ; FIXME\n";
+    var.realize (value.to_abstract_string);
   );
   
   - expr_function_pointer fn:CSTRING in var:REG <-
@@ -49,7 +44,7 @@ Section Public
   (
     context_const {
       var.realize "@" id get_global;
-      put_var var;
+      put_reg var;
       put " = private constant [";
       put_int (string.count+1);
       put " x i8] c\"";
@@ -71,11 +66,11 @@ Section Public
   (
     to.realize "%" id get_local;
     put_indent;
-    put_var to;
+    put_reg to;
     put " = getelementptr [";
     put_int (s.count+1);
     put " x i8]* ";
-    put_var from;
+    put_reg from;
     put ", i32 0, i32 0\n";
   );
 
@@ -124,7 +119,7 @@ Section Public
   (
     context.append indent_str;
     context.append "tail call void ";
-    put_var var;
+    put_reg var;
     context.append "(";
     context.append ")\n";
   );
@@ -147,7 +142,7 @@ Section Public
       };
       type.value;
       put " ";
-      put_var var;
+      put_reg var;
     };
   );
   
@@ -156,7 +151,7 @@ Section Public
     arg {
       t.value;
       context.add_last ' ';
-      put_var var in code;
+      put_reg var in code;
     };
   );
   
@@ -231,11 +226,11 @@ Section Private
   - put_c c:CHARACTER     <- context.add_last c;
   - put_int i:INTEGER     <- i.append_in context;
   - put_indent            <- put indent_str;
-  - put_var var:REG       <- put_var var in context;
+  - put_reg var:REG       <- put_reg var in context;
   
-  - put_var var:REG in str:STRING <-
+  - put_reg var:REG in str:STRING <-
   (
-    warnln ("put var " + var.to_string);
+    warnln ("put reg " + var.to_string);
     str.append (var.name);
     (var.name == "@").if {
       ? { var.identifier > 0 };

@@ -22,6 +22,10 @@ Section Public
     };
     res
   );
+  
+  //
+  // Predicates
+  //
 
   - is_realized :BOOLEAN <- ( name.count != 0 );
   
@@ -30,6 +34,10 @@ Section Public
   
   - has_writer :BOOLEAN <- (writer_instruction != NULL);
   
+  //
+  // Attributes
+  //
+  
   - writer :INSTR <-
   [ -? {has_writer}; ]
   ( writer_instruction );
@@ -37,6 +45,10 @@ Section Public
   + type :TYPE := NULL;
   
   + pretty_name :CSTRING := "";
+  
+  //
+  // Construction
+  //
 
   - make writer_instr:INSTR static_type t:TYPE :SELF <-
   [ -? { t != NULL }; ]
@@ -54,6 +66,19 @@ Section Public
     pretty_name := n;
     Self
   );
+  
+  //
+  // Realization
+  //
+  
+  - realize_using v:REG <-
+  (
+    realize (v.name) id (v.identifier);
+  );
+  
+  //
+  // Generation
+  //
 
   - generate_arg gen:GENERATOR <- generate_arg gen name pretty_name;
   
@@ -63,11 +88,6 @@ Section Public
     type.base_type.void.if_false {
       gen.arg_name n variable Self type { type.generate gen; };
     };
-  );
-  
-  - realize_using v:REG <-
-  (
-    realize (v.name) id (v.identifier);
   );
 
 Section GENERATOR
