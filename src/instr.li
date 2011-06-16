@@ -8,7 +8,7 @@ Section Inherit
 
 Section Public
 
-  + result :VAR := VAR;
+  + result :REG := REG;
   
   + list_parent :LIST;
   

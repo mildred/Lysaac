@@ -58,7 +58,7 @@ Section ITM_PROTOTYPE
 
   - compile_in list:LIST_PROC <-
   ( + slot:SLOT;
-    + v :VAR;
+    + v :REG;
   
     ? {prototype_parent != NULL};
   

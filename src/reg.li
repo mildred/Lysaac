@@ -1,6 +1,6 @@
 Section Header
 
-  + name := VAR;
+  + name := REG;
   
   // A var is a promise between a SINGLE producer (writer) and a consumer
   // (reader). It is realized when the generator gives it a name or an
@@ -65,7 +65,7 @@ Section Public
     };
   );
   
-  - realize_using v:VAR <-
+  - realize_using v:REG <-
   (
     realize (v.name) id (v.identifier);
   );

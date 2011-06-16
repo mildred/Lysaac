@@ -12,7 +12,7 @@ Section Public
 
   + string :CSTRING;
 
-  - compile_in list:LIST :VAR <-
+  - compile_in list:LIST :REG <-
   ( + t:TYPE;
     
     t := cluster_parent.type_for_role "String";

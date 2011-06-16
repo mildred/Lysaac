@@ -16,22 +16,22 @@ Section Public
   
   + external_name :CSTRING <- name;
   
-  + arguments :FAST_ARRAY(VAR);
+  + arguments :FAST_ARRAY(REG);
   
   + prototype :PROTOTYPE;
 
-  + self :VAR;
+  + self :REG;
 
 Section ITM_SLOT
 
   - make s:ITM_SLOT :SELF <-
   ( + t:TYPE;
-    arguments := FAST_ARRAY(VAR).create 0;
+    arguments := FAST_ARRAY(REG).create 0;
     list := LIST.clone.make Self;
     ast  := s;
     prototype := ast.prototype_parent;
     ? {prototype != NULL};
-    self := VAR.clone.make INSTR_NOP static_type (t := prototype.to_type);
+    self := REG.clone.make INSTR_NOP static_type (t := prototype.to_type);
     //? { ! t.base_type.void };
     ? { self.is_valid };
     ? { t != NULL };
@@ -41,7 +41,7 @@ Section ITM_SLOT
     Self
   );
   
-  - add_argument v:VAR <- arguments.add_last v;
+  - add_argument v:REG <- arguments.add_last v;
 
 Section LIST_PROC
 
@@ -73,14 +73,14 @@ Section LIST_PROC
     warnln ("generate "+name);
     external.if {
       gen.declare_sub external_name args {
-        arguments.iterate.loop_v { v:VAR;
+        arguments.iterate.loop_v { v:REG;
           gen.arg { v.type.generate gen; };
         };
       };
     } else {
       ? { ! self.is_realized };
       gen.sub external_name self self args {
-        arguments.iterate.loop_v { v:VAR;
+        arguments.iterate.loop_v { v:REG;
           v.generate_arg gen;
         };
       } do {

@@ -20,7 +20,7 @@ Section ITM_EXPR_GROUP
   - make fn:CSTRING cluster cluster:CLUSTER :SELF <-
   (
     function_name := fn;
-    result := VAR.clone.make Self static_type (cluster.type_block);
+    result := REG.clone.make Self static_type (cluster.type_block);
     Self
   );
 

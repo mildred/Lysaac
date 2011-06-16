@@ -25,7 +25,7 @@ Section Public
   - generate gen:GENERATOR <-
   (
     has_been_declared.if_false {
-      global_var := VAR.clone;
+      global_var := REG.clone;
       gen.declare_string string in global_var;
     };
     gen.get_string_pointer_from global_var string string to result;
@@ -38,13 +38,13 @@ Section ITM_EXPR_STR
     has_been_declared := FALSE;
     string := s;
     static_type := t;
-    result := VAR.clone.make Self static_type t;
+    result := REG.clone.make Self static_type t;
     Self
   );
 
 Section Private
 
-  + global_var :VAR;
+  + global_var :REG;
 
   - has_been_declared :BOOLEAN <- (global_var != NULL);
 

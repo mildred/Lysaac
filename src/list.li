@@ -16,7 +16,7 @@ Section PROC
   (
     proc         := s;
     instructions := FAST_ARRAY(INSTR).create 0;
-    results      := FAST_ARRAY(VAR).create 0;
+    results      := FAST_ARRAY(REG).create 0;
     Self
   );
   
@@ -45,14 +45,14 @@ Section INSTR
 
 Section ITM_EXPR_GROUP
 
-  - add_result res:VAR <-
+  - add_result res:REG <-
   (
     results.add_last res;
   );
 
 Section ITM_EXPR, PROC_BLOCK, SLOT
 
-  - self :VAR <- proc.self;
+  - self :REG <- proc.self;
 
 Section Private
 
@@ -60,5 +60,5 @@ Section Private
 
   + instructions :FAST_ARRAY(INSTR);
 
-  + results :FAST_ARRAY(VAR);
+  + results :FAST_ARRAY(REG);
 

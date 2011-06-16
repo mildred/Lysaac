@@ -10,7 +10,7 @@ Section Public
 
   - external_name :CSTRING <- (deferred; CSTRING);
 
-  - self:VAR <- VAR;
+  - self:REG <- REG;
 
 Section LIST_PROC
 

@@ -10,5 +10,5 @@ Section Public
 
   - is_void :BOOLEAN <- TRUE;
   
-  - compile_in list:LIST :VAR <- VAR; // NOP
+  - compile_in list:LIST :REG <- REG; // NOP
 

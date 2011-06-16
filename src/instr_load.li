@@ -22,7 +22,7 @@ Section Public
 
 Section ITM_EXPR_READ
 
-  - make_variable v:VAR :SELF <-
+  - make_variable v:REG :SELF <-
   [ -? { v.is_valid }; ]
   (
     result := v;

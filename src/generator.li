@@ -30,7 +30,7 @@ Section Public
     put "void";
   );
   
-  - expr_integer_value value:INTEGER in var:VAR <-
+  - expr_integer_value value:INTEGER in var:REG <-
   (
     var.realize "%" id get_local;
     put_indent;
@@ -40,12 +40,12 @@ Section Public
     put " ; FIXME\n";
   );
   
-  - expr_function_pointer fn:CSTRING in var:VAR <-
+  - expr_function_pointer fn:CSTRING in var:REG <-
   (
     var.realize (("@" + fn).to_string);
   );
 
-  - declare_string string:ABSTRACT_STRING in var:VAR <-
+  - declare_string string:ABSTRACT_STRING in var:REG <-
   (
     context_const {
       var.realize "@" id get_global;
@@ -67,7 +67,7 @@ Section Public
     };
   );
   
-  - get_string_pointer_from from:VAR string s:ABSTRACT_STRING to to:VAR <-
+  - get_string_pointer_from from:REG string s:ABSTRACT_STRING to to:REG <-
   (
     to.realize "%" id get_local;
     put_indent;
@@ -89,7 +89,7 @@ Section Public
     context.append ")\n\n";
   );
   
-  - sub name:CSTRING self s:VAR args args:{} do blc:{} <-
+  - sub name:CSTRING self s:REG args args:{} do blc:{} <-
   [ -? { s.is_valid }; ]
   (
     s.make_pretty_name "_self";
@@ -120,7 +120,7 @@ Section Public
     context.append ")\n";
   );
   
-  - call_ptr var:VAR <-
+  - call_ptr var:REG <-
   (
     context.append indent_str;
     context.append "tail call void ";
@@ -137,7 +137,7 @@ Section Public
     blc.value;
   );
   
-  - arg_name n:ABSTRACT_STRING variable var:VAR type type:{} <-
+  - arg_name n:ABSTRACT_STRING variable var:REG type type:{} <-
   (
     arg {
       (n == "").if {
@@ -151,7 +151,7 @@ Section Public
     };
   );
   
-  - call_arg var:VAR type t:{} <-
+  - call_arg var:REG type t:{} <-
   (
     arg {
       t.value;
@@ -231,9 +231,9 @@ Section Private
   - put_c c:CHARACTER     <- context.add_last c;
   - put_int i:INTEGER     <- i.append_in context;
   - put_indent            <- put indent_str;
-  - put_var var:VAR       <- put_var var in context;
+  - put_var var:REG       <- put_var var in context;
   
-  - put_var var:VAR in str:STRING <-
+  - put_var var:REG in str:STRING <-
   (
     warnln ("put var " + var.to_string);
     str.append (var.name);

@@ -12,14 +12,14 @@ Section Public
 
   + is_block :BOOLEAN;
   
-  + results :FAST_ARRAY(VAR);
+  + results :FAST_ARRAY(REG);
   
   + has_multiple_results :BOOLEAN := FALSE;
 
-  - compile_in list:LIST :VAR <-
-  ( + res :VAR;
+  - compile_in list:LIST :REG <-
+  ( + res :REG;
   
-    res := VAR;
+    res := REG;
 
     is_block.if {
       + block :PROC_BLOCK;
@@ -75,7 +75,7 @@ Section PARSER
     is_block := FALSE;
     instructions := FAST_ARRAY(ITM_INST).create 0;
     result_exprs := FAST_ARRAY(ITM_EXPR).create 0;
-    results      := FAST_ARRAY(VAR).create (result_exprs.count);
+    results      := FAST_ARRAY(REG).create (result_exprs.count);
     Self
   );
   

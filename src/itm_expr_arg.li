@@ -8,9 +8,9 @@ Section Inherit
 
 Section Public
 
-  + result :VAR;
+  + result :REG;
 
-  - compile_in list:LIST :VAR <-
+  - compile_in list:LIST :REG <-
   [
     -? { result != NULL };
     -? { result.is_valid };
@@ -19,9 +19,9 @@ Section Public
 
 Section ITM_SLOT
 
-  - get_argument_variable :VAR <-
+  - get_argument_variable :REG <-
   ( + t:TYPE;
-    result := VAR.clone;
+    result := REG.clone;
     t := type.to_type;
     (t != NULL).if {
       result

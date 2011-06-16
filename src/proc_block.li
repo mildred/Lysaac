@@ -10,7 +10,7 @@ Section Public
 
   + external_name :CSTRING;
   
-  + self :VAR;
+  + self :REG;
 
 Section ITM_EXPR_GROUP
 
@@ -21,7 +21,7 @@ Section ITM_EXPR_GROUP
     warnln ("make block " + external_name);
     itm_expr        := ast;
     list            := LIST.clone.make Self;
-    self            := VAR.clone.make NULL static_type (l.self.type);
+    self            := REG.clone.make NULL static_type (l.self.type);
     Self
   );
 

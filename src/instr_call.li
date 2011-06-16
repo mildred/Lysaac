@@ -12,7 +12,7 @@ Section Public
   // Receiver
   //
 
-  + receiver :VAR;
+  + receiver :REG;
   
   //
   // Slot
@@ -45,7 +45,7 @@ Section Public
   (
     gen.call (slot.name) args {
       generate_arg receiver in gen;
-      args.iterate.loop_v { a:VAR;
+      args.iterate.loop_v { a:REG;
         generate_arg a in gen;
       };
     };
@@ -53,7 +53,7 @@ Section Public
 
 Section Private
 
-  - generate_arg arg:VAR in gen:GENERATOR <-
+  - generate_arg arg:REG in gen:GENERATOR <-
   [ -? { arg.type != NULL }; ]
   (
     arg.type.base_type.void.if_false {
@@ -63,16 +63,16 @@ Section Private
 
 Section ITM_EXPR_READ
 
-  - make_itm i:ITM_EXPR_READ receiver r:VAR :SELF <-
+  - make_itm i:ITM_EXPR_READ receiver r:REG :SELF <-
   [ -? { r.type != NULL }; ]
   (
     receiver := r;
     ast      := i;
-    args     := FAST_ARRAY(VAR).create 0;
+    args     := FAST_ARRAY(REG).create 0;
     Self
   );
   
-  - add_argument v:VAR <-
+  - add_argument v:REG <-
   [
     -? { v.type != NULL };
   ]
@@ -85,5 +85,5 @@ Section Private
   - name :CSTRING <- ast.slot;
   
   + ast  :ITM_EXPR_READ;
-  + args :FAST_ARRAY(VAR);
+  + args :FAST_ARRAY(REG);
 

@@ -11,17 +11,17 @@ Section Public
   - is_void :BOOLEAN <- (deferred; TRUE);
 
   // TODO: Refactoring: compile_in should return SELF but the object should
-  // have a slot result:VAR. This would allow ITM_EXPR to compile to multiple
-  // instructions, each having a different VAR.
+  // have a slot result:REG. This would allow ITM_EXPR to compile to multiple
+  // instructions, each having a different REG.
 
-  - compile_in list:LIST :VAR <-
+  - compile_in list:LIST :REG <-
   (
     crash_with_message ("Cannot compile " + type_name);
-    VAR
+    REG
   );
   
   - has_multiple_results :BOOLEAN <- FALSE;
   
-  - results :FAST_ARRAY(VAR) <- (deferred; NULL);
+  - results :FAST_ARRAY(REG) <- (deferred; NULL);
 
 
