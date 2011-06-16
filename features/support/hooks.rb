@@ -1,6 +1,7 @@
 require 'fileutils'
 
 Around do |scenario, block|
+  ENV['LYSAAC_PATH'] = nil
   dir = File.join("tmp", scenario.file_colon_line.gsub(/[\/\\:]/, "."))
   FileUtils.rm_rf dir
   FileUtils.mkdir_p dir
@@ -11,6 +12,6 @@ Around do |scenario, block|
   if scenario.failed?
     puts "Leftover files in #{dir}"
   else
-    FileUtils.rm_rf dir
+    #FileUtils.rm_rf dir
   end
 end
