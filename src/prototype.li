@@ -126,6 +126,12 @@ Section PARSER_LI
   (
     base_type := t;
   );
+  
+  - make_expanded :SELF <-
+  (
+    expanded := TRUE;
+    Self
+  );
 
 Section SLOT
 

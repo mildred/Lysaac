@@ -27,6 +27,9 @@ Section SELF
         (p.prototype == prototype.name).if_false {
           warning ("expected "+prototype.name);
         };
+        slot.has_keyword "Expanded".if {
+          prototype.make_expanded;
+        };
       } else {
         warning("expected prototype constant");
       };
