@@ -35,9 +35,9 @@ Section Public
     var.realize "%" id get_local;
     put_indent;
     put_var var;
-    put " = ";
+    put " = add i32 0, ";
     put_int value;
-    put "\n";
+    put " ; FIXME\n";
   );
   
   - expr_function_pointer fn:CSTRING in var:VAR <-
