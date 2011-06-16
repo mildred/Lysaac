@@ -50,7 +50,11 @@ Section Public
           warnln ("Argument: " + a.to_string);
           arg := a.compile_in list;
           a.has_multiple_results.if {
-            a.results.iterate.loop_v { v:VAR; call.add_argument v; };
+            a.results.iterate.loop_v { v:VAR;
+              ? { v.is_valid };
+              ? { v.type != NULL };
+              call.add_argument v;
+            };
           } else {
             call.add_argument arg;
           };

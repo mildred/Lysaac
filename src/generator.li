@@ -30,6 +30,16 @@ Section Public
     put "void";
   );
   
+  - expr_integer_value value:INTEGER in var:VAR <-
+  (
+    var.realize "%" id get_local;
+    put_indent;
+    put_var var;
+    put " = ";
+    put_int value;
+    put "\n";
+  );
+  
   - expr_function_pointer fn:CSTRING in var:VAR <-
   (
     var.realize (("@" + fn).to_string);

@@ -1,0 +1,41 @@
+Section Header
+
+  + name := INSTR_INT;
+
+Section Inherit
+
+  + parent_instr :Expanded INSTR;
+
+Section Public
+
+  + value :INTEGER;
+  
+  + static_type :TYPE;
+
+  //
+  // Link
+  //
+  
+  - link;
+  
+  //
+  // Generate
+  //
+
+  - generate gen:GENERATOR <-
+  (
+    gen.expr_integer_value value in result;
+  );
+  
+Section ITM_EXPR_INT
+
+  - make v:INTEGER static_type t:TYPE :SELF <-
+  [ -? { t != NULL }; ]
+  (
+    value       := v;
+    static_type := t;
+    result      := VAR.clone.make Self static_type t;
+    Self
+  )
+  [ +? { result.is_valid }; ];
+

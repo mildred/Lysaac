@@ -12,6 +12,17 @@ Section Public
 
   + value :INTEGER;
 
+  - compile_in list:LIST :VAR <-
+  ( + t:TYPE;
+    
+    t := cluster_parent.type_for_role "Integer";
+    (t = NULL).if {
+      warnln "Could not find role for Integer";
+    };
+    
+    INSTR_INT.clone.make value static_type t.add_in list.result
+  );
+
 Section PARSER
   
   - make v:INTEGER :SELF <-

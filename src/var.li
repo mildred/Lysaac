@@ -36,9 +36,10 @@ Section Public
   
   + type :TYPE := NULL;
   
-  + pretty_name :CSTRING;
+  + pretty_name :CSTRING := "";
 
   - make writer_instr:INSTR static_type t:TYPE :SELF <-
+  [ -? { t != NULL }; ]
   (
     writer_instruction := writer_instr;
     type := t;

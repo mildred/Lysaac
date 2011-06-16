@@ -25,7 +25,7 @@ Section Public
   - generate gen:GENERATOR <-
   (
     has_been_declared.if_false {
-      global_var := VAR.clone.make Self static_type NULL;
+      global_var := VAR.clone;
       gen.declare_string string in global_var;
     };
     gen.get_string_pointer_from global_var string string to result;

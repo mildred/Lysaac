@@ -58,6 +58,7 @@ Section SELF
         };
       };
       check_role.value "String";
+      check_role.value "Integer";
       check_role.value "Block";
     } else {
       warning("unknown slot "+slot.identifier);
