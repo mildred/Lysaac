@@ -70,9 +70,12 @@ Section ITM_PROTOTYPE
       v.is_valid.if {
         slot.add_argument (v);
       };
-      (return_type != NULL).if {
-        slot.set_return_type (return_type.to_type);
-      };
+    };
+    (return_type != NULL).if {
+      warnln (return_type.to_string);
+      slot.set_return_type (return_type.to_type);
+      ? { return_type != NULL };
+      warnln (slot.result_type.to_string);
     };
     list.add_slot slot;
   );
@@ -92,9 +95,12 @@ Section PARSER
   );
   
   - set_return_type t:ITM_TYPE <-
+  [ -? {t != NULL}; ]
   (
+    t.set_itm_parent Self;
     return_type := t;
-  );
+  )
+  [ -? {return_type != NULL}; ];
   
   - set_style s:ITM_STYLE :SELF <-
   (

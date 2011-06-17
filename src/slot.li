@@ -55,7 +55,10 @@ Section ITM_SLOT
   
   - add_argument v:REG <- arguments.add_last v;
   
-  - set_return_type t:TYPE <- (result_type := t;);
+  - set_return_type t:TYPE <-
+  (
+    result_type := t;
+  );
 
 Section LIST_PROC
 

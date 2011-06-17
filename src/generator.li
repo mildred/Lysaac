@@ -89,7 +89,9 @@ Section Public
   (
     s.make_pretty_name "_self";
     put_indent;
-    put "define void @";
+    put "define ";
+    put_reg_type r;
+    put " @";
     put name;
     put " (";
     s.generate_arg Self;
@@ -101,6 +103,8 @@ Section Public
     put_indent;
     put "ret ";
     r.is_valid.if_true {
+      put_reg_type r;
+      put_c ' ';
       put_reg r;
     } else {
       put "void";
