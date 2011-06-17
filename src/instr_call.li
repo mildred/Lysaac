@@ -18,12 +18,9 @@ Section Public
   // Slot
   //
 
-  - slot :SLOT <-
-  ( + res :SLOT;
-    (res = NULL).if {
-      res := receiver.type.prototype.find_slot name;
-    };
-    res
+  + slot :SLOT <-
+  (
+    slot := receiver.type.prototype.find_slot name
   );
 
   //
@@ -48,7 +45,7 @@ Section Public
       args.iterate.loop_v { a:REG;
         generate_arg a in gen;
       };
-    };
+    } result result;
   );
 
 Section Private
@@ -69,6 +66,7 @@ Section ITM_EXPR_READ
     receiver := r;
     ast      := i;
     args     := FAST_ARRAY(REG).create 0;
+    result   := REG.clone.make Self static_type (slot.result_type);
     Self
   );
   

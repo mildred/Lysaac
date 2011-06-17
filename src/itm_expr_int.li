@@ -21,7 +21,8 @@ Section Public
     };
     
     INSTR_INT.clone.make value static_type t.add_in list.result
-  );
+  )
+  [ -? { Result.is_valid }; ];
 
 Section PARSER
   

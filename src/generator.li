@@ -76,52 +76,60 @@ Section Public
 
   - declare_sub name:CSTRING args args:{} <-
   (
-    context.append indent_str;
-    context.append "declare void @";
-    context.append name;
-    context.append " (";
+    put_indent;
+    put "declare void @";
+    put name;
+    put " (";
     args.value;
-    context.append ")\n\n";
+    put ")\n\n";
   );
   
-  - sub name:CSTRING self s:REG args args:{} do blc:{} <-
+  - sub name:CSTRING self s:REG args args:{} do blc:{} return r:REG <-
   [ -? { s.is_valid }; ]
   (
     s.make_pretty_name "_self";
-    context.append indent_str;
-    context.append "define void @";
-    context.append name;
-    context.append " (";
+    put_indent;
+    put "define void @";
+    put name;
+    put " (";
     s.generate_arg Self;
     args.value;
     context.append ") {\n";
     last_local := 0;
     indent;
     blc.value;
-    context.append indent_str;
-    context.append "ret void\n";
+    put_indent;
+    put "ret ";
+    r.is_valid.if_true {
+      put_reg r;
+    } else {
+      put "void";
+    };
+    put_line;
     unindent;
-    context.append indent_str;
-    context.append "}\n\n";
+    put_indent;
+    put "}\n\n";
   );
   
-  - call name:CSTRING args blc:{} <-
+  - call name:CSTRING args blc:{} result r:REG <-
   (
-    context.append indent_str;
-    context.append "tail call void @";
-    context.append name;
-    context.append "(";
+    put_indent;
+    put_reg r;
+    put " = tail call void @";
+    put name;
+    put "(";
     blc.value;
-    context.append ")\n";
+    put ")\n";
   );
   
-  - call_ptr var:REG <-
+  - call_ptr var:REG result r:REG <-
   (
-    context.append indent_str;
-    context.append "tail call void ";
+    put_indent;
+    put_reg r;
+    put " = tail call void ";
     put_reg var;
-    context.append "(";
-    context.append ")\n";
+    put "(";
+    put ")\n";
   );
   
   - arg blc:{} <-
@@ -226,6 +234,7 @@ Section Private
   - put_c c:CHARACTER     <- context.add_last c;
   - put_int i:INTEGER     <- i.append_in context;
   - put_indent            <- put indent_str;
+  - put_line              <- put_c '\n';
   - put_reg var:REG       <- put_reg var in context;
   
   - put_reg var:REG in str:STRING <-

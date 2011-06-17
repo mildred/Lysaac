@@ -21,6 +21,8 @@ Section Public
   + prototype :PROTOTYPE;
 
   + self :REG;
+  
+  + result_type :TYPE <- (not_yet_implemented; NULL);
 
 Section ITM_SLOT
 
@@ -52,12 +54,16 @@ Section LIST_PROC
   (
     list.set_list_procs list_procs;
     external.if {
+      // External Slot
       + sym :ITM_EXPR_SYM;
       sym ?= ast.expression;
       ? { sym != NULL };
       external_name := sym.symbol;
     }.elseif {ast.expression != NULL} then {
-      ast.expression.compile_in list;
+      // Nominal case
+      reg_result := ast.expression.compile_in list;
+    } else {
+      // Empty slot
     };
   );
   
@@ -85,11 +91,13 @@ Section LIST_PROC
         };
       } do {
         is_block_value_slot.if {
-          gen.call_ptr (list.self);
+          ? { reg_result = NULL };
+          reg_result := REG.clone.make NULL static_type result_type;
+          gen.call_ptr (list.self) result reg_result;
         } else {
           list.generate gen;
         };
-      };
+      } return reg_result;
     };
   );
 
@@ -102,5 +110,7 @@ Section Private
   );
 
   + ast :ITM_SLOT;
+  
+  + reg_result :REG;
 
 

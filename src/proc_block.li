@@ -39,7 +39,7 @@ Section LIST_PROC
   (
     gen.sub external_name self self args {} do {
       list.generate gen;
-    };
+    } return REG;
   );
 
 Section Private

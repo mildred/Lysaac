@@ -35,9 +35,8 @@ Section Public
       has_multiple_results := TRUE;
       result_exprs.iterate.loop_v { e:ITM_EXPR;
         results.add_last (e.compile_in list);
-        warnln ("Add result for expr " + e.to_string);
+        warnln ("Add result for expr " + e.to_string + " " + results.last.to_string);
         ? { results.last.is_valid };
-        ? { results.last.type != NULL };
       };
     };
 
