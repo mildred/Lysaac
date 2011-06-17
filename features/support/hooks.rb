@@ -6,6 +6,7 @@ Around do |scenario, block|
   FileUtils.rm_rf dir
   FileUtils.mkdir_p dir
   $homedir = File.dirname(File.dirname(File.dirname(__FILE__)))
+  $resourcedir = File.dirname(File.dirname(__FILE__)) + "/resources"
   FileUtils.cd(dir) do
     block.call
   end

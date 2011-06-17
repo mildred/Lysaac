@@ -47,3 +47,16 @@ Then /^I should see$/ do |string|
   @cmd_text.gsub(FileUtils.pwd(), "$CWD").should == string
 end
 
+Given /^the following prototypes in "([^"]*)":$/ do |dir, table|
+  FileUtils.mkdir_p(dir)
+  table.rows.each do |proto|
+    f = "#{$resourcedir}/#{proto[0].downcase}.li";
+    if File.exists?(f) then
+      FileUtils.copy(f, "#{dir}");
+    else
+      raise Exception, "Unknown prototype #{proto} in #{$resourcedir}"
+    end
+  end
+end
+
+

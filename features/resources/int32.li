@@ -1,0 +1,8 @@
+Section Header
+
+  + name := Expanded INT32;
+  
+  - role := Integer;
+  - type := Integer 32;
+
+

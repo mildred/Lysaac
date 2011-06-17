@@ -1,16 +1,9 @@
 Feature: Simple external procedure call
 
   Scenario: puts Hello World
-    Given a file "c/cstring.li" with
-      """
-      Section Header
-      
-        + name := Reference CSTRING;
-        
-        - role := String; // const char*
-        - type := Integer 8;
-      
-      """
+    Given the following prototypes in "c":
+      | Prototype |
+      | CSTRING   |
       And a file "c/main.li" with
       """
       Section Header

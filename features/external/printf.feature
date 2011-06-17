@@ -1,26 +1,10 @@
 Feature: External procedure call with integer and two arguments
 
   Scenario: puts Hello World
-    Given a file "c/cstring.li" with
-      """
-      Section Header
-      
-        + name := Reference CSTRING;
-        
-        - role := String;
-        - type := Integer 8;
-      
-      """
-      And a file "c/int32.li" with
-      """
-      Section Header
-      
-        + name := Expanded INT32;
-        
-        - role := Integer;
-        - type := Integer 32;
-      
-      """
+    Given the following prototypes in "c":
+      | Prototype |
+      | CSTRING   |
+      | INT32     |
       And a file "c/main.li" with
       """
       Section Header

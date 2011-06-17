@@ -2,16 +2,9 @@ Feature: Simple blocks
 
   @wip
   Scenario: puts Hello World in a BLOCK
-    Given a file "c/cstring.li" with
-      """
-      Section Header
-      
-        + name := Reference CSTRING;
-        
-        - role := String; // const char*
-        - type := Integer 8;
-      
-      """
+    Given the following prototypes in "c":
+      | Prototype |
+      | CSTRING   |
       And a file "c/block.li" with
       """
       Section Header
