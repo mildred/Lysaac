@@ -13,6 +13,8 @@ Section Public
   - find_type type_name:CSTRING :TYPE <- prototype_parent.find_type type_name;
   
   - slot_parent :ITM_SLOT <- Self;
+  
+  + return_type :ITM_TYPE;
 
   + section :ITM_SECTION;
 
@@ -84,6 +86,11 @@ Section PARSER
   (
     section := s;
     Self
+  );
+  
+  - set_return_type t:ITM_TYPE <-
+  (
+    return_type := t;
   );
   
   - set_style s:ITM_STYLE :SELF <-

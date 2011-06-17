@@ -66,18 +66,30 @@ Section SELF
     };
   );
   
-  - read_maybe str:ABSTRACT_STRING :BOOLEAN <-
+  - read_maybe str:ABSTRACT_STRING :BOOLEAN <- read_maybe str if {TRUE};
+  - read_maybe str:ABSTRACT_STRING except not:ABSTRACT_STRING :BOOLEAN <-
+    read_maybe str unless { is_at not };
+  - read_maybe str:ABSTRACT_STRING unless condition:{BOOLEAN} :BOOLEAN <-
+    read_maybe str if { ! condition.value };
+  
+  - read_maybe str:ABSTRACT_STRING if condition:{BOOLEAN} :BOOLEAN <-
+  ( + res :BOOLEAN;
+    res := is_at str;
+    (res && condition).if {
+      read_characters (str.count);
+    } else {
+      res := FALSE;
+    };
+    res
+  );
+  
+  - is_at str:ABSTRACT_STRING :BOOLEAN <-
   ( + i:INTEGER;
-    + res :BOOLEAN;
     i := str.lower;
     {(i <= str.upper) && {character (i - str.lower) = str.item i}}.while_do {
       i := i + 1;
     };
-    res := (i > str.upper);
-    res.if {
-      read_characters (str.count);
-    };
-    res
+    i > str.upper
   );
 
   - read_always str:ABSTRACT_STRING <-
@@ -608,13 +620,14 @@ Section SELF
     };
   );
 
-  //++ C_SLOT -> style . identifier C_ARGS? (affect keyword* EXPR)? ";"
+  //++ C_SLOT -> style . identifier C_ARGS? (":" TYPE)? (affect keyword* EXPR)? ";"
   
   - read_c_slot :ITM_SLOT <-
   ( + slot :ITM_SLOT;
     + style :ITM_STYLE;
     + affect :ITM_AFFECT;
     + key :ITM_KEYWORDS;
+    + type :ITM_TYPE;
     
     read_spaces;
     style := read_style;
@@ -628,6 +641,16 @@ Section SELF
       read_spaces;
       read_c_args slot;
       read_spaces;
+      read_maybe ":" except ":=".if {
+        read_spaces;
+        type := read_type;
+        (type = NULL).if {
+          warning ("Expected type");
+        } else {
+          slot.set_return_type type;         
+        };
+        read_spaces;
+      };
       affect := read_affect;
       affect.valid.if {
         ((key := read_keywords) != NULL).if {
