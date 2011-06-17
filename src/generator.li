@@ -114,19 +114,24 @@ Section Public
   - call name:CSTRING args blc:{} result r:REG <-
   (
     put_indent;
-    put_reg r;
-    put " = tail call void @";
+    r.is_valid.if {
+      r.realize "%" id get_local;
+      put_reg r;
+      put " = ";
+    };
+    put "tail call ";
+    put_reg_type r;
+    put " @";
     put name;
     put "(";
     blc.value;
     put ")\n";
   );
   
-  - call_ptr var:REG result r:REG <-
+  - call_ptr var:REG <-
   (
     put_indent;
-    put_reg r;
-    put " = tail call void ";
+    put "tail call void ";
     put_reg var;
     put "(";
     put ")\n";
@@ -236,6 +241,9 @@ Section Private
   - put_indent            <- put indent_str;
   - put_line              <- put_c '\n';
   - put_reg var:REG       <- put_reg var in context;
+  - put_reg_type r:REG    <- r.is_valid
+      .if  { r.type.generate Self; }
+      else { put "void"; };
   
   - put_reg var:REG in str:STRING <-
   (

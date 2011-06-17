@@ -22,7 +22,17 @@ Section Public
 
   + self :REG;
   
-  + result_type :TYPE <- (not_yet_implemented; NULL);
+  + result_type :TYPE;
+  
+  - to_string :STRING <-
+  ( + res:STRING;
+    res := type_name + "<" + name;
+    (result_type != NULL).if {
+      res.append (":" + result_type.to_string + ">");
+    };
+    res.append ">";
+    res
+  );
 
 Section ITM_SLOT
 
@@ -44,6 +54,8 @@ Section ITM_SLOT
   );
   
   - add_argument v:REG <- arguments.add_last v;
+  
+  - set_return_type t:TYPE <- (result_type := t;);
 
 Section LIST_PROC
 
@@ -65,6 +77,7 @@ Section LIST_PROC
     } else {
       // Empty slot
     };
+    warnln ("Compiled "+to_string);
   );
   
   - link <-
@@ -91,9 +104,7 @@ Section LIST_PROC
         };
       } do {
         is_block_value_slot.if {
-          ? { reg_result = NULL };
-          reg_result := REG.clone.make NULL static_type result_type;
-          gen.call_ptr (list.self) result reg_result;
+          gen.call_ptr (list.self);
         } else {
           list.generate gen;
         };
