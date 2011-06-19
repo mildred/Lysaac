@@ -17,7 +17,7 @@ Section Public
     
     t := cluster_parent.type_for_role "String";
     (t = NULL).if {
-      warnln "Could not find role for String";
+      error(position, "Could not find role for String");
     };
     
     INSTR_STRING.clone.make string static_type t.add_in list.result

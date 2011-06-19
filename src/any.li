@@ -39,4 +39,10 @@ Section Public
     STD_ERROR.put_string s;
     STD_ERROR.put_string "\n";
   );
+  
+  - dbg s:ABSTRACT_STRING <- warn s;
+  - dbgln s:ABSTRACT_STRING <- warnln s;
+
+  - error (p:POS, m:ABSTRACT_STRING) <-
+    warnln (p.to_string + ": " + m);
 

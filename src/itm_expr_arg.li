@@ -29,7 +29,7 @@ Section ITM_SLOT
         .make_pretty_name name;
       ? { result.is_valid };
     } else {
-      warnln("Cannot resolve type for "+name);
+      error(position, "Cannot resolve type for "+name);
     };
     result
   )

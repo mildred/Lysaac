@@ -15,9 +15,9 @@ Section Public
     (itm_parent = NULL).if {
       res := POS;
     } else {
-      itm_parent.position
+      res := itm_parent.position;
     };
-    res;
+    res
   );
   
   - cluster_parent   :CLUSTER   <- prototype_parent.cluster;

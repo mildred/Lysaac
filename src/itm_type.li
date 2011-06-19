@@ -20,14 +20,14 @@ Section Public
       + p:PROTOTYPE;
       p := cluster_parent.prototype_for_role "Block";
       (p = NULL).if {
-        warnln ("Could not find prototype for role Block");
+        error (position, "Could not find prototype for role Block");
       } else {
         res := p.to_type_block;
       };
     } else {
       res := slot_parent.find_type (prototype.prototype);
       (res = NULL).if {
-        warnln ("Could not find type " + (prototype.prototype));
+        error (position, "Could not find type " + (prototype.prototype));
       };
     };
     res

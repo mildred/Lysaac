@@ -17,7 +17,7 @@ Section Public
     
     t := cluster_parent.type_for_role "Integer";
     (t = NULL).if {
-      warnln "Could not find role for Integer";
+      error(position, "Could not find role for Integer");
     };
     
     INSTR_INT.clone.make value static_type t.add_in list.result
