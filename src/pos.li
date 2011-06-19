@@ -1,0 +1,66 @@
+Section Header
+
+  + name := Expanded POS;
+
+Section Insert
+
+  + parent_any :Expanded ANY;
+
+Section Public
+
+  - filename :CSTRING <- files.item file_id;
+  
+  + line :INTEGER_16 := 0;
+  
+  + column :INTEGER_16 := 0;
+
+  - create (file:CSTRING, line, column :INTEGER) :POS <-
+  ( + res:POS;
+    res.make (file, line, column);
+    res
+  );
+  
+  - is_null :BOOLEAN <- (line == 0 & column == 0 & file_id == 0);
+  
+  - to_string :STRING <-
+  ( + res :STRING;
+    (file_id > 0).if {
+      res := filename.to_string;
+    } else {
+      res := "???".to_string;
+    };
+    (line > 0).if {
+      res.add_last ':';
+      line.append_in res;
+      (column > 0).if {
+        res.add_last ':';
+        column.append_in res;
+      };
+    };
+    res
+  );
+
+Section Private
+
+  + file_id :INTEGER_16 := 0;
+  
+  - make (file:CSTRING, l, c :INTEGER_16) :POS <-
+  ( + i: INTEGER;
+
+    line := l;
+    column := c;
+    files.valid_index (i := files.fast_index_of file start 0).if {
+      file_id := i;
+    } else {
+      files.add_last file;
+      file_id := files.upper;
+    };
+    Self
+  );
+  
+  - files :FAST_ARRAY(CSTRING) :=
+  (
+    files := FAST_ARRAY(CSTRING).create 0;
+    files.add_last "";
+    files
+  );

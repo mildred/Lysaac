@@ -1,0 +1,55 @@
+Section Header
+
+  + name := ERR;
+
+Section Insert
+
+  + parent_any :Expanded ANY;
+
+Section Public
+
+  + position :POS;
+  
+  + message :CSTRING;
+  
+  + parent :ERR;
+  
+  - to_string :STRING <-
+  ( + res:STRING;
+    res := STRING.create;
+    to_string_in res;
+    res
+  );
+  
+  - create msg:CSTRING :ERR                  <- create msg position ERR parent NULL;
+  - create msg:CSTRING parent     p:ERR :ERR <- create msg position ERR parent p;
+  - create msg:CSTRING position pos:POS :ERR <- create msg position pos parent NULL;
+  - create msg:CSTRING position pos:POS parent p:ERR :ERR <-
+    clone.make msg position pos parent p;
+
+Section ERR
+
+  - to_string_in res:STRING <-
+  (
+    position.is_null.if_false {
+      res.append (position.to_string);
+      res.append ": ";
+    };
+    res.append message;
+    (parent != NULL).if {
+      res.add_last '\n';
+      parent.to_string_in res;
+    };
+    res
+  );
+
+Section Private
+
+  - make msg:CSTRING position pos:POS parent p:ERR :ERR <-
+  (
+    message  := msg;
+    position := pos;
+    parent   := p;
+    Self
+  );
+

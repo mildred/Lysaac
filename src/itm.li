@@ -10,9 +10,25 @@ Section Public
 
   + itm_parent :ITM;
   
+  + position :POS <-
+  ( + res:POS;
+    (itm_parent = NULL).if {
+      res := POS;
+    } else {
+      itm_parent.position
+    };
+    res;
+  );
+  
   - cluster_parent   :CLUSTER   <- prototype_parent.cluster;
   - prototype_parent :PROTOTYPE <- itm_parent.prototype_parent;
   - slot_parent      :ITM_SLOT  <- itm_parent.slot_parent;
+  
+  - make_position p:POS :SELF <-
+  (
+    position := p;
+    Self
+  );
 
 Section ITM
 

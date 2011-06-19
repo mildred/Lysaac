@@ -10,9 +10,11 @@ Section SELF
 
   + filename :CSTRING := "";
   + source :STRING;
-  + position :INTEGER;
+  + position_index :INTEGER;
   + line :INTEGER;
   + column :INTEGER;
+  
+  - position :POS <- POS.create (filename, line, column);
   
   - print_warning <-
   (
@@ -33,8 +35,8 @@ Section SELF
   
   - character i:INTEGER :CHARACTER <-
   ( + c:CHARACTER;
-    source.valid_index (position+i).if {
-      c := source.item (position+i);
+    source.valid_index (position_index+i).if {
+      c := source.item (position_index+i);
     } else {
       c := 0.to_character;
     };
@@ -46,8 +48,8 @@ Section SELF
   
   - read_character :CHARACTER <-
   (
-    source.valid_index position.if {
-      position := position + 1;
+    source.valid_index position_index.if {
+      position_index := position_index + 1;
       (character (-1) = '\n').if {
         line := line + 1;
         column := 1;
@@ -144,7 +146,7 @@ Section SELF
   (
     last_style := ITM_STYLE.clone.make last_character;
     last_style.valid.if {
-      position := position + 1;
+      position_index := position_index + 1;
     };
     last_style
   );
@@ -522,7 +524,7 @@ Section SELF
   - read_prototype :ITM_EXPR_PROTO <-
   ( + res :ITM_EXPR_PROTO;
     read_cap_identifier.if {
-      res := ITM_EXPR_PROTO.clone.make last_cap_identifier;
+      res := ITM_EXPR_PROTO.clone.make_position position.make last_cap_identifier;
     };
     res
   );
@@ -632,7 +634,7 @@ Section SELF
     read_spaces;
     style := read_style;
     style.valid.if {
-      slot := ITM_SLOT.clone.make;
+      slot := ITM_SLOT.clone.make_position position.make;
       slot.set_style style;
       read_spaces;
       read_identifier.if {
@@ -719,12 +721,12 @@ Section SELF
 
     proto := read_prototype;
     (proto != NULL).if {
-      res := ITM_TYPE.clone.make proto;
+      res := ITM_TYPE.clone.make_position position.make proto;
     }.elseif {read_spaces; last_character = '{'} then {
       read_character;
       read_spaces;
       read_always "}";
-      res := ITM_TYPE.clone.make_block;
+      res := ITM_TYPE.clone.make_position position.make_block;
     } else {
       warning ("Expected type");
     };
@@ -746,11 +748,11 @@ Section SELF
     res := ITM_EXPR_VOID;
     
     read_symbol.if {
-      res := ITM_EXPR_SYM.clone.make last_symbol;
+      res := ITM_EXPR_SYM.clone.make_position position.make last_symbol;
     }.elseif {read_string} then {
-      res := ITM_EXPR_STR.clone.make last_string;
+      res := ITM_EXPR_STR.clone.make_position position.make last_string;
     }.elseif {read_int} then {
-      res := ITM_EXPR_INT.clone.make last_int;
+      res := ITM_EXPR_INT.clone.make_position position.make last_int;
     }.elseif {(proto := read_prototype) != NULL} then {
       res := proto;
     }.elseif {last_character = '('} then {
@@ -780,7 +782,7 @@ Section SELF
       + idf :CSTRING;
       idf := last_identifier;
       read_spaces;
-      res := ITM_EXPR_READ.clone.make idf;
+      res := ITM_EXPR_READ.clone.make_position position.make idf;
       expr := read_expr;
       expr.is_void.if_false {
         res.add_argument expr;
@@ -802,13 +804,13 @@ Section SELF
   ( + group :ITM_EXPR_GROUP;
     + expr  :ITM_EXPR;
     
-    group := ITM_EXPR_GROUP.clone.make;
+    group := ITM_EXPR_GROUP.clone.make_position position.make;
     { read_spaces;
       expr := read_expr;
       expr.is_void.if_false {
         read_spaces;
         read_maybe ";".if {
-          group.add_inst (ITM_INST_EXPR.clone.make expr);
+          group.add_inst (ITM_INST_EXPR.clone.make_position position.make expr);
         } else {
           group.add_expr expr;
           {read_maybe ","}.while_do {
@@ -837,7 +839,7 @@ Section SELF
     LIBC.fread (source.storage, 1, sz, file);
     LIBC.fclose file;
     source.from_external (source.storage);
-    position := source.lower;
+    position_index := source.lower;
     line := 1;
     column := 1;
   );
