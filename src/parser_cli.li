@@ -47,8 +47,9 @@ Section CLUSTER
     Self
   );
   
-  - parse <-
+  - parse :ERR <-
   (
     open_source (cluster.filename);
     read_cli;
+    error_stack
   );

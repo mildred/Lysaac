@@ -82,9 +82,9 @@ Section PROTOTYPE
     Self
   );
   
-  - parse :ITM_PROTOTYPE <-
+  - parse :(ITM_PROTOTYPE,ERR) <-
   (
     open_source (prototype.filename);
     read_li;
-    ast
+    ast, error_stack
   );
