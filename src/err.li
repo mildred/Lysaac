@@ -1,6 +1,6 @@
 Section Header
 
-  + name := ERR;
+  + name := Expanded ERR;
 
 Section Insert
 
@@ -8,11 +8,16 @@ Section Insert
 
 Section Public
 
-  + position :POS;
+  + position :POS            := POS;
+  + message  :CSTRING        := "";
+  + parent   :REFERENCE(ERR) := NULL;
   
-  + message :CSTRING;
+  - failure :BOOLEAN <- ! success;
   
-  + parent :ERR;
+  - success :BOOLEAN <-
+    (position.is_null) &&
+    {message.is_empty} &&
+    {(parent = NULL) || {parent.to_e.success}};
   
   - to_string :STRING <-
   ( + res:STRING;
@@ -21,31 +26,41 @@ Section Public
     res
   );
   
-  - create msg:CSTRING :ERR                  <- create msg position ERR parent NULL;
-  - create msg:CSTRING parent     p:ERR :ERR <- create msg position ERR parent p;
-  - create msg:CSTRING position pos:POS :ERR <- create msg position pos parent NULL;
+  - print   <- warn   to_string;
+  - println <- warnln to_string;
+  
+  - create msg:CSTRING :ERR <-
+    make msg position POS parent NULL;
+
+  - create msg:CSTRING parent     p:ERR :ERR <-
+    make msg position POS parent (REFERENCE(ERR).create p);
+
+  - create msg:CSTRING position pos:POS :ERR <-
+    make msg position pos parent NULL;
+
   - create msg:CSTRING position pos:POS parent p:ERR :ERR <-
-    clone.make msg position pos parent p;
+    make msg position pos parent (REFERENCE(ERR).create p);
 
 Section ERR
 
   - to_string_in res:STRING <-
   (
-    position.is_null.if_false {
-      res.append (position.to_string);
-      res.append ": ";
+    failure.if {
+      position.is_null.if_false {
+        res.append (position.to_string);
+        res.append ": ";
+      };
+      res.append message;
+      (parent != NULL).if {
+        res.add_last '\n';
+        parent.to_e.to_string_in res;
+      };
     };
-    res.append message;
-    (parent != NULL).if {
-      res.add_last '\n';
-      parent.to_string_in res;
-    };
-    res
   );
 
 Section Private
 
-  - make msg:CSTRING position pos:POS parent p:ERR :ERR <-
+  - make msg:CSTRING position pos:POS parent p:REFERENCE(ERR) :ERR <-
   (
     message  := msg;
     position := pos;
