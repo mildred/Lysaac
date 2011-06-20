@@ -13,6 +13,7 @@ Section SELF
   + position_index :INTEGER;
   + line :INTEGER;
   + column :INTEGER;
+  + error_stack :ERR;
   
   - position :POS <- POS.create (filename, line, column);
   
@@ -31,6 +32,7 @@ Section SELF
     print_warning;
     STD_ERROR.put_string s;
     STD_ERROR.put_string "\n";
+    error_stack := ERR.create s position position parent error_stack;
   );
   
   - character i:INTEGER :CHARACTER <-

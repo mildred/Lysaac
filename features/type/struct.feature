@@ -51,13 +51,13 @@ Feature: Types must be able to contain values
         (
           printf("Hello World to %dntegers", one);
           one := 2;
-          printf("Hello World to %dntegers", one);
+          printf(" and %dntegers", one);
         );
       
       """
      When I execute the cluster "c"
      Then I should see
       """
-      Hello World to 1ntegersHello World to 2ntegers
+      Hello World to 1ntegers and 2ntegers
       """
 
