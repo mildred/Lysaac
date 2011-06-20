@@ -47,6 +47,8 @@ Then /^I should see$/ do |string|
   @cmd_text.gsub(FileUtils.pwd(), "$CWD").should == string
 end
 
+# This step cannot appear in a Background block because of issue 52:
+# https://github.com/cucumber/cucumber/issues/52
 Given /^the following prototypes in "([^"]*)":$/ do |dir, table|
   FileUtils.mkdir_p(dir)
   table.rows.each do |proto|
