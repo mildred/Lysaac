@@ -83,12 +83,13 @@ Section Public
   );
   
   - make_file f:CSTRING :SELF <-
-  (
+  ( + e:ERR;
     prototype_roles := HASHED_DICTIONARY(PROTOTYPE,CSTRING).create;
     list := FAST_ARRAY(CLUSTER_ITEM).create 0;
     filename := f;
     slots := LIST_PROC.clone.make;
-    PARSER_CLI.clone.make Self.parse;
+    e := PARSER_CLI.clone.make Self.parse;
+    e.assert;
     state := state_made;
     Self
   );

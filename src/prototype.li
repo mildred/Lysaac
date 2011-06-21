@@ -36,9 +36,10 @@ Section Public
   
   - parse <-
   [ -? {made}; -? {! parsed}; ]
-  (
+  ( + e :ERR;
     warnln ("Parse "+name);
-    ast := parser.parse;
+    (ast, e) := parser.parse;
+    e.assert;
     state := state_parsed;
   )
   [ +? {parsed}; ];

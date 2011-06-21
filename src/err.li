@@ -18,10 +18,17 @@ Section Public
     (position.is_null) &&
     {message.is_empty} &&
     {(parent = NULL) || {parent.to_e.success}};
+    
+  - assert <-
+  (
+    failure.if {
+      crash_with_message to_string;
+    };
+  );
   
   - to_string :STRING <-
   ( + res:STRING;
-    res := STRING.create;
+    res := STRING.create 128;
     to_string_in res;
     res
   );
