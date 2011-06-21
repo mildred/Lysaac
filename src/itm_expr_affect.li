@@ -1,0 +1,29 @@
+Section Header
+
+  + name := ITM_EXPR_AFFECT;
+
+Section Inherit
+
+  + parent_itm_expr :Expanded ITM_EXPR;
+
+Section Public
+
+  - is_void :BOOLEAN <- FALSE;
+  
+  + affect :ITM_AFFECT;
+  
+  + slot_name :CSTRING;
+  
+  + expr :ITM_EXPR;
+
+Section PARSER
+
+  - make_affect a:ITM_AFFECT in var:CSTRING of e:ITM_EXPR :SELF <-
+  (
+    affect    := a;
+    slot_name := var;
+    expr      := e;
+    Self
+  );
+  
+

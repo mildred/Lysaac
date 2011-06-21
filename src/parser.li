@@ -17,22 +17,15 @@ Section SELF
   
   - position :POS <- POS.create (filename, line, column);
   
-  - print_warning <-
-  (
-    STD_ERROR.put_string filename;
-    STD_ERROR.put_string ":";
-    STD_ERROR.put_integer line;
-    STD_ERROR.put_string ":";
-    STD_ERROR.put_integer column;
-    STD_ERROR.put_string ": ";
-  );
+  - warning s:ABSTRACT_STRING <- warning s in position;
   
-  - warning s:ABSTRACT_STRING <-
+  - warning s:ABSTRACT_STRING in p:POS <-
   (
-    print_warning;
+    STD_ERROR.put_string (p.to_string);
+    STD_ERROR.put_string ": ";
     STD_ERROR.put_string s;
     STD_ERROR.put_string "\n";
-    error_stack := ERR.create s position position parent error_stack;
+    error_stack := ERR.create s position p parent error_stack;
   );
   
   - character i:INTEGER :CHARACTER <-
@@ -525,8 +518,10 @@ Section SELF
   
   - read_prototype :ITM_EXPR_PROTO <-
   ( + res :ITM_EXPR_PROTO;
+    + p :POS;
+    p := position;
     read_cap_identifier.if {
-      res := ITM_EXPR_PROTO.clone.make_position position.make last_cap_identifier;
+      res := ITM_EXPR_PROTO.clone.make_position p.make last_cap_identifier;
     };
     res
   );
@@ -632,11 +627,13 @@ Section SELF
     + affect :ITM_AFFECT;
     + key :ITM_KEYWORDS;
     + type :ITM_TYPE;
+    + p :POS;
     
     read_spaces;
+    p := position;
     style := read_style;
     style.valid.if {
-      slot := ITM_SLOT.clone.make_position position.make;
+      slot := ITM_SLOT.clone.make_position p.make;
       slot.set_style style;
       read_spaces;
       read_identifier.if {
@@ -720,15 +717,17 @@ Section SELF
   - read_type :ITM_TYPE <-
   ( + proto :ITM_EXPR_PROTO;
     + res   :ITM_TYPE;
+    + p     :POS;
 
     proto := read_prototype;
     (proto != NULL).if {
-      res := ITM_TYPE.clone.make_position position.make proto;
+      res := ITM_TYPE.clone.make_position (proto.position).make proto;
     }.elseif {read_spaces; last_character = '{'} then {
+      p := position;
       read_character;
       read_spaces;
       read_always "}";
-      res := ITM_TYPE.clone.make_position position.make_block;
+      res := ITM_TYPE.clone.make_position p.make_block;
     } else {
       warning ("Expected type");
     };
@@ -741,60 +740,85 @@ Section SELF
   //++       | PROTOTYPE
   //++       | "(" GROUP ")"
   //++       | "{" GROUP "}"
-  //++       | EXPR_CALL
+  //++       | identifier (affect EXPR | EXPR_CALL)
   
   - read_expr :ITM_EXPR <-
   ( + res :ITM_EXPR;
     + tmp :ITM_EXPR;
     + proto :ITM_EXPR_PROTO;
+    + pos :POS;
     res := ITM_EXPR_VOID;
     
+    pos := position;
     read_symbol.if {
-      res := ITM_EXPR_SYM.clone.make_position position.make last_symbol;
+      res := ITM_EXPR_SYM.clone.make_position pos.make last_symbol;
     }.elseif {read_string} then {
-      res := ITM_EXPR_STR.clone.make_position position.make last_string;
+      res := ITM_EXPR_STR.clone.make_position pos.make last_string;
     }.elseif {read_int} then {
-      res := ITM_EXPR_INT.clone.make_position position.make last_int;
+      res := ITM_EXPR_INT.clone.make_position pos.make last_int;
     }.elseif {(proto := read_prototype) != NULL} then {
       res := proto;
     }.elseif {last_character = '('} then {
+      pos := position;
       read_always "(";
       read_spaces;
-      res := read_group;
+      res := read_group pos;
       read_always ")";
     }.elseif {last_character = '{'} then {
+      pos := position;
       read_always "{";
       read_spaces;
-      res := read_group.set_block;
+      res := read_group pos.set_block;
       read_always "}";
-    }.elseif {(tmp := read_expr_call) != NULL} then {
-      res := tmp;
+    }.elseif {read_identifier} then {
+      + affect :ITM_AFFECT;
+      + idf    :CSTRING;
+      + p      :POS;
+      idf    := last_identifier;
+      read_spaces;
+      p      := position;
+      affect := read_affect;
+      affect.valid.if {
+        read_spaces;
+        tmp := read_expr;
+        tmp.is_void.if {
+          warning "Affect of a VOID expression" in p;
+        } else {
+          res := ITM_EXPR_AFFECT.clone.make_position pos.make_affect affect in idf of tmp;
+        };
+      } else {
+        ((tmp := read_expr_call (idf, pos)) != NULL).if {
+          res := tmp;
+        };
+      };
     };
     res
   );
   
-  //++ EXPR_CALL -> identifier . EXPR? ("." . EXPR_CALL)?
+  //++ EXPR_CALL -> EXPR? ("." . EXPR_CALL)?
   
-  - read_expr_call :ITM_EXPR_READ <-
+  - read_expr_call (idf:CSTRING, pos:POS) :ITM_EXPR_READ <-
   ( + res :ITM_EXPR_READ;
-  
-    (read_identifier).if {
-      + self :ITM_EXPR;
-      + expr :ITM_EXPR;
-      + idf :CSTRING;
-      idf := last_identifier;
-      read_spaces;
-      res := ITM_EXPR_READ.clone.make_position position.make idf;
-      expr := read_expr;
-      expr.is_void.if_false {
-        res.add_argument expr;
-      };
-      read_spaces;
-      (last_character = '.').if {
-        read_always ".";
-        self := res;
-        res := read_expr_call;
+    + self :ITM_EXPR;
+    + expr :ITM_EXPR;
+    + p1, p2 :POS;
+
+    read_spaces;
+    res := ITM_EXPR_READ.clone.make_position pos.make idf;
+    expr := read_expr;
+    expr.is_void.if_false {
+      res.add_argument expr;
+    };
+    read_spaces;
+    p1 := position;
+    read_maybe ".".if {
+      self := res;
+      p2 := position;
+      read_identifier.if {
+        res := read_expr_call (last_identifier, p2);
         res.set_self self;
+      } else {
+        warning "Expected identifier after '.'" in p1;
       };
     };
     res
@@ -802,17 +826,19 @@ Section SELF
   
   //++ GROUP -> (EXPR . ";")* (EXPR . ("," EXPR)*)?
   
-  - read_group :ITM_EXPR_GROUP <-
+  - read_group pos:POS :ITM_EXPR_GROUP <-
   ( + group :ITM_EXPR_GROUP;
     + expr  :ITM_EXPR;
+    + p     :POS;
     
-    group := ITM_EXPR_GROUP.clone.make_position position.make;
+    group := ITM_EXPR_GROUP.clone.make_position pos.make;
     { read_spaces;
+      p := position;
       expr := read_expr;
       expr.is_void.if_false {
         read_spaces;
         read_maybe ";".if {
-          group.add_inst (ITM_INST_EXPR.clone.make_position position.make expr);
+          group.add_inst (ITM_INST_EXPR.clone.make_position p.make expr);
         } else {
           group.add_expr expr;
           {read_maybe ","}.while_do {
