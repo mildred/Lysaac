@@ -26,6 +26,8 @@ Section Public
   
   + result_type :TYPE;
   
+  - has_result :BOOLEAN <- (result_type != NULL);
+  
   - to_string :STRING <-
   ( + res:STRING;
     res := type_name + "<" + name;
@@ -77,7 +79,7 @@ Section LIST_PROC
       external_name := sym.symbol;
     }.elseif {ast.expression != NULL} then {
       // Nominal case
-      reg_result := ast.expression.compile_in list;
+      reg_result := ast.expression.compile_in list.result.reg;
     } else {
       // Empty slot
     };

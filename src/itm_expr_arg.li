@@ -8,30 +8,33 @@ Section Inherit
 
 Section Public
 
-  + result :REG;
+  - has_results :BOOLEAN <- TRUE;
 
-  - compile_in list:LIST :REG <-
+  + result :EXPR := EXPR;
+
+  - compile_in list:LIST :SELF <-
   [
     -? { result != NULL };
-    -? { result.is_valid };
+    -? { result.reg.is_valid };
   ]
-  ( result );
+  ( Self );
 
 Section ITM_SLOT
 
-  - get_argument_variable :REG <-
-  ( + t:TYPE;
-    result := REG.clone;
+  - get_argument_variable :EXPR <-
+  ( + t :TYPE;
+    + r :REG;
+
+    r := REG.clone;
     t := type.to_type;
     (t != NULL).if {
-      result
-        .make_type t
+      r .make_type t
         .make_pretty_name name;
-      ? { result.is_valid };
+      ? { r.is_valid };
     } else {
       error(position, "Cannot resolve type for "+name);
     };
-    result
+    result := EXPR.clone.make(r, t)
   )
   [
     +? {result = Result};

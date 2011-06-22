@@ -10,7 +10,7 @@ Section Public
 
   + expression :ITM_EXPR;
   
-  - compile_in list:LIST :REG <- expression.compile_in list;
+  - compile_in list:LIST <- (expression.compile_in list;);
   
   - to_string :STRING <-
   ( type_name + "<" + expression.to_string + ">" );

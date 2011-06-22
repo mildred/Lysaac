@@ -47,7 +47,9 @@ Section Public
   //
   
   - make_type t:TYPE :SELF <-
-  [ -? { t != NULL }; ]
+  [
+    -? { t != NULL };
+  ]
   (
     type := t;
     name := "";

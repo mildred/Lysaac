@@ -1,8 +1,5 @@
 REG should be used only with base_type.
 In code, EXPR should be used instead.
 
-ITM_EXPR.compile_in should return Self:SELF
-The result should be stored in ITM_EXPR.result:EXPR (or ITM_EXPR.results:FAST_ARRAY(EXPR))
-
 REG should not store TYPE directly, the constructor should extract BAST_TYPE.
 REG.is_valid should test if the base_type is not void (we should test this against regressions and revert if not applicable).

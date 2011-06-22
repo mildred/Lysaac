@@ -47,7 +47,6 @@ Section ITM
       (l.name = name).if { //??
         it.stop;
         res := l;
-        ? { l.result.is_valid };
       };
     };
     (res = NULL).if {

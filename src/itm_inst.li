@@ -8,7 +8,7 @@ Section Inherit
 
 Section Public
 
-  - compile_in list:LIST :REG <-
+  - compile_in list:LIST <-
   (
     crash_with_message ("Cannot compile " + type_name);
   );

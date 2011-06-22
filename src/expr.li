@@ -10,21 +10,31 @@ Section Inherit
 
 Section Public
 
-  + reg :REG
+  + reg  :REG  := REG;
+  + type :TYPE := NULL;
   
-  + type :TYPE;
+  - is_valid :BOOLEAN <- (((reg != NULL) || {reg.is_valid}) && {type != NULL});
 
   - make (r:REG, t:TYPE) :SELF <-
   [
-    -? { reg.is_valid };
     -? { t != NULL };
-    -? { t.base_type = r.base_type };
+    -? { r != NULL };
+    (t.base_type == r.base_type).if_false {
+      warnln ("EXPR.make, register type: " + r.base_type.to_string +
+              " type: " + t.base_type.to_string);
+    };
+    -? { ! r.base_type.void };
+    -? { r.is_valid };
+    -? { t.base_type == r.base_type };
   ]
   (
     reg  := r;
     type := t;
     Self
-  );
+  )
+  [
+    +? { is_valid };
+  ];
 
-  - to_reg  :REG  <- reg;
-  - to_type :TYPE <- type;
+  - to_reg  :REG  <- [ -? { reg != NULL }; ] reg;
+  - to_type :TYPE <- [ -? { is_valid    }; ] type;

@@ -12,39 +12,41 @@ Section Public
 
   + is_block :BOOLEAN;
   
-  + results :FAST_ARRAY(REG);
+  - has_results :BOOLEAN <- TRUE;
+
+  + result  :EXPR := EXPR;
+  
+  + results :FAST_ARRAY(EXPR);
   
   + has_multiple_results :BOOLEAN := FALSE;
 
-  - compile_in list:LIST :REG <-
-  ( + res :REG;
-  
-    res := REG;
-
+  - compile_in list:LIST :SELF <-
+  (
     is_block.if {
       + block :PROC_BLOCK;
       block := PROC_BLOCK.clone.make_block Self list_parent list;
-      res := INSTR_FNPTR.clone.make (block.external_name) cluster cluster_parent.add_in list.result;
+      result := EXPR.clone.make
+      (
+        INSTR_FNPTR
+          .clone
+          .make (block.external_name) cluster cluster_parent
+          .add_in list
+          .result,
+        cluster_parent.type_block
+      );
       list.list_procs.add_block block;
       is_block := FALSE;
-      ? { res.is_valid };
     } else {
       instructions.iterate.loop_v { i:ITM_INST;
         i.compile_in list;
       };
       has_multiple_results := TRUE;
       result_exprs.iterate.loop_v { e:ITM_EXPR;
-        results.add_last (e.compile_in list);
-        warnln ("Add result for expr " + e.to_string + " " + results.last.to_string);
-        ? { results.last.is_valid };
+        results.add_last (e.compile_in list.result);
       };
     };
-
-    res
-  )
-  [
-    +? {{ ! is_block } || { Result.is_valid }};
-  ];
+    Self
+  );
   
   - to_string :STRING <-
   ( + res :STRING;
@@ -74,7 +76,7 @@ Section PARSER
     is_block := FALSE;
     instructions := FAST_ARRAY(ITM_INST).create 0;
     result_exprs := FAST_ARRAY(ITM_EXPR).create 0;
-    results      := FAST_ARRAY(REG).create (result_exprs.count);
+    results      := FAST_ARRAY(EXPR).create (result_exprs.count);
     Self
   );
   

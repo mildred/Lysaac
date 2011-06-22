@@ -13,20 +13,24 @@ Section Public
   + receiver :ITM_EXPR;
   + slot     :CSTRING;
   
+  + has_results :BOOLEAN := TRUE;
+
+  + result   :EXPR := EXPR;
+  
   + arguments :FAST_ARRAY(ITM_EXPR);
   
-  - compile_in list:LIST :REG <-
+  - compile_in list:LIST :SELF <-
   [
     ? { list.self.is_valid };
   ]
   ( + self      :REG;
     + self_type :TYPE;
-    + res       :INSTR;
     + local     :ITM_EXPR_LOCAL;
     
     ((receiver = NULL) && {(local := lookup_local slot) != NULL}).if {
       // Local variable
-      res := INSTR_LOAD.clone.make_variable (local.compile_in list);
+      result := local.compile_in list.result;
+      INSTR_LOAD.clone.make_variable result.add_in list;
     } else {
       // Slot call
       + call :INSTR_CALL;
@@ -34,7 +38,7 @@ Section Public
         self      := list.self;
         self_type := list.self_type;
       } else {
-        self      := receiver.compile_in list;
+        self      := receiver.compile_in list.result;
         self_type := self.type;
       };
       self.is_null.if {
@@ -44,28 +48,31 @@ Section Public
         } else {
           warnln "(explicit receiver)";
         };
-        res := INSTR_NOP;
       } else {
         ? {self.is_valid};
         call := INSTR_CALL.clone.make_itm Self receiver (self, self_type);
         arguments.iterate.loop_v { a:ITM_EXPR;
-          + arg :REG;
+          + arg :EXPR;
           warnln ("Argument: " + a.to_string);
-          arg := a.compile_in list;
+          arg := a.compile_in list.result;
           a.has_multiple_results.if {
-            a.results.iterate.loop_v { v:REG;
-              ? { v.is_valid };
+            a.results.iterate.loop_v { v:EXPR;
               call.add_argument v;
             };
           } else {
             call.add_argument arg;
           };
         };
-        res := call;
+        call.add_in list;
+        call.slot.has_result.if {
+          result := EXPR.clone.make (call.result, call.slot.result_type);
+        } else {
+          has_results := FALSE;
+        };
       };
     };
 
-    res.add_in list.result
+    Self
   );
   
   - to_string :STRING <-

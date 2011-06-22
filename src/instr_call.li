@@ -44,7 +44,7 @@ Section Public
   (
     gen.call (slot.name) args {
       generate_arg receiver in gen;
-      args.iterate.loop_v { a:REG;
+      args.iterate.loop_v { a:EXPR;
         generate_arg a in gen;
       };
     } result result;
@@ -68,7 +68,7 @@ Section ITM_EXPR_READ
     receiver      := r;
     receiver_type := t;
     ast           := i;
-    args          := FAST_ARRAY(REG).create 0;
+    args          := FAST_ARRAY(EXPR).create 0;
     result        := REG.clone;
     (slot.result_type != NULL).if {
       result.make_type (slot.result_type);
@@ -76,9 +76,9 @@ Section ITM_EXPR_READ
     Self
   );
   
-  - add_argument v:REG <-
+  - add_argument v:EXPR <-
   [
-    -? { v.is_valid };
+    -? { v != NULL };
   ]
   (
     args.add_last v;
@@ -89,5 +89,5 @@ Section Private
   - name :CSTRING <- ast.slot;
   
   + ast  :ITM_EXPR_READ;
-  + args :FAST_ARRAY(REG);
+  + args :FAST_ARRAY(EXPR);
 

@@ -11,8 +11,12 @@ Section Public
   - is_void :BOOLEAN <- FALSE;
 
   + value :INTEGER;
+  
+  - has_results :BOOLEAN <- TRUE;
 
-  - compile_in list:LIST :REG <-
+  + result :EXPR := EXPR;
+
+  - compile_in list:LIST :SELF <-
   ( + t:TYPE;
     
     t := cluster_parent.type_for_role "Integer";
@@ -20,9 +24,10 @@ Section Public
       error(position, "Could not find role for Integer");
     };
     
-    INSTR_INT.clone.make value static_type t.add_in list.result
-  )
-  [ -? { Result.is_valid }; ];
+    result := EXPR.clone.make
+      (INSTR_INT.clone.make value static_type t.add_in list.result, t);
+    Self
+  );
 
 Section PARSER
   

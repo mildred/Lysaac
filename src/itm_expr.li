@@ -14,14 +14,41 @@ Section Public
   // have a slot result:REG and result_type:TYPE. This would allow ITM_EXPR to
   // compile to multiple instructions, each having a different REG and TYPE.
 
-  - compile_in list:LIST :REG <-
+  - compile_in list:LIST :SELF <-
   (
     crash_with_message ("Cannot compile " + type_name);
-    REG
-  );
+    Self
+  )
+  [
+    type_name +? { Result = Self };
+    type_name +? { result != NULL };
+    has_results.if {
+      has_multiple_results.if {
+        +? { results != NULL };
+      } else {
+        +? { result.is_valid };
+      };
+    };
+  ];
   
-  - has_multiple_results :BOOLEAN <- FALSE;
+  - has_results          :BOOLEAN <- FALSE;
+  + has_multiple_results :BOOLEAN <- FALSE;
   
-  - results :FAST_ARRAY(REG) <- (deferred; NULL);
+  + result :EXPR <- 
+  [
+    type_name -? { ! has_multiple_results };
+  ]
+  ( EXPR )
+  [
+    type_name +? { Result != NULL };
+    type_name +? { (Result.is_valid) || {! has_results} };
+  ];
+  
+  - results :FAST_ARRAY(EXPR) <-
+  [
+    type_name -? { has_results };
+    type_name -? { has_multiple_results };
+  ]
+  ( deferred; NULL );
 
 

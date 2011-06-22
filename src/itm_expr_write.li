@@ -15,16 +15,20 @@ Section Public
   + slot_name :CSTRING;
   
   + expr :ITM_EXPR;
+  
+  - has_results :BOOLEAN <- TRUE;
 
-  - compile_in list:LIST :REG <-
+  + result :EXPR := EXPR;
+
+  - compile_in list:LIST :SELF <-
   [ -? { list.self != NULL }; ]
-  ( + r:REG;
-    r := expr.compile_in list;
+  (
+    result := expr.compile_in list.result;
     INSTR_STORE
       .clone
-      .make_itm Self store r in (list.self, list.self_type)
+      .make_itm Self store result in (list.self, list.self_type)
       .add_in list;
-    r
+    Self
   );
 
 Section PARSER

@@ -55,6 +55,14 @@ Section Public
       gen.type_void;
     };
   );
+  
+  - Self:SELF '==' other:E :BOOLEAN <-
+  (
+    (E = SELF) &&
+    {i_size = other.i_size} &&
+    {p_type = other.p_type} &&
+    {f_ptr  = other.f_ptr }
+  );
 
 Section Private
 
