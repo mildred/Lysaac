@@ -94,6 +94,8 @@ Section GENERATOR
 
   + identifier :INTEGER := 0;
   + name :CSTRING := "";
+  
+  - base_type :BASE_TYPE;
 
   - realize n:CSTRING :SELF <-
   [ -? { SELF != Self };

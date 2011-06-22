@@ -64,7 +64,7 @@ Section Public
   )
   [ +? {generated}; ];
 
-Section INSTR_CALL
+Section INSTR_CALL, INSTR_STORE
 
   - find_slot name:CSTRING :SLOT <-
   [ -? {parsed}; ]

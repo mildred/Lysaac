@@ -1,2 +1,14 @@
-rename VAR to REG
 
+REG.type:TYPE should be REG.basic_type:BASIC_TYPE
+
+Is REG.writer_instruction useful? Remove!
+
+ITM_EXPR.compile_in (??)
+
+INSTR_STORE should be symmetric of INSTR_LOAD
+  - INSTR_LOAD is only for local variables
+  - for data slots, they are considered as code slot anyway, so INSTR_CALL is used
+  - INSTR_STORE should work primarily for local variables
+  - current INSTR_STORE could either:
+    - support both variables and data slots
+    - support only variables and data slots are managed elsewhere

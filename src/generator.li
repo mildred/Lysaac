@@ -115,6 +115,24 @@ Section Public
     put "}\n\n";
   );
   
+  - getelementptr_of receiver:REG in res:REG refs blc:{} <-
+  (
+    put_indent;
+    res.realize "%" id get_local;
+    put_reg res;
+    put " = getelementptr ";
+    put_reg_type_and_name receiver;
+    blc.value;
+  );
+  
+  - store value:REG to ptr:REG <-
+  (
+    put_indent;
+    put "store ";
+    arg {put_reg_type_and_name value};
+    arg {put_reg_type_and_name ptr};
+  );
+  
   - call name:CSTRING args blc:{} result r:REG <-
   (
     put_indent;
@@ -143,10 +161,18 @@ Section Public
   
   - arg blc:{} <-
   (
-    (context.last = '(').if_false {
+    ((context.last != ' ') && {context.last != '('}).if {
       context.append ", ";
     };
     blc.value;
+  );
+  
+  - arg_i32 i:INTEGER <-
+  (
+    arg {
+      put "i32 ";
+      put_int i;
+    }
   );
   
   - arg_name n:ABSTRACT_STRING variable var:REG type type:{} <-
@@ -248,6 +274,13 @@ Section Private
   - put_reg_type r:REG    <- r.is_valid
       .if  { r.type.generate Self; }
       else { put "void"; };
+  
+  - put_reg_type_and_name r:REG <-
+  (
+    put_reg_type r;
+    put_c ' ';
+    put_reg r;
+  );
   
   - put_reg var:REG in str:STRING <-
   (

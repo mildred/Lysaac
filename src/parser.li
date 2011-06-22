@@ -784,7 +784,7 @@ Section SELF
         tmp.is_void.if {
           warning "Affect of a VOID expression" in p;
         } else {
-          res := ITM_EXPR_AFFECT.clone.make_position pos.make_affect affect in idf of tmp;
+          res := ITM_EXPR_WRITE.clone.make_position pos.make_affect affect in idf of tmp;
         };
       } else {
         ((tmp := read_expr_call (idf, pos)) != NULL).if {
