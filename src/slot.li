@@ -22,6 +22,8 @@ Section Public
 
   + self :REG;
   
+  + self_type :TYPE;
+  
   + result_type :TYPE;
   
   - to_string :STRING <-
@@ -37,17 +39,16 @@ Section Public
 Section ITM_SLOT
 
   - make s:ITM_SLOT :SELF <-
-  ( + t:TYPE;
+  (
     arguments := FAST_ARRAY(REG).create 0;
     list := LIST.clone.make Self;
     ast  := s;
     prototype := ast.prototype_parent;
     ? {prototype != NULL};
-    self := REG.clone.make INSTR_NOP static_type (t := prototype.to_type);
-    //? { ! t.base_type.void };
+    self_type := prototype.to_type;
+    ? { self_type != NULL };
+    self := REG.clone.make_type self_type;
     ? { self.is_valid };
-    ? { t != NULL };
-    ? { self.type != NULL };
     ? { ! self.is_realized };
     prototype.add_slot Self;
     Self
@@ -96,7 +97,7 @@ Section LIST_PROC
     external.if {
       gen.declare_sub external_name args {
         arguments.iterate.loop_v { v:REG;
-          gen.arg { v.type.generate gen; };
+          gen.arg { v.base_type.generate gen; };
         };
       };
     } else {

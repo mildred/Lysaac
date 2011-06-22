@@ -25,7 +25,7 @@ Section ITM_SLOT
     t := type.to_type;
     (t != NULL).if {
       result
-        .make NULL static_type t
+        .make_type t
         .make_pretty_name name;
       ? { result.is_valid };
     } else {
@@ -35,7 +35,6 @@ Section ITM_SLOT
   )
   [
     +? {result = Result};
-    +? {(result.is_null) || {result.type != NULL}};
   ];
 
   - make (n:CSTRING, t:ITM_TYPE) :SELF <-

@@ -32,29 +32,33 @@ Section Public
   - is_valid :BOOLEAN <- ( type != NULL );
   - is_null  :BOOLEAN <- ( ! is_valid );
   
-  - has_writer :BOOLEAN <- (writer_instruction != NULL);
-  
   //
   // Attributes
   //
   
-  - writer :INSTR <-
-  [ -? {has_writer}; ]
-  ( writer_instruction );
-  
-  + type :TYPE := NULL;
-  
   + pretty_name :CSTRING := "";
+  
+  - base_type :BASE_TYPE <-
+  [ -? { is_valid }; ]
+  ( type.base_type   );
   
   //
   // Construction
   //
-
-  - make writer_instr:INSTR static_type t:TYPE :SELF <-
+  
+  - make_type t:TYPE :SELF <-
   [ -? { t != NULL }; ]
   (
-    writer_instruction := writer_instr;
     type := t;
+    name := "";
+    identifier := 0;
+    pretty_name := "";
+    Self
+  );
+  
+  - make_from other:REG :SELF <-
+  (
+    type := other.type;
     name := "";
     identifier := 0;
     pretty_name := "";
@@ -94,8 +98,6 @@ Section GENERATOR
 
   + identifier :INTEGER := 0;
   + name :CSTRING := "";
-  
-  - base_type :BASE_TYPE;
 
   - realize n:CSTRING :SELF <-
   [ -? { SELF != Self };
@@ -115,7 +117,18 @@ Section GENERATOR
     identifier := id;
     Self
   );
+  
+  - generate_type gen:GENERATOR <-
+  (
+    is_valid.if {
+      base_type.generate gen;
+    } else {
+      gen.type_void;
+    };
+  );
 
-Section Private
+Section ITM_EXPR_READ
+  
+  // TODO: remove this slot and remove the dependance of ITM_EXPR_READ on it.
+  + type :TYPE := NULL;
 
-  + writer_instruction :INSTR;

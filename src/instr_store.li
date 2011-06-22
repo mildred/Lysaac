@@ -20,7 +20,7 @@ Section Public
 
   - generate gen:GENERATOR <-
   ( + r:REG;
-    r := REG.clone.make Self static_type (/* TODO: pointer of */ slot.result_type);
+    r := REG.clone.make_type (/* TODO: pointer of */ slot.result_type);
     gen.getelementptr_of receiver in r refs {
       gen.arg_i32 0;
       gen.arg_i32 0;
@@ -30,22 +30,24 @@ Section Public
 
 Section ITM_EXPR_WRITE
 
-  - make_itm itm:ITM_EXPR_WRITE store v:REG in obj:REG :SELF <-
+  - make_itm itm:ITM_EXPR_WRITE store v:REG in (obj:REG, t:TYPE) :SELF <-
   [
     -? { v.is_valid };
     -? { obj.is_valid };
   ]
   (
-    ast      := itm;
-    receiver := obj;
-    value    := v;
+    ast        := itm;
+    receiver   := obj;
+    receiver_t := t;
+    value      := v;
     Self
   );
 
 Section Private
 
-  + ast      :ITM_EXPR_WRITE;
-  + receiver :REG;
-  + value    :REG;
-  - slot     :SLOT <- receiver.type.prototype.find_slot (ast.slot_name);
+  + ast        :ITM_EXPR_WRITE;
+  + receiver   :REG;
+  + receiver_t :TYPE;
+  + value      :REG;
+  - slot       :SLOT <- receiver_t.prototype.find_slot (ast.slot_name);
 

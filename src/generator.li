@@ -273,9 +273,7 @@ Section Private
   - put_indent            <- put indent_str;
   - put_line              <- put_c '\n';
   - put_reg var:REG       <- put_reg var in context;
-  - put_reg_type r:REG    <- r.is_valid
-      .if  { r.type.generate Self; }
-      else { put "void"; };
+  - put_reg_type r:REG    <- r.generate_type Self;
   
   - put_reg_type_and_name r:REG <-
   (

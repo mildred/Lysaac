@@ -22,7 +22,7 @@ Section Public
     r := expr.compile_in list;
     INSTR_STORE
       .clone
-      .make_itm Self store r in (list.self)
+      .make_itm Self store r in (list.self, list.self_type)
       .add_in list;
     r
   );

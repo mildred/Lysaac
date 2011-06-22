@@ -38,7 +38,7 @@ Section ITM_EXPR_STR
     has_been_declared := FALSE;
     string := s;
     static_type := t;
-    result := REG.clone.make Self static_type t;
+    result := REG.clone.make_type t;
     Self
   );
 

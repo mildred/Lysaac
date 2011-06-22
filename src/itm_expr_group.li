@@ -27,7 +27,7 @@ Section Public
       res := INSTR_FNPTR.clone.make (block.external_name) cluster cluster_parent.add_in list.result;
       list.list_procs.add_block block;
       is_block := FALSE;
-      ? { res.type != NULL };
+      ? { res.is_valid };
     } else {
       instructions.iterate.loop_v { i:ITM_INST;
         i.compile_in list;
@@ -43,7 +43,7 @@ Section Public
     res
   )
   [
-    +? {{ ! is_block } || { Result.type != NULL }};
+    +? {{ ! is_block } || { Result.is_valid }};
   ];
   
   - to_string :STRING <-
