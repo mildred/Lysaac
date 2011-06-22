@@ -1,15 +1,6 @@
+REG should be used only with base_type.
+In code, EXPR should be used instead.
 
-REG.type:TYPE should be REG.basic_type:BASIC_TYPE
-
-Is REG.writer_instruction useful? Remove!
-
-ITM_EXPR.compile_in (??)
-
-INSTR_STORE should be symmetric of INSTR_LOAD
-  - INSTR_LOAD is only for local variables
-  - for data slots, they are considered as code slot anyway, so INSTR_CALL is used
-  - INSTR_STORE should work primarily for local variables
-  - current INSTR_STORE could either:
-    - support both variables and data slots
-    - support only variables and data slots are managed elsewhere
+ITM_EXPR.compile_in should return Self:SELF
+The result should be stored in ITM_EXPR.result:EXPR (or ITM_EXPR.results:FAST_ARRAY(EXPR))
 

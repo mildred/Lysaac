@@ -1,6 +1,8 @@
 Section Header
 
   + name := EXPR;
+  
+  - export := REG, TYPE;
 
 Section Inherit
 
@@ -8,5 +10,21 @@ Section Inherit
 
 Section Public
 
-  - generate gen:GENERATOR <- deferred;
+  + reg :REG
+  
+  + type :TYPE;
 
+  - make (r:REG, t:TYPE) :SELF <-
+  [
+    -? { reg.is_valid };
+    -? { t != NULL };
+    -? { t.base_type = r.base_type };
+  ]
+  (
+    reg  := r;
+    type := t;
+    Self
+  );
+
+  - to_reg  :REG  <- reg;
+  - to_type :TYPE <- type;
