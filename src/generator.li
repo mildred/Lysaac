@@ -123,6 +123,7 @@ Section Public
     put " = getelementptr ";
     put_reg_type_and_name receiver;
     blc.value;
+    put_line;
   );
   
   - store value:REG to ptr:REG <-
@@ -131,6 +132,7 @@ Section Public
     put "store ";
     arg {put_reg_type_and_name value};
     arg {put_reg_type_and_name ptr};
+    put_line;
   );
   
   - call name:CSTRING args blc:{} result r:REG <-

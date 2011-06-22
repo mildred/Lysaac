@@ -12,3 +12,4 @@ INSTR_STORE should be symmetric of INSTR_LOAD
   - current INSTR_STORE could either:
     - support both variables and data slots
     - support only variables and data slots are managed elsewhere
+
