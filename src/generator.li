@@ -103,7 +103,6 @@ Section Public
     put " @";
     put name;
     put " (";
-    s.generate_arg Self;
     args.value;
     context.append ") {\n";
     last_local := 0;

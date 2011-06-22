@@ -26,6 +26,8 @@ Section Public
   
   - is_external :BOOLEAN <- ( has_keyword "External" );
   
+  - is_export :BOOLEAN <- ( has_keyword "Export" );
+  
   - has_keyword k:CSTRING :BOOLEAN <-
   (
      + res :BOOLEAN;

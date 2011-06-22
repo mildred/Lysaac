@@ -14,7 +14,7 @@ Feature: Simple external procedure call
       
         - puts str:CSTRING <- External `puts`;
       
-        - main <-
+        - main <- Export
         (
           puts "Hello World";
         );
@@ -48,7 +48,7 @@ Feature: Simple external procedure call
       
         - puts(str:CSTRING) <- External `puts`;
       
-        - main <-
+        - main <- Export
         (
           puts("Hello World");
         );

@@ -33,7 +33,7 @@ Feature: Simple blocks
           blc.value;
         );
       
-        - main <-
+        - main <- Export
         (
           receiver {
             puts "In my block";

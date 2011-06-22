@@ -15,7 +15,7 @@ Feature: External procedure call with integer and two arguments
       
         - printf (format:CSTRING, arg:INT32) <- External `printf`;
       
-        - main <-
+        - main <- Export
         (
           printf("Hello World to %dntegers", 1);
         );

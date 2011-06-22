@@ -14,6 +14,10 @@ Section Public
   
   - external :BOOLEAN <- ast.is_external;
   
+  - export :BOOLEAN <- ast.is_export;
+  
+  - external_or_export :BOOLEAN <- (external) || {export};
+  
   + external_name :CSTRING <- name;
   
   + arguments :FAST_ARRAY(REG);
@@ -108,6 +112,9 @@ Section LIST_PROC
     } else {
       ? { ! self.reg.is_realized };
       gen.sub external_name self self args {
+        export.if_false {
+          self.reg.generate_arg gen;
+        };
         arguments.iterate.loop_v { v:REG;
           v.generate_arg gen;
         };

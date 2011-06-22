@@ -18,7 +18,7 @@ Feature: Types must be able to contain values
       
         - printf (format:CSTRING, arg:INT32) <- External `printf`;
       
-        - main <-
+        - main <- Export
         (
           printf("Hello World to %dntegers", one);
         );
@@ -47,7 +47,7 @@ Feature: Types must be able to contain values
       
         - printf (format:CSTRING, arg:INT32) <- External `printf`;
       
-        - main <-
+        - main <- Export
         (
           printf("Hello World to %dntegers", one);
           one := 2;
