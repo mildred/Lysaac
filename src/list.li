@@ -52,9 +52,7 @@ Section ITM_EXPR_GROUP
 
 Section ITM_EXPR, PROC_BLOCK, SLOT
 
-  - self :REG <- proc.self;
-  
-  - self_type :TYPE <- proc.self_type;
+  - self :EXPR <- proc.self;
 
 Section Private
 

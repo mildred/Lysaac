@@ -13,6 +13,8 @@ Section Public
   + block :BOOLEAN;
   
   + base_type :BASE_TYPE;
+  
+  - void :BOOLEAN <- base_type.void;
 
   - generate gen:GENERATOR <-
   (
@@ -29,6 +31,7 @@ Section Public
 Section PROTOTYPE
 
   - make p:PROTOTYPE :SELF <-
+  [ -? { ! p.void }; ]
   (
     (p.role == "Block").if {
       make_block p;
@@ -42,12 +45,16 @@ Section PROTOTYPE
       };
     };
     Self
-  );
+  )
+  [ +? { ! base_type.void }; ];
   
   - make_block p:PROTOTYPE :SELF <-
+  [ -? { ! p.base_type.void }; ]
   (
     block := TRUE;
     prototype := p;
     base_type := BASE_TYPE.create_function_pointer;
     Self
-  );
+  )
+  [ +? { ! base_type.void }; ];
+

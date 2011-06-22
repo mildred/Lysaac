@@ -30,15 +30,14 @@ Section Public
 
 Section ITM_EXPR_WRITE
 
-  - make_itm itm:ITM_EXPR_WRITE store v:REG in (obj:REG, t:TYPE) :SELF <-
+  - make_itm itm:ITM_EXPR_WRITE store v:REG in e:EXPR :SELF <-
   [
     -? { v.is_valid };
-    -? { obj.is_valid };
+    -? { e.is_valid };
   ]
   (
     ast        := itm;
-    receiver   := obj;
-    receiver_t := t;
+    receiver   := e;
     value      := v;
     Self
   );
@@ -46,8 +45,7 @@ Section ITM_EXPR_WRITE
 Section Private
 
   + ast        :ITM_EXPR_WRITE;
-  + receiver   :REG;
-  + receiver_t :TYPE;
+  + receiver   :EXPR;
   + value      :REG;
-  - slot       :SLOT <- receiver_t.prototype.find_slot (ast.slot_name);
+  - slot       :SLOT <- receiver.type.prototype.find_slot (ast.slot_name);
 

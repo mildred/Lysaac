@@ -35,6 +35,8 @@ Section Public
   [
     +? { is_valid };
   ];
+  
+  - make_type t:TYPE :SELF <- make(REG.clone.make_type t, t);
 
   - to_reg  :REG  <- [ -? { reg != NULL }; ] reg;
   - to_type :TYPE <- [ -? { is_valid    }; ] type;

@@ -20,11 +20,11 @@ Section Public
   
   + prototype :PROTOTYPE;
 
-  + self :REG;
-  
-  + self_type :TYPE;
+  + self :EXPR;
   
   + result_type :TYPE;
+  
+  - style :ITM_STYLE <- ast.style;
   
   - has_result :BOOLEAN <- (result_type != NULL);
   
@@ -41,17 +41,20 @@ Section Public
 Section ITM_SLOT
 
   - make s:ITM_SLOT :SELF <-
-  (
+  ( + t:TYPE;
     arguments := FAST_ARRAY(REG).create 0;
     list := LIST.clone.make Self;
     ast  := s;
     prototype := ast.prototype_parent;
     ? {prototype != NULL};
-    self_type := prototype.to_type;
-    ? { self_type != NULL };
-    self := REG.clone.make_type self_type;
+    t := prototype.to_type;
+    t.void.if {
+      self := EXPR;
+    } else {
+      self := EXPR.clone.make_type t;
+    };
     ? { self.is_valid };
-    ? { ! self.is_realized };
+    ? { ! self.reg.is_realized };
     prototype.add_slot Self;
     Self
   );
@@ -103,7 +106,7 @@ Section LIST_PROC
         };
       };
     } else {
-      ? { ! self.is_realized };
+      ? { ! self.reg.is_realized };
       gen.sub external_name self self args {
         arguments.iterate.loop_v { v:REG;
           v.generate_arg gen;

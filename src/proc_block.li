@@ -10,9 +10,7 @@ Section Public
 
   + external_name :CSTRING;
   
-  + self :REG;
-  
-  + self_type :TYPE;
+  + self :EXPR;
 
 Section ITM_EXPR_GROUP
 
@@ -23,8 +21,7 @@ Section ITM_EXPR_GROUP
     warnln ("make block " + external_name);
     itm_expr        := ast;
     list            := LIST.clone.make Self;
-    self_type       := l.self_type;
-    self            := REG.clone.make_type self_type;
+    self            := EXPR.clone.make_type (l.self.type);
     Self
   );
 
@@ -39,6 +36,7 @@ Section LIST_PROC
   - link <- list.link;
   
   - generate gen:GENERATOR <-
+  [ -? { ! self.reg.is_realized }; ]
   (
     gen.sub external_name self self args {} do {
       list.generate gen;

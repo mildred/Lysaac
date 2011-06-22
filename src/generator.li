@@ -30,6 +30,15 @@ Section Public
     put "void";
   );
   
+  - type_struct blc:{} <-
+  (
+    put_c '{';
+    blc.value;
+    put_c '}';
+  );
+  
+  - type_struct_element blc:{} <- list '{' element blc;
+  
   - expr_integer_value value:INTEGER in var:REG <-
   (
     var.realize (value.to_abstract_string);
@@ -161,13 +170,7 @@ Section Public
     put ")\n";
   );
   
-  - arg blc:{} <-
-  (
-    ((context.last != ' ') && {context.last != '('}).if {
-      context.append ", ";
-    };
-    blc.value;
-  );
+  - arg blc:{} <- list '(' element blc;
   
   - arg_i32 i:INTEGER <-
   (
@@ -177,7 +180,8 @@ Section Public
     }
   );
   
-  - arg_name n:ABSTRACT_STRING variable var:REG type type:{} <-
+  - arg_name n:ABSTRACT_STRING variable var:REG <-
+  [ -? { ! var.is_realized }; ]
   (
     arg {
       (n == "").if {
@@ -185,9 +189,7 @@ Section Public
       } else {
         var.realize (("%" + n).to_string);
       };
-      type.value;
-      put " ";
-      put_reg var;
+      put_reg_type_and_name var;
     };
   );
   
@@ -221,6 +223,16 @@ Section LYSAAC
   - output :STRING <- const + "\n\n" + code + "\n";
 
 Section Private
+
+  - list c:CHARACTER element blc:{} <-
+  (
+    ((context.last != ' ') &&
+     {context.last != c}).if
+    {
+      context.append ", ";
+    };
+    blc.value;
+  );
 
   + last_global :INTEGER := 0;
   - get_global :INTEGER <-

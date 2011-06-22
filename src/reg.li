@@ -27,7 +27,7 @@ Section Public
   // Predicates
   //
 
-  - is_realized :BOOLEAN <- ( name.count != 0 );
+  - is_realized :BOOLEAN <- ( name.count != 0 ) || { identifier != 0 };
   
   - is_valid :BOOLEAN <- ( type != NULL );
   - is_null  :BOOLEAN <- ( ! is_valid );
@@ -89,12 +89,17 @@ Section Public
   - generate_arg gen:GENERATOR <- generate_arg gen name pretty_name;
   
   - generate_arg gen:GENERATOR name n:CSTRING <-
-  [ -? { is_valid }; ]
+  [ -? { is_valid };
+    -? { name.count = 0 };
+    -? { identifier = 0 };
+    -? { ! is_realized };
+  ]
   (
     type.base_type.void.if_false {
-      gen.arg_name n variable Self type { type.generate gen; };
+      gen.arg_name n variable Self;
     };
-  );
+  )
+  [ -? { is_realized }; ];
 
 Section GENERATOR
 
@@ -102,7 +107,8 @@ Section GENERATOR
   + name :CSTRING := "";
 
   - realize n:CSTRING :SELF <-
-  [ -? { SELF != Self };
+  [ warnln to_string;
+    -? { SELF != Self };
     -? { name.count = 0 };
     -? { identifier = 0 };
   ]
@@ -129,8 +135,7 @@ Section GENERATOR
     };
   );
 
-Section ITM_EXPR_READ
+Section Private
   
-  // TODO: remove this slot and remove the dependance of ITM_EXPR_READ on it.
   + type :TYPE := NULL;
 

@@ -26,7 +26,7 @@ Section Public
     result := expr.compile_in list.result;
     INSTR_STORE
       .clone
-      .make_itm Self store result in (list.self, list.self_type)
+      .make_itm Self store result in (list.self)
       .add_in list;
     Self
   );

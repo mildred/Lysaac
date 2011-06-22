@@ -23,8 +23,7 @@ Section Public
   [
     ? { list.self.is_valid };
   ]
-  ( + self      :REG;
-    + self_type :TYPE;
+  ( + self      :EXPR;
     + local     :ITM_EXPR_LOCAL;
     
     ((receiver = NULL) && {(local := lookup_local slot) != NULL}).if {
@@ -35,13 +34,11 @@ Section Public
       // Slot call
       + call :INSTR_CALL;
       (receiver = NULL).if {
-        self      := list.self;
-        self_type := list.self_type;
+        self := list.self;
       } else {
-        self      := receiver.compile_in list.result;
-        self_type := self.type;
+        self := receiver.compile_in list.result;
       };
-      self.is_null.if {
+      self.reg.is_null.if {
         warn "Cannot INSTR_CALL, the receiver doesn't have a type ";
         (receiver = NULL).if {
           warnln "(implicit receiver)";
@@ -50,7 +47,7 @@ Section Public
         };
       } else {
         ? {self.is_valid};
-        call := INSTR_CALL.clone.make_itm Self receiver (self, self_type);
+        call := INSTR_CALL.clone.make_itm Self receiver self;
         arguments.iterate.loop_v { a:ITM_EXPR;
           + arg :EXPR;
           warnln ("Argument: " + a.to_string);

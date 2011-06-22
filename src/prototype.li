@@ -17,7 +17,17 @@ Section Public
 
   - find_type type_name:CSTRING :TYPE <- cluster.find_type type_name;
   
-  + base_type :BASE_TYPE;
+  + base_type :BASE_TYPE <-
+  ( base_type := BASE_TYPE.create_struct;
+    slots.iterate.loop_v { s:SLOT;
+      ((s.style.plus) && {s.has_result}).if {
+        base_type.struct_types.add_last (s.result_type.base_type);
+      };
+    };
+    base_type
+  );
+  
+  - void :BOOLEAN <- base_type.void;
   
   + filename :CSTRING;
   
@@ -98,7 +108,6 @@ Section CLUSTER_ITEM
 
   - make_file file:CSTRING cluster c:CLUSTER :SELF <-
   (
-    base_type := NULL;
     expanded := FALSE;
     cluster  := c;
     filename := file;

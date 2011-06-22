@@ -12,9 +12,7 @@ Section Public
   // Receiver
   //
 
-  + receiver :REG;
-  
-  + receiver_type :TYPE;
+  + receiver :EXPR;  
   
   //
   // Slot
@@ -22,7 +20,7 @@ Section Public
 
   + slot :SLOT <-
   (
-    slot := receiver_type.prototype.find_slot name
+    slot := receiver.type.prototype.find_slot name
   );
 
   //
@@ -32,7 +30,7 @@ Section Public
   - link <-
   (
     (slot = NULL).if {
-      crash_with_message ("Cannot find slot "+name+" in "+receiver_type.prototype.name);
+      crash_with_message ("Cannot find slot "+name+" in "+receiver.type.prototype.name);
     };
   );
 
@@ -43,7 +41,9 @@ Section Public
   - generate gen:GENERATOR <-
   (
     gen.call (slot.name) args {
-      generate_arg receiver in gen;
+      slot.external.if_false {
+        generate_arg receiver in gen;
+      };
       args.iterate.loop_v { a:EXPR;
         generate_arg a in gen;
       };
@@ -62,11 +62,10 @@ Section Private
 
 Section ITM_EXPR_READ
 
-  - make_itm i:ITM_EXPR_READ receiver (r:REG, t:TYPE) :SELF <-
-  [ -? { r.is_valid }; ]
+  - make_itm i:ITM_EXPR_READ receiver e:EXPR :SELF <-
+  [ -? { e.is_valid }; ]
   (
-    receiver      := r;
-    receiver_type := t;
+    receiver      := e;
     ast           := i;
     args          := FAST_ARRAY(EXPR).create 0;
     result        := REG.clone;

@@ -1,5 +1,2 @@
-REG should be used only with base_type.
-In code, EXPR should be used instead.
-
 REG should not store TYPE directly, the constructor should extract BAST_TYPE.
 REG.is_valid should test if the base_type is not void (we should test this against regressions and revert if not applicable).
