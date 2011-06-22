@@ -25,7 +25,9 @@ Section Public
         res.append (t.to_string);
         res.add_last ',';
       };
-      res.remove_last 1;
+      (m_struct.count > 0).if {
+        res.remove_last 1;
+      };
       res.append "}";
     };
     res.append ">";
@@ -75,6 +77,11 @@ Section Public
     } else {
       gen.type_void;
     };
+  );
+  
+  - realize_default_value gen:GENERATOR for reg:REG <-
+  (
+    gen.expr_undef_in reg
   );
   
   - Self:SELF '==' other:E :BOOLEAN <-

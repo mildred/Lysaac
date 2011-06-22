@@ -1,2 +1,5 @@
 REG should not store TYPE directly, the constructor should extract BAST_TYPE.
 REG.is_valid should test if the base_type is not void (we should test this against regressions and revert if not applicable).
+
+INSTR_FNPTR should be renamed INSTR_GLOBAL and every time a global value is required, it should use this instruction.
+

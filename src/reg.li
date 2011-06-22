@@ -82,6 +82,11 @@ Section Public
     realize (v.name) id (v.identifier);
   );
   
+  - realize_default_value gen:GENERATOR <-
+  (
+    base_type.realize_default_value gen for Self;
+  );
+  
   //
   // Generation
   //

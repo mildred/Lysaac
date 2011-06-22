@@ -42,6 +42,10 @@ Section Public
     res
   );
 
+Section PROTOTYPE
+
+  + default_value :EXPR;
+
 Section ITM_SLOT
 
   - make s:ITM_SLOT :SELF <-
@@ -57,6 +61,7 @@ Section ITM_SLOT
     } else {
       self := EXPR.clone.make_type t;
     };
+    default_value := EXPR;
     ? { self.is_valid };
     ? { ! self.reg.is_realized };
     prototype.add_slot Self;
@@ -67,6 +72,7 @@ Section ITM_SLOT
   
   - set_return_type t:TYPE <-
   (
+    default_value := EXPR.clone.make_type t;
     result_type := t;
   );
 
@@ -119,6 +125,11 @@ Section LIST_PROC
           v.generate_arg gen;
         };
       } do {
+        export.if {
+          //self.reg.realize_using (prototype.prototype_value);
+          gen.expr_undef_in self;
+        };
+        ? { self.reg.is_realized };
         is_block_value_slot.if {
           gen.call_ptr (list.self);
         } else {

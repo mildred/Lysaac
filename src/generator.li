@@ -44,6 +44,11 @@ Section Public
     var.realize (value.to_abstract_string);
   );
   
+  - expr_undef_in v:REG <-
+  (
+    v.realize "undef";
+  );
+  
   - expr_function_pointer fn:CSTRING in var:REG <-
   (
     var.realize (("@" + fn).to_string);
@@ -91,6 +96,26 @@ Section Public
     put " (";
     args.value;
     put ")\n\n";
+  );
+  
+  - struct_member v:REG <-
+  (
+    list '{' element {
+      put_reg_type_and_name v;
+    };
+  );
+  
+  - global_prototype_value v:REG members blc:{} <-
+  (
+    context_const {
+      var.realize "@" id get_global;
+      put_reg var;
+      put " = ";
+      put_reg_type v
+      put "{";
+      blc.value;
+      put "}\n";
+    };
   );
   
   - sub name:CSTRING self s:REG args args:{} do blc:{} return r:REG <-
@@ -294,6 +319,7 @@ Section Private
   );
   
   - put_reg var:REG in str:STRING <-
+  [ -? { var.is_realized }; ]
   (
     warnln ("put reg " + var.to_string);
     str.append (var.name);

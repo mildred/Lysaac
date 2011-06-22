@@ -27,6 +27,8 @@ Section Public
     base_type
   );
   
+  + prototype_value :EXPR;
+  
   - void :BOOLEAN <- base_type.void;
   
   + filename :CSTRING;
@@ -58,6 +60,7 @@ Section Public
   [ -? {parsed}; -? {! compiled}; ]
   (
     warnln ("Compile "+name);
+    prototype_value := EXPR.clone.make_type to_type;
     ast.compile_in list;
     state := state_compiled;
   )
@@ -67,6 +70,7 @@ Section Public
   [ -? {compiled}; -? {! generated}; ]
   (
     warnln ("Generate "+name);
+    generate_prototype_value gen;
     slots.iterate.loop_v { s:SLOT;
       s.generate gen;
     };
@@ -115,6 +119,7 @@ Section CLUSTER_ITEM
     slots    := FAST_ARRAY(SLOT).create 0;
     parser   := PARSER_LI.clone.make Self;
     state    := state_made;
+    prototype_value := EXPR;
     Self
   );
 
@@ -158,6 +163,18 @@ Section SLOT_BLOCK
   );
 
 Section Private
+
+  - generate_prototype_value gen:GENERATOR <-
+  (
+    gen.global_prototype_value prototype_value members {
+      slots.iterate.loop_v { s:SLOT;
+        ((s.style.plus) && {s.has_result}).if {
+          s.default_value.realize_default_value gen;
+          gen.struct_member (s.default_value);
+        };
+      };
+    };
+  );
 
   + state :INTEGER;
   
