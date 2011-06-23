@@ -20,10 +20,10 @@ Section Public
 
   - generate gen:GENERATOR <-
   ( + r:REG;
-    r := REG.clone.make_type (/* TODO: pointer of */ slot.result_type);
+    r := REG.clone.make_type (BASE_TYPE.create_pointer (slot.result_type));
     gen.getelementptr_of receiver in r refs {
       gen.arg_i32 0;
-      gen.arg_i32 0;
+      gen.arg_i32 0; // TODO: slot index
     };
     gen.store value to r;
   );

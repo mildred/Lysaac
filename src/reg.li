@@ -46,20 +46,10 @@ Section Public
   // Construction
   //
   
-  - make_type t:TYPE :SELF <-
+  - make_type t:BASE_TYPE :SELF <-
   [
     -? { t != NULL };
   ]
-  (
-    is_valid := TRUE;
-    m_base_type := t.base_type;
-    name := "";
-    identifier := 0;
-    pretty_name := "";
-    Self
-  );
-  
-  - make_base_type t:BASE_TYPE :SELF <-
   (
     is_valid := TRUE;
     m_base_type := t;

@@ -1,6 +1,8 @@
 Section Header
 
   + name := TYPE;
+  
+  - export := BASE_TYPE;
 
 Section Inherit
 
@@ -27,6 +29,8 @@ Section Public
   );
   
   - to_string :STRING <- type_name + "<" + prototype.name + "," + base_type.to_string + ">";
+  
+  - to_base_type :BASE_TYPE <- base_type;
 
 Section PROTOTYPE
 
