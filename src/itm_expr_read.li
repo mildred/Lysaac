@@ -29,7 +29,7 @@ Section Public
     ((receiver = NULL) && {(local := lookup_local slot) != NULL}).if {
       // Local variable
       result := local.compile_in list.result;
-      INSTR_LOAD.clone.make_variable result.add_in list;
+      INSTR_REG.clone.make_variable result.add_in list;
     } else {
       // Slot call
       + call :INSTR_CALL;

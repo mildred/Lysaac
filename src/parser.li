@@ -657,7 +657,7 @@ Section SELF
         ((key := read_keywords) != NULL).if {
           slot.set_keywords key;
         };
-        slot.set_expression read_expr;
+        slot.set_expression read_expr affect affect;
       };
       read_always ";";
     };

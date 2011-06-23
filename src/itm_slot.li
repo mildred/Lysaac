@@ -24,6 +24,8 @@ Section Public
   
   + expression :ITM_EXPR;
   
+  + affect :ITM_AFFECT;
+  
   - is_external :BOOLEAN <- ( has_keyword "External" );
   
   - is_export :BOOLEAN <- ( has_keyword "Export" );
@@ -129,8 +131,9 @@ Section PARSER
     Self
   );
   
-  - set_expression e:ITM_EXPR :SELF <-
+  - set_expression e:ITM_EXPR affect a:ITM_AFFECT :SELF <-
   (
+    affect := a;
     e.set_itm_parent Self;
     expression := e;
     Self

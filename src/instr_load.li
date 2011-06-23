@@ -1,6 +1,6 @@
 Section Header
 
-  + name := INSTR_LOAD; // read local variable
+  + name := INSTR_LOAD;
 
 Section Inherit
 
@@ -12,21 +12,37 @@ Section Public
   // Link
   //
   
-  - link;
+  - link <-
+  (
+    ? {slot.is_compiled_data_slot};
+  );
 
   //
   // Generate
   //
 
-  - generate gen:GENERATOR;
+  - generate gen:GENERATOR <-
+  ( + r:REG;
+    r := REG.clone.make_type (BASE_TYPE.create_pointer (slot.result_type));
+    gen.getelementptr_of receiver in r refs {
+      gen.arg_i32 0;
+      gen.arg_i32 (slot.type_index);
+    };
+    gen.load_from r in result;
+  );
 
-Section ITM_EXPR_READ
+Section SLOT
 
-  - make_variable v:REG :SELF <-
-  [ -? { v.is_valid }; ]
+  - make_slot s:SLOT receiver r:REG :SELF <-
   (
-    result := v;
+    slot := s;
+    receiver := r;
+    result := REG.clone.make_type (slot.result_type);
     Self
   );
   
+Section Private
+
+  + slot :SLOT;
+  + receiver :REG;
 

@@ -169,6 +169,16 @@ Section Public
     put_line;
   );
   
+  - load_from ptr:REG in res:REG <-
+  (
+    res.realize "%" id get_local;
+    put_indent;
+    put_reg res;
+    put " = load ";
+    arg {put_reg_type_and_name ptr};
+    put_line;
+  );
+  
   - call name:CSTRING args blc:{} result r:REG <-
   (
     put_indent;

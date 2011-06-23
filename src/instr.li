@@ -16,7 +16,7 @@ Section Public
 
   - generate gen:GENERATOR <- deferred;
 
-Section ITM_EXPR
+Section ITM_EXPR, SLOT
 
   - add_in list:LIST :SELF <-
   [ -? { list_parent = NULL }; ]

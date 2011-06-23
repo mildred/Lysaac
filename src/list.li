@@ -34,7 +34,7 @@ Section PROC
     };
   );
 
-  - set_list_procs l:LIST_PROC <- (list_procs := l;);
+  - set_list_procs l:LIST_PROC :SELF <- (list_procs := l; Self);
 
 Section INSTR
 

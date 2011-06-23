@@ -96,6 +96,13 @@ Section LIST_PROC
       sym ?= ast.expression;
       ? { sym != NULL };
       external_name := sym.symbol;
+    }.elseif {is_compiled_data_slot && {ast.affect.data}} then {
+      // Read data slot
+      reg_result := INSTR_LOAD
+        .clone
+        .make_slot Self receiver (list.self)
+        .add_in list
+        .result;
     }.elseif {ast.expression != NULL} then {
       // Nominal case
       reg_result := ast.expression.compile_in list.result.reg;
