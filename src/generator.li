@@ -106,26 +106,16 @@ Section Public
   );
   
   - global_prototype_value v:REG members blc:{} <-
-  ( + r :REG;
-    + t :BASE_TYPE;
+  ( + t :BASE_TYPE;
     context_const {
-      r := v;
       t := v.base_type.pointer_type;
-      //r := REG.clone.make_base_type (t);
-      //r.realize "@" id get_global;
       v.realize "@" id get_global;
-      put_reg r;
+      put_reg v;
       put " = global ";
       t.generate Self;
       put " {";
       blc.value;
       put "}\n";
-      //put_reg v;
-      //put " = global ";
-      //put_reg_type v;
-      //put " ";
-      //put_reg r;
-      //put_line;
     };
   );
   
