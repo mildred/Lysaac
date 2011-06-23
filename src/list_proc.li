@@ -11,7 +11,8 @@ Section Public
   - compile <-
   (
     slots.iterate.loop_v { s:PROC;
-      warnln ("compile " + s.external_name);
+      progress_step (cur_step,num_steps) message ("Compile " + s.external_name);
+      cur_step := cur_step + 1;
       s.compile Self;
     };
   );
@@ -19,6 +20,8 @@ Section Public
   - link <-
   (
     slots.iterate.loop_v { s:PROC;
+      progress_step (cur_step,num_steps) message ("Link " + s.external_name);
+      cur_step := cur_step + 1;
       s.link;
     };
   );
@@ -26,9 +29,13 @@ Section Public
   - generate gen:GENERATOR <-
   (
     slots.iterate.loop_v { s:PROC;
+      progress_step (cur_step,num_steps) message ("Generate " + s.external_name);
+      cur_step := cur_step + 1;
       s.generate gen;
     };
   );
+  
+  - count :INTEGER <- slots.count;
   
 Section CLUSTER
 
@@ -37,6 +44,15 @@ Section CLUSTER
     slots := FAST_ARRAY(PROC).create 0;
     Self
   );
+  
+  - set_percentage (num, cur :INTEGER) <-
+  (
+    num_steps := num;
+    cur_step  := cur;
+  );
+  
+  + num_steps :INTEGER;
+  + cur_step  :INTEGER;
 
 Section ITM_SLOT, ITM_EXPR_GROUP
 

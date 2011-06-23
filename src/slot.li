@@ -41,6 +41,10 @@ Section Public
     res.append ">";
     res
   );
+  
+  - is_compiled_data_slot :BOOLEAN <- type_index >= 0;
+  
+  + type_index :INTEGER := -1;
 
 Section PROTOTYPE
 
@@ -56,8 +60,8 @@ Section ITM_SLOT
     prototype     := ast.prototype_parent;
     default_value := EXPR;
     self          := EXPR;
+    type_index    := -1;
     ? {prototype != NULL};
-    prototype.add_slot Self;
     Self
   );
   
@@ -67,6 +71,12 @@ Section ITM_SLOT
   (
     default_value := EXPR.clone.make_type t;
     result_type := t;
+  );
+  
+  - finish_creation <-
+  (
+    warnln (prototype.to_string + ".add_slot " + to_string);
+    prototype.add_slot Self;
   );
 
 Section LIST_PROC
@@ -136,6 +146,16 @@ Section LIST_PROC
       } return reg_result;
     };
   );
+
+Section PROTOTYPE
+
+  - set_type_index i:INTEGER <-
+  [ -? {i >= 0}; ]
+  (
+    warnln (to_string + ".type_index = " + i.to_string);
+    type_index := i;
+  )
+  [ +? {is_compiled_data_slot}; ];
 
 Section Private
 

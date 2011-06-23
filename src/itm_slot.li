@@ -78,6 +78,7 @@ Section ITM_PROTOTYPE
       ? { return_type != NULL };
       warnln (slot.result_type.to_string);
     };
+    slot.finish_creation;
     list.add_slot slot;
   );
   

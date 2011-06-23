@@ -65,6 +65,9 @@ Section Public
   - compile gen:GENERATOR <-
   [ -? {made}; ]
   (
+    progress_step (cur_step,num_steps) message "Compile cluster";
+    cur_step  := cur_step  + 1;
+    num_steps := num_steps + num_prototypes * 6;
     parse_my_prototypes;
     define_my_prototypes;
     compile_my_prototypes_and_slots;
@@ -81,6 +84,9 @@ Section Public
     slots := LIST_PROC.clone.make;
     parse path root TRUE;
     state := state_made;
+    num_prototypes := 0;
+    cur_step := 0;
+    num_steps := 1;
     Self
   );
   
@@ -93,6 +99,9 @@ Section Public
     e := PARSER_CLI.clone.make Self.parse;
     e.assert;
     state := state_made;
+    num_prototypes := 0;
+    cur_step := 0;
+    num_steps := 1;
     Self
   );
   
@@ -158,6 +167,11 @@ Section PARSER_CLI
 
 Section Private
 
+  + num_prototypes :INTEGER  := 0;
+  
+  + cur_step :INTEGER := 0;
+  + num_steps :INTEGER := 0;
+
   + state :INTEGER;
   
   - state_none      :INTEGER := 0;
@@ -201,11 +215,16 @@ Section Private
         s := nac;
         (i != LIBC.dt_dir).if {
           ((s.has_suffix ".li") || {s.has_suffix ".cli"}).if {
+            + ci :CLUSTER_ITEM;
             find_name (s2, s);
             has_source := TRUE;
             s.add_first '/';
             s.prepend path;
-            list.add_last (CLUSTER_ITEM.clone.make s2 file s parent Self);
+            ci := CLUSTER_ITEM.clone.make s2 file s parent Self;
+            ci.is_prototype.if {
+              num_prototypes := num_prototypes + 1;
+            };
+            list.add_last ci;
           };
         };
       };
@@ -303,6 +322,8 @@ Section Private
   (
     list.iterate.loop_v { i:CLUSTER_ITEM;
       i.is_prototype.if {
+        progress_step (cur_step,num_steps) message ("Parse " + i.prototype.name);
+        cur_step  := cur_step  + 1;
         i.prototype.parse;
       };
     };
@@ -314,6 +335,8 @@ Section Private
   (
     list.iterate.loop_v { i:CLUSTER_ITEM;
       i.is_prototype.if {
+        progress_step (cur_step,num_steps) message ("Define " + i.prototype.name);
+        cur_step  := cur_step  + 1;
         i.prototype.define_in slots;
       };
     };
@@ -326,9 +349,13 @@ Section Private
   (
     list.iterate.loop_v { i:CLUSTER_ITEM;
       i.is_prototype.if {
+        progress_step (cur_step,num_steps) message ("Compile " + i.prototype.name);
+        cur_step  := cur_step  + 1;
         i.prototype.compile;
       };
     };
+    num_steps := num_steps - num_prototypes * 3 + slots.count * 3;
+    slots.set_percentage (num_steps, cur_step);
     slots.compile;
     state := state_compiled;
   );

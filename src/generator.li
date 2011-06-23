@@ -322,7 +322,6 @@ Section Private
   - put_reg var:REG in str:STRING <-
   [ -? { var.is_realized }; ]
   (
-    warnln ("put reg " + var.to_string);
     str.append (var.name);
     (var.name == "@").if {
       ? { var.identifier > 0 };

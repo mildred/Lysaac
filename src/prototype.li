@@ -21,19 +21,12 @@ Section Public
   + base_type :BASE_TYPE <-
   [ -? {defined}; ]
   (
-    defined.if_false {
-      warnln("ERROR !!! PROTOTYPE.base_type is called before the prototype is defined !!!");
-    };
-    warnln ("PROTOTYPE.base_type " + to_string);
     base_type := BASE_TYPE.create_struct;
     slots.iterate.loop_v { s:SLOT;
-      warnln (s.to_string);
-      ((s.style.plus) && {s.has_result}).if {
-        warnln ("ok");
+      s.is_compiled_data_slot.if {
         base_type.struct_types.add_last (s.result_type.base_type);
       };
     };
-    warnln ("PROTOTYPE.base_type " + base_type.to_string);
     base_type
   );
   
@@ -104,7 +97,7 @@ Section SLOT
     prototype_value.reg.is_realized.if_false {
       gen.global_prototype_value prototype_value members {
         slots.iterate.loop_v { s:SLOT;
-          ((s.style.plus) && {s.has_result}).if {
+          s.is_compiled_data_slot.if {
             + reg:REG;
             reg := REG.clone.make_type (s.result_type);
             gen.expr_undef_in reg;
@@ -159,6 +152,7 @@ Section CLUSTER_ITEM
     parser   := PARSER_LI.clone.make Self;
     state    := state_made;
     prototype_value := EXPR;
+    num_compiled_data_slots := 0;
     Self
   );
 
@@ -191,7 +185,13 @@ Section SLOT
 
   - add_slot s:SLOT <-
   (
+    warnln (to_string + ".add_slot " + s.to_string);
     slots.add_last s;
+    ((s.style.plus) && {s.has_result}).if {
+      warnln ("slot is compiled");
+      s.set_type_index num_compiled_data_slots;
+      num_compiled_data_slots := num_compiled_data_slots + 1;
+    };
   );
 
 Section SLOT_BLOCK
@@ -202,6 +202,8 @@ Section SLOT_BLOCK
   );
 
 Section Private
+
+  + num_compiled_data_slots :INTEGER := 0;
 
   + state :INTEGER;
   

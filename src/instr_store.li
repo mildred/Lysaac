@@ -12,7 +12,10 @@ Section Public
   // Link
   //
   
-  - link;
+  - link <-
+  (
+    ? {slot.is_compiled_data_slot};
+  );
 
   //
   // Generate
@@ -23,7 +26,7 @@ Section Public
     r := REG.clone.make_type (BASE_TYPE.create_pointer (slot.result_type));
     gen.getelementptr_of receiver in r refs {
       gen.arg_i32 0;
-      gen.arg_i32 0; // TODO: slot index
+      gen.arg_i32 (slot.type_index);
     };
     gen.store value to r;
   );

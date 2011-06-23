@@ -45,4 +45,26 @@ Section Public
 
   - error (p:POS, m:ABSTRACT_STRING) <-
     warnln (p.to_string + ": " + m);
+  
+  - progress_notice info:ABSTRACT_STRING <- (warn "*** "; warnln info;);
+  
+  - progress_step (cur,max:INTEGER) message info:ABSTRACT_STRING <-
+  ( + percent :INTEGER;
+    + p:STRING;
+    p := percent.to_string;
+    
+    percent := cur * 100 / max;
+    warn "*** [";
+    p.count
+      .when 1 then { warn "  "; }
+      .when 2 then { warn " "; };
+    warn p;
+    warn "%] ";
+    warn "(";
+    warn (cur.to_string);
+    warn "/";
+    warn (max.to_string);
+    warn ") ";
+    warnln info;
+  );
 
