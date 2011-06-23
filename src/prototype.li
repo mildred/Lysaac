@@ -11,7 +11,8 @@ Section Inherit
 Section Public
 
   - made      :BOOLEAN <- state >= state_made;      // Object is made and ready
-  - parsed    :BOOLEAN <- state >= state_parsed;    // External interfaces are defined
+  - parsed    :BOOLEAN <- state >= state_parsed;    // AST is parsed
+  - defined   :BOOLEAN <- state >= state_defined;   // External interfaces are defined
   - compiled  :BOOLEAN <- state >= state_compiled;  // Internal code is compiled
   - generated :BOOLEAN <- state >= state_generated; // Code is generated.
 
@@ -19,7 +20,7 @@ Section Public
   
   + base_type :BASE_TYPE <-
   (
-    compiled.if_false {
+    defined.if_false {
       warnln("ERROR !!! PROTOTYPE.base_type is called before the prototype is compiled !!!");
     };
     warnln ("PROTOTYPE.base_type " + to_string);
@@ -64,11 +65,19 @@ Section Public
   )
   [ +? {parsed}; ];
   
-  - compile_in list:LIST_PROC <-
-  [ -? {parsed}; -? {! compiled}; ]
+  - define_in list:LIST_PROC <-
+  [ -? {parsed}; -?{!defined}; ]
+  (
+    warnln ("Define "+name);
+    ast.define_in list;
+    state := state_defined;
+  )
+  [ +? { defined }; ];
+  
+  - compile <-
+  [ -? {defined}; -? {! compiled}; ]
   (
     warnln ("Compile "+name);
-    ast.compile_in list;
     prototype_value := EXPR.clone.make_type to_type;
     state := state_compiled;
   )
@@ -198,8 +207,9 @@ Section Private
   - state_none      :INTEGER := 0;
   - state_made      :INTEGER := 1;
   - state_parsed    :INTEGER := 3;
-  - state_compiled  :INTEGER := 4;
-  - state_generated :INTEGER := 5;
+  - state_defined   :INTEGER := 4;
+  - state_compiled  :INTEGER := 5;
+  - state_generated :INTEGER := 6;
 
   + parser :PARSER_LI;
 

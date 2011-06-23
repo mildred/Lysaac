@@ -10,11 +10,12 @@ Section Inherit
 
 Section Public
 
-  - made      :BOOLEAN <- state >= state_made;
-  - parsed    :BOOLEAN <- state >= state_parsed;
-  - compiled  :BOOLEAN <- state >= state_compiled;
-  - linked    :BOOLEAN <- state >= state_linked;
-  - generated :BOOLEAN <- state >= state_generated;
+  - made      :BOOLEAN <- state >= state_made;      // Object is made
+  - parsed    :BOOLEAN <- state >= state_parsed;    // AST is ready
+  - defined   :BOOLEAN <- state >= state_defined;   // External interfaces are defined
+  - compiled  :BOOLEAN <- state >= state_compiled;  // Code is compiled
+  - linked    :BOOLEAN <- state >= state_linked;    // Link checks are made
+  - generated :BOOLEAN <- state >= state_generated; // Code is generated
 
   + path :CSTRING;
   
@@ -65,7 +66,8 @@ Section Public
   [ -? {made}; ]
   (
     parse_my_prototypes;
-    compile_my_prototypes;
+    define_my_prototypes;
+    compile_my_prototypes_and_slots;
     link_my_slots;
     generate_my_slots gen;
   );
@@ -161,9 +163,10 @@ Section Private
   - state_none      :INTEGER := 0;
   - state_made      :INTEGER := 1;
   - state_parsed    :INTEGER := 2;
-  - state_compiled  :INTEGER := 3;
-  - state_linked    :INTEGER := 4;
-  - state_generated :INTEGER := 5;
+  - state_defined   :INTEGER := 3;
+  - state_compiled  :INTEGER := 4;
+  - state_linked    :INTEGER := 5;
+  - state_generated :INTEGER := 6;
 
   + prototype_roles :HASHED_DICTIONARY(PROTOTYPE,CSTRING);
 
@@ -296,6 +299,7 @@ Section Private
   ];
 
   - parse_my_prototypes <-
+  // 1.a  Parse in the AST
   (
     list.iterate.loop_v { i:CLUSTER_ITEM;
       i.is_prototype.if {
@@ -304,12 +308,25 @@ Section Private
     };
     state := state_parsed;
   );
-
-  - compile_my_prototypes <-
+  
+  - define_my_prototypes <-
+  // 1.b  Define external interface of prototypes
   (
     list.iterate.loop_v { i:CLUSTER_ITEM;
       i.is_prototype.if {
-        i.prototype.compile_in slots;
+        i.prototype.define_in slots;
+      };
+    };
+    state := state_defined;
+  );
+
+  - compile_my_prototypes_and_slots <-
+  // 2.a  Compile the prototype code
+  // 2.b  Compile all of the slots
+  (
+    list.iterate.loop_v { i:CLUSTER_ITEM;
+      i.is_prototype.if {
+        i.prototype.compile;
       };
     };
     slots.compile;
@@ -317,12 +334,14 @@ Section Private
   );
   
   - link_my_slots <-
+  // 3.   Link (don't do much, now except check one error)
   (
     slots.link;
     state := state_linked;
   );
 
   - generate_my_slots gen:GENERATOR <-
+  // 4.   Generate code
   (
     slots.generate gen;
     state := state_generated;

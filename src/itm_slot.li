@@ -59,7 +59,7 @@ Section ITM
 
 Section ITM_PROTOTYPE
 
-  - compile_in list:LIST_PROC <-
+  - define_in list:LIST_PROC <-
   ( + slot:SLOT;
     + v :REG;
   

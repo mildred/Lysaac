@@ -17,17 +17,24 @@ Section Public
   );
   
   + prototype_parent :PROTOTYPE;
-
+  
 Section ITM
   
   - lookup_local name:CSTRING :ITM_EXPR_LOCAL <- NULL;
 
 Section PROTOTYPE
 
-  - compile_in list:LIST_PROC <-
+  - define <-
   (
     slots.iterate.loop_v { s:ITM_SLOT;
-      s.compile_in list;
+      s.define;
+    };
+  );
+
+  - define_in list:LIST_PROC <-
+  (
+    slots.iterate.loop_v { s:ITM_SLOT;
+      s.define_in list;
     };
   );
 
