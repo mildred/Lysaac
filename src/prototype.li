@@ -19,9 +19,10 @@ Section Public
   - find_type type_name:CSTRING :TYPE <- cluster.find_type type_name;
   
   + base_type :BASE_TYPE <-
+  [ -? {defined}; ]
   (
     defined.if_false {
-      warnln("ERROR !!! PROTOTYPE.base_type is called before the prototype is compiled !!!");
+      warnln("ERROR !!! PROTOTYPE.base_type is called before the prototype is defined !!!");
     };
     warnln ("PROTOTYPE.base_type " + to_string);
     base_type := BASE_TYPE.create_struct;
@@ -135,13 +136,13 @@ Section INSTR_CALL, INSTR_STORE
 Section CLUSTER, ITM_TYPE, SLOT, INSTR_FNPTR
 
   - to_type :TYPE <-
-  [ -? {parsed}; ]
+  [ -? {defined}; ]
   (
     TYPE.clone.make Self
   );
 
   - to_type_block :TYPE <-
-  [ -? {parsed}; ]
+  [ -? {defined}; ]
   (
     TYPE.clone.make_block Self
   );

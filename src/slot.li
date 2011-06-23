@@ -49,21 +49,14 @@ Section PROTOTYPE
 Section ITM_SLOT
 
   - make s:ITM_SLOT :SELF <-
-  ( + t:TYPE;
+  (
     arguments := FAST_ARRAY(REG).create 0;
-    list := LIST.clone.make Self;
-    ast  := s;
-    prototype := ast.prototype_parent;
-    ? {prototype != NULL};
-    t := prototype.to_type;
-    t.void.if {
-      self := EXPR;
-    } else {
-      self := EXPR.clone.make_type t;
-    };
+    list          := LIST.clone.make Self;
+    ast           := s;
+    prototype     := ast.prototype_parent;
     default_value := EXPR;
-    ? { self.is_valid };
-    ? { ! self.reg.is_realized };
+    self          := EXPR;
+    ? {prototype != NULL};
     prototype.add_slot Self;
     Self
   );
@@ -79,10 +72,14 @@ Section ITM_SLOT
 Section LIST_PROC
 
   - compile list_procs:LIST_PROC <-
-  [
-   ? { self.is_valid };
-  ]
-  (
+  ( + t:TYPE;
+    t := prototype.to_type;
+    t.void.if {
+      self := EXPR;
+    } else {
+      self := EXPR.clone.make_type t;
+    };
+    ? { self.is_valid };
     list.set_list_procs list_procs;
     external.if {
       // External Slot
