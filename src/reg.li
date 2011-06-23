@@ -15,10 +15,10 @@ Section Public
   - to_string :STRING <-
   ( + res:STRING;
     res := type_name + "<" + name + "," + identifier.to_string + "," + pretty_name + ",";
-    (type = NULL).if {
+    (m_base_type = NULL).if {
       res.append "NULL>";
     } else {
-      res.append (type.to_string + ">");
+      res.append (m_base_type.to_string + ">");
     };
     res
   );
@@ -29,7 +29,7 @@ Section Public
 
   - is_realized :BOOLEAN <- ( name.count != 0 ) || { identifier != 0 };
   
-  - is_valid :BOOLEAN <- ( type != NULL );
+  + is_valid :BOOLEAN;
   - is_null  :BOOLEAN <- ( ! is_valid );
   
   //
@@ -40,7 +40,7 @@ Section Public
   
   - base_type :BASE_TYPE <-
   [ -? { is_valid }; ]
-  ( type.base_type   );
+  ( m_base_type   );
   
   //
   // Construction
@@ -51,7 +51,18 @@ Section Public
     -? { t != NULL };
   ]
   (
-    type := t;
+    is_valid := TRUE;
+    m_base_type := t.base_type;
+    name := "";
+    identifier := 0;
+    pretty_name := "";
+    Self
+  );
+  
+  - make_base_type t:BASE_TYPE :SELF <-
+  (
+    is_valid := TRUE;
+    m_base_type := t;
     name := "";
     identifier := 0;
     pretty_name := "";
@@ -60,7 +71,8 @@ Section Public
   
   - make_from other:REG :SELF <-
   (
-    type := other.type;
+    is_valid    := other.is_valid;
+    m_base_type := other.m_base_type;
     name := "";
     identifier := 0;
     pretty_name := "";
@@ -78,9 +90,11 @@ Section Public
   //
   
   - realize_using v:REG <-
+  [ -? { v.is_realized }; ]
   (
     realize (v.name) id (v.identifier);
-  );
+  )
+  [ +? { is_realized }; ];
   
   - realize_default_value gen:GENERATOR <-
   (
@@ -100,7 +114,7 @@ Section Public
     -? { ! is_realized };
   ]
   (
-    type.base_type.void.if_false {
+    base_type.void.if_false {
       gen.arg_name n variable Self;
     };
   )
@@ -141,6 +155,6 @@ Section GENERATOR
   );
 
 Section Private
-  
-  + type :TYPE := NULL;
+
+  + m_base_type :BASE_TYPE;
 

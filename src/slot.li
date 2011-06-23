@@ -127,7 +127,8 @@ Section LIST_PROC
       } do {
         export.if {
           //self.reg.realize_using (prototype.prototype_value);
-          gen.expr_undef_in self;
+          //gen.expr_undef_in self;
+          prototype.generate gen prototype_value self;
         };
         ? { self.reg.is_realized };
         is_block_value_slot.if {

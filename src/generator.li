@@ -11,7 +11,7 @@ Section Public
   - type_integer size:INTEGER <-
   (
     context.add_last 'i';
-    size.append_in code;
+    size.append_in context;
   );
 
   - type_pointer blc:{} <-
@@ -106,15 +106,26 @@ Section Public
   );
   
   - global_prototype_value v:REG members blc:{} <-
-  (
+  ( + r :REG;
+    + t :BASE_TYPE;
     context_const {
-      var.realize "@" id get_global;
-      put_reg var;
-      put " = ";
-      put_reg_type v
-      put "{";
+      r := v;
+      t := v.base_type.pointer_type;
+      //r := REG.clone.make_base_type (t);
+      //r.realize "@" id get_global;
+      v.realize "@" id get_global;
+      put_reg r;
+      put " = global ";
+      t.generate Self;
+      put " {";
       blc.value;
       put "}\n";
+      //put_reg v;
+      //put " = global ";
+      //put_reg_type v;
+      //put " ";
+      //put_reg r;
+      //put_line;
     };
   );
   

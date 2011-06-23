@@ -70,13 +70,32 @@ Section Public
   [ -? {compiled}; -? {! generated}; ]
   (
     warnln ("Generate "+name);
-    generate_prototype_value gen;
     slots.iterate.loop_v { s:SLOT;
       s.generate gen;
     };
     state := state_generated;
   )
   [ +? {generated}; ];
+
+Section SLOT
+
+  - generate gen:GENERATOR prototype_value r:REG <-
+  (
+    prototype_value.reg.is_realized.if_false {
+      gen.global_prototype_value prototype_value members {
+        slots.iterate.loop_v { s:SLOT;
+          ((s.style.plus) && {s.has_result}).if {
+            + reg:REG;
+            reg := REG.clone.make_type (s.result_type);
+            gen.expr_undef_in reg;
+            gen.struct_member reg;
+          };
+        };
+      };
+    };
+    r.realize_using prototype_value;
+  )
+  [ +? { r.is_realized }; ];
 
 Section INSTR_CALL, INSTR_STORE
 
@@ -163,18 +182,6 @@ Section SLOT_BLOCK
   );
 
 Section Private
-
-  - generate_prototype_value gen:GENERATOR <-
-  (
-    gen.global_prototype_value prototype_value members {
-      slots.iterate.loop_v { s:SLOT;
-        ((s.style.plus) && {s.has_result}).if {
-          s.default_value.realize_default_value gen;
-          gen.struct_member (s.default_value);
-        };
-      };
-    };
-  );
 
   + state :INTEGER;
   
