@@ -77,6 +77,9 @@ Section Public
 
   - make_path p:CSTRING :SELF <-
   (
+    num_prototypes := 0;
+    cur_step := 0;
+    num_steps := 1;
     prototype_roles := HASHED_DICTIONARY(PROTOTYPE,CSTRING).create;
     list := FAST_ARRAY(CLUSTER_ITEM).create 0;
     path := p;
@@ -84,14 +87,14 @@ Section Public
     slots := LIST_PROC.clone.make;
     parse path root TRUE;
     state := state_made;
-    num_prototypes := 0;
-    cur_step := 0;
-    num_steps := 1;
     Self
   );
   
   - make_file f:CSTRING :SELF <-
   ( + e:ERR;
+    num_prototypes := 0;
+    cur_step := 0;
+    num_steps := 1;
     prototype_roles := HASHED_DICTIONARY(PROTOTYPE,CSTRING).create;
     list := FAST_ARRAY(CLUSTER_ITEM).create 0;
     filename := f;
@@ -99,9 +102,6 @@ Section Public
     e := PARSER_CLI.clone.make Self.parse;
     e.assert;
     state := state_made;
-    num_prototypes := 0;
-    cur_step := 0;
-    num_steps := 1;
     Self
   );
   

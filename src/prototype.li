@@ -185,10 +185,8 @@ Section SLOT
 
   - add_slot s:SLOT <-
   (
-    warnln (to_string + ".add_slot " + s.to_string);
     slots.add_last s;
     ((s.style.plus) && {s.has_result}).if {
-      warnln ("slot is compiled");
       s.set_type_index num_compiled_data_slots;
       num_compiled_data_slots := num_compiled_data_slots + 1;
     };

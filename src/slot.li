@@ -75,7 +75,6 @@ Section ITM_SLOT
   
   - finish_creation <-
   (
-    warnln (prototype.to_string + ".add_slot " + to_string);
     prototype.add_slot Self;
   );
 
@@ -133,8 +132,6 @@ Section LIST_PROC
         };
       } do {
         export.if {
-          //self.reg.realize_using (prototype.prototype_value);
-          //gen.expr_undef_in self;
           prototype.generate gen prototype_value self;
         };
         ? { self.reg.is_realized };
@@ -152,7 +149,6 @@ Section PROTOTYPE
   - set_type_index i:INTEGER <-
   [ -? {i >= 0}; ]
   (
-    warnln (to_string + ".type_index = " + i.to_string);
     type_index := i;
   )
   [ +? {is_compiled_data_slot}; ];
