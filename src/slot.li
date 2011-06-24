@@ -101,10 +101,9 @@ Section LIST_PROC
     } else {
       list.set_list_procs list_procs;
       prototype.initializer_list.set_list_procs list_procs;
-      //compile_initializer;
+      compile_initializer;
       compile_slot;
     };
-    warnln ("Compiled "+to_string);
   );
 
 Section Private

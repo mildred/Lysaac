@@ -116,7 +116,7 @@ Section GENERATOR
   + name :CSTRING := "";
 
   - realize n:CSTRING :SELF <-
-  [ warnln to_string;
+  [
     -? { SELF != Self };
     -? { name.count = 0 };
     -? { identifier = 0 };

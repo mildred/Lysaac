@@ -70,7 +70,6 @@ Section Public
   [ -? {defined}; -? {! compiled}; ]
   (
     prototype_value  := EXPR.clone.make_type to_type;
-    warnln ("prototype_value type " + prototype_value.reg.base_type.to_string);
     initializer_list := LIST.clone.make_self prototype_value;
     state := state_compiled;
   )
