@@ -10,16 +10,22 @@ Section Public
 
   + list_procs :LIST_PROC;
 
-Section PROC
+Section PROC, PROTOTYPE
 
-  - make s:PROC :SELF <-
+  - make_self s:EXPR :SELF <-
+  [
+    -? {s != NULL};
+    -? {s.is_valid};
+  ]
   (
-    proc         := s;
+    self         := s;
     instructions := FAST_ARRAY(INSTR).create 0;
     results      := FAST_ARRAY(REG).create 0;
     Self
   );
   
+Section PROC
+
   - link <-
   (
     instructions.iterate.loop_v { i:INSTR;
@@ -43,22 +49,23 @@ Section INSTR
     instructions.add_last i;
   );
 
-Section ITM_EXPR_GROUP
+Section ITM_EXPR_GROUP, SLOT
 
   - add_result res:REG <-
+  [ "multiple results not yet implemented" -? { results.is_empty }; ]
   (
     results.add_last res;
   );
+  
+Section SLOT
+
+  + results :FAST_ARRAY(REG);
 
 Section ITM_EXPR, PROC_BLOCK, SLOT
 
-  - self :EXPR <- proc.self;
+  + self :EXPR;
 
 Section Private
 
-  + proc:PROC;
-
   + instructions :FAST_ARRAY(INSTR);
-
-  + results :FAST_ARRAY(REG);
 

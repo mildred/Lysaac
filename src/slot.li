@@ -9,8 +9,6 @@ Section Inherit
 Section Public
 
   - name :CSTRING <- ast.identifier;
-    
-  + list :LIST;
   
   - external :BOOLEAN <- ast.is_external;
   
@@ -46,6 +44,10 @@ Section Public
   
   + type_index :INTEGER := -1;
 
+Section Private
+
+  + list :LIST;
+
 Section PROTOTYPE
 
   + default_value :EXPR;
@@ -55,7 +57,7 @@ Section ITM_SLOT
   - make s:ITM_SLOT :SELF <-
   (
     arguments := FAST_ARRAY(REG).create 0;
-    list          := LIST.clone.make Self;
+    list          := NULL;
     ast           := s;
     prototype     := ast.prototype_parent;
     default_value := EXPR;
@@ -89,29 +91,57 @@ Section LIST_PROC
       self := EXPR.clone.make_type t;
     };
     ? { self.is_valid };
-    list.set_list_procs list_procs;
+    list := LIST.clone.make_self self;
     external.if {
       // External Slot
       + sym :ITM_EXPR_SYM;
       sym ?= ast.expression;
       ? { sym != NULL };
       external_name := sym.symbol;
-    }.elseif {is_compiled_data_slot && {ast.affect.data}} then {
-      // Read data slot
-      reg_result := INSTR_LOAD
-        .clone
-        .make_slot Self receiver (list.self)
-        .add_in list
-        .result;
-    }.elseif {ast.expression != NULL} then {
-      // Nominal case
-      reg_result := ast.expression.compile_in list.result.reg;
     } else {
-      // Empty slot
+      list.set_list_procs list_procs;
+      prototype.initializer_list.set_list_procs list_procs;
+      //compile_initializer;
+      compile_slot;
     };
     warnln ("Compiled "+to_string);
   );
-  
+
+Section Private
+
+  - compile_initializer <-
+  [ -? {! external}; ]
+  (
+    (is_compiled_data_slot && {ast.affect.data}).if {
+      INSTR_STORE
+        .clone
+        .make_slot Self
+          receiver (prototype.initializer_list.self)
+          value (ast.expression.compile_in (prototype.initializer_list).result)
+        .add_in (prototype.initializer_list);
+    };
+  );
+
+  - compile_slot <-
+  [ -? {! external}; ]
+  (
+    (is_compiled_data_slot && {ast.affect.data}).if {
+      // Read data slot
+      list.add_result (INSTR_LOAD
+        .clone
+        .make_slot Self receiver (list.self)
+        .add_in list
+        .result);
+    }.elseif {ast.expression != NULL} then {
+      // Nominal case
+      list.add_result (ast.expression.compile_in list.result.reg);
+    } else {
+      // Empty slot
+    };
+  );
+
+Section LIST_PROC
+
   - link <-
   (
     external.if_false {
@@ -129,26 +159,36 @@ Section LIST_PROC
         };
       };
     } else {
-      ? { ! self.reg.is_realized };
-      gen.sub external_name self self args {
-        export.if_false {
-          self.reg.generate_arg gen;
-        };
-        arguments.iterate.loop_v { v:REG;
-          v.generate_arg gen;
-        };
-      } do {
-        export.if {
-          prototype.generate gen prototype_value self;
-        };
-        ? { self.reg.is_realized };
-        is_block_value_slot.if {
-          gen.call_ptr (list.self);
-        } else {
-          list.generate gen;
-        };
-      } return reg_result;
+      generate_slot gen;
     };
+  );
+
+Section Private
+
+  - generate_slot gen:GENERATOR <-
+  [
+    -? {! external};
+    -? { ! self.reg.is_realized };
+  ]
+  (
+    gen.sub external_name self self args {
+      export.if_false {
+        self.reg.generate_arg gen;
+      };
+      arguments.iterate.loop_v { v:REG;
+        v.generate_arg gen;
+      };
+    } do {
+      export.if {
+        prototype.generate gen prototype_value self;
+      };
+      ? { self.reg.is_realized };
+      is_block_value_slot.if {
+        gen.call_ptr (list.self);
+      } else {
+        list.generate gen;
+      };
+    } return (list.results.first);
   );
 
 Section PROTOTYPE
@@ -169,7 +209,5 @@ Section Private
   );
 
   + ast :ITM_SLOT;
-  
-  + reg_result :REG;
 
 

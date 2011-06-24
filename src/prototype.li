@@ -72,7 +72,8 @@ Section Public
   [ -? {defined}; -? {! compiled}; ]
   (
     warnln ("Compile "+name);
-    prototype_value := EXPR.clone.make_type to_type;
+    prototype_value  := EXPR.clone.make_type to_type;
+    initializer_list := LIST.clone.make_self prototype_value;
     state := state_compiled;
   )
   [ +? {compiled}; ];
@@ -151,7 +152,8 @@ Section CLUSTER_ITEM
     slots    := FAST_ARRAY(SLOT).create 0;
     parser   := PARSER_LI.clone.make Self;
     state    := state_made;
-    prototype_value := EXPR;
+    prototype_value  := EXPR;
+    initializer_list := NULL;
     num_compiled_data_slots := 0;
     Self
   );
@@ -182,6 +184,8 @@ Section PARSER_LI
   );
 
 Section SLOT
+
+  + initializer_list :LIST; // TODO: link and generate
 
   - add_slot s:SLOT <-
   (

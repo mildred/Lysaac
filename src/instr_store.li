@@ -39,16 +39,25 @@ Section ITM_EXPR_WRITE
     -? { e.is_valid };
   ]
   (
-    ast        := itm;
+    slot       := e.type.prototype.find_slot (itm.slot_name);
     receiver   := e;
     value      := v;
     Self
   );
 
+Section SLOT
+
+  - make_slot s:SLOT receiver r:REG value v:REG :SELF <-
+  (
+    receiver := r;
+    slot     := s;
+    value    := v;
+    Self
+  );
+
 Section Private
 
-  + ast        :ITM_EXPR_WRITE;
-  + receiver   :EXPR;
+  + receiver   :REG;
   + value      :REG;
-  - slot       :SLOT <- receiver.type.prototype.find_slot (ast.slot_name);
+  + slot       :SLOT;
 
