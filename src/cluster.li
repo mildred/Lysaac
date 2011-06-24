@@ -67,7 +67,7 @@ Section Public
   (
     progress_step (cur_step,num_steps) message "Compile cluster";
     cur_step  := cur_step  + 1;
-    num_steps := num_steps + num_prototypes * 6;
+    num_steps := num_steps + num_prototypes * 8;
     parse_my_prototypes;
     define_my_prototypes;
     compile_my_prototypes_and_slots;
@@ -363,6 +363,13 @@ Section Private
   - link_my_slots <-
   // 3.   Link (don't do much, now except check one error)
   (
+    list.iterate.loop_v { i:CLUSTER_ITEM;
+      i.is_prototype.if {
+        progress_step (cur_step,num_steps) message ("Link " + i.prototype.name);
+        cur_step  := cur_step  + 1;
+        i.prototype.link;
+      };
+    };
     slots.link;
     state := state_linked;
   );
@@ -370,6 +377,13 @@ Section Private
   - generate_my_slots gen:GENERATOR <-
   // 4.   Generate code
   (
+    list.iterate.loop_v { i:CLUSTER_ITEM;
+      i.is_prototype.if {
+        progress_step (cur_step,num_steps) message ("Generate " + i.prototype.name);
+        cur_step  := cur_step  + 1;
+        i.prototype.generate gen;
+      };
+    };
     slots.generate gen;
     state := state_generated;
   );

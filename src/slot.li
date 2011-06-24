@@ -151,7 +151,6 @@ Section LIST_PROC
   
   - generate gen:GENERATOR <-
   (
-    warnln ("generate "+name);
     external.if {
       gen.declare_sub external_name args {
         arguments.iterate.loop_v { v:REG;
@@ -180,7 +179,7 @@ Section Private
       };
     } do {
       export.if {
-        prototype.generate gen prototype_value self;
+        self.reg.realize_using (prototype.prototype_value);
       };
       ? { self.reg.is_realized };
       is_block_value_slot.if {

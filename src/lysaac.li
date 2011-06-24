@@ -54,7 +54,7 @@ Section Private
       dir := COMMAND_LINE.item i;
       c   := CLUSTER.clone.make_path dir;
       c.compile GENERATOR;
-      GENERATOR.output.print;
+      GENERATOR.get_output.print;
     };
   );
 

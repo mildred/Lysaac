@@ -105,17 +105,39 @@ Section Public
     };
   );
   
-  - global_prototype_value v:REG members blc:{} <-
+  - global_prototype_value v:REG name n:CSTRING <-
   ( + t :BASE_TYPE;
     context_const {
-      t := v.base_type.pointer_type;
-      v.realize "@" id get_global;
+      t := v.base_type;
+      t.pointer.if {
+        t := t.pointer_type;
+      };
+      v.realize (("@" + n).to_abstract_string);
       put_reg v;
       put " = global ";
       t.generate Self;
-      put " {";
+      put " undef\n";
+    };
+  );
+  
+  - ctor_sub prio:INTEGER do blc:{} <-
+  ( + proc:INTEGER;
+    proc := get_global;
+    constructors.add_last prio;
+    constructors.add_last proc;
+    context_const {
+      put_indent;
+      put "define void ";
+      put_global proc;
+      put " () {\n";
+      indent;
+      last_local := 0;
       blc.value;
-      put "}\n";
+      put_indent;
+      put "ret void\n";
+      unindent;
+      put_indent;
+      put "}\n\n";
     };
   );
   
@@ -130,7 +152,7 @@ Section Public
     put name;
     put " (";
     args.value;
-    context.append ") {\n";
+    put ") {\n";
     last_local := 0;
     indent;
     blc.value;
@@ -255,9 +277,37 @@ Section Public
 
 Section LYSAAC
 
-  - output :STRING <- const + "\n\n" + code + "\n";
+  - get_output :ABSTRACT_STRING <-
+  (
+    finish;
+    output
+  );
 
 Section Private
+
+  - output :STRING <- const + "\n\n" + code + "\n";
+  
+  - finish <-
+  ( + it:ITERATOR(INTEGER);
+    context_const {
+      put "@llvm.global_ctors = appending global [";
+      put_int (constructors.count / 2);
+      put " x { i32, void ()* }] [";
+      (it := constructors.iterate).loop {
+        list '[' element {
+          put "{ i32, void ()* } { i32 ";
+          put_int (it.get);
+          put ", void ()* ";
+          put_global (it.next; it.get);
+          put "}";
+        };
+      };
+      put "]";
+      put_line;
+    };
+  );
+
+  + constructors :FAST_ARRAY(INTEGER) := FAST_ARRAY(INTEGER).create 0;
 
   - list c:CHARACTER element blc:{} <-
   (
@@ -321,6 +371,8 @@ Section Private
   - put_line              <- put_c '\n';
   - put_reg var:REG       <- put_reg var in context;
   - put_reg_type r:REG    <- r.generate_type Self;
+  - put_local  i:INTEGER  <- put_local i in context;
+  - put_global i:INTEGER  <- put_global i in context;
   
   - put_reg_type_and_name r:REG <-
   (
@@ -329,16 +381,23 @@ Section Private
     put_reg r;
   );
   
+  - put_local  i:INTEGER in str:STRING <-
+  [ -? { i > 0 }; ]
+  ( put_c '%'; (i).append_in context );
+  
+  - put_global i:INTEGER in str:STRING <-
+  [ -? { i > 0 }; ]
+  ( put_c '@'; (i - 1).append_in context );
+  
   - put_reg var:REG in str:STRING <-
   [ -? { var.is_realized }; ]
   (
-    str.append (var.name);
     (var.name == "@").if {
-      ? { var.identifier > 0 };
-      (var.identifier - 1).append_in str;
+      put_global (var.identifier) in str;
     }.elseif {var.name == "%"} then {
-      ? { var.identifier > 0 };
-      var.identifier.append_in str;
+      put_local (var.identifier) in str;
+    } else {
+      str.append (var.name);
     };
   );
 

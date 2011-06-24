@@ -24,7 +24,7 @@ Section PROC, PROTOTYPE
     Self
   );
   
-Section PROC
+Section PROC, PROTOTYPE
 
   - link <-
   (

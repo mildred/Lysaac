@@ -52,7 +52,6 @@ Section Public
   - parse <-
   [ -? {made}; -? {! parsed}; ]
   ( + e :ERR;
-    warnln ("Parse "+name);
     (ast, e) := parser.parse;
     e.assert;
     state := state_parsed;
@@ -62,7 +61,6 @@ Section Public
   - define_in list:LIST_PROC <-
   [ -? {parsed}; -?{!defined}; ]
   (
-    warnln ("Define "+name);
     ast.define_in list;
     state := state_defined;
   )
@@ -71,45 +69,46 @@ Section Public
   - compile <-
   [ -? {defined}; -? {! compiled}; ]
   (
-    warnln ("Compile "+name);
     prototype_value  := EXPR.clone.make_type to_type;
+    warnln ("prototype_value type " + prototype_value.reg.base_type.to_string);
     initializer_list := LIST.clone.make_self prototype_value;
     state := state_compiled;
   )
   [ +? {compiled}; ];
   
+  - link <-
+  (
+    initializer_list.link;
+    state := state_linked;
+  );
+  
   - generate gen:GENERATOR <-
   [ -? {compiled}; -? {! generated}; ]
   (
-    warnln ("Generate "+name);
-    slots.iterate.loop_v { s:SLOT;
-      s.generate gen;
-    };
+    generate_prototype_value gen;
+    generate_initializer gen;
     state := state_generated;
   )
   [ +? {generated}; ];
   
   - to_string :STRING <- type_name + "<" + name + ">";
 
-Section SLOT
+Section Private
 
-  - generate gen:GENERATOR prototype_value r:REG <-
+  - generate_initializer gen:GENERATOR <-
   (
-    prototype_value.reg.is_realized.if_false {
-      gen.global_prototype_value prototype_value members {
-        slots.iterate.loop_v { s:SLOT;
-          s.is_compiled_data_slot.if {
-            + reg:REG;
-            reg := REG.clone.make_type (s.result_type);
-            gen.expr_undef_in reg;
-            gen.struct_member reg;
-          };
-        };
-      };
+    gen.ctor_sub 65535 do {
+      ? { prototype_value.reg.is_realized };
+      initializer_list.generate gen;
     };
-    r.realize_using prototype_value;
+  );
+
+  - generate_prototype_value gen:GENERATOR <-
+  [ -? { ! prototype_value.reg.is_realized }; ]
+  (
+    gen.global_prototype_value prototype_value name name;
   )
-  [ +? { r.is_realized }; ];
+  [ +? { prototype_value.reg.is_realized }; ];
 
 Section INSTR_CALL, INSTR_STORE
 
@@ -185,7 +184,7 @@ Section PARSER_LI
 
 Section SLOT
 
-  + initializer_list :LIST; // TODO: link and generate
+  + initializer_list :LIST; // TODO: generate
 
   - add_slot s:SLOT <-
   (
@@ -214,7 +213,8 @@ Section Private
   - state_parsed    :INTEGER := 3;
   - state_defined   :INTEGER := 4;
   - state_compiled  :INTEGER := 5;
-  - state_generated :INTEGER := 6;
+  - state_linked    :INTEGER := 6;
+  - state_generated :INTEGER := 7;
 
   + parser :PARSER_LI;
 
