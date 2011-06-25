@@ -15,6 +15,7 @@ Compilation Process
           ITM_SLOT.define_in LIST_PROC
       
       // Compilation: create low level instructions
+      // TODO: check errors
       
       PROTOTYPE.compile
       LIST_PROC.compile
