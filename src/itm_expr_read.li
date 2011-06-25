@@ -29,7 +29,6 @@ Section Public
     ((receiver = NULL) && {(local := lookup_local slot) != NULL}).if {
       // Local variable
       result := local.compile_in list.result;
-      INSTR_REG.clone.make_variable result.add_in list;
     } else {
       // Slot call
       + call :INSTR_CALL;
@@ -39,7 +38,7 @@ Section Public
         self := receiver.compile_in list.result;
       };
       ? {self.is_valid};
-      call := INSTR_CALL.clone.make_itm Self receiver self;
+      call := INSTR_CALL.clone.make_read slot receiver self;
       arguments.iterate.loop_v { a:ITM_EXPR;
         + arg :EXPR;
         arg := a.compile_in list.result;

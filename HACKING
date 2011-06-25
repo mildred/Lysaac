@@ -1,0 +1,38 @@
+Compilation Process
+===================
+
+    CLUSTER.compile
+      
+      // Parsing: generate AST
+      
+      PROTOTYPE.parse
+        PARSER.parse
+        
+      // Definition: close type definitions
+        
+      PROTOTYPE.define_in LIST_PROC
+        ITM_PROTOTYPE.define_in LIST_PROC
+          ITM_SLOT.define_in LIST_PROC
+      
+      // Compilation: create low level instructions
+      
+      PROTOTYPE.compile
+      LIST_PROC.compile
+        SLOT.compile LIST_PROC
+          ITM_EXPR.compile_in LIST
+            INSTR.make
+      
+      // Link: ???
+      
+      PROTOTYPE.link
+      LIST_PROC.link
+        SLOT.link
+          INSTR.link
+      
+      // Generate: generate LLVM code
+      
+      PROTOTYPE.generate GENERATOR
+      LIST_PROC.generate GENERATOR
+        SLOT.generate GENERATOR
+          INSTR.generate GENERATOR
+      

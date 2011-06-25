@@ -62,11 +62,11 @@ Section Private
 
 Section ITM_EXPR_READ
 
-  - make_itm i:ITM_EXPR_READ receiver e:EXPR :SELF <-
+  - make_read n:CSTRING receiver e:EXPR :SELF <-
   [ -? { e.is_valid }; ]
   (
     receiver      := e;
-    ast           := i;
+    name          := n;
     args          := FAST_ARRAY(EXPR).create 0;
     result        := REG.clone;
     (slot.result_type != NULL).if {
@@ -85,8 +85,7 @@ Section ITM_EXPR_READ
 
 Section Private
 
-  - name :CSTRING <- ast.slot;
+  + name :CSTRING;
   
-  + ast  :ITM_EXPR_READ;
   + args :FAST_ARRAY(EXPR);
 
