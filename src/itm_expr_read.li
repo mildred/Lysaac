@@ -38,34 +38,24 @@ Section Public
       } else {
         self := receiver.compile_in list.result;
       };
-      self.reg.is_null.if {
-        warn "Cannot INSTR_CALL, the receiver doesn't have a type ";
-        (receiver = NULL).if {
-          warnln "(implicit receiver)";
-        } else {
-          warnln "(explicit receiver)";
-        };
-      } else {
-        ? {self.is_valid};
-        call := INSTR_CALL.clone.make_itm Self receiver self;
-        arguments.iterate.loop_v { a:ITM_EXPR;
-          + arg :EXPR;
-          warnln ("Argument: " + a.to_string);
-          arg := a.compile_in list.result;
-          a.has_multiple_results.if {
-            a.results.iterate.loop_v { v:EXPR;
-              call.add_argument v;
-            };
-          } else {
-            call.add_argument arg;
+      ? {self.is_valid};
+      call := INSTR_CALL.clone.make_itm Self receiver self;
+      arguments.iterate.loop_v { a:ITM_EXPR;
+        + arg :EXPR;
+        arg := a.compile_in list.result;
+        a.has_multiple_results.if {
+          a.results.iterate.loop_v { v:EXPR;
+            call.add_argument v;
           };
-        };
-        call.add_in list;
-        call.slot.has_result.if {
-          result := EXPR.clone.make (call.result, call.slot.result_type);
         } else {
-          has_results := FALSE;
+          call.add_argument arg;
         };
+      };
+      call.add_in list;
+      call.slot.has_result.if {
+        result := EXPR.clone.make (call.result, call.slot.result_type);
+      } else {
+        has_results := FALSE;
       };
     };
 

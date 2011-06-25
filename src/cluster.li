@@ -127,7 +127,6 @@ Section PROTOTYPE
     -? { (p = NULL) || {! prototype_roles.fast_has r} };
   ]
   (
-    warnln ("Info: Role "+r+" is provided by "+p.name+" in "+to_string);
     prototype_roles.fast_put p to r;
   );
 
@@ -135,7 +134,6 @@ Section PARSER
 
   - check_prototype_for_role r:CSTRING :PROTOTYPE <-
   (
-    warnln ("Info: Role "+r+" is needed in "+to_string);
     prototype_roles.fast_reference_at r
   );
 

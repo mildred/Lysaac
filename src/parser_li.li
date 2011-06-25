@@ -20,7 +20,6 @@ Section SELF
   
   - hook_header_slot slot:ITM_SLOT <-
   (
-    warnln (prototype.name+": Section Header, slot "+slot.identifier);
     (slot.identifier == "name").if {
       slot.expression.is_a ITM_EXPR_PROTO.if { + p:ITM_EXPR_PROTO;
         p ?= slot.expression;

@@ -19,10 +19,6 @@ Section Public
   [
     -? { t != NULL };
     -? { r != NULL };
-    (t.base_type == r.base_type).if_false {
-      warnln ("EXPR.make, register type: " + r.base_type.to_string +
-              " type: " + t.base_type.to_string);
-    };
     -? { ! r.base_type.void };
     -? { r.is_valid };
     -? { t.base_type == r.base_type };
@@ -40,3 +36,4 @@ Section Public
 
   - to_reg  :REG  <- [ -? { reg != NULL }; ] reg;
   - to_type :TYPE <- [ -? { is_valid    }; ] type;
+
