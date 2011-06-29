@@ -28,6 +28,10 @@ The tag is 45093e70b532276233a35eff500299c674e80d51
     =yi11
     -----END PGP SIGNATURE-----
 
+You can:
+
+    git clone -b mildred-stable git://anonscm.debian.org/lisaac/compiler.git lisaac-compiler
+
 You will also need redo: https://github.com/apenwarr/redo
 
 If you don't want to install redo, you can always use `tools/do` instead if
@@ -41,17 +45,22 @@ Compiling
 Testing
 =======
 
-You need `ruby`, `rubygems` and the `bundler` gem (`gem install bundler`).
-In the project, run `bundle install`, it should install everything you need.
-Then:
+Basically, you need [cucumber](http://cukes.info) and rspec, but you can also
+follow the guide:
 
-    cucumber
+- Install bundler: `gem install bundler`
 
-Then, just
+- Install the necessary gems: `bundle install`
+
+Then, just:
 
     redo tests
     redo coverage
 
 Reports are in the `reports` directory. You can see code coverage.
 
+If you get wierd errors, just `rvm reset`
+
+
+[rvm]: https://rvm.beginrescueend.com/
 
