@@ -113,6 +113,7 @@ Section Public
     (it := list.iterate).loop_v { i:CLUSTER_ITEM;
       ((i.is_prototype) && {i.name == type_name}).if {
         it.stop;
+        ? { i.prototype.made };
         res := i.prototype.to_type;
       };
     };

@@ -16,7 +16,14 @@ Section Public
   - compiled  :BOOLEAN <- state >= state_compiled;  // Internal code is compiled
   - generated :BOOLEAN <- state >= state_generated; // Code is generated.
 
-  - find_type type_name:CSTRING :TYPE <- cluster.find_type type_name;
+  - find_type type_name:CSTRING :TYPE <-
+  [
+    -? { made };
+    -? { cluster.parsed };
+  ]
+  (
+    cluster.find_type type_name
+  );
   
   + base_type :BASE_TYPE <-
   [ -? {defined}; ]
@@ -128,13 +135,13 @@ Section INSTR_CALL, INSTR_STORE
 Section CLUSTER, ITM_TYPE, SLOT, INSTR_FNPTR
 
   - to_type :TYPE <-
-  [ -? {defined}; ]
+  [ -? {made}; ]
   (
     TYPE.clone.make Self
   );
 
   - to_type_block :TYPE <-
-  [ -? {defined}; ]
+  [ -? {made}; ]
   (
     TYPE.clone.make_block Self
   );

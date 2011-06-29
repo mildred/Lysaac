@@ -20,9 +20,9 @@ Section Public
   
   + cluster_parent :CLUSTER;
 
-  + filename  :CSTRING := NULL;
+  + filename    :CSTRING := NULL;
 
-  + name      :CSTRING := NULL;
+  + name        :CSTRING := NULL;
 
   - is_prototype :BOOLEAN <- filename.has_suffix ".li";
 
