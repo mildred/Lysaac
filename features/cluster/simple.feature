@@ -8,8 +8,8 @@ Feature: Simple cluster with no dependancy
       """
       ◆ Root Cluster
       │ Cluster in: c
-      ├─◇ TOTO (c/toto.li)
-      ╰─◇ MAIN (c/main.li)
+      ├─◇ MAIN (c/main.li)
+      ╰─◇ TOTO (c/toto.li)
       
       """
 
@@ -23,8 +23,8 @@ Feature: Simple cluster with no dependancy
       ◆ Root Cluster
       │ Cluster in: c
       ├─◇ MAIN (c/main.li)
-      ├─◇ TOTO (c/a/toto.li)
-      ╰─◇ TATA (c/b/tata.li)
+      ├─◇ TATA (c/b/tata.li)
+      ╰─◇ TOTO (c/a/toto.li)
       
       """
 
@@ -38,8 +38,8 @@ Feature: Simple cluster with no dependancy
       ◆ Root Cluster
       │ Cluster in: c
       ├─◇ MAIN (c/main.li)
-      ├─◇ TOTO (c/a/toto.li)
-      ╰─◇ TATA (c/a/b/tata.li)
+      ├─◇ TATA (c/a/b/tata.li)
+      ╰─◇ TOTO (c/a/toto.li)
       
       """
 

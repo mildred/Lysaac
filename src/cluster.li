@@ -224,6 +224,7 @@ Section Private
               num_prototypes := num_prototypes + 1;
             };
             list.add_last ci;
+            list.quick_sort_with { (a,b:CLUSTER_ITEM); a.name ~> b.name };
           };
         };
       };

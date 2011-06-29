@@ -400,8 +400,8 @@ Section Public
         };
       };
       swap p with low;
-      quick_sort_from low to (p - 1);
-      quick_sort_from (p + 1) to up;
+      quick_sort_from low to (p - 1) with cmp;
+      quick_sort_from (p + 1) to up with cmp;
     };
   );
 

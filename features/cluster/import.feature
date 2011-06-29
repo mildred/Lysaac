@@ -16,10 +16,10 @@ Feature: Cluster import
       """
       ◆ Root Cluster
       │ Cluster in: c
-      ├─◆ TOTO (c/toto.cli)
-      │ │ Cluster in: c/deps/toto
-      │ ╰─◇ TOTO (c/deps/toto/toto.li)
-      ╰─◇ MAIN (c/main.li)
+      ├─◇ MAIN (c/main.li)
+      ╰─◆ TOTO (c/toto.cli)
+        │ Cluster in: c/deps/toto
+        ╰─◇ TOTO (c/deps/toto/toto.li)
       
       """
 
@@ -40,10 +40,10 @@ Feature: Cluster import
       """
       ◆ Root Cluster
       │ Cluster in: c
-      ├─◆ TOTO (c/toto.cli)
-      │ │ Cluster in: $CWD/toto
-      │ ╰─◇ TOTO ($CWD/toto/toto.li)
-      ╰─◇ MAIN (c/main.li)
+      ├─◇ MAIN (c/main.li)
+      ╰─◆ TOTO (c/toto.cli)
+        │ Cluster in: $CWD/toto
+        ╰─◇ TOTO ($CWD/toto/toto.li)
       
       """
 
@@ -62,8 +62,8 @@ Feature: Cluster import
       """
       ◆ Root Cluster
       │ Cluster in: c
-      ├─◆ TOTO (c/toto.cli)
-      │   Could not find cluster
-      ╰─◇ MAIN (c/main.li)
+      ├─◇ MAIN (c/main.li)
+      ╰─◆ TOTO (c/toto.cli)
+          Could not find cluster
       
       """
