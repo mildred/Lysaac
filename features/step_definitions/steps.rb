@@ -61,4 +61,9 @@ Given /^the following prototypes in "([^"]*)":$/ do |dir, table|
   end
 end
 
+Then /^I should have the errors$/ do |table|
+  puts table.raw.inspect
+  pending # express the regexp above with the code you wish you had
+end
+
 

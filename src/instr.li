@@ -15,6 +15,8 @@ Section Public
   - link <- deferred;
 
   - generate gen:GENERATOR <- deferred;
+  
+  + error :ERR := ERR;
 
 Section ITM_EXPR, SLOT
 

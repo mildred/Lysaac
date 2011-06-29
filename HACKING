@@ -22,6 +22,9 @@ Compilation Process
         SLOT.compile LIST_PROC
           ITM_EXPR.compile_in LIST
             INSTR.make
+            INSTR.error :ERR
+          ITM_EXPR.result :EXPR
+          EXPR.error
       
       // Link: ???
       
