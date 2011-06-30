@@ -19,5 +19,6 @@ Feature: Show an error when a type is not found
       """
      When I compile the cluster "c"
      Then I should have the errors
-        | c/main.li | 7 | 11 | Could not find type TOTO |
+        | c/main.li | 7 | 11 | Could not find type TOTO           |
+        | c/main.li | 7 |  3 | Dropping return type for slot toto |
 
