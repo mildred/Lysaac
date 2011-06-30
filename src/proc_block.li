@@ -16,6 +16,7 @@ Section ITM_EXPR_GROUP
 
   - make_block ast:ITM_EXPR_GROUP list_parent l:LIST :SELF <-
   (
+    make_error_collector;
     sequence_number := sequence_number + 1;
     external_name   := ("block_" + sequence_number.to_string).to_string;
     itm_expr        := ast;

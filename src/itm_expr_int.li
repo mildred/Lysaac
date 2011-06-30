@@ -21,13 +21,15 @@ Section Public
     
     t := cluster_parent.type_for_role "Integer";
     (t = NULL).if {
-      error(ERR, position, "Could not find role for Integer"); // TODO
+      err := error(err, position, "Could not find role for Integer");
+    } else {
+      result := EXPR.clone.make
+        (INSTR_INT.clone.make value static_type t.add_in list.result, t);
     };
-    
-    result := EXPR.clone.make
-      (INSTR_INT.clone.make value static_type t.add_in list.result, t);
     Self
   );
+  
+  + err :ERR := ERR;
 
 Section PARSER
   

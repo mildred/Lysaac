@@ -112,9 +112,6 @@ Section Public
   - warn_errors <-
   (
     error_collection.iterate.loop_i { i:INTEGER; error_collection.item i.println; };
-    slots.iterate.loop_v { s:SLOT;
-      s.warn_errors;
-    };
   );
 
   - to_string :STRING <- type_name + "<" + name + ">";

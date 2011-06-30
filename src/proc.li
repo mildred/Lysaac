@@ -6,11 +6,20 @@ Section Inherit
 
   + parent_any :Expanded ANY;
 
+Section Insert
+  
+  + parent_error_collector :Expanded ERR_COLLECTOR;
+
 Section Public
 
   - external_name :CSTRING <- (deferred; CSTRING);
 
   - self:EXPR <- EXPR;
+  
+  - warn_errors <-
+  (
+    error_collection.iterate.loop_i { i:INTEGER; error_collection.item i.println; };
+  );
 
 Section LIST_PROC
 

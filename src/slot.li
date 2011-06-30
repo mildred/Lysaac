@@ -6,10 +6,6 @@ Section Inherit
 
   + parent_proc :Expanded PROC;
 
-Section Insert
-  
-  + parent_error_collector :Expanded ERR_COLLECTOR;
-
 Section Public
 
   - name :CSTRING <- ast.identifier;
@@ -47,11 +43,6 @@ Section Public
   - is_compiled_data_slot :BOOLEAN <- type_index >= 0;
   
   + type_index :INTEGER := -1;
-  
-  - warn_errors <-
-  (
-    error_collection.iterate.loop_i { i:INTEGER; error_collection.item i.println; };
-  );
 
 Section Private
 
@@ -143,7 +134,12 @@ Section Private
         .result);
     }.elseif {ast.expression != NULL} then {
       // Nominal case
-      list.add_result (ast.expression.compile_in list.result.reg);
+      ast.expression.compile_in list;
+      ast.expression.err.failure.if {
+        add_error(error(ast.expression.err, ast.position, "Dropping return value #1 for slot"));
+      } else {
+        list.add_result (ast.expression.result.reg);
+      };
     } else {
       // Empty slot
     };

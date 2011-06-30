@@ -26,10 +26,12 @@ Section Public
       has_multiple_results.if {
         +? { results != NULL };
       } else {
-        +? { result.is_valid };
+        +? { (err.failure) || {result.is_valid} };
       };
     };
   ];
+  
+  - err :ERR <- ERR;
   
   - has_results          :BOOLEAN <- FALSE;
   + has_multiple_results :BOOLEAN <- FALSE;

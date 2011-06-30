@@ -144,6 +144,7 @@ Section Public
         i.prototype.warn_errors;
       };
     };
+    slots.warn_errors;
   );
 
 Section PROTOTYPE

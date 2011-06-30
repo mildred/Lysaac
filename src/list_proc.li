@@ -37,6 +37,13 @@ Section Public
   
   - count :INTEGER <- slots.count;
   
+  - warn_errors <-
+  (
+    slots.iterate.loop_v { s:PROC;
+      s.warn_errors;
+    };
+  );
+  
 Section CLUSTER
 
   - make :SELF <-
