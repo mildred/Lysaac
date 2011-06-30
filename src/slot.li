@@ -6,6 +6,10 @@ Section Inherit
 
   + parent_proc :Expanded PROC;
 
+Section Insert
+  
+  + parent_error_collector :Expanded ERR_COLLECTOR;
+
 Section Public
 
   - name :CSTRING <- ast.identifier;
@@ -43,6 +47,11 @@ Section Public
   - is_compiled_data_slot :BOOLEAN <- type_index >= 0;
   
   + type_index :INTEGER := -1;
+  
+  - warn_errors <-
+  (
+    error_collection.iterate.loop_i { i:INTEGER; error_collection.item i.println; };
+  );
 
 Section Private
 
@@ -56,6 +65,7 @@ Section ITM_SLOT
 
   - make s:ITM_SLOT :SELF <-
   (
+    make_error_collector;
     arguments := FAST_ARRAY(REG).create 0;
     list          := NULL;
     ast           := s;

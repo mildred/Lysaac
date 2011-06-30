@@ -1,6 +1,5 @@
 Feature: Show an error when a type is not found
     
-  @wip
   Scenario: Unknown types should be ignored
     Given the following prototypes in "c":
         | Prototype |

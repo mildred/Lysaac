@@ -8,6 +8,10 @@ Section Inherit
   
   - parent_i_find_type :Expanded I_FIND_TYPE;
 
+Section Insert
+
+  + parent_error_collector :Expanded ERR_COLLECTOR;
+
 Section Public
 
   - made      :BOOLEAN <- state >= state_made;      // Object is made and ready
@@ -97,6 +101,22 @@ Section Public
   )
   [ +? {generated}; ];
   
+  - loop_errors blc:{ERR;} <-
+  (
+    error_collection.iterate.loop_v blc;
+    slots.iterate.loop_v { s:SLOT;
+      s.loop_errors blc;
+    };
+  );
+  
+  - warn_errors <-
+  (
+    error_collection.iterate.loop_i { i:INTEGER; error_collection.item i.println; };
+    slots.iterate.loop_v { s:SLOT;
+      s.warn_errors;
+    };
+  );
+
   - to_string :STRING <- type_name + "<" + name + ">";
 
 Section Private
@@ -150,6 +170,7 @@ Section CLUSTER_ITEM
 
   - make_file file:CSTRING cluster c:CLUSTER :SELF <-
   (
+    make_error_collector;
     expanded := FALSE;
     cluster  := c;
     filename := file;

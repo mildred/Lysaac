@@ -45,7 +45,7 @@ Section SELF
   (
     source.valid_index position_index.if {
       position_index := position_index + 1;
-      (character (0) = '\n').if {
+      (character (-1) = '\n').if {
         line := line + 1;
         column := 1;
       } else {
@@ -141,7 +141,7 @@ Section SELF
   (
     last_style := ITM_STYLE.clone.make last_character;
     last_style.valid.if {
-      position_index := position_index + 1;
+      read_character;
     };
     last_style
   );

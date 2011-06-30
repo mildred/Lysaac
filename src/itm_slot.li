@@ -77,7 +77,9 @@ Section ITM_PROTOTYPE
     (return_type != NULL).if {
       + t:TYPE;
       t := return_type.to_type;
-      return_type.err.success.if {
+      return_type.err.failure.if {
+        slot.add_error(error(return_type.err, position, "Dropping return type for slot " + identifier));
+      } else {
         slot.set_return_type (t);
       };
     };

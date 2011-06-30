@@ -52,16 +52,18 @@ Section ERR
 
   - to_string_in res:STRING <-
   (
+    (parent != NULL).if {
+      parent.to_e.to_string_in res;
+      parent.to_e.failure.if {
+        res.add_last '\n';
+      };
+    };
     failure.if {
       position.is_null.if_false {
         res.append (position.to_string);
         res.append ": ";
       };
       res.append message;
-      (parent != NULL).if {
-        res.add_last '\n';
-        parent.to_e.to_string_in res;
-      };
     };
   );
 

@@ -8,6 +8,10 @@ Section Inherit
 
   - parent_i_find_type :Expanded I_FIND_TYPE;
 
+Section Insert
+  
+  + parent_error_collector :Expanded ERR_COLLECTOR;
+
 Section Public
 
   - made      :BOOLEAN <- state >= state_made;      // Object is made
@@ -77,6 +81,7 @@ Section Public
 
   - make_path p:CSTRING :SELF <-
   (
+    make_error_collector;
     num_prototypes := 0;
     cur_step := 0;
     num_steps := 1;
@@ -92,6 +97,7 @@ Section Public
   
   - make_file f:CSTRING :SELF <-
   ( + e:ERR;
+    make_error_collector;
     num_prototypes := 0;
     cur_step := 0;
     num_steps := 1;
@@ -118,6 +124,26 @@ Section Public
       };
     };
     res
+  );
+  
+  - loop_errors blc:{ERR;} <-
+  (
+    error_collection.iterate.loop_v blc;
+    list.iterate.loop_v { i:CLUSTER_ITEM;
+      i.is_prototype.if {
+        i.prototype.loop_errors blc;
+      };
+    };
+  );
+  
+  - warn_errors <-
+  (
+    error_collection.iterate.loop_i { i:INTEGER; error_collection.item i.println; };
+    list.iterate.loop_v { i:CLUSTER_ITEM;
+      i.is_prototype.if {
+        i.prototype.warn_errors;
+      };
+    };
   );
 
 Section PROTOTYPE

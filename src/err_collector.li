@@ -1,0 +1,34 @@
+Section Header
+
+  + name := ERR_COLLECTOR;
+
+Section Public
+
+  - add_error e:ERR <-
+  (
+    error_collection.add_last e;
+  );
+  
+  - loop_errors blc:{ERR;} <-
+  (
+    error_collection.iterate.loop_v blc;
+  );
+  
+  - warn_errors <-
+  (
+    loop_errors { e:ERR;
+      e.println;
+    };
+  );
+
+Section SELF
+
+  - make_error_collector :SELF <-
+  (
+    error_collection := FAST_ARRAY(ERR).create 0;
+    Self
+  );
+
+Section Private
+
+  + error_collection :FAST_ARRAY(ERR);
