@@ -60,6 +60,16 @@ Section ITM_EXPR_GROUP, SLOT
 Section SLOT
 
   + results :FAST_ARRAY(REG);
+  
+  - first_result_or_invalid :REG <-
+  ( + res :REG;
+    results.is_empty.if {
+      res := REG;
+    } else {
+      res := results.first;
+    };
+    res
+  );
 
 Section ITM_EXPR, PROC_BLOCK, SLOT
 

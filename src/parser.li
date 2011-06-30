@@ -11,8 +11,8 @@ Section SELF
   + filename :CSTRING := "";
   + source :STRING;
   + position_index :INTEGER;
-  + line :INTEGER;
-  + column :INTEGER;
+  + line :INTEGER;   // references next_char
+  + column :INTEGER; // references next_char
   + error_stack :ERR;
   
   - position :POS <- POS.create (filename, line, column);
@@ -45,7 +45,7 @@ Section SELF
   (
     source.valid_index position_index.if {
       position_index := position_index + 1;
-      (character (-1) = '\n').if {
+      (character (0) = '\n').if {
         line := line + 1;
         column := 1;
       } else {

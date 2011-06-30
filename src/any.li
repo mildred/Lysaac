@@ -43,8 +43,16 @@ Section Public
   - dbg s:ABSTRACT_STRING <- warn s;
   - dbgln s:ABSTRACT_STRING <- warnln s;
 
-  - error (p:POS, m:ABSTRACT_STRING) <-
-    warnln (p.to_string + ": " + m);
+  - error (e:ERR, p:POS, m:ABSTRACT_STRING) :ERR <-
+  ( + res :ERR;
+    (e = ERR).if {
+      res := ERR.create m position p;
+    } else {
+      res := ERR.create m position p parent e;
+    };
+    warnln ("Debug: " + res.to_string);
+    res
+  );
   
   - progress_notice info:ABSTRACT_STRING <- (warn "*** "; warnln info;);
   

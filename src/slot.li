@@ -186,7 +186,7 @@ Section Private
       } else {
         list.generate gen;
       };
-    } return (list.results.first);
+    } return (list.first_result_or_invalid);
   );
 
 Section PROTOTYPE

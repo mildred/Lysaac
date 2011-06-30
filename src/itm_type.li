@@ -20,18 +20,23 @@ Section Public
       + p:PROTOTYPE;
       p := cluster_parent.prototype_for_role "Block";
       (p = NULL).if {
-        error (position, "Could not find prototype for role Block");
+        err := error(err, position, "Could not find prototype for role Block");
       } else {
         res := p.to_type_block;
       };
     } else {
       res := slot_parent.find_type (prototype.prototype);
       (res = NULL).if {
-        error (position, "Could not find type " + (prototype.prototype));
+        err := error(err, position, "Could not find type " + name);
       };
     };
     res
-  );
+  )
+  [ +? { (err.failure) || {Result != NULL} }; ];
+  
+  + err :ERR := ERR;
+  
+  - name :CSTRING <- prototype.prototype;
 
 Section PARSER
   

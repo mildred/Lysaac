@@ -32,7 +32,7 @@ Section ITM_SLOT
         .make_pretty_name name;
       ? { r.is_valid };
     } else {
-      error(position, "Cannot resolve type for "+name);
+      error(ERR, position, "Cannot resolve type for "+name);
     };
     result := EXPR.clone.make(r, t)
   )

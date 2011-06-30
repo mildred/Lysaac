@@ -75,8 +75,11 @@ Section ITM_PROTOTYPE
       };
     };
     (return_type != NULL).if {
-      slot.set_return_type (return_type.to_type);
-      ? { return_type != NULL };
+      + t:TYPE;
+      t := return_type.to_type;
+      return_type.err.success.if {
+        slot.set_return_type (t);
+      };
     };
     slot.finish_creation;
     list.add_slot slot;

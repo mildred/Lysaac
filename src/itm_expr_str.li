@@ -21,7 +21,7 @@ Section Public
     
     t := cluster_parent.type_for_role "String";
     (t = NULL).if {
-      error(position, "Could not find role for String");
+      error(ERR, position, "Could not find role for String");
     };
     
     result := EXPR.clone.make
