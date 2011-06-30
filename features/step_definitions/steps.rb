@@ -18,28 +18,39 @@ When /^I set ([a-zA-Z0-9_]+)="([^"]*)"$/ do |env, val|
 end
 
 When /^I (show|compile) the cluster "([^"]*)"$/ do |action, cluster|
-  @cmd = "#{$homedir}/bin/lysaac.cov #{action} '#{cluster}'"
-  @cmd_text = `#{@cmd}`;
+  @ll_file = "#{cluster}.ll"
+  @bc_file = "#{cluster}.bc"
+  @er_file = "#{cluster}.err"
+  @cmd = "#{$homedir}/bin/lysaac.cov #{action} '#{cluster}' >'#{@ll_file}' 2>'#{@er_file}'"
+  system(@cmd)
   @cmd_code = $?
+  @cmd_text = File.open(@ll_file, 'r').read()
+  if action == "compile" then
+    system("llvm-as <'#{@ll_file}' >'#{@bc_file}'")
+    if $? != 0 then
+      puts "==> #{@er_file}"
+      File.open(@er_file, 'r') { |f| puts f.read() }
+      puts "==> #{@ll_file}"
+      puts @cmd_text
+      puts "==> [#{@cmd_code}] #{@cmd}"
+      puts "==> [#{$?}] llvm-as <'#{@ll_file}' >'#{@bc_file}'"
+      $?.should == 0
+    end
+  end
 end
 
 When /^I execute the cluster "([^"]*)"$/ do |cluster|
-  @ll_file = "#{cluster}.ll"
-  @bc_file = "#{cluster}.bc"
-  cmd="#{$homedir}/bin/lysaac.cov compile '#{cluster}' >'#{@ll_file}'"
-  system(cmd)
-  @cmd_code = $?
-  if $? != 0 then
-    puts cmd
+  When %Q{I compile the cluster "#{cluster}"}
+  if @cmd_code != 0 then
+    puts "==> #{@er_file}"
+    File.open(@er_file, 'r') { |f| puts f.read() }
+    puts "==> #{@ll_file}"
     File.open(@ll_file, 'r') { |f| puts f.read() }
-    $?.should == 0
+    puts "==> [#{@cmd_code}] #{@cmd}"
+    @cmd_code.should == 0
   end
-  system("llvm-as <'#{@ll_file}' >'#{@bc_file}'")
-  if $? != 0 then
-    puts "Failure: see LLVM source in: #{FileUtils.pwd()}/#{@ll_file}"
-    $?.should == 0
-  end
-  @cmd_text = `lli <'#{@bc_file}'`;
+  @cmd = "lli <'#{@bc_file}'"
+  @cmd_text = `#{@cmd}`;
   @cmd_code = $?
 end
 
