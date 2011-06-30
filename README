@@ -52,6 +52,8 @@ follow the guide:
 
 - Install the necessary gems: `bundle install`
 
+For coverage reports, you'll need the Perl Template Toolkit: `Template.pm`
+
 Then, just:
 
     redo tests

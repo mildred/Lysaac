@@ -73,27 +73,11 @@ Given /^the following prototypes in "([^"]*)":$/ do |dir, table|
 end
 
 Then /^I should have the errors$/ do |expected_table|
-  got_table = []
-  File.open(@er_file, 'r') do |f|
-    f.lines.each do |line|
-      cap = /(.*):(([0-9]+):(([0-9]+):)) (.*)/.match(line)
-      if cap then
-        got_table << [cap[1], (cap[3] or ""), (cap[5] or ""), cap[6]] if cap
-        next
-      else
-        cap = /(.*):(([0-9]+):(([0-9]+):))? (.*)/.match(line)
-      end
-      if cap then
-        got_table << [cap[1], (cap[3] or ""), (cap[5] or ""), cap[6]] if cap
-        next
-      else
-        cap = /(.*):(([0-9]+):(([0-9]+):)?)? (.*)/.match(line)
-      end
-      got_table << [cap[1], (cap[3] or ""), (cap[5] or ""), cap[6]] if cap
-    end
-  end
-  got_table = Cucumber::Ast::Table.new(got_table)
+  got_table = Cucumber::Ast::Table.new(parse_errors(@er_file))
   got_table.diff! expected_table
 end
 
+Then "I shouldn't have any errors" do
+  parse_errors(@er_file).length.should == 0
+end
 
