@@ -21,7 +21,7 @@ Section Public
     
     t := cluster_parent.type_for_role "Integer";
     (t = NULL).if {
-      error(ERR, position, "Could not find role for Integer");
+      error(ERR, position, "Could not find role for Integer"); // TODO
     };
     
     result := EXPR.clone.make

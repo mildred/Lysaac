@@ -1,6 +1,5 @@
 Feature: Simple blocks
 
-  @wip
   Scenario: puts Hello World in a BLOCK
     Given the following prototypes in "c":
       | Prototype |

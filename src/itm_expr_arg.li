@@ -18,6 +18,8 @@ Section Public
     -? { result.reg.is_valid };
   ]
   ( Self );
+  
+  + err :ERR := ERR;
 
 Section ITM_SLOT
 
@@ -31,14 +33,19 @@ Section ITM_SLOT
       r .make_type t
         .make_pretty_name name;
       ? { r.is_valid };
+      result := EXPR.clone.make(r, t);
     } else {
-      error(ERR, position, "Cannot resolve type for "+name);
+      err := error(ERR, position, "Cannot resolve type for "+name); // TODO
+      result = NULL;
     };
-    result := EXPR.clone.make(r, t)
+    result
   )
   [
+    +? { (err.failure) || {Result != NULL} };
     +? {result = Result};
   ];
+
+Section PARSER
 
   - make (n:CSTRING, t:ITM_TYPE) :SELF <-
   (

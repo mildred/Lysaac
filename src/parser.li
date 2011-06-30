@@ -692,11 +692,15 @@ Section SELF
   //++ C_ARG -> identifier . ":" TYPE
   
   - read_c_arg slot:ITM_SLOT :BOOLEAN <-
-  ( + res :BOOLEAN;
-    + idf :CSTRING;
+  ( + res  :BOOLEAN;
+    + idf  :CSTRING;
     + type :ITM_TYPE;
+    + arg  :ITM_EXPR_ARG;
+    + p    :POS;
   
+    p := position;
     read_identifier.if {
+      arg := ITM_EXPR_ARG.clone.make_position p;
       read_spaces;
       idf := last_identifier;
       read_always ":";
@@ -704,7 +708,7 @@ Section SELF
       (type = NULL).if {
         warning ("Expected type");
       } else {
-        slot.add_argument (idf, type);
+        slot.add_argument (arg.make (idf, type));
         res := TRUE;
       };
     };
