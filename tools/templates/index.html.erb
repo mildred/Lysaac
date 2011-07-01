@@ -83,7 +83,7 @@
         </tr>
       </thead>
       <tbody>
-<% files.each do |file| %>
+<% files.sort.each do |file| %>
         <tr>
           <td><a href="<%= file.url %>"><%= file.shortname %></a></td>
 

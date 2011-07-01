@@ -135,6 +135,10 @@ class CovFile
     @info = parent
   end
   
+  def <=> (other)
+    percent_covered <=> other.percent_covered
+  end
+  
   def lists
     @lists.values
   end
