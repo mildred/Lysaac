@@ -1,0 +1,310 @@
+#!/usr/bin/env ruby
+
+#######################################################################
+##                        <http://lisaac.org>                        ##
+##                       Lisaac  Coverage Tool                       ##
+##                                                                   ##
+##                LSIIT - ULP - CNRS - INRIA - FRANCE                ##
+##                                                                   ##
+#######################################################################
+## Copyright (c) 2010 Mildred Ki'Lya <mildred593(at)online.fr>
+##
+## Permission is hereby granted, free of charge, to any person
+## obtaining a copy of this software and associated documentation
+## files (the "Software"), to deal in the Software without
+## restriction, including without limitation the rights to use,
+## copy, modify, merge, publish, distribute, sublicense, and/or sell
+## copies of the Software, and to permit persons to whom the
+## Software is furnished to do so, subject to the following
+## conditions:
+##
+## The above copyright notice and this permission notice shall be
+## included in all copies or substantial portions of the Software.
+##
+## THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+## EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+## OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+## NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+## HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+## WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+## FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+## OTHER DEALINGS IN THE SOFTWARE.
+#######################################################################
+
+require 'optparse'
+require 'ostruct'
+require 'pp'
+require 'fileutils'
+require 'erb'
+
+options = OpenStruct.new
+options.excludes = []
+options.html = false
+options.output = "."
+options.verbose = false
+
+opts = OptionParser.new do |opts|
+  opts.banner = "Usage: licov [options]"
+
+  opts.separator ""
+  opts.separator "Specific options:"
+
+  opts.on("-e", "--exclude PATTERN", "Exclude files matching PATTERN") do |pattern|
+    options.excludes << Regexp.new(pattern)
+  end
+
+  opts.on("--html", "Generate HTML report") do
+    options.html = true
+  end
+
+  opts.on("-o", "--output DIR", "Select output directory DIR for HTML generation") do |dir|
+    options.output << dir
+  end
+
+  opts.separator ""
+  opts.separator "Common options:"
+
+  opts.on("-v", "--[no-]verbose", "Run verbosely") do |v|
+    options.verbose = v
+  end
+
+  opts.on_tail("-h", "--help", "Show this message") do
+    puts opts
+    exit
+  end
+
+  opts.on_tail("--version", "Show version") do
+    puts OptionParser::Version.join('.')
+    exit
+  end
+end
+
+class CovList
+  attr_accessor :file
+  attr_reader :coords
+  attr_reader :line_start
+  attr_reader :col_start
+  attr_reader :line_end
+  attr_reader :col_end
+  attr_reader :covered
+  attr_reader :dead
+
+  def initialize(m)
+    @coords     = m[1]
+    @line_start = m[2].to_i
+    @col_start  = m[3].to_i
+    @line_end   = m[4].to_i
+    @col_end    = m[5].to_i
+    @covered    = 0
+    @dead       = true
+  end
+  
+  def add_coverage(num)
+    @covered += num
+    @dead     = false
+  end
+end
+
+class CovFile
+  attr_accessor :name
+  attr_reader :info
+  attr_reader :file_name
+  attr_reader :num_lists
+  attr_reader :num_covered
+  attr_reader :num_dead
+  
+  def initialize(parent, name)
+    @file_name = File.realpath(name)
+    @lists = {}
+    @info = parent
+  end
+  
+  def lists
+    @lists.values
+  end
+  
+  def [] (id)
+    @lists[id]
+  end
+  
+  def []= (id, list)
+    @lists[id] = list
+    list.file = self
+  end
+  
+  def compute
+    @num_lists   = lists.count
+    @num_covered = 0
+    @num_dead    = 0
+    lists.each do |l|
+      @num_covered += (l.covered > 0) ? 1 : 0
+      @num_dead    += (l.dead)        ? 1 : 0
+    end
+  end
+  
+  def shortname
+    file_name.gsub /^#{info.common_path}\//, ""
+  end
+  
+  def generate
+    File.open(name, :w) do |f|
+      f.write(template("coverage.html.erb").result(binding))
+    end
+  end
+  
+  def basename(n)
+    File.basename(@file_name).gsub(/[^a-zA-Z0-9]*/, "_") + (n==0) ? "" : "_#{n}"
+  end
+  
+  def num_living
+    num_lists - num_dead
+  end
+  
+  def percent_dead
+    return 0.0 if num_lists == 0
+    num_dead.to_f / num_lists
+  end
+  
+  def percent_covered
+    return 100.0 if num_living == 0
+    num_covered.to_f / num_living
+  end
+  
+  def code
+    File.open(file_name) { |f| f.read }
+  end
+  
+end
+
+class CoverageInformation
+  attr_reader :num_lists
+  attr_reader :num_covered
+  attr_reader :num_dead
+  attr_reader :common_path
+
+  def initialize(opts)
+    @opts = opts
+    @outdir = opts.output
+    @files = {}
+  end
+  
+  def is_excluded(filename)
+    @opts.excludes.each do |p|
+      return false if filename.match p
+    end
+    return true
+  end
+
+  def parse(file)
+    lineno = 0
+    current_file = nil
+    file.lines.each do |line|
+      lineno += 1
+      next if line[0,1] == "#"
+      if line.start_with? "FILE:"
+        current_file = line[/^FILE:(.*)$/, 1]
+        if is_excluded(current_file) then
+          current_file = nil
+        else
+          @files[current_file] = CovFile.new(self, current_file)
+        end
+      elsif not current_file.nil? and line.start_with? "LIST:"
+        line.match /LIST:(([0-9]+):([0-9]+):([0-9]+):([0-9]+))/ do |m|
+          @files[current_file][m[1]] = CovList.new(m)
+        end
+      elsif not current_file.nil? and line.start_with? "COVERAGE:"
+        line.match /LIST:([0-9]+):([0-9]+:[0-9]+:[0-9]+:[0-9]+)/ do |m|
+          @files[current_file][m[2]].add_coverage(m[1].to_i)
+        end
+      end
+    end
+  end
+
+  def files
+    @files.values
+  end
+  
+  def compute
+    @num_lists   = 0
+    @num_covered = 0
+    @num_dead    = 0
+    files.each do |f|
+      f.compute
+      @num_lists   += f.num_lists
+      @num_covered += f.num_covered
+      @num_dead    += f.num_dead
+    end
+  end
+  
+  def generate_common_path
+    separator = '/'
+    dirs = @files.map { |f| f.file_name }
+    paths = dirs.collect {|dir| dir.split(separator)}
+    uncommon_idx = paths.transpose.each_with_index.find {|dirnames, idx| dirnames.uniq.length > 1}.last
+    paths[0][0 ... uncommon_idx].join(separator)
+  end
+  
+  def generate
+    @common_path = generate_common_path
+    basenames = []
+    FileUtils.mkdir_p @outdir
+    FileUtils.cp find_template("style.css"), @outdir
+    FileUtils.cp find_template("jquery.js"), @outdir
+    files.each do |f|
+      n = 0
+      while basenames.include?(f.basename(n)) do
+        n += 1
+      end
+      f.name = "#{@outdir}/coverage_#{f.basename(n)}.html"
+      f.generate
+    end
+    File.open("#{@outdir}/index.html", :w) do |f|
+      f.write(template("index.html.erb").result(binding))
+    end
+  end
+  
+  def num_living
+    num_lists - num_dead
+  end
+  
+  def percent_dead
+    return 0.0 if num_lists == 0
+    num_dead.to_f / num_lists
+  end
+  
+  def percent_covered
+    return 100.0 if num_living == 0
+    num_covered.to_f / num_living
+  end
+
+end
+
+def find_template(filename)
+  self_dir = File.dirname(__FILE__)
+  ["#{self_dir}/#{filename}", "#{self_dir}/templates/#{filename}"].each do |f|
+    return f if File.file?(f)
+  end
+  return nil
+end
+
+def template(filename)
+  ERB.new(File.open(filename) { |f| f.read }, nil, "%<>")
+end
+
+args = opts.parse(ARGV)
+info = CoverageInformation.new(options)
+
+args.each do |filename|
+  if filename == "-" then
+    info.parse($stdin)
+  else
+    File.open(filename, "r") do |f|
+      info.parse(f)
+    end
+  end
+end
+
+info.compute
+info.generate
+
+

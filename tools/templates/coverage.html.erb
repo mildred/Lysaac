@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <title>Code coverage for <%= shortname %></title>
+    <script type="text/javascript" src="jquery.js"></script>
+    <style>
+      @import url(style.css);
+
+      .covered {
+        background-color: palegreen;
+      }
+      [coveragecount]:before {
+        font-size: 0.7em;
+        padding-left: 0.25em;
+        padding-right: 0.25em;
+        vertical-align: middle;
+        content: attr(coveragecount);
+        background-color: lightgreen;
+        border: solid thin #7f7f7f;
+        -moz-border-radius: 0.25em;
+        color: #7f7f7f;
+      }
+      [lineno]:after {
+        content: attr(lineno) ": ";
+        color: grey;
+        display: block;
+        float: left;
+        width: 5em;
+        text-align: right;
+        vertical-align: bottom;
+        padding-right: .5em;
+        /* Get the line numbers aligned with the lines */
+        position: relative;
+        top: .25em;
+      }
+      .not-covered {
+        background-color: tomato;
+      }
+      .dead {
+        background-color: lightgrey;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Code coverage for <%= shortname %></h1>
+    <p>File metrics</p>
+    <table>
+      <tr>
+        <td>Living Code Coverage</td>
+        <td class="col_l ratio numeric"><%= "% 3.2f" % percent_covered %>%</td>
+        <td class="col_l"><div class="progressbar"><div style="width: <%= percent_covered %>px;"></div></div></td>
+        <td class="col_l ratio right"><%= num_covered %></td>
+        <td class="col_l ratio ratio">/</td>
+        <td class="col_l ratio left"><%= num_living %></td>
+      </tr>
+      <tr>
+        <td>Dead Code</td>
+        <td class="col_d ratio numeric"><%= "% 3.2f" % percent_dead %>%</td>
+        <td class="col_d"><div class="progressbar"><div style="width: <%= percent_dead %>px;"></div></div></td>
+        <td class="col_d ratio right"><%= num_dead %></td>
+        <td class="col_d ratio ratio">/</td>
+        <td class="col_d ratio left"><%= num_lists %></td>
+      </tr>
+      </table>
+    <code><%= code %></code>
+  </body>
+</html>
+

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <title>Code coverage</title>
+    <script type="text/javascript" src="jquery.js"></script>
+    <style>
+      @import url(style.css);
+
+      td.separator {
+        background-color: black;
+        border-width: 3px;
+      }
+      td.separator_l {
+        border-left: solid thin black;
+      }
+      td.separator_r {
+        border-right: solid thin black;
+      }
+      table {
+        border-collapse: collapse;
+      }
+    </style>
+    <script type="text/javascript">
+      $(function(){
+        $(".show_whole_code_coverage")
+          .click(function(){
+            $(".col_w").toggle();
+            return false;
+          });
+        $(".show_living_code_coverage")
+          .click(function(){
+            $(".col_l").toggle();
+            return false;
+          });
+        $(".show_dead_code")
+          .click(function(){
+            $(".col_d").toggle();
+            return false;
+          });
+        $("table.bicolor tr:odd")
+          .css("background-color", "#e3e3e3");
+      })
+    </script>
+  </head>
+  <body>
+    <h1>Code coverage</h1>
+    <dl>
+      <dt>Directory</dt>
+      <dd><%= common_dir %></dd>
+    <!--
+      <dt>Show/Hide</dt>
+      <dd><a href="" class="show_whole_code_coverage">Whole code coverage</a></dd>
+      <dd><a href="" class="show_living_code_coverage">Living code coverage</a></dd>
+      <dd><a href="" class="show_dead_code">Dead code</a></dd>
+    -->
+      <dt>Project metrics</dt>
+      <dd>
+        <table>
+          <tr>
+            <td>Living Code Coverage</td>
+            <td class="col_l ratio numeric"><%= "% 3.2f" % percent_covered %>%</td>
+            <td class="col_l"><div class="progressbar"><div style="width: <%= percent_covered %>px;"></div></div></td>
+            <td class="col_l ratio right"><%= num_covered %></td>
+            <td class="col_l ratio ratio">/</td>
+            <td class="col_l ratio left"><%= num_living %></td>
+          </tr>
+          <tr>
+            <td>Dead Code</td>
+            <td class="col_d ratio numeric"><%= "% 3.2f" % percent_dead %>%</td>
+            <td class="col_d"><div class="progressbar"><div style="width: <%= percent_dead %>px;"></div></div></td>
+            <td class="col_d ratio right"><%= num_dead %></td>
+            <td class="col_d ratio ratio">/</td>
+            <td class="col_d ratio left"><%= num_lists %></td>
+          </tr>
+        </table>
+      </dd>
+    </dl>
+    <table class="bicolor">
+      <thead>
+        <tr>
+          <th>File</th>
+          <td class="col_l separator_l"></td>
+          <th class="col_l" colspan="5">Living Code Coverage</th>
+          <td class="col_l separator_r"></td>
+          <td class="col_d separator_l"></td>
+          <th class="col_d" colspan="5">Dead code</th>
+          <td class="col_d separator_r"></td>
+        </tr>
+      </thead>
+      <tbody>
+<% files.each do |file| %>
+        <tr>
+          <td><a href="<%= file.url %>"><%= file.shortname %></a></td>
+
+          <!-- living code -->
+          <td class="col_l separator_l"></td>
+          <td class="col_l ratio numeric"><%= "% 3.2f" % file.percent_covered %>%</td>
+          <td class="col_l"><div class="progressbar"><div style="width: <%= file.percent_covered %>px;"></div></div></td>
+          <td class="col_l ratio right"><%= file.num_covered %></td>
+          <td class="col_l ratio ratio">/</td>
+          <td class="col_l ratio left"><%= file.num_living %></td>
+          <td class="col_l separator_r"></td>
+
+          <!--  dead code -->
+          <td class="col_d separator_l"></td>
+          <td class="col_d ratio numeric"><%= "% 3.2f" % file.percent_dead %>%</td>
+          <td class="col_d"><div class="progressbar"><div style="width: <%= file.percent_dead %>px;"></div></div></td>
+          <td class="col_d ratio right"><%= file.num_dead %></td>
+          <td class="col_d ratio ratio">/</td>
+          <td class="col_d ratio left"><%= file.num_lists %></td>
+          <td class="col_d separator_r"></td>
+
+        </tr>
+<% end %>
+      </tbody>
+    </table>
+  </body>
+</html>

@@ -1,0 +1,30 @@
+a {
+  text-decoration: none;
+  color: #006000;
+}
+a:visited {
+  color: #004000;
+}
+a:hover {
+  text-decoration: underline;
+}
+.progressbar {
+  width: 100px;
+  border: solid thin black;
+  height: 0.5em;
+  background-color: white;
+}
+.progressbar div {
+  background-color: black;
+  height: 100%;
+}
+td.numeric, .right {
+  text-align: right;
+}
+.left {
+  text-align: left;
+}
+.ratio {
+  color: #7f7f7f;
+  font-size: 0.7em;
+}
