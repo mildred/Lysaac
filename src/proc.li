@@ -5,8 +5,6 @@ Section Header
 Section Inherit
 
   + parent_any :Expanded ANY;
-
-Section Insert
   
   + parent_error_collector :Expanded ERR_COLLECTOR;
 

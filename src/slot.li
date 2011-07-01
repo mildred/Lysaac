@@ -92,7 +92,7 @@ Section LIST_PROC
       self := EXPR.clone.make_type t;
     };
     ? { self.is_valid };
-    list := LIST.clone.make_self self;
+    list := LIST.clone.make_self self error_collector Self;
     external.if {
       // External Slot
       + sym :ITM_EXPR_SYM;

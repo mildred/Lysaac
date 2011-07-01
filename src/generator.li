@@ -91,9 +91,9 @@ Section Public
   - declare_sub name:CSTRING args args:{} <-
   (
     put_indent;
-    put "declare void @";
+    put "declare void @\"";
     put name;
-    put " (";
+    put "\" (";
     args.value;
     put ")\n\n";
   );

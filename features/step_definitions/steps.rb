@@ -78,6 +78,11 @@ Then /^I should have the errors$/ do |expected_table|
 end
 
 Then "I shouldn't have any errors" do
-  parse_errors(@er_file).length.should == 0
+  e = parse_errors(@er_file)
+  if e.length > 0 then
+    raise Exception, ("Got #{e.length} errors:\n" + (e.map do |line|
+      "#{line[0]}:#{line[1]}:#{line[2]}: #{line[3]}\n"
+    end.join))
+  end
 end
 

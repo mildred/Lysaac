@@ -10,10 +10,6 @@ Section Public
 
   - is_void :BOOLEAN <- (deferred; TRUE);
 
-  // TODO: Refactoring: compile_in should return SELF but the object should
-  // have a slot result:REG and result_type:TYPE. This would allow ITM_EXPR to
-  // compile to multiple instructions, each having a different REG and TYPE.
-
   - compile_in list:LIST :SELF <-
   (
     crash_with_message ("Cannot compile " + type_name);

@@ -62,7 +62,9 @@ Feature: Grammar features
         
         Section Public
         
-          - sym <- `symbol `` with escape sequence`;
+          - sym1 <- `symbol `` with escape sequence`;
+        
+          - sym2 <- External `symbol `` with escape sequence`;
         
         """
      When I compile the cluster "c"

@@ -21,7 +21,7 @@ Section ITM_EXPR_GROUP
     external_name   := ("block_" + sequence_number.to_string).to_string;
     itm_expr        := ast;
     self            := EXPR.clone.make_type (l.self.type);
-    list            := LIST.clone.make_self self;
+    list            := LIST.clone.make_self self error_collector Self;
     Self
   );
 

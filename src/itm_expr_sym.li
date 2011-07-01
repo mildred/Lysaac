@@ -12,6 +12,12 @@ Section Public
 
   + symbol :CSTRING;
 
+  - compile_in list:LIST :SELF <-
+  (
+    list.error_collector.add_error(error(ERR, position, "Unexpected symbol"));
+    Self
+  );
+
 Section PARSER
   
   - make s:CSTRING :SELF <-

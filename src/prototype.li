@@ -7,9 +7,7 @@ Section Inherit
   + parent_any :Expanded ANY;
   
   - parent_i_find_type :Expanded I_FIND_TYPE;
-
-Section Insert
-
+  
   + parent_error_collector :Expanded ERR_COLLECTOR;
 
 Section Public
@@ -81,7 +79,7 @@ Section Public
   [ -? {defined}; -? {! compiled}; ]
   (
     prototype_value  := EXPR.clone.make_type to_type;
-    initializer_list := LIST.clone.make_self prototype_value;
+    initializer_list := LIST.clone.make_self prototype_value error_collector Self;
     state := state_compiled;
   )
   [ +? {compiled}; ];
