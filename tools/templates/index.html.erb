@@ -47,20 +47,14 @@
     <h1>Code coverage</h1>
     <dl>
       <dt>Directory</dt>
-      <dd><%= common_dir %></dd>
-    <!--
-      <dt>Show/Hide</dt>
-      <dd><a href="" class="show_whole_code_coverage">Whole code coverage</a></dd>
-      <dd><a href="" class="show_living_code_coverage">Living code coverage</a></dd>
-      <dd><a href="" class="show_dead_code">Dead code</a></dd>
-    -->
+      <dd><%= common_path %></dd>
       <dt>Project metrics</dt>
       <dd>
         <table>
           <tr>
             <td>Living Code Coverage</td>
             <td class="col_l ratio numeric"><%= "% 3.2f" % percent_covered %>%</td>
-            <td class="col_l"><div class="progressbar"><div style="width: <%= percent_covered %>px;"></div></div></td>
+            <td class="col_l"><div class="progressbar"><div style="width: <%= percent_covered %>px; background-color: <%= progresscolor(percent_covered) %>"></div></div></td>
             <td class="col_l ratio right"><%= num_covered %></td>
             <td class="col_l ratio ratio">/</td>
             <td class="col_l ratio left"><%= num_living %></td>
@@ -96,7 +90,7 @@
           <!-- living code -->
           <td class="col_l separator_l"></td>
           <td class="col_l ratio numeric"><%= "% 3.2f" % file.percent_covered %>%</td>
-          <td class="col_l"><div class="progressbar"><div style="width: <%= file.percent_covered %>px;"></div></div></td>
+          <td class="col_l"><div class="progressbar"><div style="width: <%= file.percent_covered %>px; background-color: <%= progresscolor(file.percent_covered) %>"></div></div></td>
           <td class="col_l ratio right"><%= file.num_covered %></td>
           <td class="col_l ratio ratio">/</td>
           <td class="col_l ratio left"><%= file.num_living %></td>

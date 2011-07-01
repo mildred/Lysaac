@@ -49,7 +49,7 @@
       <tr>
         <td>Living Code Coverage</td>
         <td class="col_l ratio numeric"><%= "% 3.2f" % percent_covered %>%</td>
-        <td class="col_l"><div class="progressbar"><div style="width: <%= percent_covered %>px;"></div></div></td>
+        <td class="col_l"><div class="progressbar"><div style="width: <%= percent_covered %>px; background-color: <%= progresscolor(percent_covered) %>"></div></div></td>
         <td class="col_l ratio right"><%= num_covered %></td>
         <td class="col_l ratio ratio">/</td>
         <td class="col_l ratio left"><%= num_living %></td>

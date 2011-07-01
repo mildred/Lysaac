@@ -58,7 +58,7 @@ opts = OptionParser.new do |opts|
   end
 
   opts.on("-o", "--output DIR", "Select output directory DIR for HTML generation") do |dir|
-    options.output << dir
+    options.output = dir
   end
 
   opts.separator ""
@@ -80,7 +80,7 @@ opts = OptionParser.new do |opts|
 end
 
 class CovList
-  attr_accessor :file
+  attr_reader :file
   attr_reader :coords
   attr_reader :line_start
   attr_reader :col_start
@@ -89,24 +89,35 @@ class CovList
   attr_reader :covered
   attr_reader :dead
 
-  def initialize(m)
-    @coords     = m[1]
-    @line_start = m[2].to_i
-    @col_start  = m[3].to_i
-    @line_end   = m[4].to_i
-    @col_end    = m[5].to_i
+  def initialize(file, coords)
+    m = coords.match /^([0-9]+):([0-9]+):([0-9]+):([0-9]+)$/
+    @coords     = m[0]
+    @line_start = m[1].to_i - 1
+    @col_start  = m[2].to_i
+    @line_end   = m[3].to_i - 1
+    @col_end    = m[4].to_i
     @covered    = 0
     @dead       = true
+    @file       = file
   end
   
   def add_coverage(num)
     @covered += num
     @dead     = false
   end
+  
+  def dead?
+    dead
+  end
+  
+  def covered?
+    covered > 0
+  end
 end
 
 class CovFile
   attr_accessor :name
+  attr_accessor :url
   attr_reader :info
   attr_reader :file_name
   attr_reader :num_lists
@@ -114,7 +125,12 @@ class CovFile
   attr_reader :num_dead
   
   def initialize(parent, name)
-    @file_name = File.realpath(name)
+    
+    if File.respond_to?(:realpath) then
+      @file_name = File.realpath(name)
+    else
+      @file_name = File.expand_path(name)
+    end
     @lists = {}
     @info = parent
   end
@@ -123,13 +139,13 @@ class CovFile
     @lists.values
   end
   
-  def [] (id)
-    @lists[id]
-  end
-  
-  def []= (id, list)
-    @lists[id] = list
-    list.file = self
+  def list(coords)
+    if @lists[coords].nil? then
+      #puts "LIST:#{file_name}:#{coords}"
+      @lists[coords] = CovList.new(self, coords)
+    else
+      @lists[coords]
+    end
   end
   
   def compute
@@ -147,13 +163,14 @@ class CovFile
   end
   
   def generate
-    File.open(name, :w) do |f|
+    puts "Write #{name}"
+    File.open(name, 'w') do |f|
       f.write(template("coverage.html.erb").result(binding))
     end
   end
   
   def basename(n)
-    File.basename(@file_name).gsub(/[^a-zA-Z0-9]*/, "_") + (n==0) ? "" : "_#{n}"
+    File.basename(@file_name).gsub(/[^a-zA-Z0-9]+/, "_") + ((n==0) ? "" : "_#{n}")
   end
   
   def num_living
@@ -162,16 +179,54 @@ class CovFile
   
   def percent_dead
     return 0.0 if num_lists == 0
-    num_dead.to_f / num_lists
+    100.0 * num_dead.to_f / num_lists
   end
   
   def percent_covered
     return 100.0 if num_living == 0
-    num_covered.to_f / num_living
+    100.0 * num_covered.to_f / num_living
   end
   
   def code
-    File.open(file_name) { |f| f.read }
+    begin
+      code = File.open(file_name) { |f| f.read }
+    rescue
+      code = "Unable to open file #{file_name}"
+    end
+    add_lists_in_html(code)
+  end
+  
+  def to_html(str)
+    str = str.chr if str.respond_to?(:chr)
+    str \
+      .gsub("&", "&amp;") \
+      .gsub("<", "&lt;") \
+      .gsub(">", "&gt;") \
+      .gsub(" ", "&nbsp;") \
+      .gsub("\t", "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;")
+  end
+  
+  def add_lists_in_html(code)
+    code = code.lines.map { |line| line.bytes.map { |c| to_html(c) } }
+    lists.each do |list|
+      clas = if    list.dead?    then "dead"
+             elsif list.covered? then "covered" else "not-covered" end
+      code[list.line_start] = [] if code[list.line_start].nil?
+      code[list.line_start][list.col_start] = "" if code[list.line_start][list.col_start].nil?
+      code[list.line_end] = [] if code[list.line_end].nil?
+      code[list.line_end][list.col_end] = "" if code[list.line_end][list.col_end].nil?
+      code[list.line_start][list.col_start] = "<span class=\"block #{clas}\">#{code[list.line_start][list.col_start]}#{if list.covered? then "<span coveragecount=\"#{list.covered}\"></span>" end}"
+      code[list.line_end][list.col_end] = "#{code[list.line_end][list.col_end]}</span>"
+    end
+    lineno = 0
+    code.map do |line|
+      lineno += 1
+      "<br /><span lineno=\"#{lineno}\"></span>#{line.join}"
+    end.join
+  end
+  
+  def exists?
+    File.file?(file_name)
   end
   
 end
@@ -190,32 +245,31 @@ class CoverageInformation
   
   def is_excluded(filename)
     @opts.excludes.each do |p|
-      return false if filename.match p
+      return true if filename.match p
     end
-    return true
+    return false
   end
 
-  def parse(file)
+  def parse(file, filename)
     lineno = 0
     current_file = nil
     file.lines.each do |line|
       lineno += 1
+      puts "...On the #{lineno}th line in #{filename}" if (lineno % 100000) == 0
       next if line[0,1] == "#"
       if line.start_with? "FILE:"
         current_file = line[/^FILE:(.*)$/, 1]
         if is_excluded(current_file) then
           current_file = nil
-        else
+        elsif @files[current_file].nil? then
           @files[current_file] = CovFile.new(self, current_file)
         end
       elsif not current_file.nil? and line.start_with? "LIST:"
-        line.match /LIST:(([0-9]+):([0-9]+):([0-9]+):([0-9]+))/ do |m|
-          @files[current_file][m[1]] = CovList.new(m)
-        end
+        m = line.match /LIST:([0-9]+:[0-9]+:[0-9]+:[0-9]+)/
+        @files[current_file].list(m[1])
       elsif not current_file.nil? and line.start_with? "COVERAGE:"
-        line.match /LIST:([0-9]+):([0-9]+:[0-9]+:[0-9]+:[0-9]+)/ do |m|
-          @files[current_file][m[2]].add_coverage(m[1].to_i)
-        end
+        m = line.match /COVERAGE:([0-9]+):([0-9]+:[0-9]+:[0-9]+:[0-9]+)/
+        @files[current_file].list(m[2]).add_coverage(m[1].to_i)
       end
     end
   end
@@ -237,28 +291,40 @@ class CoverageInformation
   end
   
   def generate_common_path
-    separator = '/'
-    dirs = @files.map { |f| f.file_name }
-    paths = dirs.collect {|dir| dir.split(separator)}
-    uncommon_idx = paths.transpose.each_with_index.find {|dirnames, idx| dirnames.uniq.length > 1}.last
-    paths[0][0 ... uncommon_idx].join(separator)
+    common = nil
+    files.each do |f|
+      next unless f.exists?
+      if common.nil? then
+        common = f.file_name.split '/'
+      else
+        a = f.file_name.split '/'
+        common.each_index do |i|
+          common.slice!(i..common.length) unless common[i] == a[i]
+        end
+      end
+    end
+    common.join '/'
   end
   
   def generate
     @common_path = generate_common_path
     basenames = []
     FileUtils.mkdir_p @outdir
+    puts "Write #{@outdir}/style.css"
     FileUtils.cp find_template("style.css"), @outdir
+    puts "Write #{@outdir}/jquery.js"
     FileUtils.cp find_template("jquery.js"), @outdir
     files.each do |f|
       n = 0
       while basenames.include?(f.basename(n)) do
         n += 1
       end
-      f.name = "#{@outdir}/coverage_#{f.basename(n)}.html"
+      f.url = "coverage_#{f.basename(n)}.html"
+      f.name = "#{@outdir}/#{f.url}"
       f.generate
     end
-    File.open("#{@outdir}/index.html", :w) do |f|
+    puts "Write #{@outdir}/index.html"
+    File.open("#{@outdir}/index.html", 'w') do |f|
       f.write(template("index.html.erb").result(binding))
     end
   end
@@ -269,12 +335,12 @@ class CoverageInformation
   
   def percent_dead
     return 0.0 if num_lists == 0
-    num_dead.to_f / num_lists
+    100.0 * num_dead.to_f / num_lists
   end
   
   def percent_covered
     return 100.0 if num_living == 0
-    num_covered.to_f / num_living
+    100.0 * num_covered.to_f / num_living
   end
 
 end
@@ -288,7 +354,21 @@ def find_template(filename)
 end
 
 def template(filename)
-  ERB.new(File.open(filename) { |f| f.read }, nil, "%<>")
+  f = find_template(filename)
+  ERB.new(File.open(f) { |f| f.read }, nil, "%<>")
+end
+
+def progresscolor(percent)
+  middle = 90.0
+  if percent < middle
+    rate = percent / middle
+    "rgb(255, #{(256 * rate).to_i}, 0)"
+  elsif percent == middle
+    "rgb(128, 128, 0)"
+  else
+    rate = (100.0 - percent) / (100.0 - middle)
+    "rgb(#{(256 * rate).to_i}, #{(128 + 128 * rate).to_i}, 0)"
+  end
 end
 
 args = opts.parse(ARGV)
@@ -296,10 +376,10 @@ info = CoverageInformation.new(options)
 
 args.each do |filename|
   if filename == "-" then
-    info.parse($stdin)
+    info.parse($stdin, "<stdin>")
   else
     File.open(filename, "r") do |f|
-      info.parse(f)
+      info.parse(f, filename)
     end
   end
 end
