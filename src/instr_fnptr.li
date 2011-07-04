@@ -17,10 +17,10 @@ Section Public
 
 Section ITM_EXPR_GROUP
 
-  - make fn:CSTRING cluster cluster:CLUSTER :SELF <-
+  - make fn:CSTRING type_block t:TYPE :SELF <-
   (
     function_name := fn;
-    result := REG.clone.make_type (cluster.type_block);
+    result := REG.clone.make_type (t);
     Self
   );
 

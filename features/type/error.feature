@@ -22,7 +22,6 @@ Feature: Show an error when a type is not found
         | c/main.li | 9 | 10 | Cannot resolve type for arg         |
         | c/main.li | 9 |  3 | Dropping argument arg for slot tata |
   
-  @wip
   Scenario: Missing roles
     Given a file "c/main.li" with
         """
@@ -41,10 +40,10 @@ Feature: Show an error when a type is not found
         """
      When I compile the cluster "c"
      Then I should have the errors
-        | c/main.li |  7 | 16 | Could not find role for Integer   |
-        | c/main.li |  7 |  3 | Dropping return value #1 for slot |
-        | c/main.li |  9 | 16 | Could not find role for String    |
-        | c/main.li |  9 |  3 | Dropping return value #1 for slot |
-        | c/main.li | 11 | 16 | Could not find role for Block     |
-        | c/main.li | 11 |  3 | Dropping return value #1 for slot |
+        | c/main.li |  7 | 16 | Could not find role for Integer           |
+        | c/main.li |  7 |  3 | Dropping return value #1 for slot integer |
+        | c/main.li |  9 | 16 | Could not find role for String            |
+        | c/main.li |  9 |  3 | Dropping return value #1 for slot string  |
+        | c/main.li | 11 | 16 | Could not find role for Block             |
+        | c/main.li | 11 |  3 | Dropping return value #1 for slot block   |
 

@@ -1,0 +1,33 @@
+Section Header
+
+  + name := Expanded MAYBE(E);
+  
+  - import := E;
+  //- export := E;
+
+Section Public
+
+  + has_element :BOOLEAN := FALSE;
+  
+  - ok :BOOLEAN <- has_element;
+  - ko :BOOLEAN <- ( ! ok );
+
+  + element :E;
+  
+  - make e:E :SELF <-
+  (
+    element     := e;
+    has_element := TRUE;
+    Self
+  );
+  
+  - to_e :E <-
+  [ -? { has_element }; ]
+  ( element );
+  
+  - from_e e:E :SELF <-
+  ( make e )
+  [ +? { has_element }; ];
+
+  - if true_blc:{E;} else false_blc:{} <-
+  ( has_element.if { true_blc.value element; } else false_blc; );

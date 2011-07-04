@@ -36,10 +36,10 @@ Section Public
     prototype_roles.fast_reference_at r
   );
   
-  - type_for_role r:CSTRING :TYPE <-
+  - type_for_role r:CSTRING :MAYBE(TYPE) <-
   [ -? {parsed}; ]
   ( + p:PROTOTYPE;
-    + res:TYPE;
+    + res:MAYBE(TYPE);
     
     ((p := prototype_for_role r) != NULL).if {
       res := p.to_type;
@@ -47,10 +47,10 @@ Section Public
     res
   );
   
-  - type_block :TYPE <-
+  - type_block :MAYBE(TYPE) <-
   [ -? {parsed}; ]
   ( + p:PROTOTYPE;
-    + res:TYPE;
+    + res:MAYBE(TYPE);
     
     ((p := prototype_for_role "Block") != NULL).if {
       res := p.to_type_block;

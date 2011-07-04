@@ -23,19 +23,23 @@ Section Public
   - compile_in list:LIST :SELF <-
   (
     is_block.if {
-      + block :PROC_BLOCK;
-      block := PROC_BLOCK.clone.make_block Self list_parent list;
-      result := EXPR.clone.make
-      (
-        INSTR_FNPTR
-          .clone
-          .make (block.external_name) cluster cluster_parent
-          .add_in list
-          .result,
-        cluster_parent.type_block
-      );
-      list.list_procs.add_block block;
-      is_block := FALSE;
+      cluster_parent.type_block.if { t:TYPE;
+        + block :PROC_BLOCK;
+        block := PROC_BLOCK.clone.make_block Self list_parent list;
+        result := EXPR.clone.make
+        (
+          INSTR_FNPTR
+            .clone
+            .make (block.external_name) type_block t
+            .add_in list
+            .result,
+          t
+        );
+        list.list_procs.add_block block;
+        is_block := FALSE;
+      } else {
+        err := error (err, position, "Could not find role for Block");
+      };
     } else {
       instructions.iterate.loop_v { i:ITM_INST;
         i.compile_in list;
@@ -47,7 +51,9 @@ Section Public
     };
     Self
   );
-  
+    
+  + err :ERR := ERR;
+
   - to_string :STRING <-
   ( + res :STRING;
     res := type_name.to_string;
@@ -73,7 +79,8 @@ Section PARSER
 
   - make :SELF <-
   (
-    is_block := FALSE;
+    err          := ERR;
+    is_block     := FALSE;
     instructions := FAST_ARRAY(ITM_INST).create 0;
     result_exprs := FAST_ARRAY(ITM_EXPR).create 0;
     results      := FAST_ARRAY(EXPR).create (result_exprs.count);

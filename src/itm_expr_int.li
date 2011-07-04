@@ -17,14 +17,12 @@ Section Public
   + result :EXPR := EXPR;
 
   - compile_in list:LIST :SELF <-
-  ( + t:TYPE;
-    
-    t := cluster_parent.type_for_role "Integer";
-    (t = NULL).if {
-      err := error(err, position, "Could not find role for Integer");
-    } else {
+  (
+    cluster_parent.type_for_role "Integer".if { t:TYPE;
       result := EXPR.clone.make
         (INSTR_INT.clone.make value static_type t.add_in list.result, t);
+    } else {
+      err := error(err, position, "Could not find role for Integer");
     };
     Self
   );
@@ -35,6 +33,7 @@ Section PARSER
   
   - make v:INTEGER :SELF <-
   (
+    err   := ERR;
     value := v;
     Self
   );

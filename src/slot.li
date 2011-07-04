@@ -136,7 +136,7 @@ Section Private
       // Nominal case
       ast.expression.compile_in list;
       ast.expression.err.failure.if {
-        add_error(error(ast.expression.err, ast.position, "Dropping return value #1 for slot"));
+        add_error(error(ast.expression.err, ast.position, "Dropping return value #1 for slot " + name));
       } else {
         list.add_result (ast.expression.result.reg);
       };

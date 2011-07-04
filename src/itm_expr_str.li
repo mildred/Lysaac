@@ -17,14 +17,12 @@ Section Public
   + result :EXPR := EXPR;
 
   - compile_in list:LIST :SELF <-
-  ( + t:TYPE;
-    
-    t := cluster_parent.type_for_role "String";
-    (t = NULL).if {
-      err := error(err, position, "Could not find role for String");
-    } else {
+  (
+    cluster_parent.type_for_role "String".if { t:TYPE;
       result := EXPR.clone.make
         (INSTR_STRING.clone.make string static_type t.add_in list.result, t);
+    } else {
+      err := error(err, position, "Could not find role for String");
     };
     Self
   );
@@ -35,6 +33,7 @@ Section PARSER
   
   - make s:CSTRING :SELF <-
   (
+    err    := ERR;
     string := s;
     Self
   );
