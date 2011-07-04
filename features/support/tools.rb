@@ -21,3 +21,8 @@ def parse_errors(filename)
   got_table
 end
 
+def error_table_to_string(table)
+  table = table.raw if table.respond_to? :raw
+  table.map { |line| "#{line[0]}:#{line[1]}:#{line[2]}: #{line[3]}\n" }.join
+end
+

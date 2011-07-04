@@ -3,7 +3,7 @@ Section Header
   + name   := CSTRING;
   
   - import := STRING, ABSTRACT_STRING, STRING_CONSTANT, STRING_BUFFER;
-  - export := STRING, NATIVE_ARRAY(CHARACTER);
+  - export := STRING, NATIVE_ARRAY(CHARACTER), STRING_BUFFER;
 
   - comment := "Aliased string";
 

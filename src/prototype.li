@@ -58,11 +58,13 @@ Section Public
     name := str.substring (str.lower) to (str.upper - 3).as_upper
   );
   
+  + position :POS;
+  
   - parse <-
   [ -? {made}; -? {! parsed}; ]
   ( + e :ERR;
     (ast, e) := parser.parse;
-    add_error e;
+    e.failure.if { add_error e; };
     state := state_parsed;
   )
   [ +? {parsed}; ];
@@ -98,19 +100,6 @@ Section Public
     state := state_generated;
   )
   [ +? {generated}; ];
-  
-  - loop_errors blc:{ERR;} <-
-  (
-    error_collection.iterate.loop_v blc;
-    slots.iterate.loop_v { s:SLOT;
-      s.loop_errors blc;
-    };
-  );
-  
-  - warn_errors <-
-  (
-    error_collection.iterate.loop_i { i:INTEGER; error_collection.item i.println; };
-  );
 
   - to_string :STRING <- type_name + "<" + name + ">";
 
@@ -165,13 +154,14 @@ Section CLUSTER_ITEM
 
   - make_file file:CSTRING cluster c:CLUSTER :SELF <-
   (
-    make_error_collector;
+    make_error_collector file;
     expanded := FALSE;
     cluster  := c;
     filename := file;
     ast      := NULL;
     slots    := FAST_ARRAY(SLOT).create 0;
     parser   := PARSER_LI.clone.make Self;
+    position := POS.create(file, 0, 0);
     state    := state_made;
     prototype_value  := EXPR;
     initializer_list := NULL;
@@ -210,6 +200,7 @@ Section SLOT
 
   - add_slot s:SLOT <-
   (
+    add_error_collector_child s;
     slots.add_last s;
     ((s.style.plus) && {s.has_result}).if {
       s.set_type_index num_compiled_data_slots;
@@ -221,6 +212,7 @@ Section SLOT_BLOCK
 
   - add_slot_block s:SLOT_BLOCK <-
   (
+    add_error_collector_child s;
     slots.add_last s;
   );
 

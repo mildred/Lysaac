@@ -15,6 +15,7 @@ Feature: Parsing errors
         """
      When I compile the cluster "c"
      Then I should have the errors
+        | file      | l | c  | message                        |
         | c/main.li | 7 | 11 | Expected return type after ":" |
 
   @wip
@@ -32,6 +33,7 @@ Feature: Parsing errors
         """
      When I compile the cluster "c"
      Then I should have the errors
+        | file      | l | c  | message                                           |
         | c/main.li | 7 | 13 | Expected ":"                                      |
         | c/main.li | 7 | 10 | Expected type for argument arg, dropping argument |
 

@@ -14,11 +14,6 @@ Section Public
 
   - self:EXPR <- EXPR;
   
-  - warn_errors <-
-  (
-    error_collection.iterate.loop_i { i:INTEGER; error_collection.item i.println; };
-  );
-
 Section LIST_PROC
 
   - compile list_procs:LIST_PROC <- deferred;

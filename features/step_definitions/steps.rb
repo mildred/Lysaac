@@ -73,16 +73,19 @@ Given /^the following prototypes in "([^"]*)":$/ do |dir, table|
 end
 
 Then /^I should have the errors$/ do |expected_table|
-  got_table = Cucumber::Ast::Table.new(parse_errors(@er_file))
-  got_table.diff! expected_table
+  got_table = parse_errors(@er_file)
+  if expected_table.is_a? String then
+    error_table_to_string(got_table).should == expected_table
+  else
+    got_table = Cucumber::Ast::Table.new([expected_table.headers] + got_table)
+    got_table.diff! expected_table
+  end
 end
 
 Then "I shouldn't have any errors" do
   e = parse_errors(@er_file)
   if e.length > 0 then
-    raise Exception, ("Got #{e.length} errors:\n" + (e.map do |line|
-      "#{line[0]}:#{line[1]}:#{line[2]}: #{line[3]}\n"
-    end.join))
+    raise Exception, ("Got #{e.length} errors:\n" + error_table_to_string(e))
   end
 end
 

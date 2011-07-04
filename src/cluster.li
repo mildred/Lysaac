@@ -79,7 +79,6 @@ Section Public
 
   - make_path p:CSTRING :SELF <-
   (
-    make_error_collector;
     num_prototypes := 0;
     cur_step := 0;
     num_steps := 1;
@@ -88,6 +87,8 @@ Section Public
     path := p;
     filename := NULL;
     slots := LIST_PROC.clone.make;
+    position := POS.create(p, 0, 0);
+    make_error_collector p;
     parse path root TRUE;
     state := state_made;
     Self
@@ -95,7 +96,6 @@ Section Public
   
   - make_file f:CSTRING :SELF <-
   ( + e:ERR;
-    make_error_collector;
     num_prototypes := 0;
     cur_step := 0;
     num_steps := 1;
@@ -103,8 +103,12 @@ Section Public
     list := FAST_ARRAY(CLUSTER_ITEM).create 0;
     filename := f;
     slots := LIST_PROC.clone.make;
+    position := POS.create(f, 0, 0);
+    make_error_collector f;
     e := PARSER_CLI.clone.make Self.parse;
-    e.assert;
+    e.failure.if {
+      add_error e;
+    };
     state := state_made;
     Self
   );
@@ -124,26 +128,7 @@ Section Public
     res
   );
   
-  - loop_errors blc:{ERR;} <-
-  (
-    error_collection.iterate.loop_v blc;
-    list.iterate.loop_v { i:CLUSTER_ITEM;
-      i.is_prototype.if {
-        i.prototype.loop_errors blc;
-      };
-    };
-  );
-  
-  - warn_errors <-
-  (
-    error_collection.iterate.loop_i { i:INTEGER; error_collection.item i.println; };
-    list.iterate.loop_v { i:CLUSTER_ITEM;
-      i.is_prototype.if {
-        i.prototype.warn_errors;
-      };
-    };
-    slots.warn_errors;
-  );
+  + position :POS;
 
 Section PROTOTYPE
 
@@ -347,6 +332,7 @@ Section Private
   (
     list.iterate.loop_v { i:CLUSTER_ITEM;
       i.is_prototype.if {
+        add_error_collector_child (i.prototype);
         progress_step (cur_step,num_steps) message ("Parse " + i.prototype.name);
         cur_step  := cur_step  + 1;
         i.prototype.parse;

@@ -2,11 +2,27 @@ Section Header
 
   + name := ERR_COLLECTOR;
 
+Section Inherit
+
+  + parent_any: Expanded ANY;
+
 Section Public
 
   - add_error e:ERR <-
+  [ -? { e.failure }; ]
   (
     error_collection.add_last e;
+  );
+  
+  - has_errors :BOOLEAN <- (num_errors > 0);
+  
+  - num_errors :INTEGER <-
+  ( + res :INTEGER;
+    res := error_collection.count;
+    sub_error_collection.iterate.loop_v { e:ERR_COLLECTOR;
+      res := res + e.num_errors;
+    };
+    res
   );
   
   - loop_errors blc:{ERR;} <-
@@ -16,19 +32,38 @@ Section Public
   
   - warn_errors <-
   (
-    loop_errors { e:ERR;
-      e.println;
+    has_errors.if {
+      ERR.create (("Errors in " + error_collector_message + ":").to_string) position position.println;
+      error_collection.lower.to (error_collection.upper) do { i:INTEGER;
+        error_collection.item i.println;
+      };
+      sub_error_collection.lower.to (sub_error_collection.upper) do { i:INTEGER;
+        sub_error_collection.item i.warn_errors;
+      };
     };
   );
+  
+  - position :POS <- (deferred; POS);
 
 Section SELF
 
-  - make_error_collector :SELF <-
+  - make_error_collector msg:ABSTRACT_STRING :SELF <-
   (
+    error_collector_message := msg;
     error_collection := FAST_ARRAY(ERR).create 0;
+    sub_error_collection := FAST_ARRAY(ERR_COLLECTOR).create 0;
     Self
+  );
+  
+  - add_error_collector_child e:ERR_COLLECTOR <-
+  (
+    sub_error_collection.add_last e;
   );
 
 Section Private
 
+  + error_collector_message :ABSTRACT_STRING;
+
   + error_collection :FAST_ARRAY(ERR);
+
+  + sub_error_collection :FAST_ARRAY(ERR_COLLECTOR);

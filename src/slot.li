@@ -43,6 +43,8 @@ Section Public
   - is_compiled_data_slot :BOOLEAN <- type_index >= 0;
   
   + type_index :INTEGER := -1;
+  
+  - position :POS <- ast.position;
 
 Section Private
 
@@ -56,7 +58,7 @@ Section ITM_SLOT
 
   - make s:ITM_SLOT :SELF <-
   (
-    make_error_collector;
+    make_error_collector ("slot " + s.identifier);
     arguments := FAST_ARRAY(REG).create 0;
     list          := NULL;
     ast           := s;
