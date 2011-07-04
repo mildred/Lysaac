@@ -6,7 +6,12 @@ Before do
 end
 
 Around do |scenario, block|
-  $scenariodir = File.join($homedir, "tmp", scenario.file_colon_line.gsub(/[\/\\:]/, "."))
+  if scenario.respond_to? :scenario_outline then
+    name = scenario.scenario_outline.file_colon_line + ':' + scenario.line.to_s
+  else
+    name = scenario.file_colon_line
+  end
+  $scenariodir = File.join($homedir, "tmp", name.gsub(/[\/\\:]/, "."))
   cd_in_unique_dir
   block.call
   if scenario.failed?
