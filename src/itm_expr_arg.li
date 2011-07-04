@@ -35,7 +35,7 @@ Section ITM_SLOT
       ? { r.is_valid };
       result := EXPR.clone.make(r, t);
     } else {
-      err := error(ERR, position, "Cannot resolve type for "+name); // TODO
+      err := error(type.err, position, "Cannot resolve type for "+name); // TODO
       result = NULL;
     };
     result

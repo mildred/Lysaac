@@ -27,26 +27,45 @@ Section Public
   );
   
   - to_string :STRING <-
+  [ -? { ERR.success }; ]
   ( + res:STRING;
     res := STRING.create 128;
     to_string_in res;
     res
-  );
+  )
+  [ +? { ERR.success }; ];
   
   - print   <- warn   to_string;
   - println <- warnln to_string;
   
   - create msg:CSTRING :ERR <-
-    make msg position POS parent NULL;
+    [ -? { ERR.success }; ]
+    ( + e:ERR; e := clone; e.make msg position POS parent NULL; e )
+    [ +? { ERR.success }; ];
 
   - create msg:CSTRING parent     p:ERR :ERR <-
-    make msg position POS parent (REFERENCE(ERR).create p);
+    [ -? { ERR.success }; ]
+    ( + e:ERR; e := clone; e.make msg position POS parent (REFERENCE(ERR).create p); e )
+    [ +? { ERR.success }; ];
 
   - create msg:CSTRING position pos:POS :ERR <-
-    make msg position pos parent NULL;
+    [ -? { ERR.success }; ]
+    ( + e:ERR; e := clone; e.make msg position pos parent NULL; e )
+    [ +? { ERR.success }; ];
 
   - create msg:CSTRING position pos:POS parent p:ERR :ERR <-
-    make msg position pos parent (REFERENCE(ERR).create p);
+    [ -? { ERR.success }; ]
+    ( + e:ERR; e := clone; e.make msg position pos parent (REFERENCE(ERR).create p); e )
+    [ +? { ERR.success }; ];
+    
+  - clone :SELF <-
+  // Very ugly hack !!!
+  ( + e:ERR;
+    + r:REFERENCE(ERR);
+    r := REFERENCE(ERR).create ERR;
+    e := r.to_e;
+    e
+  );
 
 Section ERR
 
@@ -70,10 +89,12 @@ Section ERR
 Section Private
 
   - make msg:CSTRING position pos:POS parent p:REFERENCE(ERR) :ERR <-
+  [ -? { ERR.success }; ]
   (
     message  := msg;
     position := pos;
     parent   := p;
     Self
-  );
+  )
+  [ +? { ERR.success }; ];
 

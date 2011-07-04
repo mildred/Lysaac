@@ -45,11 +45,11 @@ Section Public
 
   - error (e:ERR, p:POS, m:ABSTRACT_STRING) :ERR <-
   ( + res :ERR;
-    //(e = ERR).if {
-    //  res := ERR.create m position p;
-    //} else {
+    (e.success).if {
+      res := ERR.create m position p;
+    } else {
       res := ERR.create m position p parent e;
-    //};
+    };
     res
   );
   

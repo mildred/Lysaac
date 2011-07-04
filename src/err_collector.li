@@ -12,6 +12,11 @@ Section Public
   [ -? { e.failure }; ]
   (
     error_collection.add_last e;
+    /*
+    warnln ("=== add error in "+error_collector_message+":");
+    e.println;
+    warnln "===";
+    */
   );
   
   - has_errors :BOOLEAN <- (num_errors > 0);
@@ -23,11 +28,6 @@ Section Public
       res := res + e.num_errors;
     };
     res
-  );
-  
-  - loop_errors blc:{ERR;} <-
-  (
-    error_collection.iterate.loop_v blc;
   );
   
   - warn_errors <-

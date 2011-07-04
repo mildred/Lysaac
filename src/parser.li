@@ -21,10 +21,6 @@ Section SELF
   
   - warning s:ABSTRACT_STRING in p:POS <-
   (
-    STD_ERROR.put_string (p.to_string);
-    STD_ERROR.put_string ": ";
-    STD_ERROR.put_string s;
-    STD_ERROR.put_string "\n";
     error_stack := ERR.create s position p parent error_stack;
   );
   
@@ -92,7 +88,7 @@ Section SELF
   - read_always str:ABSTRACT_STRING <-
   (
     read_maybe str.if_false {
-      warning ("expected \""+str+"\"");
+      warning ("Expected \""+str+"\"");
     };
   );
   
@@ -647,8 +643,9 @@ Section SELF
         type := read_type;
         (type = NULL).if {
           warning ("Expected return type after \":\"");
+          ? { slot.return_type = NULL };
         } else {
-          slot.set_return_type type;         
+          slot.set_return_type type;
         };
         read_spaces;
       };
@@ -706,7 +703,7 @@ Section SELF
       read_always ":";
       type := read_type;
       (type = NULL).if {
-        warning ("Expected type");
+        warning ("Expected type for argument " + idf + ", dropping argument");
       } else {
         slot.add_argument (arg.make (idf, type));
         res := TRUE;
@@ -732,8 +729,6 @@ Section SELF
       read_spaces;
       read_always "}";
       res := ITM_TYPE.clone.make_position p.make_block;
-    } else {
-      warning ("Expected type");
     };
     res
   );

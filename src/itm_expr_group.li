@@ -22,6 +22,7 @@ Section Public
 
   - compile_in list:LIST :SELF <-
   (
+    ? { err.success };
     is_block.if {
       cluster_parent.type_block.if { t:TYPE;
         + block :PROC_BLOCK;
@@ -52,7 +53,7 @@ Section Public
     Self
   );
     
-  + err :ERR := ERR;
+  + err :ERR;
 
   - to_string :STRING <-
   ( + res :STRING;
@@ -84,6 +85,7 @@ Section PARSER
     instructions := FAST_ARRAY(ITM_INST).create 0;
     result_exprs := FAST_ARRAY(ITM_EXPR).create 0;
     results      := FAST_ARRAY(EXPR).create (result_exprs.count);
+    ? { err.success };
     Self
   );
   

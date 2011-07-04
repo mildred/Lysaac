@@ -95,6 +95,7 @@ Section PARSER
   - make :SELF <-
   (
     arguments := FAST_ARRAY(ITM_EXPR_ARG).create 0;
+    return_type := NULL;
     Self
   );
   
