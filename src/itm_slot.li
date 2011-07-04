@@ -6,7 +6,7 @@ Section Inherit
 
   + parent_itm :Expanded ITM;
   
-  - parent_i_find_type :Expanded I_FIND_TYPE;
+  - parent_type_finder :Expanded TYPE_FINDER;
 
 Section Public
 

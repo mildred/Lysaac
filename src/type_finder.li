@@ -1,6 +1,6 @@
 Section Header
 
-  + name := I_FIND_TYPE;
+  + name := TYPE_FINDER;
 
 Section Public
 

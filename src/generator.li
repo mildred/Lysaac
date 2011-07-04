@@ -65,7 +65,7 @@ Section Public
       string.lower.to (string.upper) do { i:INTEGER;
         + c:CHARACTER;
         c := string.item i;
-        c.code.in_range 32 to 127.if {
+        ((c != '"') && {c.code.in_range 32 to 127}).if {
           put_c c;
         } else {
           put_c '\\';

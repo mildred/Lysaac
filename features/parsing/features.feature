@@ -31,7 +31,6 @@ Feature: Grammar features
      When I compile the cluster "c"
      Then I shouldn't have any errors
 
-  @wip
   Scenario: string escape sequences
     Given the following prototypes in "c":
       | Prototype |
@@ -50,7 +49,6 @@ Feature: Grammar features
      When I compile the cluster "c"
      Then I shouldn't have any errors
 
-  @wip
   Scenario: symbols
     Given the following prototypes in "c":
       | Prototype |
@@ -62,13 +60,10 @@ Feature: Grammar features
         
         Section Public
         
-          - sym1 <- `symbol `` with escape sequence`;
-        
-          - sym2 <- External `symbol `` with escape sequence`;
+          - sym <- External `symbol `` with escape sequence`;
         
         """
      When I compile the cluster "c"
      Then I shouldn't have any errors
 
-  # TODO: more parsing errors, look at code coverage
 

@@ -6,7 +6,7 @@ Section Inherit
 
   + parent_any :Expanded ANY;
   
-  - parent_i_find_type :Expanded I_FIND_TYPE;
+  - parent_type_finder :Expanded TYPE_FINDER;
   
   + parent_error_collector :Expanded ERR_COLLECTOR;
 
@@ -62,7 +62,7 @@ Section Public
   [ -? {made}; -? {! parsed}; ]
   ( + e :ERR;
     (ast, e) := parser.parse;
-    e.assert;
+    add_error e;
     state := state_parsed;
   )
   [ +? {parsed}; ];
