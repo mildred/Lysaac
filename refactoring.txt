@@ -1,3 +1,2 @@
-- types should be named
 - use a PROGRESS type to make progression. It should contain many variables to estimate progression
-- error checking (See HACKING)
+- global variables in LLVM are always pointers, make sure of that
