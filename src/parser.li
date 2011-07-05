@@ -253,7 +253,8 @@ Section SELF
   //-- num_unit      -> ([yzafpnumkMGTPEZY]|[MGTPEZY]i)
   //--                | [eE] base_int
   //--                  y  is  e-24
-  //--                  ...
+  //--                  z  is  e-21
+  //--                  a  is  e-18
   //--                  f  is  e-15
   //--                  p  is  e-12
   //--                  n  is  e-9
@@ -264,7 +265,8 @@ Section SELF
   //--                  G  is  e9       Gi  is  1024^3
   //--                  T  is  e12      Ti  is  1024^4
   //--                  P  is  e15      Pi  is  1024^5
-  //--                  ...
+  //--                  E  is  e18      Ei  is  1024^6
+  //--                  Z  is  e21      Zi  is  1024^7
   //--                  Y  is  e24      Yi  is  1024^8
   //--                  Note: there is no K (with an uppercase K) suffix !!
   - read_num_unit int:BOOLEAN :(INTEGER, INTEGER) <-

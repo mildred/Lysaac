@@ -1,27 +1,4 @@
 Feature: Complex integers
-  //-- num_base      -> 0[xbod]
-  //--                | 0([2-9a-fA-F]|1[0-6]):
-  //-- num_ext_part  -> [eE][+-]?[0-9][0-9_]*
-  //-- num_unit      -> ([yzafpnumkMGTPEZY]|[MGTPEZY]i)
-  //--                  y  is  e-24
-  //--                  ...
-  //--                  f  is  e-15
-  //--                  p  is  e-12
-  //--                  n  is  e-9
-  //--                  u  is  e-6
-  //--                  m  is  e-3
-  //--                  k  is  e3       Ki  is  1024
-  //--                  M  is  e6       Mi  is  1024^2
-  //--                  G  is  e9       Gi  is  1024^3
-  //--                  T  is  e12      Ti  is  1024^4
-  //--                  P  is  e15      Pi  is  1024^5
-  //--                  ...
-  //--                  Y  is  e24      Yi  is  1024^8
-  //--                  Note: there is no K (with an uppercase K) suffix !!
-  //-- num_mult      -> num_ext_part
-  //--                | num_unit
-  //-- num_sign      -> [+-]
-  //-- numeric       -> num_sign? num_base? integer ( '.' integer )? num_mult?
   
   Scenario Outline: passing integers
     Given the following prototypes in "c":
