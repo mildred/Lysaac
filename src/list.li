@@ -11,10 +11,20 @@ Section Public
   + list_procs :LIST_PROC;
   
   + error_collector :ERR_COLLECTOR;
+  
+  - assert_result_coherent_with t:TYPE <-
+  (
+    first_result_or_invalid.is_valid.if {
+      ? { t != NULL };
+      ? { first_result_or_invalid.base_type == t.base_type };
+    } else {
+      ? { t = NULL };
+    };
+  );
 
 Section PROC, PROTOTYPE
 
-  - make_self s:EXPR error_collector e:ERR_COLLECTOR :SELF <-
+  - make_self s:EXPR error_collector e:ERR_COLLECTOR type t:TYPE :SELF <-
   [
     -? {s != NULL};
     -? {s.is_valid};
@@ -24,6 +34,7 @@ Section PROC, PROTOTYPE
     instructions    := FAST_ARRAY(INSTR).create 0;
     results         := FAST_ARRAY(REG).create 0;
     error_collector := e;
+    result_type     := t;
     Self
   );
   
@@ -58,6 +69,7 @@ Section ITM_EXPR_GROUP, SLOT
   [ "multiple results not yet implemented" -? { results.is_empty }; ]
   (
     results.add_last res;
+    assert_result_coherent_with result_type;
   );
   
 Section SLOT
@@ -81,4 +93,6 @@ Section ITM_EXPR, PROC_BLOCK, SLOT
 Section Private
 
   + instructions :FAST_ARRAY(INSTR);
+  
+  + result_type :TYPE;
 

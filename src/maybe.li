@@ -14,11 +14,19 @@ Section Public
 
   + element :E;
   
+  - elem :E <- element;
+  
   - make e:E :SELF <-
   (
     element     := e;
     has_element := TRUE;
     Self
+  );
+  
+  - clear <-
+  ( + e:E;
+    element     := e;
+    has_element := FALSE;
   );
   
   - to_e :E <-
@@ -29,5 +37,8 @@ Section Public
   ( make e )
   [ +? { has_element }; ];
 
-  - if true_blc:{E;} else false_blc:{} <-
-  ( has_element.if { true_blc.value element; } else false_blc; );
+  - if true_blc:{E;} :BOOLEAN <-
+  ( has_element.if { true_blc.value element; }; has_element );
+
+  - if true_blc:{E;} else false_blc:{} :BOOLEAN <-
+  ( has_element.if { true_blc.value element; } else false_blc; has_element );

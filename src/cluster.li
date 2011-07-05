@@ -40,6 +40,7 @@ Section Public
   [ -? {parsed}; ]
   ( + p:PROTOTYPE;
     + res:MAYBE(TYPE);
+    res.clear;
     
     ((p := prototype_for_role r) != NULL).if {
       res := p.to_type;
@@ -51,6 +52,7 @@ Section Public
   [ -? {parsed}; ]
   ( + p:PROTOTYPE;
     + res:MAYBE(TYPE);
+    res.clear;
     
     ((p := prototype_for_role "Block") != NULL).if {
       res := p.to_type_block;

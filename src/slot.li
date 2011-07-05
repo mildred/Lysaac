@@ -94,7 +94,7 @@ Section LIST_PROC
       self := EXPR.clone.make_type t;
     };
     ? { self.is_valid };
-    list := LIST.clone.make_self self error_collector Self;
+    list := LIST.clone.make_self self error_collector Self type result_type;
     external.if {
       // External Slot
       + sym :ITM_EXPR_SYM;
@@ -140,10 +140,23 @@ Section Private
       ast.expression.err.failure.if {
         add_error(error(ast.expression.err, ast.position, "Dropping return value #1 for slot " + name));
       } else {
-        list.add_result (ast.expression.result.reg);
+        (ast.expression.result.type = result_type).if {
+          list.add_result (ast.expression.result.reg);
+        }.elseif {has_result} then {
+          add_error(error(ERR, ast.expression.position,
+            "Incompatible type for return value #1. "
+            + "Got: " + pretty_type(ast.expression.result.type)
+            + ", expected: " + pretty_type(result_type)));
+        };
       };
     } else {
       // Empty slot
+    };
+    ((has_result) && {list.results.is_empty}).if {
+      add_error(error(ERR, ast.expression.position,
+        "No value given for this slot. Using prototype "
+        + pretty_type(result_type)));
+      list.add_result (result_type.prototype.prototype_value);
     };
   );
 
@@ -177,6 +190,8 @@ Section Private
     -? { ! self.reg.is_realized };
   ]
   (
+    list.assert_result_coherent_with(result_type);
+
     gen.sub external_name self self args {
       export.if_false {
         self.reg.generate_arg gen;

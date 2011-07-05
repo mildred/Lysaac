@@ -81,7 +81,7 @@ Section Public
   [ -? {defined}; -? {! compiled}; ]
   (
     prototype_value  := EXPR.clone.make_type to_type;
-    initializer_list := LIST.clone.make_self prototype_value error_collector Self;
+    initializer_list := LIST.clone.make_self prototype_value error_collector Self type NULL;
     state := state_compiled;
   )
   [ +? {compiled}; ];
@@ -141,13 +141,19 @@ Section CLUSTER, ITM_TYPE, SLOT, INSTR_FNPTR
   - to_type :TYPE <-
   [ -? {made}; ]
   (
-    TYPE.clone.make Self
+    (type = NULL).if {
+      type := TYPE.clone.make Self;
+    };
+    type
   );
 
   - to_type_block :TYPE <-
   [ -? {made}; ]
   (
-    TYPE.clone.make_block Self
+    (type_block = NULL).if {
+      type_block := TYPE.clone.make_block Self;
+    };
+    type_block
   );
 
 Section CLUSTER_ITEM
@@ -165,6 +171,8 @@ Section CLUSTER_ITEM
     state    := state_made;
     prototype_value  := EXPR;
     initializer_list := NULL;
+    type       := NULL;
+    type_block := NULL;
     num_compiled_data_slots := 0;
     Self
   );
@@ -235,5 +243,9 @@ Section Private
   + ast :ITM_PROTOTYPE;
 
   + slots :FAST_ARRAY(SLOT);
+  
+  + type :TYPE;
+  
+  + type_block :TYPE;
 
 

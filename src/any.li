@@ -74,4 +74,14 @@ Section Public
     warn ") ";
     warnln info;
   );
+  
+  - pretty_type t:TYPE :ABSTRACT_STRING <-
+  ( + res :ABSTRACT_STRING;
+    (t = NULL).if {
+      res := "VOID";
+    } else {
+      res := t.prototype.name;
+    };
+    res
+  );
 

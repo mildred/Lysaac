@@ -185,66 +185,73 @@ Section SELF
     res, shift
   );
 
-  //-- num_base      -> 0[xbod]
-  //--                | 0([2-9a-fA-F]|1[0-6]):
+  //-- num_base      -> 0[xbodXBOD]
+  //--                | 0([2-9]|[12][0-9]|3[0-6])[:]
+  //--                | 0([1-9a-zA-Z])[:][:]
 
   - read_num_base :INTEGER <-
   ( + base :INTEGER;
     + c1, c2, c3 :CHARACTER;
-    (next_char = '0').if {
-      c1 := get_char 2;
-      c2 := get_char 3;
-      c3 := get_char 4;
-      ((c1 = '1') && {c2.in_range '0' to '6'} && {c3 = ':'}).if {
-        ? {read_char = '0'};
-        ? {read_char = '1'};
-        ? {read_char.in_range '0' to '6'};
-        base := 10 + last_char.decimal_value;
-        ? {read_char = ':'};
+    base := 10;
+    (last_character = '0').if {
+      c1 := character 1;
+      c2 := character 2;
+      c3 := character 3;
+      ((c1.in_range '1' to '2') && {c2.in_range '0' to '9'} && {c3 = ':'}).if {
+        ? {read_character.in_range '1' to '2'};
+        base := 10 * last_character.decimal_value;
+        ? {read_character.in_range '0' to '9'};
+        base := base + last_character.decimal_value;
+        ? {read_character = ':'};
+        read_character;
+        ? {base != 0};
+      }.elseif {
+        (c1 = '3') && {c2.in_range '0' to '6'} && {c3 = ':'}
+      } then {
+        ? {read_character = '3'};
+        ? {read_character.in_range '0' to '6'};
+        base := 30 + last_character.decimal_value;
+        ? {read_character = ':'};
+        read_character;
         ? {base != 0};
       }.elseif {
         (c2 = ':') &&
-        { (c1.in_range '2' to '9') ||
-          {c1.in_range 'a' to 'f'} ||
-          {c1.in_range 'A' to 'F'} }
+        { (c1.in_range '2' to '9')}
       } then {
-        ? {read_char = '0'};
-        base := read_char.hexadecimal_value;
-        ? {read_char = ':'};
+        base := digit_value_for(read_character);
+        ? {read_character = ':'};
+        read_character;
         ? {base != 0};
       }.elseif {
-        (c1 = 'x') || {c1 = 'b'} || {c1 = 'o'} || {c1 = 'd'}
+        (c2 = ':') &&
+        {c3 = ':'} &&
+        { (c1.in_range '1' to '9') ||
+          {c1.in_range 'a' to 'z'} ||
+          {c1.in_range 'A' to 'Z'} }
       } then {
-        ? {read_char = '0'};
-        read_char
-        .when 'b' then { base := 2;  }
-        .when 'o' then { base := 8;  }
-        .when 'd' then { base := 10; }
-        .when 'x' then { base := 16; };
+        base := digit_value_for(read_character) + 1;
+        ? {read_character = ':'};
+        ? {read_character = ':'};
+        read_character;
+        ? {base != 0};
+      }.elseif {
+        (c1 = 'x') || {c1 = 'b'} || {c1 = 'o'} || {c1 = 'd'} ||
+        {c1 = 'X'} || {c1 = 'B'} || {c1 = 'O'} || {c1 = 'D'}
+      } then {
+        read_character
+        .when 'b' or 'B' then { base := 2;  }
+        .when 'o' or 'O' then { base := 8;  }
+        .when 'd' or 'D' then { base := 10; }
+        .when 'x' or 'X' then { base := 16; };
+        read_character;
         ? {base != 0};
       };
     };
     base
   );
-
-  //-- num_ext_part  -> [eE][+-]?[0-9][0-9_]*
-  - read_num_ext_part :INTEGER <-
-  ( + sign   :CHARACTER;
-    + res, n :INTEGER;
-
-    ((next_char = 'e') || {next_char = 'E'}).if {
-      read_char;
-      sign := read_num_sign;
-      (res, n) := read_integer 10;
-      (sign = '-').if {
-        res := -res;
-      };
-    };
-
-    res
-  );
   
   //-- num_unit      -> ([yzafpnumkMGTPEZY]|[MGTPEZY]i)
+  //--                | [eE] base_int
   //--                  y  is  e-24
   //--                  ...
   //--                  f  is  e-15
@@ -260,109 +267,75 @@ Section SELF
   //--                  ...
   //--                  Y  is  e24      Yi  is  1024^8
   //--                  Note: there is no K (with an uppercase K) suffix !!
-  - read_num_unit :(INTEGER, INTEGER) <-
+  - read_num_unit int:BOOLEAN :(INTEGER, INTEGER) <-
   ( + base, exp :INTEGER;
     base := 10;
     exp  := 0;
 
-    next_char
-    .when 'y' then { read_char; exp := -24; }
-    .when 'z' then { read_char; exp := -21; }
-    .when 'a' then { read_char; exp := -18; }
-    .when 'f' then { read_char; exp := -15; }
-    .when 'p' then { read_char; exp := -12; }
-    .when 'n' then { read_char; exp :=  -9; }
-    .when 'u' then { read_char; exp :=  -6; }
-    .when 'm' then { read_char; exp :=  -3; }
-    .when 'k' then { read_char; exp :=   3; }
+    last_character
+    .when 'y' then { int.if_false { read_character; exp := -24; }; }
+    .when 'z' then { int.if_false { read_character; exp := -21; }; }
+    .when 'a' then { int.if_false { read_character; exp := -18; }; }
+    .when 'f' then { int.if_false { read_character; exp := -15; }; }
+    .when 'p' then { int.if_false { read_character; exp := -12; }; }
+    .when 'n' then { int.if_false { read_character; exp :=  -9; }; }
+    .when 'u' then { int.if_false { read_character; exp :=  -6; }; }
+    .when 'm' then { int.if_false { read_character; exp :=  -3; }; }
+    .when 'k' then { read_character; exp :=   3; }
     .when 'K' then {
-      (get_char 2 = 'i').if {
-        read_char;
-        read_char;
+      (character 1 = 'i').if {
+        read_character;
+        read_character;
         (base, exp) := (1024, 1);
       };
     }
-    .when 'M' then {         read_char; (base, exp) := (10,    6);
-      (next_char = 'i').if { read_char; (base, exp) := (1024,  2); }; }
-    .when 'G' then {         read_char; (base, exp) := (10,    9);
-      (next_char = 'i').if { read_char; (base, exp) := (1024,  3); }; }
-    .when 'T' then {         read_char; (base, exp) := (10,   12);
-      (next_char = 'i').if { read_char; (base, exp) := (1024,  4); }; }
-    .when 'P' then {         read_char; (base, exp) := (10,   15);
-      (next_char = 'i').if { read_char; (base, exp) := (1024,  5); }; }
-    .when 'E' then {         read_char; (base, exp) := (10,   18);
-      (next_char = 'i').if { read_char; (base, exp) := (1024,  6); }; }
-    .when 'Z' then {         read_char; (base, exp) := (10,   21);
-      (next_char = 'i').if { read_char; (base, exp) := (1024,  7); }; }
-    .when 'Y' then {         read_char; (base, exp) := (10,   24);
-      (next_char = 'i').if { read_char; (base, exp) := (1024,  8); }; };
+    .when 'M' then {              read_character; (base, exp) := (10,    6);
+      (last_character = 'i').if { read_character; (base, exp) := (1024,  2); };
+    }
+    .when 'G' then {              read_character; (base, exp) := (10,    9);
+      (last_character = 'i').if { read_character; (base, exp) := (1024,  3); };
+    }
+    .when 'T' then {              read_character; (base, exp) := (10,   12);
+      (last_character = 'i').if { read_character; (base, exp) := (1024,  4); };
+    }
+    .when 'P' then {              read_character; (base, exp) := (10,   15);
+      (last_character = 'i').if { read_character; (base, exp) := (1024,  5); };
+    }
+    .when 'E' then {              read_character; (base, exp) := (10,   18);
+      (last_character = 'i').if { read_character; (base, exp) := (1024,  6); }
+      else {
+        read_base_int.if { i:INTEGER;
+          (base, exp) := (10, i);
+        };
+      };
+    }
+    .when 'Z' then {              read_character; (base, exp) := (10,   21);
+      (last_character = 'i').if { read_character; (base, exp) := (1024,  7); };
+    }
+    .when 'Y' then {              read_character; (base, exp) := (10,   24);
+      (last_character = 'i').if { read_character; (base, exp) := (1024,  8); };
+    }
+    .when 'e' then {
+      read_character;
+      read_base_int.if { i:INTEGER;
+        (base, exp) := (10, i);
+      };
+    };
 
     base, exp
   );
   
-  //-- num_mult      -> num_ext_part
-  //--                | num_unit
-  - read_num_mult :(INTEGER, INTEGER) <-
-  ( + base, exp :INTEGER;
-    base := 10;
-
-    ((exp := read_num_ext_part) = 0).if {
-      (base, exp) := read_num_unit;
-    };
-
-    base, exp
-  );
+  //-- base_int      -> [+-]? num_base digit<base>+
   
-  //-- num_sign      -> [+-]
-  - read_num_sign :CHARACTER <-
-  ( + sign :CHARACTER;
-    sign := '+';
-    (((next_char = '+') || {next_char = '-'}) && {get_char 2.is_digit}).if {
-      sign := read_char;
-    };
-    sign
-  );
-  
-  //-- numeric       -> num_sign? num_base? integer ( '.' integer )? num_mult?
-  - read_numeric :NUMBER <-
-  ( + res :NUMBER;
-    + sign :CHARACTER;
-    + base, n :INTEGER;
-    + num, dec, dec_shift :INTEGER;
-    + mul, exp :INTEGER;
-
-    sign := read_num_sign;
-    next_char.is_digit.if {
-      // Read base
-      base := read_num_base;
-      (base = 0).if { base := 10; };
-      // Read entire part
-      (num, n) := read_integer base;
-      (sign = '-').if {
-        num := -num;
-      };
-      res.set_numeric_part num;
-      // Read decimal part
-      ((next_char = '.') && {get_char 2.is_digit}).if {
-        read_char;
-        (dec, dec_shift) := read_integer base;
-      };
-      res.set_decimal dec shift dec_shift base base;
-      // Read multiplier
-      (mul, exp) := read_num_mult;
-      res.set_exponent exp multiplier mul;
-    };
-    res
-  );
-  
-  //-- int           -> [+-]?[0-9]+
-  
-  + last_int :INTEGER;
-  
-  - read_int :BOOLEAN <-
+  - read_base_int :MAYBE(INTEGER) <-
   ( + sign :INTEGER;
-    + res  :BOOLEAN;
-    
+    + res  :MAYBE(INTEGER);
+    + int  :INTEGER;
+    + b    :INTEGER;
+
+    res.clear;
+    ? { res.ko };
+  
     sign := 1;
     ((last_character = '-') || {last_character = '+'}).if {
       (last_character = '-').if {
@@ -372,18 +345,81 @@ Section SELF
         read_character;
       };
     };
-    last_character.is_digit.if {
-      res := TRUE;
-      last_int := 0;
-      { last_character.is_digit }.while_do {
-        last_int := 10*last_int + last_character.decimal_value;
+    
+    b := read_num_base;
+
+    (is_character last_character a_digit_base b).if {
+      int := 0;
+      { (is_character last_character a_digit_base b) }.while_do {
+        (last_character != '_').if {
+          int := b * int + digit_value_for(last_character);
+        };
         read_character;
       };
-      last_int := last_int * sign;
+      int := sign * int;
+      res.make int;
+    };
+
+    res
+  );
+
+  //-- digit<2>      -> [01]
+  //-- digit<8>      -> [0-7]
+  //-- ...
+  //-- digit<10>     -> [0-9]
+  //-- digit<11>     -> [0-9aA]
+  //-- digit<12>     -> [0-9a-bA-B]
+  //-- ...
+  //-- digit<36>     -> [0-9a-zA-Z]
+  
+  - is_character c:CHARACTER a_digit_base b:INTEGER :BOOLEAN <-
+  // base:     2 ... 10 11 ... 36
+  // max_char: 1 ...  9  A ...  Z
+  [
+    -? { b >= 2  };
+    -? { b <= 36 };
+  ]
+  ( + res:BOOLEAN;
+
+    (c = '_').if {
+      res := TRUE;
+    }.elseif {b <= 10} then {
+      res := c.in_range '0' to ((b-1).decimal_digit);
     } else {
-      res := FALSE;
+      res := (c.is_digit)
+          || {c.in_range 'A' to (('A'.code + b - 11).to_character)}
+          || {c.in_range 'a' to (('a'.code + b - 11).to_character)};
+    };
+    
+    res
+  );
+  
+  - digit_value_for c:CHARACTER :INTEGER <-
+  ( + res :INTEGER;
+    c
+    .when '0' to '9' then {
+      res := c.decimal_value;
+    }
+    .when 'a' to 'z' then {
+      res := 10 + c.code - 'a'.code;
+    }
+    .when 'A' to 'Z' then {
+      res := 10 + c.code - 'A'.code;
     };
     res
+  );
+  
+  //-- int           -> base_int num_unit<int>
+  
+  + last_int :INTEGER;
+  
+  - read_int :BOOLEAN <-
+  ( + exp_base, exp :INTEGER;
+    read_base_int.if { i:INTEGER;
+      last_int := i;
+      (exp_base, exp) := read_num_unit TRUE;
+      exp.times { last_int := last_int * exp_base; };
+    }
   );
   
   //-- identifier -> [a-zA-Z_][a-zA-Z0-9_]*
