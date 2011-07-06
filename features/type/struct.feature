@@ -61,7 +61,7 @@ Feature: Types must be able to contain values
       Hello World to 1ntegers and 2ntegers
       """
 
-  @wip
+  @future
   Scenario: values are different on different objects
     Given the following prototypes in "c":
       | Prototype |
@@ -114,7 +114,7 @@ Feature: Types must be able to contain values
       
       """
 
-  @wip
+  @future
   Scenario: shared values are the same on different objects
     Given the following prototypes in "c":
       | Prototype |

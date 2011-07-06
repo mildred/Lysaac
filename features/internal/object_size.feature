@@ -1,6 +1,6 @@
 Feature: Internal ObjectSize
 
-  @wip
+  @future
   Scenario: values are different on different objects
     Given the following prototypes in "c":
       | Prototype |
