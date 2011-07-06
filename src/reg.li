@@ -14,7 +14,7 @@ Section Public
 
   - to_string :STRING <-
   ( + res:STRING;
-    res := type_name + "<" + name + "," + identifier.to_string + "," + pretty_name + ",";
+    res := type_name + "<" + prefix + "\"" + name + "\"" + "." + identifier.to_string + "?pretty_name=" + pretty_name + "&base_type=";
     (m_base_type = NULL).if {
       res.append "NULL>";
     } else {
@@ -27,7 +27,7 @@ Section Public
   // Predicates
   //
 
-  - is_realized :BOOLEAN <- ( name.count != 0 ) || { identifier != 0 };
+  - is_realized :BOOLEAN <- ( name.count != 0 ) || { prefix.count != 0 } || { identifier != 0 };
   
   + is_valid :BOOLEAN;
   - is_null  :BOOLEAN <- ( ! is_valid );
@@ -82,7 +82,9 @@ Section Public
   - realize_using v:REG <-
   [ -? { v.is_realized }; ]
   (
-    realize (v.name) id (v.identifier);
+    prefix := v.prefix;
+    name   := v.name;
+    identifier := v.identifier;
   )
   [ +? { is_realized }; ];
   
@@ -113,25 +115,37 @@ Section Public
 Section GENERATOR
 
   + identifier :INTEGER := 0;
+  + prefix :CSTRING := "";
   + name :CSTRING := "";
 
-  - realize n:CSTRING :SELF <-
+  - realize_code c:CSTRING :SELF <-
   [
     -? { SELF != Self };
     -? { name.count = 0 };
     -? { identifier = 0 };
   ]
   (
-    name := n;
+    prefix := c;
+    name := "";
     identifier := 0;
     Self
   );
 
-  - realize n:CSTRING id id:INTEGER :SELF <-
+  - realize p:CSTRING id id:INTEGER :SELF <-
   [ -? { SELF != Self }; ]
   (
-    name := n;
+    prefix := p;
+    name := "";
     identifier := id;
+    Self
+  );
+
+  - realize p:CSTRING name n:CSTRING :SELF <-
+  [ -? { SELF != Self }; ]
+  (
+    prefix := p;
+    name := n;
+    identifier := 0;
     Self
   );
   

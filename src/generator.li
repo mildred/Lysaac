@@ -41,17 +41,17 @@ Section Public
   
   - expr_integer_value value:INTEGER in var:REG <-
   (
-    var.realize (value.to_abstract_string);
+    var.realize_code (value.to_abstract_string);
   );
   
   - expr_undef_in v:REG <-
   (
-    v.realize "undef";
+    v.realize_code "undef";
   );
   
   - expr_function_pointer fn:CSTRING in var:REG <-
   (
-    var.realize (("@" + fn).to_string);
+    var.realize "@" name fn;
   );
 
   - declare_string string:ABSTRACT_STRING in var:REG <-
@@ -91,9 +91,9 @@ Section Public
   - declare_sub name:CSTRING args args:{} <-
   (
     put_indent;
-    put "declare void @\"";
-    put name;
-    put "\" (";
+    put "declare void ";
+    put_reg "@" name name;
+    put " (";
     args.value;
     put ")\n\n";
   );
@@ -112,7 +112,7 @@ Section Public
       t.pointer.if {
         t := t.pointer_type;
       };
-      v.realize (("@" + n).to_abstract_string);
+      v.realize "@" name n;
       put_reg v;
       put " = global ";
       t.generate Self;
@@ -148,8 +148,8 @@ Section Public
     put_indent;
     put "define ";
     put_reg_type r;
-    put " @";
-    put name;
+    put_c ' ';
+    put_reg "@" name name;
     put " (";
     args.value;
     put ") {\n";
@@ -211,8 +211,8 @@ Section Public
     };
     put "tail call ";
     put_reg_type r;
-    put " @";
-    put name;
+    put_c ' ';
+    put_reg "@" name name;
     put "(";
     blc.value;
     put ")\n";
@@ -244,7 +244,7 @@ Section Public
       (n == "").if {
         var.realize "%" id get_local;
       } else {
-        var.realize (("%" + n).to_string);
+        var.realize "%" name n;
       };
       put_reg_type_and_name var;
     };
@@ -254,7 +254,7 @@ Section Public
   (
     arg {
       t.value;
-      context.add_last ' ';
+      put_c ' ';
       put_reg var in code;
     };
   );
@@ -373,6 +373,7 @@ Section Private
   - put_reg_type r:REG    <- r.generate_type Self;
   - put_local  i:INTEGER  <- put_local i in context;
   - put_global i:INTEGER  <- put_global i in context;
+  - put_reg p:CSTRING name n:CSTRING <- put_reg p name n in context;
   
   - put_reg_type_and_name r:REG <-
   (
@@ -389,15 +390,25 @@ Section Private
   [ -? { i > 0 }; ]
   ( put_c '@'; (i - 1).append_in context );
   
+  - put_reg p:CSTRING name n:CSTRING in str:STRING <-
+  (
+    str.append p;
+    str.add_last '"';
+    str.append n;
+    str.add_last '"';
+  );
+  
   - put_reg var:REG in str:STRING <-
   [ -? { var.is_realized }; ]
   (
-    (var.name == "@").if {
+    (var.name !== "").if {
+      put_reg (var.prefix) name (var.name) in str;
+    }.elseif {var.prefix == "@"} then {
       put_global (var.identifier) in str;
-    }.elseif {var.name == "%"} then {
+    }.elseif {var.prefix == "%"} then {
       put_local (var.identifier) in str;
     } else {
-      str.append (var.name);
+      str.append (var.prefix);
     };
   );
 
