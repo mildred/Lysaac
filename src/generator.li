@@ -8,6 +8,10 @@ Section Inherit
 
 Section Public
 
+  //
+  // Types
+  //
+
   - type_integer size:INTEGER <-
   (
     context.add_last 'i';
@@ -39,6 +43,19 @@ Section Public
   
   - type_struct_element blc:{} <- list '{' element blc;
   
+  - type_vector num:INTEGER of blc:{} <-
+  (
+    put_c '[';
+    put_int num;
+    put " x ";
+    blc.value;
+    put_c ']';
+  );
+  
+  //
+  // Litterals
+  //
+  
   - expr_integer_value value:INTEGER in var:REG <-
   (
     var.realize_code (value.to_abstract_string);
@@ -53,55 +70,38 @@ Section Public
   (
     var.realize "@" name fn;
   );
+  
+  - expr_string_constant_with_nul string:ABSTRACT_STRING <-
+  (
+    put "c\"";
+    string.lower.to (string.upper) do { i:INTEGER;
+      + c:CHARACTER;
+      c := string.item i;
+      ((c != '"') && {c.code.in_range 32 to 127}).if {
+        put_c c;
+      } else {
+        put_c '\\';
+        c.to_hexadecimal_in const;
+      };
+    };
+    put "\\00\"";
+  );
+  
+  //
+  // Global declarations
+  //
 
-  - declare_string string:ABSTRACT_STRING in var:REG <-
+  - declare_private_constant_string string:ABSTRACT_STRING in var:REG <-
+  [ -?{ var.base_type.pointer }; ]
   (
     context_const {
       var.realize "@" id get_global;
       put_reg var;
-      put " = private constant [";
-      put_int (string.count+1);
-      put " x i8] c\"";
-      string.lower.to (string.upper) do { i:INTEGER;
-        + c:CHARACTER;
-        c := string.item i;
-        ((c != '"') && {c.code.in_range 32 to 127}).if {
-          put_c c;
-        } else {
-          put_c '\\';
-          c.to_hexadecimal_in const;
-        };
-      };
-      put "\\00\"\n";
-    };
-  );
-  
-  - get_string_pointer_from from:REG string s:ABSTRACT_STRING to to:REG <-
-  (
-    to.realize "%" id get_local;
-    put_indent;
-    put_reg to;
-    put " = getelementptr [";
-    put_int (s.count+1);
-    put " x i8]* ";
-    put_reg from;
-    put ", i32 0, i32 0\n";
-  );
-
-  - declare_sub name:CSTRING args args:{} <-
-  (
-    put_indent;
-    put "declare void ";
-    put_reg "@" name name;
-    put " (";
-    args.value;
-    put ")\n\n";
-  );
-  
-  - struct_member v:REG <-
-  (
-    list '{' element {
-      put_reg_type_and_name v;
+      put " = private constant ";
+      var.base_type.pointer_type.generate Self;
+      put_c ' ';
+      expr_string_constant_with_nul string;
+      put "\n";
     };
   );
   
@@ -118,6 +118,20 @@ Section Public
       t.generate Self;
       put " undef\n";
     };
+  );
+  
+  //
+  // Subroutines
+  //
+
+  - declare_sub name:CSTRING args args:{} <-
+  (
+    put_indent;
+    put "declare void ";
+    put_reg "@" name name;
+    put " (";
+    args.value;
+    put ")\n\n";
   );
   
   - ctor_sub prio:INTEGER do blc:{} <-
@@ -170,6 +184,10 @@ Section Public
     put_indent;
     put "}\n\n";
   );
+  
+  //
+  // Instructions
+  //
   
   - getelementptr_of receiver:REG in res:REG refs blc:{} <-
   (
@@ -258,6 +276,8 @@ Section Public
       put_reg var in code;
     };
   );
+  
+Section Private
   
   - context_code blc:{} <-
   ( + old:STRING;

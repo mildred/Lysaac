@@ -8,6 +8,140 @@ Section Inherit
 
 Section Public
 
+  //
+  // Kind of type
+  //
+
+  - kind_void             :INTEGER := 0;
+  - kind_integer          :INTEGER := 1;
+  - kind_pointer          :INTEGER := 2;
+  - kind_function_pointer :INTEGER := 3;
+  - kind_struct           :INTEGER := 4;
+  - kind_vector           :INTEGER := 5;
+  
+  - kind :INTEGER <-
+  ( + kind :INTEGER;
+  
+    (i_size > 0).if {
+      kind := kind_integer;
+    }.elseif {m_vector_size >= 0} then {
+      kind := kind_vector;
+    }.elseif {p_type != NULL} then {
+      kind := kind_pointer;
+    }.elseif {f_ptr} then {
+      kind := kind_function_pointer;
+    }.elseif {m_struct != NULL} then {
+      kind := kind_struct;
+    } else {
+      kind := kind_void;
+    };
+    
+    kind
+  );
+  
+  //
+  // Type: void
+  //
+  
+  - void :BOOLEAN <- (kind == kind_void);
+  
+  - void_type :SELF := clone.make_void;
+  
+  //
+  // Type: integer
+  //
+  
+  - create_integer size:INTEGER  :SELF <- clone.make_integer size;
+
+  - integer      :BOOLEAN <- (kind == kind_integer);
+  - integer_size :INTEGER <- [ -?{integer}; ] i_size;
+  
+  - i8  :BASE_TYPE := create_integer 8;
+  - i16 :BASE_TYPE := create_integer 16;
+  - i32 :BASE_TYPE := create_integer 32;
+  - i64 :BASE_TYPE := create_integer 64;
+  
+  //
+  // Type: pointer
+  //
+  
+  - create_pointer ptr:BASE_TYPE :SELF <- clone.make_pointer ptr;
+    
+  - pointer      :BOOLEAN <- (kind == kind_pointer);
+  - pointer_type :BASE_TYPE <- [ -?{pointer}; ] p_type;
+  
+  //
+  // Type: function pointer
+  //
+  
+  - create_function_pointer :SELF <- clone.make_function_pointer;
+  
+  - function_pointer :BOOLEAN <- (kind == kind_function_pointer);
+  
+  //
+  // Type: struct
+  //
+  
+  - create_struct :SELF <- clone.make_struct;
+  
+  - struct       :BOOLEAN <- (kind == kind_struct);
+  - struct_types :FAST_ARRAY(BASE_TYPE) <- [ -? {struct}; ] m_struct;
+  
+  //
+  // Type: vector
+  //
+  
+  - create_vector items:INTEGER of t:BASE_TYPE :SELF <- clone.make_vector items of t;
+  
+  - vector        :BOOLEAN <- (kind == kind_vector);
+  - vector_length :INTEGER   <- [ -?{vector}; ] m_vector_size;
+  - vector_type   :BASE_TYPE <- [ -?{vector}; ] p_type;
+  
+  //
+  // Generic
+  //
+  
+  - generate gen:GENERATOR <-
+  [ -? { Self != SELF }; ]
+  (
+    integer.if {
+      gen.type_integer integer_size;
+    }.elseif {pointer} then {
+      gen.type_pointer {
+        pointer_type.generate gen;
+      };
+    }.elseif {function_pointer} then {
+      gen.type_function_pointer;
+    }.elseif {struct} then {
+      gen.type_struct {
+        struct_types.iterate.loop_v { t:BASE_TYPE;
+          gen.type_struct_element { t.generate gen }
+        };
+      };
+    }.elseif {vector} then {
+      gen.type_vector m_vector_size of {
+        p_type.generate gen;
+      };
+    } else {
+      gen.type_void;
+    };
+  );
+  
+  - realize_default_value gen:GENERATOR for reg:REG <-
+  (
+    gen.expr_undef_in reg
+  );
+  
+  - Self:SELF '==' other:E :BOOLEAN <-
+  (
+    (E = SELF) &&
+    {i_size   = other.i_size} &&
+    {p_type   = other.p_type} &&
+    {f_ptr    = other.f_ptr } &&
+    {m_vector_size = other.m_vector_size} &&
+    {(m_struct = other.m_struct) || {m_struct == other.m_struct}}
+  );
+
   - to_string:STRING <-
   ( + res :STRING;
     res := type_name + "<" + i_size.to_string + "," + f_ptr.to_string;
@@ -34,78 +168,33 @@ Section Public
     res
   );
 
-  - integer :BOOLEAN <- (i_size > 0);
-  - integer_size :INTEGER <- [ -?{integer}; ] i_size;
-    
-  - pointer :BOOLEAN <- (p_type != NULL);
-  - pointer_type :BASE_TYPE <- [ -?{pointer}; ] p_type;
-  
-  - function_pointer :BOOLEAN <- f_ptr;
-  
-  - struct :BOOLEAN <- (m_struct != NULL);
-  - struct_types :FAST_ARRAY(BASE_TYPE) <- [ -? {struct}; ] m_struct;
-  
-  - void :BOOLEAN <- {! integer} && {! pointer} &&  {! function_pointer} &&  {! struct};
-  
-  - i8  :BASE_TYPE := create_integer 8;
-  - i16 :BASE_TYPE := create_integer 16;
-  - i32 :BASE_TYPE := create_integer 32;
-  - i64 :BASE_TYPE := create_integer 64;
-  
-  - create_integer size:INTEGER  :SELF <- clone.make_integer size;
-  - create_pointer ptr:BASE_TYPE :SELF <- clone.make_pointer ptr;
-  - create_function_pointer      :SELF <- clone.make_function_pointer;
-  - create_struct                :SELF <- clone.make_struct;
-  
-  - generate gen:GENERATOR <-
-  [ -? { Self != SELF }; ]
-  (
-    integer.if {
-      gen.type_integer integer_size;
-    }.elseif {pointer} then {
-      gen.type_pointer {
-        pointer_type.generate gen;
-      };
-    }.elseif {function_pointer} then {
-      gen.type_function_pointer;
-    }.elseif {struct} then {
-      gen.type_struct {
-        struct_types.iterate.loop_v { t:BASE_TYPE;
-          gen.type_struct_element { t.generate gen }
-        };
-      };
-    } else {
-      gen.type_void;
-    };
-  );
-  
-  - realize_default_value gen:GENERATOR for reg:REG <-
-  (
-    gen.expr_undef_in reg
-  );
-  
-  - Self:SELF '==' other:E :BOOLEAN <-
-  (
-    (E = SELF) &&
-    {i_size   = other.i_size} &&
-    {p_type   = other.p_type} &&
-    {f_ptr    = other.f_ptr } &&
-    {(m_struct = other.m_struct) || {m_struct == other.m_struct}}
-  );
-
 Section Private
 
-  + i_size   :INTEGER               := 0;
-  + p_type   :BASE_TYPE             := NULL;
-  + f_ptr    :BOOLEAN               := FALSE;
-  + m_struct :FAST_ARRAY(BASE_TYPE) := NULL;
+  + i_size        :INTEGER               := 0;
+  + p_type        :BASE_TYPE             := NULL;
+  + f_ptr         :BOOLEAN               := FALSE;
+  + m_vector_size :INTEGER               := -1;
+  + m_struct      :FAST_ARRAY(BASE_TYPE) := NULL;
+  
+  - make_void size:INTEGER :SELF <-
+  (
+    i_size := 0;
+    p_type := NULL;
+    f_ptr  := FALSE;
+    m_vector_size := -1;
+    m_struct := NULL;
+    ? { kind == kind_void };
+    Self
+  );
   
   - make_integer size:INTEGER :SELF <-
   (
     i_size := size;
     p_type := NULL;
     f_ptr  := FALSE;
+    m_vector_size := -1;
     m_struct := NULL;
+    ? { kind == kind_integer };
     Self
   );
   
@@ -114,7 +203,9 @@ Section Private
     i_size := 0;
     p_type := ptr;
     f_ptr  := FALSE;
+    m_vector_size := -1;
     m_struct := NULL;
+    ? { kind == kind_pointer };
     Self
   );
   
@@ -123,7 +214,9 @@ Section Private
     i_size := 0;
     p_type := NULL;
     f_ptr  := TRUE;
+    m_vector_size := -1;
     m_struct := NULL;
+    ? { kind == kind_function_pointer };
     Self
   );
   
@@ -132,6 +225,19 @@ Section Private
     i_size := 0;
     p_type := NULL;
     f_ptr  := FALSE;
+    m_vector_size := -1;
     m_struct := FAST_ARRAY(BASE_TYPE).create 0;
+    ? { kind == kind_struct };
+    Self
+  );
+  
+  - make_vector items:INTEGER of t:BASE_TYPE :SELF <-
+  (
+    i_size := 0;
+    p_type := t;
+    f_ptr  := FALSE;
+    m_vector_size := items;
+    m_struct := NULL;
+    ? { kind == kind_vector };
     Self
   );

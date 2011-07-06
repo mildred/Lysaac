@@ -25,10 +25,12 @@ Section Public
   - generate gen:GENERATOR <-
   (
     has_been_declared.if_false {
-      global_var := REG.clone;
-      gen.declare_string string in global_var;
+      gen.declare_private_constant_string string in global_var;
     };
-    gen.get_string_pointer_from global_var string string to result;
+    gen.getelementptr_of global_var in result refs {
+      gen.arg_i32 0;
+      gen.arg_i32 0;
+    };
   );
   
 Section ITM_EXPR_STR
@@ -38,6 +40,7 @@ Section ITM_EXPR_STR
     has_been_declared := FALSE;
     string := s;
     static_type := t;
+    global_var := REG.clone.make_type (BASE_TYPE.create_pointer (BASE_TYPE.create_vector (string.count+1) of (BASE_TYPE.i8)));
     result := REG.clone.make_type t;
     Self
   );
