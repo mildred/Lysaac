@@ -105,6 +105,25 @@ Section Public
     };
   );
   
+  - global_block_prototype_value v:REG name n:CSTRING <-
+  ( + t :BASE_TYPE;
+    context_const {
+      t := v.base_type;
+      t.pointer.if {
+        t := t.pointer_type;
+      };
+      v.realize "@" name n;
+      put "define void ";
+      put_reg v;
+      put " () {\n";
+      indent;
+      put_indent;
+      put "ret void\n";
+      unindent;
+      put "}\n"
+    };
+  );
+  
   - global_prototype_value v:REG name n:CSTRING <-
   ( + t :BASE_TYPE;
     context_const {

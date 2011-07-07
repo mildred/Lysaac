@@ -139,7 +139,11 @@ Section Private
   - generate_prototype_value gen:GENERATOR <-
   [ -? { ! prototype_value.is_realized }; ]
   (
-    gen.global_prototype_value prototype_value name name;
+    (role == "Block").if {
+      gen.global_block_prototype_value prototype_value name name;
+    } else {
+      gen.global_prototype_value prototype_value name name;
+    };
   )
   [ +? { prototype_value.is_realized }; ];
 
