@@ -12,12 +12,12 @@ Section Public
   // Kind of type
   //
 
-  - kind_void             :INTEGER := 0;
-  - kind_integer          :INTEGER := 1;
-  - kind_pointer          :INTEGER := 2;
-  - kind_function_pointer :INTEGER := 3;
-  - kind_struct           :INTEGER := 4;
-  - kind_vector           :INTEGER := 5;
+  - kind_void     :INTEGER := 0;
+  - kind_integer  :INTEGER := 1;
+  - kind_pointer  :INTEGER := 2;
+  - kind_function :INTEGER := 3;
+  - kind_struct   :INTEGER := 4;
+  - kind_vector   :INTEGER := 5;
   
   - kind :INTEGER <-
   ( + kind :INTEGER;
@@ -29,7 +29,7 @@ Section Public
     }.elseif {p_type != NULL} then {
       kind := kind_pointer;
     }.elseif {f_ptr} then {
-      kind := kind_function_pointer;
+      kind := kind_function;
     }.elseif {m_struct != NULL} then {
       kind := kind_struct;
     } else {
@@ -71,12 +71,12 @@ Section Public
   - pointer_type :BASE_TYPE <- [ -?{pointer}; ] p_type;
   
   //
-  // Type: function pointer
+  // Type: function
   //
   
-  - create_function_pointer :SELF <- clone.make_function_pointer;
+  - create_function :SELF <- clone.make_function;
   
-  - function_pointer :BOOLEAN <- (kind == kind_function_pointer);
+  - function :BOOLEAN <- (kind == kind_function);
   
   //
   // Type: struct
@@ -110,8 +110,8 @@ Section Public
       gen.type_pointer {
         pointer_type.generate gen;
       };
-    }.elseif {function_pointer} then {
-      gen.type_function_pointer;
+    }.elseif {function} then {
+      gen.type_function;
     }.elseif {struct} then {
       gen.type_struct {
         struct_types.iterate.loop_v { t:BASE_TYPE;
@@ -136,15 +136,56 @@ Section Public
   (
     (E = SELF) &&
     {i_size   = other.i_size} &&
-    {p_type   = other.p_type} &&
+    {{p_type   = other.p_type} || {p_type == other.p_type}} &&
     {f_ptr    = other.f_ptr } &&
     {m_vector_size = other.m_vector_size} &&
     {(m_struct = other.m_struct) || {m_struct == other.m_struct}}
   );
+  
+  - to_llvm_in res:STRING :STRING <-
+  (
+    kind
+    .when kind_void then {
+      res.append "void";
+    }
+    .when kind_integer then {
+      res.append "i";
+      integer_size.append_in res;
+    }
+    .when kind_pointer then {
+      pointer_type.to_llvm_in res;
+      res.append "*";
+    }
+    .when kind_function then {
+      res.append "void()";
+    }
+    .when kind_struct then {
+      res.append "{";
+      m_struct.iterate.loop_v { t:BASE_TYPE;
+        t.to_llvm_in res;
+        res.add_last ',';
+      };
+      (m_struct.count > 0).if {
+        res.remove_last 1;
+      };
+      res.append "}";
+    }
+    .when kind_vector then {
+      res.append "[";
+      vector_length.append_in res;
+      res.append "x";
+      vector_type.to_llvm_in res;
+      res.append "]";
+    };
+    res
+  );
 
   - to_string:STRING <-
   ( + res :STRING;
-    res := type_name + "<" + i_size.to_string + "," + f_ptr.to_string;
+    res := type_name + "<";
+    to_llvm_in res;
+    /*
+     + i_size.to_string + "," + f_ptr.to_string;
     (p_type = NULL).if {
       res.append ",NULL";
     } else {
@@ -164,6 +205,7 @@ Section Public
       };
       res.append "}";
     };
+    */
     res.append ">";
     res
   );
@@ -209,14 +251,14 @@ Section Private
     Self
   );
   
-  - make_function_pointer :SELF <-
+  - make_function :SELF <-
   (
     i_size := 0;
     p_type := NULL;
     f_ptr  := TRUE;
     m_vector_size := -1;
     m_struct := NULL;
-    ? { kind == kind_function_pointer };
+    ? { kind == kind_function };
     Self
   );
   

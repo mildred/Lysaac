@@ -18,10 +18,11 @@ Section Public
   
   + error :ERR := ERR;
 
-Section ITM_EXPR, SLOT
-
   - add_in list:LIST :SELF <-
-  [ -? { list_parent = NULL }; ]
+  [
+    -? { list != NULL };
+    -? { list_parent = NULL };
+  ]
   ( 
     list_parent := list;
     list.add_instruction Self;

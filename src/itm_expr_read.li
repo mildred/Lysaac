@@ -21,6 +21,7 @@ Section Public
   
   - compile_in list:LIST :SELF <-
   [
+    ? { list.self != NULL };
     ? { list.self.is_valid };
   ]
   ( + self      :EXPR;

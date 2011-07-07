@@ -24,17 +24,22 @@ Section Public
 
 Section PROC, PROTOTYPE
 
-  - make_self s:EXPR error_collector e:ERR_COLLECTOR type t:TYPE :SELF <-
+  - make_error_collector e:ERR_COLLECTOR type t:TYPE :SELF <-
+  (
+    instructions    := FAST_ARRAY(INSTR).create 0;
+    results         := FAST_ARRAY(REG).create 0;
+    error_collector := e;
+    result_type     := t;
+    Self
+  );
+  
+  - make_self s:EXPR :SELF <-
   [
     -? {s != NULL};
     -? {s.is_valid};
   ]
   (
-    self            := s;
-    instructions    := FAST_ARRAY(INSTR).create 0;
-    results         := FAST_ARRAY(REG).create 0;
-    error_collector := e;
-    result_type     := t;
+    self := s;
     Self
   );
   

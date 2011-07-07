@@ -28,18 +28,21 @@ Section Public
   );
   
   + base_type :BASE_TYPE <-
+  // The Expanded LLVM type
   [ -? {defined}; ]
   (
-    base_type := BASE_TYPE.create_struct;
-    slots.iterate.loop_v { s:SLOT;
-      s.is_compiled_data_slot.if {
-        base_type.struct_types.add_last (s.result_type.base_type);
+    (role == "Block").if {
+      base_type := BASE_TYPE.create_function;
+    } else {
+      base_type := BASE_TYPE.create_struct;
+      slots.iterate.loop_v { s:SLOT;
+        s.is_compiled_data_slot.if {
+          base_type.struct_types.add_last (s.result_type.base_type);
+        };
       };
     };
     base_type
   );
-  
-  + prototype_value :EXPR;
   
   - void :BOOLEAN <- base_type.void;
   
@@ -80,8 +83,11 @@ Section Public
   - compile <-
   [ -? {defined}; -? {! compiled}; ]
   (
-    prototype_value  := EXPR.clone.make_type to_type;
-    initializer_list := LIST.clone.make_self prototype_value error_collector Self type NULL;
+    prototype_value  := REG.clone.make_type (BASE_TYPE.create_pointer base_type);
+    initializer_list := LIST
+      .clone
+      .make_error_collector Self type NULL;
+    initializer_list.make_self (compile_prototype_value_in initializer_list);
     state := state_compiled;
   )
   [ +? {compiled}; ];
@@ -102,23 +108,40 @@ Section Public
   [ +? {generated}; ];
 
   - to_string :STRING <- type_name + "<" + name + ">";
+  
+  - compile_prototype_value_in l:LIST :EXPR <-
+  [ -? { l != NULL }; ]
+  ( + res:REG;
+    
+    expanded.if {
+      res := INSTR_LOAD
+        .clone
+        .make prototype_value
+        .add_in l
+        .result;
+    } else {
+      res := prototype_value;
+    };
+    
+    EXPR.clone.make (res, to_type)
+  );
 
 Section Private
 
   - generate_initializer gen:GENERATOR <-
   (
     gen.ctor_sub 65535 do {
-      ? { prototype_value.reg.is_realized };
+      ? { prototype_value.is_realized };
       initializer_list.generate gen;
     };
   );
 
   - generate_prototype_value gen:GENERATOR <-
-  [ -? { ! prototype_value.reg.is_realized }; ]
+  [ -? { ! prototype_value.is_realized }; ]
   (
     gen.global_prototype_value prototype_value name name;
   )
-  [ +? { prototype_value.reg.is_realized }; ];
+  [ +? { prototype_value.is_realized }; ];
 
 Section INSTR_CALL, INSTR_STORE
 
@@ -141,7 +164,9 @@ Section CLUSTER, ITM_TYPE, SLOT, INSTR_FNPTR
   - to_type :TYPE <-
   [ -? {made}; ]
   (
-    (type = NULL).if {
+    (role == "Block").if {
+      type := to_type_block;
+    }.elseif {type = NULL} then {
       type := TYPE.clone.make Self;
     };
     type
@@ -169,8 +194,8 @@ Section CLUSTER_ITEM
     parser   := PARSER_LI.clone.make Self;
     position := POS.create(file, 0, 0);
     state    := state_made;
-    prototype_value  := EXPR;
     initializer_list := NULL;
+    prototype_value := REG;
     type       := NULL;
     type_block := NULL;
     num_compiled_data_slots := 0;
@@ -247,5 +272,7 @@ Section Private
   + type :TYPE;
   
   + type_block :TYPE;
+  
+  + prototype_value :REG;
 
 

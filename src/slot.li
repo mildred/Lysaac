@@ -94,7 +94,7 @@ Section LIST_PROC
       self := EXPR.clone.make_type t;
     };
     ? { self.is_valid };
-    list := LIST.clone.make_self self error_collector Self type result_type;
+    list := LIST.clone.make_self self.make_error_collector Self type result_type;
     external.if {
       // External Slot
       + sym :ITM_EXPR_SYM;
@@ -131,7 +131,7 @@ Section Private
       // Read data slot
       list.add_result (INSTR_LOAD
         .clone
-        .make_slot Self receiver (list.self)
+        .make_slot Self receiver (list.self) list list
         .add_in list
         .result);
     }.elseif {ast.expression != NULL} then {
@@ -153,10 +153,13 @@ Section Private
       // Empty slot
     };
     ((has_result) && {list.results.is_empty}).if {
-      add_error(error(ERR, ast.expression.position,
+      add_error(error(ERR, ast.position,
         "No value given for this slot. Using prototype "
         + pretty_type(result_type)));
-      list.add_result (result_type.prototype.prototype_value);
+      list.add_result (result_type.prototype.compile_prototype_value_in list);
+    };
+    export.if {
+      prototype_self := prototype.compile_prototype_value_in list;
     };
   );
 
@@ -201,7 +204,8 @@ Section Private
       };
     } do {
       export.if {
-        self.reg.realize_using (prototype.prototype_value);
+        ? { prototype_self != NULL };
+        self.reg.realize_using (prototype_self);
       };
       ? { self.reg.is_realized };
       is_block_value_slot.if {
@@ -230,5 +234,7 @@ Section Private
   );
 
   + ast :ITM_SLOT;
+  
+  + prototype_self :EXPR;
 
 

@@ -14,7 +14,6 @@ Section Public
   
   - link <-
   (
-    ? {slot.is_compiled_data_slot};
   );
 
   //
@@ -22,27 +21,32 @@ Section Public
   //
 
   - generate gen:GENERATOR <-
-  ( + r:REG;
-    r := REG.clone.make_type (BASE_TYPE.create_pointer (slot.result_type));
-    gen.getelementptr_of receiver in r refs {
-      gen.arg_i32 0;
-      gen.arg_i32 (slot.type_index);
-    };
-    gen.load_from r in result;
+  (
+    gen.load_from pointer in result;
+  );
+  
+  - make r:REG :SELF <-
+  [ -? { r.base_type.pointer }; ]
+  (
+    pointer := r;
+    result  := REG.clone.make_type (r.base_type.pointer_type);
+    Self
   );
 
 Section SLOT
 
-  - make_slot s:SLOT receiver r:REG :SELF <-
+  - make_slot s:SLOT receiver r:REG list l:LIST :SELF <-
+  [ -? { r.base_type.pointer }; ]
   (
-    slot := s;
-    receiver := r;
-    result := REG.clone.make_type (slot.result_type);
+    make (INSTR_GETELEMPTR
+      .clone
+      .make r slot s
+      .add_in l
+      .result);
     Self
   );
   
 Section Private
 
-  + slot :SLOT;
-  + receiver :REG;
+  + pointer :REG;
 

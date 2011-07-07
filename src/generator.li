@@ -24,9 +24,9 @@ Section Public
     context.add_last '*';
   );
   
-  - type_function_pointer <-
+  - type_function <-
   (
-    put "void () *";
+    put "void()";
   );
   
   - type_void <-
