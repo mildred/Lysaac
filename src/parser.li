@@ -524,7 +524,7 @@ Section SELF
   
   - read_symbol :BOOLEAN <-
   ( + result :BOOLEAN;
-    last_string.clear;
+    last_symbol.clear;
     (last_character = '`').if {
       read_character;
       read_symbol_content;

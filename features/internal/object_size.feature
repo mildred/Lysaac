@@ -1,6 +1,5 @@
 Feature: Internal ObjectSize
 
-  @wip
   Scenario: values are different on different objects
     Given the following prototypes in "c":
       | Prototype |
@@ -17,7 +16,7 @@ Feature: Internal ObjectSize
         + one :INT32 := 1;
       
         - printf (format:CSTRING, arg:INT32) <- External `printf`;
-        - object_size :INT32 <- Internal ObjectSize;
+        - object_size :INT32 <- Internal `object_size`;
       
         - main <- Export
         (

@@ -208,6 +208,26 @@ Section Public
   // Instructions
   //
   
+  - sizeof type:{} in res:REG <-
+  ( + i:INTEGER;
+    i := get_local;
+    res.realize "%" id get_local;
+  
+    put_indent;
+    put_local i;
+    put " = getelementptr ";
+    type.value;
+    put "* null, i32 1\n";
+    
+    put_indent;
+    put_reg res;
+    put " = ptrtoint ";
+    type.value;
+    put "* ";
+    put_local i;
+    put " to i32\n";
+  );
+  
   - alloca count:INTEGER of type:{} in res:REG <-
   (
     put_indent;

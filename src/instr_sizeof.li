@@ -1,6 +1,6 @@
 Section Header
 
-  + name := INSTR_STORE;
+  + name := INSTR_SIZEOF;
 
 Section Inherit
 
@@ -20,18 +20,17 @@ Section Public
 
   - generate gen:GENERATOR <-
   (
-    gen.store value to pointer;
+    gen.sizeof { type.generate gen; } in result;
   );
   
-  - make_store_in ptr:REG value v:REG :SELF <-
+  - make t:BASE_TYPE :SELF <-
   (
-    pointer := ptr;
-    value   := v;
+    type   := t;
+    result := REG.clone.make_type (BASE_TYPE.i32);
     Self
   );
 
 Section Private
 
-  + pointer    :REG;
-  + value      :REG;
+  + type :BASE_TYPE;
 

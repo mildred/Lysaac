@@ -11,10 +11,10 @@ Section Public
   - name :CSTRING <- ast.identifier;
   
   - external :BOOLEAN <- ast.is_external;
+  - export   :BOOLEAN <- ast.is_export;
+  - internal :BOOLEAN <- ast.is_internal;
   
-  - export :BOOLEAN <- ast.is_export;
-  
-  - external_or_export :BOOLEAN <- (external) || {export};
+  + internal_opcode :CSTRING := "";
   
   + external_name :CSTRING <- name;
   
@@ -80,8 +80,20 @@ Section ITM_SLOT
   );
   
   - finish_creation <-
-  (
-    prototype.add_slot Self;
+  ( + error :BOOLEAN;
+    (internal && {!is_block_value_slot}).if {
+      + sym :ITM_EXPR_SYM;
+      sym ?= ast.expression;
+      (sym = NULL).if {
+        error := TRUE;
+        add_error(error(ERR, ast.expression.position, "Expected symbol"));
+      } else {
+        internal_opcode := sym.symbol;
+      };
+    };
+    error.if_false {
+      prototype.add_slot Self;
+    };
   );
 
 Section LIST_PROC
@@ -132,7 +144,9 @@ Section Private
   - compile_slot <-
   [ -? {! external}; ]
   (
-    (is_compiled_data_slot && {ast.affect.data}).if {
+    (internal && {!is_block_value_slot}).if {
+      compile_opcode_in list;
+    }.elseif {is_compiled_data_slot && {ast.affect.data}} then {
       // Read data slot
       list.add_result (INSTR_LOAD
         .clone
@@ -166,6 +180,22 @@ Section Private
     export.if {
       prototype_self := prototype.compile_prototype_value_in list;
     };
+  );
+  
+  - compile_opcode_in list:LIST <-
+  [
+    -? { internal_opcode != NULL };
+  ]
+  (
+    (internal_opcode == "object_size").if {
+      list.add_result (INSTR_SIZEOF
+        .clone
+        .make (self.type.prototype.base_type)
+        .add_in list
+        .result);
+    } else {
+      add_error(error(ERR, ast.position, "Unknown opcode " + internal_opcode));
+    }
   );
 
 Section LIST_PROC
@@ -234,7 +264,7 @@ Section Private
 
   - is_block_value_slot :BOOLEAN <-
   ( (prototype.role == "Block") &&
-    {ast.has_keyword "Internal"} &&
+    {internal} &&
     {ast.has_keyword "Value"}
   );
 

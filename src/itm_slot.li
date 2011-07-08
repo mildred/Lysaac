@@ -30,6 +30,8 @@ Section Public
   
   - is_export :BOOLEAN <- ( has_keyword "Export" );
   
+  - is_internal :BOOLEAN <- ( has_keyword "Internal" );
+  
   - has_keyword k:CSTRING :BOOLEAN <-
   (
      + res :BOOLEAN;
