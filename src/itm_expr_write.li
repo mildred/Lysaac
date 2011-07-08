@@ -22,18 +22,35 @@ Section Public
 
   - compile_in list:LIST :SELF <-
   [ -? { list.self != NULL }; ]
-  (
-    + slot :SLOT;
-    slot := list.self.type.prototype.find_slot slot_name;
-    (slot = NULL).if {
-      err := error(err, position, "Cannot find slot " + slot_name + " in " + pretty_type(list.self.type));
-      err := error(err, position, "Discarding write");
+  ( + slot :SLOT;
+    + local :ITM_LOCAL;
+    
+    // affect result is the expression
+    result := expr.compile_in list.result;
+  
+    // Affect
+    ((local := lookup_local slot_name) != NULL).if {
+      // Local variable
+      local.write result in list.if_fail { e:ERR;
+        err := e;
+      };
     } else {
-      result := expr.compile_in list.result;
-      INSTR_STORE
-        .clone
-        .make_slot slot receiver (list.self) value result
-        .add_in list;
+      slot := list.self.type.prototype.find_slot slot_name;
+      (slot = NULL).if {
+        err := error(err, position, "Cannot find slot " + slot_name + " in " + pretty_type(list.self.type));
+        err := error(err, position, "Discarding write");
+      } else {
+        + r :REG;
+        r := INSTR_GETELEMPTR
+          .clone
+          .make (list.self) slot slot
+          .add_in list
+          .result;
+        INSTR_STORE
+          .clone
+          .make_store_in r value result
+          .add_in list;
+      };
     };
     Self
   );

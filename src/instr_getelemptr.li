@@ -29,8 +29,6 @@ Section Public
     };
   );
 
-Section SLOT, INSTR_LOAD
-
   - make r:REG slot s:SLOT :SELF <-
   [
     -? { r.base_type.pointer };

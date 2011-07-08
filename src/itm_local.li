@@ -30,7 +30,11 @@ Section Public
   
   - write val:EXPR in list:LIST :ERR <-
   (
-    error(ERR, position, "write local not yet implemented")
+    INSTR_STORE
+      .clone
+      .make_store_in pointer value val
+      .add_in list;
+    ERR
   );
 
 Section ITM_EXPR_GROUP

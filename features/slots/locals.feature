@@ -1,6 +1,5 @@
 Feature: Have local variables
     
-  @wip
   Scenario: Assignment should be possible
     Given the following prototypes in "c":
       | Prototype |
@@ -21,13 +20,13 @@ Feature: Have local variables
           int := 1;
           printf("Hello World to %dntegers", int);
           int := 2;
-          printf("and %dntegers", int);
+          printf(" and %dntegers", int);
         );
       
       """
      When I execute the cluster "c"
      Then I should see
       """
-      Hello World to 1ntegers and 2tegers
+      Hello World to 1ntegers and 2ntegers
       """
 

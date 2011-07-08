@@ -114,12 +114,16 @@ Section Private
 
   - compile_initializer <-
   [ -? {! external}; ]
-  (
+  ( + r:REG;
     (is_compiled_data_slot && {ast.affect.data}).if {
+      r := INSTR_GETELEMPTR
+        .clone
+        .make (prototype.initializer_list.self) slot Self
+        .add_in (prototype.initializer_list)
+        .result;
       INSTR_STORE
         .clone
-        .make_slot Self
-          receiver (prototype.initializer_list.self)
+        .make_store_in r
           value (ast.expression.compile_in (prototype.initializer_list).result)
         .add_in (prototype.initializer_list);
     };

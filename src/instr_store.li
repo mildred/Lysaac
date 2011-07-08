@@ -12,37 +12,26 @@ Section Public
   // Link
   //
   
-  - link <-
-  (
-    ? {slot != NULL};
-    ? {slot.is_compiled_data_slot};
-  );
+  - link;
 
   //
   // Generate
   //
 
   - generate gen:GENERATOR <-
-  ( + r:REG;
-    r := REG.clone.make_type (BASE_TYPE.create_pointer (slot.result_type));
-    gen.getelementptr_of receiver in r refs {
-      gen.arg_i32 0;
-      gen.arg_i32 (slot.type_index);
-    };
-    gen.store value to r;
-  );
-
-  - make_slot s:SLOT receiver r:REG value v:REG :SELF <-
   (
-    receiver := r;
-    slot     := s;
-    value    := v;
+    gen.store value to pointer;
+  );
+  
+  - make_store_in ptr:REG value v:REG :SELF <-
+  (
+    pointer := ptr;
+    value   := v;
     Self
   );
 
 Section Private
 
-  + receiver   :REG;
+  + pointer    :REG;
   + value      :REG;
-  + slot       :SLOT;
 
