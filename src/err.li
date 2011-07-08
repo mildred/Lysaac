@@ -60,9 +60,9 @@ Section Public
     
   - clone :SELF <-
   // Very ugly hack !!!
-  ( + e:ERR;
-    + r:REFERENCE(ERR);
-    r := REFERENCE(ERR).create ERR;
+  ( + e:SELF;
+    + r:REFERENCE(SELF);
+    r := REFERENCE(SELF).create SELF;
     e := r.to_e;
     e
   );

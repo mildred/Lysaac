@@ -2,11 +2,9 @@ Section Header
 
   + name := ITM_LOCAL;
   
-  // This is an expression that compiles to the code that read the local.
-
 Section Inherit
 
-  + parent_itm_expr :Expanded ITM_EXPR;
+  + parent_itm :Expanded ITM;
 
 Section Public
 
@@ -15,14 +13,16 @@ Section Public
   + style :ITM_STYLE;
   
   + type :ITM_TYPE;
-
-  - compile_in list:LIST :SELF <-
+  
+  - read_in list:LIST :MAYBE(EXPR) <-
   (
-    // load / store TODO: there is probably a refactoring here
-    Self
+    MAYBE(EXPR).clone.make_error(error(ERR, position, "read local not yet implemented"))
   );
   
-  - err :ERR <- error(ERR, position, "not yet implemented: local read");
+  - write val:EXPR in list:LIST :ERR <-
+  (
+    error(ERR, position, "write local not yet implemented")
+  );
 
 Section ITM_EXPR_GROUP
 

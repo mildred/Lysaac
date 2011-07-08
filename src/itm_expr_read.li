@@ -30,8 +30,13 @@ Section Public
     
     ((receiver = NULL) && {(local := lookup_local slot) != NULL}).if {
       // Local variable
-      result := local.compile_in list.result;
-      err := local.err;
+      local.read_in list.if_true { e:EXPR;
+        ? { e.is_valid };
+        result := e;
+      }.if_false2 { e:REFERENCE(ERR);
+        err := e.to_e;
+        ? { err.failure };
+      };
     } else {
       // Slot call
       + call :INSTR_CALL;
@@ -61,6 +66,7 @@ Section Public
         call.add_in list;
         (call.slot.has_result).if {
           result := EXPR.clone.make (call.result, call.slot.result_type);
+          ? { result.is_valid };
         } else {
           has_results := FALSE;
         };

@@ -10,24 +10,26 @@ Section Public
 
   - style :ITM_STYLE := ITM_STYLE.clone.make '+';
 
-  - has_results :BOOLEAN <- TRUE;
-
-  + result :EXPR := EXPR;
-
-  - compile_in list:LIST :SELF <-
+  - read_in list:LIST :MAYBE(EXPR) <-
   [
     -? { result != NULL };
     -? { result.reg.is_valid };
   ]
-  ( Self );
+  (
+    MAYBE(EXPR).clone.make result
+  );
   
-  + err :ERR := ERR;
+  - write val:EXPR in list:LIST :ERR <-
+  (
+    error(ERR, position, "Attempt to write an argument")
+  );
 
 Section ITM_SLOT
 
-  - get_argument_variable :EXPR <-
+  - get_argument_variable :MAYBE(EXPR) <-
   ( + t :TYPE;
     + r :REG;
+    + res :MAYBE(EXPR);
 
     r := REG.clone;
     t := type.to_type;
@@ -36,16 +38,13 @@ Section ITM_SLOT
         .make_pretty_name name;
       ? { r.is_valid };
       result := EXPR.clone.make(r, t);
+      res := MAYBE(EXPR).clone.make result;
     } else {
-      err := error(type.err, position, "Cannot resolve type for "+name); // TODO
+      res := MAYBE(EXPR).clone.make_error(error(type.err, position, "Cannot resolve type for "+name)); // TODO
       result = NULL;
     };
-    result
-  )
-  [
-    +? { (err.failure) || {Result != NULL} };
-    +? {result = Result};
-  ];
+    res
+  );
 
 Section PARSER
 
@@ -56,4 +55,8 @@ Section PARSER
     type := t;
     Self
   );
+
+Section Private
+
+  + result :EXPR := EXPR;
 

@@ -63,18 +63,16 @@ Section ITM_PROTOTYPE
 
   - define_in list:LIST_PROC <-
   ( + slot:SLOT;
-    + v :REG;
   
     ? {prototype_parent != NULL};
   
     slot := SLOT.clone.make Self;
     arguments.iterate.loop_v { l:ITM_ARG;
-      v := l.get_argument_variable;
-      l.err.failure.if {
-        slot.add_error(error(l.err, position, "Dropping argument "+l.name+" for slot " + identifier));
-      } else {
-        ? {v.is_valid};
-        slot.add_argument (v);
+      l.get_argument_variable.if_true { e:EXPR;
+        ? {e.is_valid};
+        slot.add_argument e;
+      }.if_false2 { e:REFERENCE(ERR);
+        slot.add_error(error(e.to_e, position, "Dropping argument "+l.name+" for slot " + identifier));
       };
     };
     (return_type != NULL).if {
