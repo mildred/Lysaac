@@ -1,0 +1,56 @@
+Section Header
+
+  + name := INSTR_GETELEMPTR;
+
+Section Inherit
+
+  + parent_instr :Expanded INSTR;
+
+Section Public
+
+  //
+  // Link
+  //
+  
+  - link <-
+  (
+  );
+
+  //
+  // Generate
+  //
+
+  - generate gen:GENERATOR <-
+  (
+    gen.getelementptr_of value in result refs {
+      path.iterate.loop_v { i:INTEGER;
+        gen.arg_i32 i;
+      };
+    };
+  );
+
+Section SLOT, INSTR_LOAD
+
+  - make r:REG slot s:SLOT :SELF <-
+  [
+    -? { r.base_type.pointer };
+    -? { r.base_type.pointer_type.struct };
+    -? { r.base_type.pointer_type.struct_types.valid_index (s.type_index) };
+    -? { s.result_type.base_type == r.base_type.pointer_type.struct_types.item (s.type_index) };
+  ]
+  ( + res_type :BASE_TYPE;
+    value := r;
+    path  := FAST_ARRAY(INTEGER).create_with_capacity 1;
+    path.add_last 0;
+    path.add_last (s.type_index);
+    
+    res_type := r.base_type.pointer_type.struct_types.item (s.type_index);
+    result := REG.clone.make_type (BASE_TYPE.create_pointer res_type);
+    Self
+  );
+
+Section Private
+
+  + value :REG;
+  + path  :FAST_ARRAY(INTEGER);
+
