@@ -4,7 +4,7 @@ res=0
 
 redo wip-tests || res=$?
 
-cucumber -f rerun -o reports/failed-features.txt -f html -o reports/features.html -f progress -t '~@wip' -t '~@future' features >&2
+cucumber -p tests --color | sed -r 's:^(\[31m)cucumber -p tests features/:\1redo features/:' >&2
 [ $? != 0 ] && res=$?
 
 test $res = 0
