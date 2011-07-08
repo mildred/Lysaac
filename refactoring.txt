@@ -1,3 +1,3 @@
 - use a PROGRESS type to make progression. It should contain many variables to estimate progression
 - ITM_EXPR.result shall be made private and ITM_EXPR.get_result should return a MAYBE(EXPR) that contains an ERR object.
-
+- generate unique names. Something along the lines of ly_#{prototype_name}_#{num_generics}_#{slot_name}
