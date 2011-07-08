@@ -20,7 +20,7 @@ Section Public
   
 Section ITM
   
-  - lookup_local name:CSTRING :ITM_EXPR_LOCAL <- NULL;
+  - lookup_local name:CSTRING :ITM_LOCAL <- NULL;
 
 Section PROTOTYPE
 

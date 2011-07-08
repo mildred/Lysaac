@@ -39,15 +39,15 @@ Section Public
     res
   );
   
-  + arguments :FAST_ARRAY(ITM_EXPR_ARG);
+  + arguments :FAST_ARRAY(ITM_ARG);
 
 Section ITM
 
-  - lookup_local name:CSTRING :ITM_EXPR_LOCAL <-
-  ( + it :ITERATOR(ITM_EXPR_ARG);
-    + res :ITM_EXPR_LOCAL;
+  - lookup_local name:CSTRING :ITM_LOCAL <-
+  ( + it :ITERATOR(ITM_ARG);
+    + res :ITM_LOCAL;
     
-    (it := arguments.iterate).loop_v { l:ITM_EXPR_ARG;
+    (it := arguments.iterate).loop_v { l:ITM_ARG;
       (l.name = name).if { //??
         it.stop;
         res := l;
@@ -68,7 +68,7 @@ Section ITM_PROTOTYPE
     ? {prototype_parent != NULL};
   
     slot := SLOT.clone.make Self;
-    arguments.iterate.loop_v { l:ITM_EXPR_ARG;
+    arguments.iterate.loop_v { l:ITM_ARG;
       v := l.get_argument_variable;
       l.err.failure.if {
         slot.add_error(error(l.err, position, "Dropping argument "+l.name+" for slot " + identifier));
@@ -94,7 +94,7 @@ Section PARSER
 
   - make :SELF <-
   (
-    arguments := FAST_ARRAY(ITM_EXPR_ARG).create 0;
+    arguments := FAST_ARRAY(ITM_ARG).create 0;
     return_type := NULL;
     Self
   );
@@ -126,7 +126,7 @@ Section PARSER
     Self
   );
   
-  - add_argument (arg:ITM_EXPR_ARG) :SELF <-
+  - add_argument (arg:ITM_ARG) :SELF <-
   (
     arguments.add_last (arg.set_itm_parent Self);
     Self

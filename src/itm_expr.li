@@ -12,7 +12,7 @@ Section Public
 
   - compile_in list:LIST :SELF <-
   (
-    crash_with_message ("Cannot compile " + type_name);
+    err := error(ERR, position, "Cannot compile " + type_name);
     Self
   )
   [

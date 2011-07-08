@@ -25,7 +25,7 @@ Section Public
     ? { list.self.is_valid };
   ]
   ( + self      :EXPR;
-    + local     :ITM_EXPR_LOCAL;
+    + local     :ITM_LOCAL;
     + slot_obj  :SLOT;
     
     ((receiver = NULL) && {(local := lookup_local slot) != NULL}).if {

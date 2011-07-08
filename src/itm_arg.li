@@ -1,10 +1,10 @@
 Section Header
 
-  + name := ITM_EXPR_ARG;
+  + name := ITM_ARG;
 
 Section Inherit
 
-  + parent_itm_expr_local :Expanded ITM_EXPR_LOCAL;
+  + parent_itm_expr_local :Expanded ITM_LOCAL;
 
 Section Public
 

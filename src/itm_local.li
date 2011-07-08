@@ -1,6 +1,8 @@
 Section Header
 
-  + name := ITM_EXPR_LOCAL;
+  + name := ITM_LOCAL;
+  
+  // This is an expression that compiles to the code that read the local.
 
 Section Inherit
 
@@ -16,10 +18,19 @@ Section Public
 
   - compile_in list:LIST :SELF <-
   (
+    // load / store TODO: there is probably a refactoring here
     Self
   );
   
-  - err :ERR <- error(ERR, position, "Locals cannot be compiled");
+  - err :ERR <- error(ERR, position, "not yet implemented: local read");
+
+Section ITM_EXPR_GROUP
+
+  - compile_storage_in list:LIST :SELF <-
+  (
+    // alloca
+    Self
+  );
 
 Section PARSER
 

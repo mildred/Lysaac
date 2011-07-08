@@ -730,12 +730,12 @@ Section SELF
   ( + res  :BOOLEAN;
     + idf  :CSTRING;
     + type :ITM_TYPE;
-    + arg  :ITM_EXPR_ARG;
+    + arg  :ITM_ARG;
     + p    :POS;
   
     p := position;
     read_identifier.if {
-      arg := ITM_EXPR_ARG.clone.make_position p;
+      arg := ITM_ARG.clone.make_position p;
       read_spaces;
       idf := last_identifier;
       read_always ":";
@@ -916,7 +916,7 @@ Section SELF
         (typ = NULL).if {
           warning ("Expected type for local " + idf);
         } else {
-          grp.add_local (ITM_EXPR_LOCAL
+          grp.add_local (ITM_LOCAL
             .clone
             .make_position pos
             .make_local (sty, idf, typ));
