@@ -14,6 +14,8 @@ Section Public
   
   - to_string :STRING <-
   ( type_name + "<" + expression.to_string + ">" );
+  
+  - err :ERR <- expression.err;
 
 Section PARSER
   

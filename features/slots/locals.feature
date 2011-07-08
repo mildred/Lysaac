@@ -19,9 +19,9 @@ Feature: Have local variables
         - main <- Export
         ( + int :INT32;
           int := 1;
-          printf("Hello World to %dntegers", one);
+          printf("Hello World to %dntegers", int);
           int := 2;
-          printf("and %dntegers", one);
+          printf("and %dntegers", int);
         );
       
       """

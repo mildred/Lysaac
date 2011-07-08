@@ -47,7 +47,13 @@ Section Public
       };
       has_multiple_results := TRUE;
       result_exprs.iterate.loop_v { e:ITM_EXPR;
-        results.add_last (e.compile_in list.result);
+        ? { + l:ITM_EXPR_LOCAL; l ?= e; l = NULL };
+        e.compile_in list;
+        e.err.failure.if {
+          list.error_collector.add_error (e.err);
+        } else {
+          results.add_last (e.result);
+        };
       };
     };
     Self
@@ -76,6 +82,24 @@ Section Public
     res
   );
 
+Section ITM
+
+  - lookup_local name:CSTRING :ITM_EXPR_LOCAL <-
+  ( + it :ITERATOR(ITM_EXPR_LOCAL);
+    + res :ITM_EXPR_LOCAL;
+    
+    (it := locals.iterate).loop_v { l:ITM_EXPR_LOCAL;
+      (l.name = name).if {
+        it.stop;
+        res := l;
+      };
+    };
+    (res = NULL).if {
+      res := itm_parent.lookup_local name;
+    };
+    res
+  );
+
 Section PARSER
 
   - make :SELF <-
@@ -85,6 +109,7 @@ Section PARSER
     instructions := FAST_ARRAY(ITM_INST).create 0;
     result_exprs := FAST_ARRAY(ITM_EXPR).create 0;
     results      := FAST_ARRAY(EXPR).create (result_exprs.count);
+    locals       := FAST_ARRAY(ITM_EXPR_LOCAL).create 0;
     ? { err.success };
     Self
   );
@@ -103,12 +128,23 @@ Section PARSER
   );
   
   - add_expr expr:ITM_EXPR <-
+  [
+    -? { + l:ITM_EXPR_LOCAL; l ?= expr; l = NULL };
+  ]
   (
     expr.set_itm_parent Self;
     result_exprs.add_last expr;
   );
+  
+  - add_local local:ITM_EXPR_LOCAL <-
+  (
+    local.set_itm_parent Self;
+    locals.add_last local;
+  );
 
 Section Private
+
+  + locals :FAST_ARRAY(ITM_EXPR_LOCAL);
 
   + instructions :FAST_ARRAY(ITM_INST);
 

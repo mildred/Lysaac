@@ -39,7 +39,6 @@ Feature: Parsing errors
         | c/main.li | 7 | 14 | Expected ":"                                      |
         | c/main.li | 7 | 14 | Expected type for argument arg, dropping argument |
 
-  @wip
   Scenario: Unexpected symbol
     Given a file "c/main.li" with
         """
@@ -59,7 +58,6 @@ Feature: Parsing errors
         | c/main.li |   |    | Errors in c/main.li: |
         | c/main.li | 7 | 3  | Errors in slot main: |
         | c/main.li | 7 | 13 | Unexpected symbol    |
-        | c/main.li | 7 | 14 | Unexpected symbol    |
 
 
   # TODO: more parsing errors, look at code coverage

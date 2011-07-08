@@ -861,7 +861,7 @@ Section SELF
     res
   );
   
-  //++ GROUP -> (EXPR . ";")* (EXPR . ("," EXPR)*)?
+  //++ GROUP -> LOCAL_DEF* (EXPR . ";")* (EXPR . ("," EXPR)*)?
   
   - read_group pos:POS :ITM_EXPR_GROUP <-
   ( + group :ITM_EXPR_GROUP;
@@ -869,6 +869,7 @@ Section SELF
     + p     :POS;
     
     group := ITM_EXPR_GROUP.clone.make_position pos.make;
+    {read_local_def_in group}.while_do {};
     { read_spaces;
       p := position;
       expr := read_expr;
@@ -891,6 +892,43 @@ Section SELF
     }.do_until {expr.is_void};
 
     group
+  );
+  
+  //++ LOCAL_DEF -> style . identifier ":" TYPE ";"
+  
+  - read_local_def_in grp:ITM_EXPR_GROUP :BOOLEAN <-
+  ( + sty:ITM_STYLE;
+    + idf:CSTRING;
+    + typ:ITM_TYPE;
+    + pos:POS;
+    + res:BOOLEAN;
+  
+    read_spaces;
+    pos := position;
+    (sty := read_style).valid.if {
+      res := TRUE;
+      read_spaces;
+      read_identifier.if {
+        idf := last_identifier;
+        read_spaces;
+        read_always ":";
+        typ := read_type;
+        (typ = NULL).if {
+          warning ("Expected type for local " + idf);
+        } else {
+          grp.add_local (ITM_EXPR_LOCAL
+            .clone
+            .make_position pos
+            .make_local (sty, idf, typ));
+          res := TRUE;
+        };
+      } else {
+        warning("Expected identifier for local");
+      };
+      read_spaces;
+      read_always ";";
+    };
+    res
   );
 
   - open_source f:ABSTRACT_STRING <-

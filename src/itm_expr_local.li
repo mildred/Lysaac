@@ -10,5 +10,23 @@ Section Public
 
   + name :CSTRING;
   
+  + style :ITM_STYLE;
+  
   + type :ITM_TYPE;
 
+  - compile_in list:LIST :SELF <-
+  (
+    Self
+  );
+  
+  - err :ERR <- error(ERR, position, "Locals cannot be compiled");
+
+Section PARSER
+
+  - make_local (sty:ITM_STYLE, idf:CSTRING, typ:ITM_TYPE) :SELF <-
+  (
+    style := sty;
+    name  := idf;
+    type  := typ;
+    Self
+  );

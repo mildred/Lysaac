@@ -8,6 +8,8 @@ Section Inherit
 
 Section Public
 
+  - style :ITM_STYLE := ITM_STYLE.clone.make '+';
+
   - has_results :BOOLEAN <- TRUE;
 
   + result :EXPR := EXPR;

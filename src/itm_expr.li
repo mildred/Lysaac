@@ -20,9 +20,9 @@ Section Public
     type_name +? { result != NULL };
     has_results.if {
       has_multiple_results.if {
-        +? { results != NULL };
+        type_name +? { results != NULL };
       } else {
-        +? { (err.failure) || {result.is_valid} };
+        type_name +? { (err.failure) || {result.is_valid} };
       };
     };
   ];

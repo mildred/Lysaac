@@ -23,11 +23,18 @@ Section Public
   - compile_in list:LIST :SELF <-
   [ -? { list.self != NULL }; ]
   (
-    result := expr.compile_in list.result;
-    INSTR_STORE
-      .clone
-      .make_itm Self store result in (list.self)
-      .add_in list;
+    + slot :SLOT;
+    slot := list.self.type.prototype.find_slot slot_name;
+    (slot = NULL).if {
+      err := error(err, position, "Cannot find slot " + slot_name + " in " + pretty_type(list.self.type));
+      err := error(err, position, "Discarding write");
+    } else {
+      result := expr.compile_in list.result;
+      INSTR_STORE
+        .clone
+        .make_slot slot receiver (list.self) value result
+        .add_in list;
+    };
     Self
   );
 

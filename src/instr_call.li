@@ -18,21 +18,13 @@ Section Public
   // Slot
   //
 
-  + slot :SLOT <-
-  (
-    slot := receiver.type.prototype.find_slot name
-  );
+  + slot :SLOT;
 
   //
   // Link
   //
   
-  - link <-
-  (
-    (slot = NULL).if {
-      crash_with_message ("Cannot find slot "+name+" in "+receiver.type.prototype.name);
-    };
-  );
+  - link;
 
   //
   // Generate
@@ -62,13 +54,17 @@ Section Private
 
 Section ITM_EXPR_READ
 
-  - make_read n:CSTRING receiver e:EXPR :SELF <-
-  [ -? { e.is_valid }; ]
+  - make_read n:CSTRING receiver e:EXPR slot s:SLOT :SELF <-
+  [
+    -? { s != NULL  };
+    -? { e.is_valid };
+  ]
   (
     receiver      := e;
     name          := n;
     args          := FAST_ARRAY(EXPR).create 0;
     result        := REG.clone;
+    slot          := s;
     (slot.result_type != NULL).if {
       result.make_type (slot.result_type);
     };

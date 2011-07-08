@@ -26,10 +26,12 @@ Section Public
   ]
   ( + self      :EXPR;
     + local     :ITM_EXPR_LOCAL;
+    + slot_obj  :SLOT;
     
     ((receiver = NULL) && {(local := lookup_local slot) != NULL}).if {
       // Local variable
       result := local.compile_in list.result;
+      err := local.err;
     } else {
       // Slot call
       + call :INSTR_CALL;
@@ -39,28 +41,36 @@ Section Public
         self := receiver.compile_in list.result;
       };
       ? {self.is_valid};
-      call := INSTR_CALL.clone.make_read slot receiver self;
-      arguments.iterate.loop_v { a:ITM_EXPR;
-        + arg :EXPR;
-        arg := a.compile_in list.result;
-        a.has_multiple_results.if {
-          a.results.iterate.loop_v { v:EXPR;
-            call.add_argument v;
-          };
-        } else {
-          call.add_argument arg;
-        };
-      };
-      call.add_in list;
-      call.slot.has_result.if {
-        result := EXPR.clone.make (call.result, call.slot.result_type);
+      slot_obj := self.type.prototype.find_slot slot;
+      (slot_obj = NULL).if {
+        err := error(err, position, "Cannot find slot " + slot + " in " + pretty_type (self.type));
+        err := error(err, position, "Discarding message");
       } else {
-        has_results := FALSE;
+        call := INSTR_CALL.clone.make_read slot receiver self slot slot_obj;
+        arguments.iterate.loop_v { a:ITM_EXPR;
+          + arg :EXPR;
+          arg := a.compile_in list.result;
+          a.has_multiple_results.if {
+            a.results.iterate.loop_v { v:EXPR;
+              call.add_argument v;
+            };
+          } else {
+            call.add_argument arg;
+          };
+        };
+        call.add_in list;
+        (call.slot.has_result).if {
+          result := EXPR.clone.make (call.result, call.slot.result_type);
+        } else {
+          has_results := FALSE;
+        };
       };
     };
 
     Self
   );
+  
+  + err :ERR := ERR;
   
   - to_string :STRING <-
   ( + res :STRING;

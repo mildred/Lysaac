@@ -15,9 +15,8 @@ Section Public
   + column :INTEGER_16 := 0;
 
   - create (file:CSTRING, line, column :INTEGER) :POS <-
-  ( + res:POS;
-    res.make (file, line, column);
-    res
+  (
+    clone.make (file, line, column)
   );
   
   - is_null :BOOLEAN <- ((line == 0) && {column == 0} && {file_id == 0});
@@ -38,6 +37,15 @@ Section Public
       };
     };
     res
+  );   
+   
+  - clone :SELF <-
+  // Very ugly hack !!!
+  ( + e:SELF;
+    + r:REFERENCE(SELF);
+    r := REFERENCE(SELF).create SELF;
+    e := r.to_e;
+    e
   );
 
 Section Private

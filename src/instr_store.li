@@ -14,6 +14,7 @@ Section Public
   
   - link <-
   (
+    ? {slot != NULL};
     ? {slot.is_compiled_data_slot};
   );
 
@@ -30,22 +31,6 @@ Section Public
     };
     gen.store value to r;
   );
-
-Section ITM_EXPR_WRITE
-
-  - make_itm itm:ITM_EXPR_WRITE store v:REG in e:EXPR :SELF <-
-  [
-    -? { v.is_valid };
-    -? { e.is_valid };
-  ]
-  (
-    slot       := e.type.prototype.find_slot (itm.slot_name);
-    receiver   := e;
-    value      := v;
-    Self
-  );
-
-Section SLOT
 
   - make_slot s:SLOT receiver r:REG value v:REG :SELF <-
   (

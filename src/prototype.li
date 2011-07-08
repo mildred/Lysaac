@@ -147,7 +147,7 @@ Section Private
   )
   [ +? { prototype_value.is_realized }; ];
 
-Section INSTR_CALL, INSTR_STORE
+Section ITM_EXPR
 
   - find_slot name:CSTRING :SLOT <-
   [ -? {parsed}; ]
