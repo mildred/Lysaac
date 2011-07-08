@@ -27,20 +27,19 @@ Section Public
 Section ITM_SLOT
 
   - get_argument_variable :MAYBE(EXPR) <-
-  ( + t :TYPE;
+  (
     + r :REG;
     + res :MAYBE(EXPR);
 
     r := REG.clone;
-    t := type.to_type;
-    (t != NULL).if {
+    type.to_type.if_true { t:TYPE;
       r .make_type t
         .make_pretty_name name;
       ? { r.is_valid };
       result := EXPR.clone.make(r, t);
-      res := MAYBE(EXPR).clone.make result;
-    } else {
-      res := MAYBE(EXPR).clone.make_error(error(type.err, position, "Cannot resolve type for "+name)); // TODO
+      res << result;
+    }.if_false2 { err:REFERENCE(ERR);
+      res <! error(err.to_e, position, "Cannot resolve type for "+name); // TODO
       result = NULL;
     };
     res

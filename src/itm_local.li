@@ -15,8 +15,17 @@ Section Public
   + type :ITM_TYPE;
   
   - read_in list:LIST :MAYBE(EXPR) <-
-  (
-    MAYBE(EXPR).clone.make_error(error(ERR, position, "read local not yet implemented"))
+  ( + r :REG;
+    + res :MAYBE(EXPR);
+    
+    r := INSTR_LOAD
+      .clone
+      .make pointer
+      .add_in list
+      .result;
+    
+    res << EXPR.clone.make (r, full_type);
+    res
   );
   
   - write val:EXPR in list:LIST :ERR <-
@@ -26,18 +35,36 @@ Section Public
 
 Section ITM_EXPR_GROUP
 
-  - compile_storage_in list:LIST :SELF <-
-  (
-    // alloca
-    Self
+  - compile_storage_in list:LIST :ERR <-
+  ( + e :ERR;
+    
+    type.to_type.if_false2 { err:REFERENCE(ERR);
+      e := error(err.to_e, position, "Could not allocate storage for local " + name);
+    }.if_true { t:TYPE;
+      full_type := t;
+      pointer := INSTR_ALLOCA
+        .clone
+        .make_type (t.base_type) count 1
+        .add_in list
+        .result;
+    };
+    e
   );
 
 Section PARSER
 
   - make_local (sty:ITM_STYLE, idf:CSTRING, typ:ITM_TYPE) :SELF <-
   (
+    typ.set_itm_parent Self;
     style := sty;
     name  := idf;
     type  := typ;
     Self
   );
+
+Section Private
+
+  + pointer :REG;
+  
+  + full_type :TYPE;
+

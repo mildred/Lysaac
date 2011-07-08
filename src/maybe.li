@@ -32,6 +32,10 @@ Section Public
     Self
   );
   
+  - Self:SELF '<<' e:E :SELF <- make e;
+  
+  - Self:SELF '<!' err:ERR :SELF <- make_error err;
+  
   - clear <-
   ( + e:E;
     element     := e;

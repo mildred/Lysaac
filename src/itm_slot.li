@@ -76,12 +76,11 @@ Section ITM_PROTOTYPE
       };
     };
     (return_type != NULL).if {
-      + t:TYPE;
-      t := return_type.to_type;
-      return_type.err.failure.if {
-        slot.add_error(error(return_type.err, position, "Dropping return type for slot " + identifier));
-      } else {
+      return_type.to_type.if_true { t:TYPE;
+        ? { t != NULL };
         slot.set_return_type (t);
+      }.if_false2 { e:REFERENCE(ERR);
+        slot.add_error(error(e.to_e, position, "Dropping return type for slot " + identifier));
       };
     };
     slot.finish_creation;

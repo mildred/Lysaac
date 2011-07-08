@@ -12,29 +12,25 @@ Section Public
   
   + block :BOOLEAN;
   
-  - to_type :TYPE <-
-  // Return NULL if the type cannot be found
-  ( + res :TYPE;
+  - to_type :MAYBE(TYPE) <-
+  ( + res :MAYBE(TYPE);
   
     block.if {
       + p:PROTOTYPE;
       p := cluster_parent.prototype_for_role "Block";
       (p = NULL).if {
-        err := error(err, position, "Could not find prototype for role Block");
+        res <! error(ERR, position, "Could not find prototype for role Block");
       } else {
-        res := p.to_type_block;
+        res << p.to_type_block;
       };
     } else {
-      res := slot_parent.find_type (prototype.prototype);
-      (res = NULL).if {
-        err := error(err, position, "Could not find type " + name);
+      res << slot_parent.find_type (prototype.prototype);
+      (res.element = NULL).if {
+        res <! error(ERR, position, "Could not find type " + name);
       };
     };
     res
-  )
-  [ +? { (err.failure) || {Result != NULL} }; ];
-  
-  + err :ERR := ERR;
+  );
   
   - name :CSTRING <- prototype.prototype;
 

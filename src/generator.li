@@ -208,6 +208,20 @@ Section Public
   // Instructions
   //
   
+  - alloca count:INTEGER of type:{} in res:REG <-
+  (
+    put_indent;
+    res.realize "%" id get_local;
+    put_reg res;
+    put " = alloca ";
+    type.value;
+    (count != 1).if {
+      put ", i32 ";
+      put_int count;
+    };
+    put_line;
+  );
+  
   - getelementptr_of receiver:REG in res:REG refs blc:{} <-
   (
     put_indent;

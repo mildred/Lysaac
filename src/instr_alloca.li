@@ -1,0 +1,37 @@
+Section Header
+
+  + name := INSTR_ALLOCA;
+
+Section Inherit
+
+  + parent_instr :Expanded INSTR;
+
+Section Public
+
+  + count :INTEGER;
+  
+  + type :BASE_TYPE;
+
+  //
+  // Link
+  //
+  
+  - link;
+
+  //
+  // Generate
+  //
+
+  - generate gen:GENERATOR <-
+  (
+    gen.alloca count of { type.generate gen } in result;
+  );
+  
+  - make_type t:BASE_TYPE count c:INTEGER :SELF <-
+  (
+    count  := c;
+    type   := t;
+    result := REG.clone.make_type (BASE_TYPE.create_pointer t);
+    Self
+  );
+

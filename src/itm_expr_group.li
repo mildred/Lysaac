@@ -43,7 +43,9 @@ Section Public
       };
     } else {
       locals.iterate.loop_v { l:ITM_LOCAL;
-        l.compile_storage_in list;
+        l.compile_storage_in list.if_fail { e:ERR;
+          list.error_collector.add_error (e);
+        };
       };
       instructions.iterate.loop_v { i:ITM_INST;
         i.compile_in list;

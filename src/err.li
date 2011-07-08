@@ -26,6 +26,18 @@ Section Public
     };
   );
   
+  - if_fail blc:{SELF;} :SELF <-
+  (
+    failure.if { blc.value Self; };
+    Self
+  );
+  
+  - if_fail2 blc:{REFERENCE(SELF);} :SELF <-
+  (
+    failure.if { blc.value (REFERENCE(SELF).create Self); };
+    Self
+  );
+  
   - to_string :STRING <-
   [ -? { ERR.success }; ]
   ( + res:STRING;

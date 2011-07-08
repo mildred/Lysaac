@@ -20,9 +20,11 @@ Section Public
     res
   );
   
-  - cluster_parent   :CLUSTER   <- prototype_parent.cluster;
-  - prototype_parent :PROTOTYPE <- itm_parent.prototype_parent;
-  - slot_parent      :ITM_SLOT  <- itm_parent.slot_parent;
+  - cluster_parent   :CLUSTER   <- (prototype_parent.cluster);
+  - prototype_parent :PROTOTYPE <- (itm_parent.prototype_parent);
+  - slot_parent      :ITM_SLOT  <- (itm_parent.slot_parent);
+  
+  - itm_root :BOOLEAN <- (itm_parent = NULL);
   
   - make_position p:POS :SELF <-
   (

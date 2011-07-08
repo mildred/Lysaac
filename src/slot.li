@@ -73,6 +73,7 @@ Section ITM_SLOT
   - add_argument v:REG <- arguments.add_last v;
   
   - set_return_type t:TYPE <-
+  [ -? { t != NULL }; ]
   (
     default_value := EXPR.clone.make_type t;
     result_type := t;
