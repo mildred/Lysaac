@@ -81,7 +81,7 @@ Section ITM_SLOT
   
   - finish_creation <-
   ( + error :BOOLEAN;
-    (internal && {!is_block_value_slot}).if {
+    (internal).if {
       + sym :ITM_EXPR_SYM;
       sym ?= ast.expression;
       (sym = NULL).if {
@@ -144,7 +144,7 @@ Section Private
   - compile_slot <-
   [ -? {! external}; ]
   (
-    (internal && {!is_block_value_slot}).if {
+    (internal).if {
       compile_opcode_in list;
     }.elseif {is_compiled_data_slot && {ast.affect.data}} then {
       // Read data slot
@@ -193,6 +193,11 @@ Section Private
         .make (self.type.prototype.base_type)
         .add_in list
         .result);
+    }.elseif {internal_opcode == "value"} then {
+      INSTR_CALL
+        .clone
+        .make_ptrcall (list.self)
+        .add_in list;
     } else {
       add_error(error(ERR, ast.position, "Unknown opcode " + internal_opcode));
     }
@@ -243,11 +248,7 @@ Section Private
         self.reg.realize_using (prototype_self);
       };
       ? { self.reg.is_realized };
-      is_block_value_slot.if {
-        gen.call_ptr (list.self);
-      } else {
-        list.generate gen;
-      };
+      list.generate gen;
     } return (list.first_result_or_invalid);
   );
 
@@ -261,12 +262,6 @@ Section PROTOTYPE
   [ +? {is_compiled_data_slot}; ];
 
 Section Private
-
-  - is_block_value_slot :BOOLEAN <-
-  ( (prototype.role == "Block") &&
-    {internal} &&
-    {ast.has_keyword "Value"}
-  );
 
   + ast :ITM_SLOT;
   

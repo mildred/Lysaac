@@ -1,6 +1,17 @@
 Section Header
 
   + name := INSTR;
+  
+  // INSTRs are added to LISTs this way:
+  //
+  //   INSTR_ANY
+  //     .clone
+  //     .make_any ...
+  //     .add_in list
+  //     .result
+  //
+  // This returns the result REGister that you can use to build an EXPR or for
+  // other things.
 
 Section Inherit
 

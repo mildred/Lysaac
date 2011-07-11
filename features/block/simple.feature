@@ -14,7 +14,7 @@ Feature: Simple blocks
       
       Section Public
       
-        - value <- Internal Value;
+        - value <- Internal `value`;
       
       """
       And a file "c/main.li" with

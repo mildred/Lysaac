@@ -289,12 +289,20 @@ Section Public
     put ")\n";
   );
   
-  - call_ptr var:REG <-
+  - call_ptr var:REG args blc:{} result r:REG <-
   (
     put_indent;
-    put "tail call void ";
+    r.is_valid.if {
+      r.realize "%" id get_local;
+      put_reg r;
+      put " = ";
+    };
+    put "tail call ";
+    put_reg_type r;
+    put_c ' ';
     put_reg var;
     put "(";
+    blc.value;
     put ")\n";
   );
   

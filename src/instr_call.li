@@ -8,17 +8,9 @@ Section Inherit
 
 Section Public
 
-  //
-  // Receiver
-  //
-
-  + receiver :EXPR;  
+  + receiver :EXPR;
   
-  //
-  // Slot
-  //
-
-  + slot :SLOT;
+  + include_self :BOOLEAN;
 
   //
   // Link
@@ -32,17 +24,24 @@ Section Public
 
   - generate gen:GENERATOR <-
   (
-    gen.call (slot.name) args {
-      slot.external.if_false {
-        generate_arg receiver in gen;
-      };
-      args.iterate.loop_v { a:EXPR;
-        generate_arg a in gen;
-      };
-    } result result;
+    (slot = NULL).if {
+      gen.call_ptr function_pointer args { generate_args gen; } result result;
+    } else {
+      gen.call (slot.name) args { generate_args gen; } result result;
+    };
   );
 
 Section Private
+
+  - generate_args gen:GENERATOR <-
+  (
+    include_self.if {
+      generate_arg receiver in gen;
+    };
+    args.iterate.loop_v { a:EXPR;
+      generate_arg a in gen;
+    };
+  );
 
   - generate_arg arg:REG in gen:GENERATOR <-
   [ -? { arg.is_valid }; ]
@@ -52,36 +51,51 @@ Section Private
     };
   );
 
-Section ITM_EXPR_READ
+Section Public
 
-  - make_read n:CSTRING receiver e:EXPR slot s:SLOT :SELF <-
+  - make_read receiver_expr:EXPR slot s:SLOT :SELF <-
   [
     -? { s != NULL  };
-    -? { e.is_valid };
+    -? { receiver_expr.is_valid };
   ]
   (
-    receiver      := e;
-    name          := n;
+    receiver      := receiver_expr;
     args          := FAST_ARRAY(EXPR).create 0;
     result        := REG.clone;
     slot          := s;
+    include_self  := ! slot.external;
+    function_pointer := REG;
     (slot.result_type != NULL).if {
       result.make_type (slot.result_type);
     };
     Self
   );
+
+  - make_ptrcall function:REG :SELF <-
+  (
+    receiver      := EXPR;
+    args          := FAST_ARRAY(EXPR).create 0;
+    result        := REG.clone;
+    slot          := NULL;
+    include_self  := FALSE;
+    function_pointer := function;
+    Self
+  );
   
-  - add_argument v:EXPR <-
+  - add_argument v:EXPR :SELF <-
   [
     -? { v != NULL };
   ]
   (
     args.add_last v;
+    Self
   );
 
 Section Private
-
-  + name :CSTRING;
   
   + args :FAST_ARRAY(EXPR);
+
+  + slot :SLOT;
+  
+  + function_pointer :REG;
 

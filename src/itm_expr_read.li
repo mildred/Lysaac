@@ -51,7 +51,7 @@ Section Public
         err := error(err, position, "Cannot find slot " + slot + " in " + pretty_type (self.type));
         err := error(err, position, "Discarding message");
       } else {
-        call := INSTR_CALL.clone.make_read slot receiver self slot slot_obj;
+        call := INSTR_CALL.clone.make_read  self slot slot_obj;
         arguments.iterate.loop_v { a:ITM_EXPR;
           + arg :EXPR;
           arg := a.compile_in list.result;
@@ -64,8 +64,8 @@ Section Public
           };
         };
         call.add_in list;
-        (call.slot.has_result).if {
-          result := EXPR.clone.make (call.result, call.slot.result_type);
+        (slot_obj.has_result).if {
+          result := EXPR.clone.make (call.result, slot_obj.result_type);
           ? { result.is_valid };
         } else {
           has_results := FALSE;
