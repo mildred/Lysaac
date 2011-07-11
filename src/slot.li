@@ -60,7 +60,15 @@ Section Private
 
 Section PROTOTYPE
 
-  + default_value :EXPR;
+  + default_value :EXPR <-
+  (
+    (result_type = NULL).if {
+      default_value := EXPR;
+    } else {
+      default_value := EXPR.clone.make_type result_type;
+    };
+    default_value
+  );
 
 Section ITM_SLOT
 
@@ -71,9 +79,9 @@ Section ITM_SLOT
     list          := NULL;
     ast           := s;
     prototype     := ast.prototype_parent;
-    default_value := EXPR;
     self          := EXPR;
     type_index    := -1;
+    result_type   := NULL;
     ? {prototype != NULL};
     Self
   );
@@ -83,7 +91,6 @@ Section ITM_SLOT
   - set_return_type t:TYPE <-
   [ -? { t != NULL }; ]
   (
-    default_value := EXPR.clone.make_type t;
     result_type := t;
   );
   
@@ -226,6 +233,12 @@ Section LIST_PROC
       gen.declare_sub external_name args {
         arguments.iterate.loop_v { v:REG;
           gen.arg { v.base_type.generate gen; };
+        };
+      } return {
+        (result_type = NULL).if {
+          gen.type_void;
+        } else {
+          result_type.base_type.generate gen;
         };
       };
     } else {

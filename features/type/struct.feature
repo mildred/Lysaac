@@ -61,7 +61,6 @@ Feature: Types must be able to contain values
       Hello World to 1ntegers and 2ntegers
       """
 
-  @future
   Scenario: values are different on different objects
     Given the following prototypes in "c":
       | Prototype |
@@ -80,7 +79,7 @@ Feature: Types must be able to contain values
         - printf (format:CSTRING, arg:INT32) <- External `printf`;
         - puts   (string:CSTRING)            <- External `puts`;
         - malloc (size:INT32) :MAIN          <- External `malloc`;
-        - object_size :INT32                 <- Internal ObjectSize;
+        - object_size :INT32                 <- Internal `object_size`;
       
         - hello <-
         (
@@ -97,6 +96,7 @@ Feature: Types must be able to contain values
         ( + other :MAIN;
           hello;
           other := malloc(object_size);
+          other.set 1;
           other.hello;
           other.set 2;
           other.hello;
@@ -114,7 +114,7 @@ Feature: Types must be able to contain values
       
       """
 
-  @future
+  @wip
   Scenario: shared values are the same on different objects
     Given the following prototypes in "c":
       | Prototype |
@@ -145,11 +145,16 @@ Feature: Types must be able to contain values
         (
           one := i;
         );
+        
+        - clone :MAIN <-
+        (
+          malloc(object_size)
+        );
       
         - main <- Export
         ( + other :MAIN;
           hello;
-          other := malloc(object_size);
+          other := clone;
           other.hello;
           other.set 2;
           other.hello;

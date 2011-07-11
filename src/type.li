@@ -14,7 +14,20 @@ Section Public
   
   + block :BOOLEAN;
   
-  + base_type :BASE_TYPE;
+  + base_type :BASE_TYPE <-
+  [ -? { prototype.defined }; ]
+  (
+    block.if {
+      base_type := BASE_TYPE.create_pointer (BASE_TYPE.create_function);
+    } else {
+      prototype.expanded.if {
+        base_type := prototype.base_type;
+      } else {
+        base_type := BASE_TYPE.create_pointer (prototype.base_type);
+      };
+    };
+    base_type
+  );
   
   - void :BOOLEAN <- base_type.void;
 
@@ -35,30 +48,22 @@ Section Public
 Section PROTOTYPE
 
   - make p:PROTOTYPE :SELF <-
-  [ -? { ! p.void }; ]
+  [ -? { p.made }; ]
   (
     (p.role == "Block").if {
       make_block p;
     } else {
       block := FALSE;
       prototype := p;
-      prototype.expanded.if {
-        base_type := prototype.base_type;
-      } else {
-        base_type := BASE_TYPE.create_pointer (prototype.base_type);
-      };
     };
     Self
-  )
-  [ +? { ! base_type.void }; ];
+  );
   
   - make_block p:PROTOTYPE :SELF <-
-  [ -? { ! p.base_type.void }; ]
+  [ -? { p.made }; ]
   (
     block := TRUE;
     prototype := p;
-    base_type := BASE_TYPE.create_pointer (BASE_TYPE.create_function);
     Self
-  )
-  [ +? { ! base_type.void }; ];
+  );
 

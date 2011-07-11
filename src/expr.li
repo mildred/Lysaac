@@ -38,6 +38,7 @@ Section Public
   - make_type t:TYPE :SELF <-
   [
     -? { t != NULL };
+    -? { t.prototype.defined };
   ]
   (
     make(REG.clone.make_type t, t)

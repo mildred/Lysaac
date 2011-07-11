@@ -161,10 +161,4 @@ Section GENERATOR
 Section Private
 
   + m_base_type :BASE_TYPE;
-  
-  - change_type t:BASE_TYPE :SELF <-
-  (
-    m_base_type := t;
-    Self
-  );
 

@@ -143,10 +143,12 @@ Section Public
   // Subroutines
   //
 
-  - declare_sub name:CSTRING args args:{} <-
+  - declare_sub name:CSTRING args args:{} return ret:{} <-
   (
     put_indent;
-    put "declare void ";
+    put "declare ";
+    ret.value;
+    put " ";
     put_reg "@" name name;
     put " (";
     args.value;
