@@ -27,7 +27,7 @@ Section Public
     (slot = NULL).if {
       gen.call_ptr function_pointer args { generate_args gen; } result result;
     } else {
-      gen.call (slot.name) args { generate_args gen; } result result;
+      gen.call (slot.external_name) args { generate_args gen; } result result;
     };
   );
 

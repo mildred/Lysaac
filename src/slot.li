@@ -16,7 +16,15 @@ Section Public
   
   + internal_opcode :CSTRING := "";
   
-  + external_name :CSTRING <- name;
+  + external_name :CSTRING <-
+  ( 
+    (export | external).if {
+      external_name := name;
+    } else {
+      external_name := symbol_encode_prototype prototype slot Self;
+    };
+    external_name
+  );
   
   + arguments :FAST_ARRAY(REG);
   
