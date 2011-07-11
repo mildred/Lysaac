@@ -33,6 +33,12 @@ Section Public
   [
     -? { r.base_type.pointer };
     -? { r.base_type.pointer_type.struct };
+    -? { s.type_index >= 0 };
+    r.base_type.pointer_type.struct_types.valid_index (s.type_index).if_false {
+      warnln("INSTR_GETELEMPTR.make slot " + s.to_string + " with invalid type_index");
+      warnln("slot type index: " + s.type_index.to_string);
+      warnln("base type      : " + r.base_type.to_string);
+    };
     -? { r.base_type.pointer_type.struct_types.valid_index (s.type_index) };
     -? { s.result_type.base_type == r.base_type.pointer_type.struct_types.item (s.type_index) };
   ]
