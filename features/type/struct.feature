@@ -133,7 +133,7 @@ Feature: Types must be able to contain values
         - printf (format:CSTRING, arg:INT32) <- External `printf`;
         - puts   (string:CSTRING)            <- External `puts`;
         - malloc (size:INT32) :MAIN          <- External `malloc`;
-        - object_size :INT32                 <- Internal SizeOf;
+        - object_size :INT32                 <- Internal `object_size`;
       
         - hello <-
         (

@@ -310,9 +310,11 @@ Section PROTOTYPE
     type_index := i;
   );
 
-Section Private
+Section ITM_EXPR_WRITE
 
   + shared_data_variable :REG;
+
+Section Private
 
   + ast :ITM_SLOT;
   

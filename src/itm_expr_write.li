@@ -36,17 +36,23 @@ Section Public
       };
     } else {
       slot := list.self.type.prototype.find_slot slot_name;
-      slot.shared.if { not_yet_implemented; };
       (slot = NULL).if {
         err := error(err, position, "Cannot find slot " + slot_name + " in " + pretty_type(list.self.type));
         err := error(err, position, "Discarding write");
+      }.elseif {! slot.slot_data} then {
+        err := error(err, position, "Cannot write into slot " + slot_name + " in " + pretty_type(list.self.type) + ": is not a data slot");
+        err := error(err, position, "Discarding write");
       } else {
         + r :REG;
-        r := INSTR_GETELEMPTR
-          .clone
-          .make (list.self) slot slot
-          .add_in list
-          .result;
+        slot.shared.if {
+          r := slot.shared_data_variable;
+        } else {
+          r := INSTR_GETELEMPTR
+            .clone
+            .make (list.self) slot slot
+            .add_in list
+            .result;
+        };
         INSTR_STORE
           .clone
           .make_store_in r value result
