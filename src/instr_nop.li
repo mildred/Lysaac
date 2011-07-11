@@ -8,7 +8,7 @@ Section Inherit
 
 Section Public
 
-  - link;
+  - link gen:GENERATOR;
 
   - generate gen:GENERATOR;
 

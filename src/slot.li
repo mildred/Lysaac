@@ -48,11 +48,15 @@ Section Public
     res
   );
   
-  - is_compiled_data_slot :BOOLEAN <- type_index >= 0;
-  
   + type_index :INTEGER := -1;
   
   - position :POS <- ast.position;
+  
+  - shared :BOOLEAN <- style.minus;
+  
+  - slot_data :BOOLEAN <- (ast.affect.data);
+  
+  - slot_code :BOOLEAN <- (! slot_data);
 
 Section Private
 
@@ -130,6 +134,9 @@ Section LIST_PROC
       ? { sym != NULL };
       external_name := sym.symbol;
     } else {
+      ((shared) && {slot_data}).if {
+        shared_data_variable := REG.clone.make_type (BASE_TYPE.create_pointer(result_type.base_type));
+      };
       list.set_list_procs list_procs;
       prototype.initializer_list.set_list_procs list_procs;
       compile_initializer;
@@ -142,17 +149,25 @@ Section Private
   - compile_initializer <-
   [ -? {! external}; ]
   ( + r:REG;
-    (is_compiled_data_slot && {ast.affect.data}).if {
-      r := INSTR_GETELEMPTR
-        .clone
-        .make (prototype.initializer_list.self) slot Self
-        .add_in (prototype.initializer_list)
-        .result;
-      INSTR_STORE
-        .clone
-        .make_store_in r
-          value (ast.expression.compile_in (prototype.initializer_list).result)
-        .add_in (prototype.initializer_list);
+    slot_data.if {
+      shared.if {
+        INSTR_STORE
+          .clone
+          .make_store_in shared_data_variable
+            value (ast.expression.compile_in (prototype.initializer_list).result)
+          .add_in (prototype.initializer_list);
+      } else {
+        r := INSTR_GETELEMPTR
+          .clone
+          .make (prototype.initializer_list.self) slot Self
+          .add_in (prototype.initializer_list)
+          .result;
+        INSTR_STORE
+          .clone
+          .make_store_in r
+            value (ast.expression.compile_in (prototype.initializer_list).result)
+          .add_in (prototype.initializer_list);
+      };
     };
   );
 
@@ -161,13 +176,21 @@ Section Private
   (
     (internal).if {
       compile_opcode_in list;
-    }.elseif {is_compiled_data_slot && {ast.affect.data}} then {
+    }.elseif {slot_data} then {
       // Read data slot
-      list.add_result (INSTR_LOAD
-        .clone
-        .make_slot Self receiver (list.self) list list
-        .add_in list
-        .result);
+      shared.if {
+        list.add_result (INSTR_LOAD
+          .clone
+          .make shared_data_variable
+          .add_in list
+          .result);
+      } else {
+        list.add_result (INSTR_LOAD
+          .clone
+          .make_slot Self receiver (list.self) list list
+          .add_in list
+          .result);
+      };
     }.elseif {ast.expression != NULL} then {
       // Nominal case
       ast.expression.compile_in list;
@@ -220,10 +243,13 @@ Section Private
 
 Section LIST_PROC
 
-  - link <-
+  - link gen:GENERATOR <-
   (
     external.if_false {
-      list.link;
+      ((slot_data) && {shared}).if {
+        gen.alloc_global shared_data_variable;
+      };
+      list.link gen;
     };
   );
   
@@ -242,6 +268,9 @@ Section LIST_PROC
         };
       };
     } else {
+      ((slot_data) && {shared}).if {
+        gen.global_variable shared_data_variable;
+      };
       generate_slot gen;
     };
   );
@@ -279,10 +308,11 @@ Section PROTOTYPE
   [ -? {i >= 0}; ]
   (
     type_index := i;
-  )
-  [ +? {is_compiled_data_slot}; ];
+  );
 
 Section Private
+
+  + shared_data_variable :REG;
 
   + ast :ITM_SLOT;
   

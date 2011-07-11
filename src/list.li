@@ -45,10 +45,10 @@ Section PROC, PROTOTYPE
   
 Section PROC, PROTOTYPE
 
-  - link <-
+  - link gen:GENERATOR <-
   (
     instructions.iterate.loop_v { i:INSTR;
-      i.link;
+      i.link gen;
     };
   );
 

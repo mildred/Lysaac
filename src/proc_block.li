@@ -35,7 +35,7 @@ Section LIST_PROC
     itm_expr.compile_in list;
   );
   
-  - link <- list.link;
+  - link gen:GENERATOR <- list.link gen;
   
   - generate gen:GENERATOR <-
   [ -? { ! self.reg.is_realized }; ]

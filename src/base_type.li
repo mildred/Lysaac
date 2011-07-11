@@ -56,6 +56,7 @@ Section Public
   - integer      :BOOLEAN <- (kind == kind_integer);
   - integer_size :INTEGER <- [ -?{integer}; ] i_size;
   
+  - i1  :BASE_TYPE := create_integer 1;
   - i8  :BASE_TYPE := create_integer 8;
   - i16 :BASE_TYPE := create_integer 16;
   - i32 :BASE_TYPE := create_integer 32;

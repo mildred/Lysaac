@@ -9,6 +9,22 @@ Section Inherit
 Section Public
 
   //
+  // Link
+  //
+  
+  - alloc_global r:REG <-
+  (
+    r.realize "@" id get_global;
+  );
+  
+  - alloc_global r:REG symbol sym:CSTRING :ERR <-
+  (
+    //TODO: check symbol collision
+    r.realize "@" name sym;
+    ERR
+  );
+
+  //
   // Types
   //
 
@@ -95,7 +111,6 @@ Section Public
   [ -?{ var.base_type.pointer }; ]
   (
     context_const {
-      var.realize "@" id get_global;
       put_reg var;
       put " = private constant ";
       var.base_type.pointer_type.generate Self;
@@ -125,13 +140,23 @@ Section Public
   );
   
   - global_prototype_value v:REG name n:CSTRING <-
+  [ -? { v.base_type.pointer }; ]
   ( + t :BASE_TYPE;
     context_const {
-      t := v.base_type;
-      t.pointer.if {
-        t := t.pointer_type;
-      };
+      t := v.base_type.pointer_type;
       v.realize "@" name n;
+      put_reg v;
+      put " = global ";
+      t.generate Self;
+      put " undef\n";
+    };
+  );
+  
+  - global_variable v:REG <-
+  [ -? { v.base_type.pointer }; ]
+  ( + t :BASE_TYPE;
+    context_const {
+      t := v.base_type.pointer_type;
       put_reg v;
       put " = global ";
       t.generate Self;
@@ -155,9 +180,9 @@ Section Public
     put ")\n\n";
   );
   
-  - ctor_sub prio:INTEGER do blc:{} <-
+  - ctor_sub prio:INTEGER in global:REG do blc:{} <-
   ( + proc:INTEGER;
-    proc := get_global;
+    proc := global.identifier;
     constructors.add_last prio;
     constructors.add_last proc;
     context_const {

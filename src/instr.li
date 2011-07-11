@@ -23,7 +23,7 @@ Section Public
   
   + list_parent :LIST;
   
-  - link <- deferred;
+  - link gen:GENERATOR <- deferred;
 
   - generate gen:GENERATOR <- deferred;
   

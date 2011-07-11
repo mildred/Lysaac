@@ -36,7 +36,7 @@ Section Public
       };
     } else {
       slot := list.self.type.prototype.find_slot slot_name;
-      slot.style.minus.if { not_yet_implemented; };
+      slot.shared.if { not_yet_implemented; };
       (slot = NULL).if {
         err := error(err, position, "Cannot find slot " + slot_name + " in " + pretty_type(list.self.type));
         err := error(err, position, "Discarding write");

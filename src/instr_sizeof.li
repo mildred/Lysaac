@@ -12,7 +12,7 @@ Section Public
   // Link
   //
   
-  - link;
+  - link gen:GENERATOR;
 
   //
   // Generate

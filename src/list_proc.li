@@ -17,17 +17,23 @@ Section Public
     };
   );
   
-  - link <-
+  - link gen:GENERATOR <-
   (
+    constants.iterate.loop_v { i:INSTR_STRING;
+      i.link_constant gen;
+    };
     slots.iterate.loop_v { s:PROC;
       progress_step (cur_step,num_steps) message ("Link " + s.external_name);
       cur_step := cur_step + 1;
-      s.link;
+      s.link gen;
     };
   );
 
   - generate gen:GENERATOR <-
   (
+    constants.iterate.loop_v { i:INSTR_STRING;
+      i.generate_constant gen;
+    };
     slots.iterate.loop_v { s:PROC;
       progress_step (cur_step,num_steps) message ("Generate " + s.external_name);
       cur_step := cur_step + 1;
@@ -49,6 +55,7 @@ Section CLUSTER
   - make :SELF <-
   (
     slots := FAST_ARRAY(PROC).create 0;
+    constants := FAST_ARRAY(INSTR_STRING).create 0;
     Self
   );
   
@@ -73,7 +80,18 @@ Section ITM_SLOT, ITM_EXPR_GROUP
     slots.add_last b;
   );
 
+Section INSTR_STRING
+
+  - add_constant cst:INSTR_STRING <-
+  (
+    constants.fast_has cst.if_false {
+      constants.add_last cst;
+    };
+  );
+
 Section Private
+
+  + constants :FAST_ARRAY(INSTR_STRING);
 
   + slots :FAST_ARRAY(PROC);
 

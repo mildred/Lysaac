@@ -36,7 +36,7 @@ Section Public
     } else {
       base_type := BASE_TYPE.create_struct;
       slots.iterate.loop_v { s:SLOT;
-        s.is_compiled_data_slot.if {
+        s.shared.if_false {
           base_type.struct_types.add_last (s.result_type.base_type);
         };
       };
@@ -92,9 +92,11 @@ Section Public
   )
   [ +? {compiled}; ];
   
-  - link <-
+  - link gen:GENERATOR <-
   (
-    initializer_list.link;
+    global_ctor_sub := REG.clone;
+    gen.alloc_global global_ctor_sub;
+    initializer_list.link gen;
     state := state_linked;
   );
   
@@ -130,7 +132,7 @@ Section Private
 
   - generate_initializer gen:GENERATOR <-
   (
-    gen.ctor_sub 65535 do {
+    gen.ctor_sub 65535 in global_ctor_sub do {
       ? { prototype_value.is_realized };
       initializer_list.generate gen;
     };
@@ -278,5 +280,7 @@ Section Private
   + type_block :TYPE;
   
   + prototype_value :REG;
+  
+  + global_ctor_sub :REG;
 
 

@@ -16,7 +16,7 @@ Section Public
   - parsed    :BOOLEAN <- state >= state_parsed;    // AST is ready
   - defined   :BOOLEAN <- state >= state_defined;   // External interfaces are defined
   - compiled  :BOOLEAN <- state >= state_compiled;  // Code is compiled
-  - linked    :BOOLEAN <- state >= state_linked;    // Link checks are made
+  - linked    :BOOLEAN <- state >= state_linked;    // Variables are allocated
   - generated :BOOLEAN <- state >= state_generated; // Code is generated
 
   + path :CSTRING;
@@ -75,7 +75,7 @@ Section Public
     parse_my_prototypes;
     define_my_prototypes;
     compile_my_prototypes_and_slots;
-    link_my_slots;
+    link_my_slots gen;
     generate_my_slots gen;
   );
 
@@ -373,17 +373,17 @@ Section Private
     state := state_compiled;
   );
   
-  - link_my_slots <-
-  // 3.   Link (don't do much, now except check one error)
+  - link_my_slots gen:GENERATOR <-
+  // 3.   Allocate global variables
   (
     list.iterate.loop_v { i:CLUSTER_ITEM;
       i.is_prototype.if {
         progress_step (cur_step,num_steps) message ("Link " + i.prototype.name);
         cur_step  := cur_step  + 1;
-        i.prototype.link;
+        i.prototype.link gen;
       };
     };
-    slots.link;
+    slots.link gen;
     state := state_linked;
   );
 
