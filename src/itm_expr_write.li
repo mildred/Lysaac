@@ -15,49 +15,59 @@ Section Public
   + slot_name :CSTRING;
   
   + expr :ITM_EXPR;
-  
-  - has_results :BOOLEAN <- TRUE;
-
-  + result :EXPR := EXPR;
 
   - compile_in list:LIST :SELF <-
   [ -? { list.self != NULL }; ]
-  ( + slot :SLOT;
-    + local :ITM_LOCAL;
+  ( + local :ITM_LOCAL;
     
-    // affect result is the expression
-    result := expr.compile_in list.result;
-  
-    // Affect
-    ((local := lookup_local slot_name) != NULL).if {
-      // Local variable
-      local.write result in list.if_fail { e:ERR;
-        err := e;
-      };
+    
+    expr.compile_in list;
+    expr.results.failure.if {
+      results <! expr.results.err.extend(position, "Discarding write");
+    }.elseif {expr.results.is_empty} then {
+      results <! expr.position.error("Missing expression").extend(position, "Discarding write");
     } else {
-      slot := list.self.type.prototype.find_slot slot_name;
-      (slot = NULL).if {
-        err := error(err, position, "Cannot find slot " + slot_name + " in " + pretty_type(list.self.type));
-        err := error(err, position, "Discarding write");
-      }.elseif {! slot.slot_data} then {
-        err := error(err, position, "Cannot write into slot " + slot_name + " in " + pretty_type(list.self.type) + ": is not a data slot");
-        err := error(err, position, "Discarding write");
-      } else {
-        + r :REG;
-        slot.shared.if {
-          r := slot.shared_data_variable;
-        } else {
-          r := INSTR_GETELEMPTR
-            .clone
-            .make (list.self) slot slot
-            .add_in list
-            .result;
-        };
-        INSTR_STORE
-          .clone
-          .make_store_in r value result
-          .add_in list;
+      expr.results.is_single.if_false {
+        results <! expr.position.error("Keep only the first expression");
       };
+    
+      // affect result is the expression
+      results << expr.results.first;
+    
+      ((local := lookup_local slot_name) != NULL).if {
+        // Affect local variable
+
+        local.write (results.first) in list.if_fail { e:ERR;
+          results <! e;
+        };
+
+      } else {
+        // Slot write
+
+        list.self.type.prototype.find_slot slot_name.if_false { e:ERR;
+          results <! e.extend(position, "Discarding write");
+        } else { slot:SLOT;
+          (!slot.slot_data).if {
+            results <! slot.position.error ("Slot is not a data slot").extend(position, "Discarding write");
+          } else {
+            + r :REG;
+            slot.shared.if {
+              r := slot.shared_data_variable;
+            } else {
+              r := INSTR_GETELEMPTR
+                .clone
+                .make (list.self) slot slot
+                .add_in list
+                .result;
+            };
+            INSTR_STORE
+              .clone
+              .make_store_in r value (results.first)
+              .add_in list;
+          };
+        };
+      };
+
     };
     Self
   );
@@ -67,6 +77,7 @@ Section PARSER
   - make_affect a:ITM_AFFECT in var:CSTRING of e:ITM_EXPR :SELF <-
   (
     e.set_itm_parent Self;
+    results   := EXPR1.clone;
     affect    := a;
     slot_name := var;
     expr      := e;

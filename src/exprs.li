@@ -1,0 +1,61 @@
+Section Header
+
+  + name := EXPRS;
+  
+  - import := EXPR, ERR;
+  
+  - export := ERR;
+  
+  - default := EXPRS;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+
+  // + parent_traversable_expr :Expanded TRAVERSABLE(EXPR);
+
+Section Public
+
+  + err :ERR;
+  
+  - failure :BOOLEAN <- err.failure;
+  - success :BOOLEAN <- err.success;
+
+  - count :INTEGER <- 0;
+  
+  - is_empty  :BOOLEAN <- count = 0;
+  - is_single :BOOLEAN <- count = 1;
+  
+  - lower :INTEGER <- 0;
+  - upper :INTEGER <- -1;
+  
+  - first :EXPR <- item lower;
+  - last  :EXPR <- item upper;
+  
+  - item i:INTEGER :EXPR <- EXPR;
+  
+  - Self:SELF '<<'  other:EXPR  :SELF <- [ -?{Self != SELF}; ] (deferred; Self);
+  - Self:SELF '<<<' other:EXPRS :SELF <- [ -?{Self != SELF}; ] (deferred; Self);
+  - Self:SELF '<!'  other:ERR   :SELF <- [ -?{Self != SELF}; ] (make_error other);
+
+  - from_expr e:EXPR :EXPRS <-
+  (
+    EXPR1.clone.make e
+  );
+
+  - from_err e:ERR :EXPRS <-
+  (
+    EXPRS.clone.make_error e;
+  );
+  
+  - make_error e:ERR :SELF <-
+  (
+    (err = NULL).if {
+      err := e;
+    } else {
+      err <! e;
+    };
+    Self
+  );
+  
+  - to_err :ERR <- err;

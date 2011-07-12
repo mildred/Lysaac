@@ -1,0 +1,46 @@
+Section Header
+
+  + name := EXPRN;
+
+Section Inherit
+
+  + parent_exprs :Expanded EXPRS;
+
+Section Public
+
+  - count :INTEGER <- list.count;
+  
+  - lower :INTEGER <- list.lower;
+  - upper :INTEGER <- list.upper;
+  
+  - item i:INTEGER :EXPR <- list.item i;
+  
+  - add_last e:EXPR <-
+  [ ? { list != NULL }; ]
+  (
+    // Avoid call on NULL and Lisaac optimizing everything else after the
+    // die_with_code(1); resulting in a syntax error: the Result_??? variable is
+    // not declared.
+    (list = NULL).if {list := FAST_ARRAY(EXPR).create 0;};
+    
+    list.add_last e;
+  );
+
+  - Self:SELF '<<' other:EXPR :SELF <- (add_last other; Self);
+  
+  - Self:SELF '<<<' other:EXPRS :SELF <-
+  (
+    other.lower.to (other.upper) do { i:INTEGER;
+      add_last (other.item i);
+    };
+    Self
+  );
+  
+  - make :SELF <-
+  (
+    list := FAST_ARRAY(EXPR).create 0;
+    Self
+  );
+
+  + list :FAST_ARRAY(EXPR);
+  

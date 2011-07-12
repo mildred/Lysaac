@@ -1,0 +1,26 @@
+Section Header
+
+  + name := EXPR1;
+
+Section Inherit
+
+  + parent_exprs :Expanded EXPRS;
+
+Section Public
+
+  - count :INTEGER <- 1;
+  
+  - lower :INTEGER <- 0;
+  - upper :INTEGER <- 0;
+  
+  - item i:INTEGER :EXPR <- expression;
+  
+  + expression :EXPR;
+  
+  - Self:SELF '<<' other:EXPR :SELF <- (make other);
+  
+  - make e:EXPR :SELF <-
+  (
+    expression := e;
+    Self
+  );

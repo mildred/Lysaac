@@ -37,7 +37,9 @@ Section Public
       };
     };
     res
-  );   
+  );
+  
+  - error msg:ABSTRACT_STRING :ERR <- ERR.create msg position Self;
    
   - clone :SELF <-
   // Very ugly hack !!!

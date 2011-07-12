@@ -66,8 +66,8 @@ Section Public
   - if_false false_blc:{ERR;} :SELF <-
   ( has_element.if_false { false_blc.value (error); }; Self );
 
-  - if_false2 false_blc:{REFERENCE(ERR);} :SELF <-
-  ( has_element.if_false { false_blc.value (REFERENCE(ERR).create error); }; Self );
+  - if_false false_blc:{ERR;} else true_blc:{E;} :SELF <-
+  ( has_element.if { true_blc.value element; } else { false_blc.value (error); }; Self );
 
   - if true_blc:{E;} :BOOLEAN <-
   ( has_element.if { true_blc.value element; }; has_element );

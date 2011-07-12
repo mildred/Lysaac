@@ -151,17 +151,22 @@ Section Private
 
 Section ITM_EXPR
 
-  - find_slot name:CSTRING :SLOT <-
+  - find_slot name:CSTRING :MAYBE(SLOT) <-
   [ -? {parsed}; ]
   ( + it:ITERATOR(SLOT);
-    + res :SLOT;
+    + res :MAYBE(SLOT);
     
     (it := slots.iterate).loop_v { s:SLOT;
       (s.name = name).if {
-        res := s;
+        res << s;
         it.stop;
       };
     };
+    
+    res.has_element.if_false {
+      res <! ast.position.error("Could not find slot " + name);
+    };
+    
     res
   );
 

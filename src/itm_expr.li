@@ -12,41 +12,9 @@ Section Public
 
   - compile_in list:LIST :SELF <-
   (
-    err := error(ERR, position, "Cannot compile " + type_name);
+    results <! position.error("Cannot compile " + type_name);
     Self
-  )
-  [
-    type_name +? { Result = Self };
-    type_name +? { result != NULL };
-    has_results.if {
-      has_multiple_results.if {
-        type_name +? { results != NULL };
-      } else {
-        type_name +? { (err.failure) || {result.is_valid} };
-      };
-    };
-  ];
+  );
   
-  - err :ERR <- ERR;
-  
-  - has_results          :BOOLEAN <- FALSE;
-  + has_multiple_results :BOOLEAN <- FALSE;
-  
-  + result :EXPR <- 
-  [
-    type_name -? { ! has_multiple_results };
-  ]
-  ( EXPR )
-  [
-    type_name +? { Result != NULL };
-    type_name +? { (Result.is_valid) || {! has_results} };
-  ];
-  
-  - results :FAST_ARRAY(EXPR) <-
-  [
-    type_name -? { has_results };
-    type_name -? { has_multiple_results };
-  ]
-  ( deferred; NULL );
-
+  + results :EXPRS;
 

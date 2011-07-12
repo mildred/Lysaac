@@ -21,7 +21,7 @@ Section Public
   
   - write val:EXPR in list:LIST :ERR <-
   (
-    error(ERR, position, "Attempt to write an argument")
+    position.error("Attempt to write an argument")
   );
 
 Section ITM_SLOT
@@ -32,15 +32,15 @@ Section ITM_SLOT
     + res :MAYBE(EXPR);
 
     r := REG.clone;
-    type.to_type.if_true { t:TYPE;
+    type.to_type.if_false { err:ERR;
+      res <! err.extend(position, "Cannot resolve type for "+name); // TODO
+      result = NULL;
+    } else { t:TYPE;
       r .make_type t
         .make_pretty_name name;
       ? { r.is_valid };
       result := EXPR.clone.make(r, t);
       res << result;
-    }.if_false2 { err:REFERENCE(ERR);
-      res <! error(err.to_e, position, "Cannot resolve type for "+name); // TODO
-      result = NULL;
     };
     res
   );

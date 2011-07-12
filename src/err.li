@@ -1,6 +1,6 @@
 Section Header
 
-  + name := Expanded ERR;
+  + name := ERR;
 
 Section Insert
 
@@ -8,16 +8,16 @@ Section Insert
 
 Section Public
 
-  + position :POS            := POS;
-  + message  :CSTRING        := "";
-  + parent   :REFERENCE(ERR) := NULL;
+  + position :POS     := POS;
+  + message  :CSTRING := "";
+  + parent   :ERR     := NULL;
   
   - failure :BOOLEAN <- ! success;
   
   - success :BOOLEAN <-
     (position.is_null) &&
     {message.is_empty} &&
-    {(parent = NULL) || {parent.to_e.success}};
+    {(parent = NULL) || {parent.success}};
     
   - assert <-
   (
@@ -32,60 +32,54 @@ Section Public
     Self
   );
   
-  - if_fail2 blc:{REFERENCE(SELF);} :SELF <-
+  - if_fail blc:{SELF;} else else_blc:{} :SELF <-
   (
-    failure.if { blc.value (REFERENCE(SELF).create Self); };
+    failure.if { blc.value Self; } else else_blc;
     Self
   );
   
   - to_string :STRING <-
-  [ -? { ERR.success }; ]
   ( + res:STRING;
     res := STRING.create 128;
     to_string_in res;
     res
-  )
-  [ +? { ERR.success }; ];
+  );
   
   - print   <- warn   to_string;
   - println <- warnln to_string;
   
-  - create msg:CSTRING :ERR <-
-    [ -? { ERR.success }; ]
-    ( + e:ERR; e := clone; e.make msg position POS parent NULL; e )
-    [ +? { ERR.success }; ];
-
-  - create msg:CSTRING parent     p:ERR :ERR <-
-    [ -? { ERR.success }; ]
-    ( + e:ERR; e := clone; e.make msg position POS parent (REFERENCE(ERR).create p); e )
-    [ +? { ERR.success }; ];
-
-  - create msg:CSTRING position pos:POS :ERR <-
-    [ -? { ERR.success }; ]
-    ( + e:ERR; e := clone; e.make msg position pos parent NULL; e )
-    [ +? { ERR.success }; ];
-
-  - create msg:CSTRING position pos:POS parent p:ERR :ERR <-
-    [ -? { ERR.success }; ]
-    ( + e:ERR; e := clone; e.make msg position pos parent (REFERENCE(ERR).create p); e )
-    [ +? { ERR.success }; ];
-    
-  - clone :SELF <-
-  // Very ugly hack !!!
-  ( + e:SELF;
-    + r:REFERENCE(SELF);
-    r := REFERENCE(SELF).create SELF;
-    e := r.to_e;
-    e
+  - Self:SELF '<!' other:ERR :SELF <- append other;
+  
+  - extend (pos:POS, msg:ABSTRACT_STRING) :SELF <- append (create msg position pos);
+  
+  - append other:ERR :SELF <-
+  [ -? { Self != SELF }; ]
+  (
+    (parent = NULL).if {
+      success.if {
+        make_other other;
+      } else {
+        parent := other;
+      };
+    } else {
+      parent.append other;
+    };
+    Self
   );
+  
+  - create msg:CSTRING :SELF                               <- clone.make msg position POS parent NULL;
+  - create msg:CSTRING parent     p:ERR :SELF              <- clone.make msg position POS parent p;
+  - create msg:CSTRING position pos:POS :SELF              <- clone.make msg position pos parent NULL;
+  - create msg:CSTRING position pos:POS parent p:ERR :SELF <- clone.make msg position pos parent p;
+
 
 Section ERR
 
   - to_string_in res:STRING <-
   (
     (parent != NULL).if {
-      parent.to_e.to_string_in res;
-      parent.to_e.failure.if {
+      parent.to_string_in res;
+      parent.failure.if {
         res.add_last '\n';
       };
     };
@@ -99,14 +93,26 @@ Section ERR
   );
 
 Section Private
+  
+  - make_other other:ERR :SELF <-
+  [ -? { Self != SELF }; ]
+  (
+    message  := other.message;
+    position := other.position;
+    parent   := other.parent;
+    Self
+  );
 
-  - make msg:CSTRING position pos:POS parent p:REFERENCE(ERR) :ERR <-
-  [ -? { ERR.success }; ]
+  - make msg:CSTRING position pos:POS parent p:ERR :SELF <-
+  [ -? { Self != SELF }; ]
   (
     message  := msg;
     position := pos;
-    parent   := p;
+    (p = ERR).if {
+      parent := NULL;
+    } else {
+      parent := p;
+    };
     Self
-  )
-  [ +? { ERR.success }; ];
+  );
 

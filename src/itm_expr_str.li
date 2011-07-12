@@ -11,30 +11,24 @@ Section Public
   - is_void :BOOLEAN <- FALSE;
 
   + string :CSTRING;
-  
-  - has_results :BOOLEAN <- TRUE;
-
-  + result :EXPR := EXPR;
 
   - compile_in list:LIST :SELF <-
   (
-    cluster_parent.type_for_role "String".if { t:TYPE;
-      result := EXPR.clone.make
+    cluster_parent.type_for_role "String".if_false { e:ERR;
+      results <! e.extend (position, "Discarding string");
+    } else { t:TYPE;
+      results << EXPR.clone.make
         (INSTR_STRING.clone.make string static_type t.add_in list.result, t);
-    } else {
-      err := error(err, position, "Could not find role for String");
     };
     Self
   );
-  
-  + err :ERR := ERR;
   
 Section PARSER
   
   - make s:CSTRING :SELF <-
   (
-    err    := ERR;
-    string := s;
+    results := EXPR1.clone;
+    string  := s;
     Self
   );
 

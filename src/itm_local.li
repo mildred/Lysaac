@@ -42,9 +42,9 @@ Section ITM_EXPR_GROUP
   - compile_storage_in list:LIST :ERR <-
   ( + e :ERR;
     
-    type.to_type.if_false2 { err:REFERENCE(ERR);
-      e := error(err.to_e, position, "Could not allocate storage for local " + name);
-    }.if_true { t:TYPE;
+    type.to_type.if_false { err:ERR;
+      e := err.extend(position, "Could not allocate storage for local " + name);
+    } else { t:TYPE;
       full_type := t;
       pointer := INSTR_ALLOCA
         .clone

@@ -14,6 +14,8 @@ Section Public
   + type :TYPE := NULL;
   
   - is_valid :BOOLEAN <- (((reg != NULL) || {reg.is_valid}) && {type != NULL});
+  
+  - make_type t:TYPE value r:REG :SELF <- make(r, t);
 
   - make (r:REG, t:TYPE) :SELF <-
   [

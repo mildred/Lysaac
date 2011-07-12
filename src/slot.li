@@ -105,7 +105,7 @@ Section ITM_SLOT
       sym ?= ast.expression;
       (sym = NULL).if {
         error := TRUE;
-        add_error(error(ERR, ast.expression.position, "Expected symbol"));
+        add_error(ast.expression.position.error("Expected symbol"));
       } else {
         internal_opcode := sym.symbol;
       };
@@ -150,22 +150,27 @@ Section Private
   [ -? {! external}; ]
   ( + r:REG;
     slot_data.if {
-      shared.if {
-        INSTR_STORE
-          .clone
-          .make_store_in shared_data_variable
-            value (ast.expression.compile_in (prototype.initializer_list).result)
-          .add_in (prototype.initializer_list);
+      ast.expression.compile_in (prototype.initializer_list);
+      ast.expression.results.failure.if {
+        add_error (ast.expression.results.err);
+      }.elseif {ast.expression.results.is_empty} then {
+        add_error (ast.position.error("Missing initial value"));
       } else {
-        r := INSTR_GETELEMPTR
-          .clone
-          .make (prototype.initializer_list.self) slot Self
-          .add_in (prototype.initializer_list)
-          .result;
+        (!ast.expression.results.is_single).if {
+          add_error (ast.position.error("Dropping the last " + (ast.expression.results.count - 1).to_string + " values"));
+        }.elseif {shared} then {
+          r := shared_data_variable;
+        } else {
+          r := INSTR_GETELEMPTR
+            .clone
+            .make (prototype.initializer_list.self) slot Self
+            .add_in (prototype.initializer_list)
+            .result;
+        };
         INSTR_STORE
           .clone
           .make_store_in r
-            value (ast.expression.compile_in (prototype.initializer_list).result)
+            value (ast.expression.results.first)
           .add_in (prototype.initializer_list);
       };
     };
@@ -193,16 +198,22 @@ Section Private
       };
     }.elseif {ast.expression != NULL} then {
       // Nominal case
-      ast.expression.compile_in list;
-      ast.expression.err.failure.if {
-        add_error(error(ast.expression.err, ast.position, "Dropping return value #1 for slot " + name));
-      } else {
-        (ast.expression.result.type = result_type).if {
-          list.add_result (ast.expression.result.reg);
+      
+      + exprs :EXPRS;
+      exprs := ast.expression.compile_in list.results;
+      
+      exprs.failure.if {
+        add_error(exprs.err.extend(ast.position, "Dropping return value #1 for slot " + name));
+      }.elseif {! exprs.is_empty} then {
+        exprs.is_single.if {
+          add_error(ast.position.error("Only keep the first return value"));
+        };
+        (exprs.first.type = result_type).if {
+          list.add_result (exprs.first.reg);
         }.elseif {has_result} then {
-          add_error(error(ERR, ast.expression.position,
+          add_error(ast.expression.position.error(
             "Incompatible type for return value #1. "
-            + "Got: " + pretty_type(ast.expression.result.type)
+            + "Got: " + pretty_type(exprs.first.type)
             + ", expected: " + pretty_type(result_type)));
         };
       };
@@ -210,7 +221,7 @@ Section Private
       // Empty slot
     };
     ((has_result) && {list.results.is_empty}).if {
-      add_error(error(ERR, ast.position,
+      add_error(ast.position.error(
         "No value given for this slot. Using prototype "
         + pretty_type(result_type)));
       list.add_result (result_type.prototype.compile_prototype_value_in list);
@@ -237,7 +248,7 @@ Section Private
         .make_ptrcall (list.self)
         .add_in list;
     } else {
-      add_error(error(ERR, ast.position, "Unknown opcode " + internal_opcode));
+      add_error(ast.position.error("Unknown opcode " + internal_opcode));
     }
   );
 

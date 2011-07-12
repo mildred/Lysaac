@@ -24,62 +24,63 @@ Section Public
     ? { list.self != NULL };
     ? { list.self.is_valid };
   ]
-  ( + self      :EXPR;
-    + local     :ITM_LOCAL;
-    + slot_obj  :SLOT;
+  ( + local :ITM_LOCAL;
+    + self  :EXPR;
     
     ((receiver = NULL) && {(local := lookup_local slot) != NULL}).if {
+      //
       // Local variable
-      local.read_in list.if_true { e:EXPR;
+      //
+
+      local.read_in list.if_false { e:ERR;
+        results <! e;
+      } else { e:EXPR;
         ? { e.is_valid };
-        result := e;
-      }.if_false2 { e:REFERENCE(ERR);
-        err := e.to_e;
-        ? { err.failure };
+        results << e;
       };
+
     } else {
+      //
       // Slot call
-      + call :INSTR_CALL;
+      //
+
       (receiver = NULL).if {
         self := list.self;
       } else {
-        self := receiver.compile_in list.result;
+        self := receiver.compile_in list.results.first;
+        ? { receiver.results.is_single };
       };
       ? {self.is_valid};
-      slot_obj := self.type.prototype.find_slot slot;
-      (slot_obj = NULL).if {
-        err := error(err, position, "Cannot find slot " + slot + " in " + pretty_type (self.type));
-        err := error(err, position, "Discarding message");
-      } else {
+
+      self.type.prototype.find_slot slot.if_false { e:ERR;
+        results <! e.extend(position, "Discarding message");
+      
+      } else { slot_obj :SLOT;
+        + call :INSTR_CALL;
         call := INSTR_CALL
           .clone
           .make_read self slot slot_obj;
         arguments.iterate.loop_v { a:ITM_EXPR;
-          + arg :EXPR;
-          arg := a.compile_in list.result;
-          a.has_multiple_results.if {
-            a.results.iterate.loop_v { v:EXPR;
-              call.add_argument v;
-            };
+          a.results.failure.if {
+            results <! a.results.err.extend(a.position, "Discarding argument");
           } else {
-            call.add_argument arg;
+            a.results.lower.to (a.results.upper) do { i:INTEGER;
+              call.add_argument (a.results.item i);
+            };
           };
         };
         call.add_in list;
         (slot_obj.has_result).if {
-          result := EXPR.clone.make (call.result, slot_obj.result_type);
-          ? { result.is_valid };
-        } else {
-          has_results := FALSE;
+          results << EXPR.clone.make (call.result, slot_obj.result_type);
+          ? { results.is_single };
+          ? { results.last.is_valid };
         };
       };
     };
 
     Self
   );
-  
-  + err :ERR := ERR;
-  
+
   - to_string :STRING <-
   ( + res :STRING;
     res := type_name + "<";
@@ -100,6 +101,7 @@ Section PARSER
   
   - make s:CSTRING :SELF <-
   (
+    results   := EXPR1.clone;
     slot      := s;
     receiver  := NULL;
     arguments := FAST_ARRAY(ITM_EXPR).create 0;

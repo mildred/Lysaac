@@ -11,60 +11,54 @@ Section Public
   - is_void :BOOLEAN <- FALSE;
 
   + is_block :BOOLEAN;
-  
-  - has_results :BOOLEAN <- TRUE;
-
-  + result  :EXPR := EXPR;
-  
-  + results :FAST_ARRAY(EXPR);
-  
-  + has_multiple_results :BOOLEAN := FALSE;
 
   - compile_in list:LIST :SELF <-
   (
-    ? { err.success };
     is_block.if {
-      cluster_parent.type_block.if { t:TYPE;
+
+      cluster_parent.type_block.if_false { e:ERR;
+        results <! e.extend(position, "Discarding block");
+      } else { t:TYPE;
         + block :PROC_BLOCK;
-        block := PROC_BLOCK.clone.make_block Self list_parent list;
-        result := EXPR.clone.make
-        (
-          INSTR_FNPTR
+        block := PROC_BLOCK
+          .clone
+          .make_block Self list_parent list;
+
+        results << EXPR.clone.make_type t value
+          (INSTR_FNPTR
             .clone
             .make (block.external_name) type_block t
             .add_in list
-            .result,
-          t
-        );
+            .result);
+
         list.list_procs.add_block block;
-        is_block := FALSE;
-      } else {
-        err := error (err, position, "Could not find role for Block");
+        is_block := FALSE; // Second pass
       };
+
     } else {
+
       locals.iterate.loop_v { l:ITM_LOCAL;
         l.compile_storage_in list.if_fail { e:ERR;
-          list.error_collector.add_error (e);
+          results <! e;
         };
       };
+
       instructions.iterate.loop_v { i:ITM_INST;
         i.compile_in list;
       };
-      has_multiple_results := TRUE;
+
       result_exprs.iterate.loop_v { e:ITM_EXPR;
-        ? { + l:ITM_LOCAL; l ?= e; l = NULL };
         e.compile_in list;
-        e.err.failure.if {
-          list.error_collector.add_error (e.err);
+        e.results.failure.if {
+          results <! e.results;
         } else {
-          results.add_last (e.result);
+          results <<< e.results;
         };
       };
+
     };
     Self
   );
-    
-  + err :ERR;
 
   - to_string :STRING <-
   ( + res :STRING;
@@ -109,13 +103,11 @@ Section PARSER
 
   - make :SELF <-
   (
-    err          := ERR;
+    results      := EXPRN.clone;
     is_block     := FALSE;
     instructions := FAST_ARRAY(ITM_INST).create 0;
     result_exprs := FAST_ARRAY(ITM_EXPR).create 0;
-    results      := FAST_ARRAY(EXPR).create (result_exprs.count);
     locals       := FAST_ARRAY(ITM_LOCAL).create 0;
-    ? { err.success };
     Self
   );
   

@@ -70,19 +70,19 @@ Section ITM_PROTOTYPE
   
     slot := SLOT.clone.make Self;
     arguments.iterate.loop_v { l:ITM_ARG;
-      l.get_argument_variable.if_true { e:EXPR;
+      l.get_argument_variable.if_false { e:ERR;
+        slot.add_error(e.extend(position, "Dropping argument "+l.name+" for slot " + identifier));
+      } else { e:EXPR;
         ? {e.is_valid};
         slot.add_argument e;
-      }.if_false2 { e:REFERENCE(ERR);
-        slot.add_error(error(e.to_e, position, "Dropping argument "+l.name+" for slot " + identifier));
       };
     };
     (return_type != NULL).if {
-      return_type.to_type.if_true { t:TYPE;
+      return_type.to_type.if_false { e:ERR;
+        slot.add_error(e.extend(position, "Dropping return type for slot " + identifier));
+      } else { t:TYPE;
         ? { t != NULL };
         slot.set_return_type (t);
-      }.if_false2 { e:REFERENCE(ERR);
-        slot.add_error(error(e.to_e, position, "Dropping return type for slot " + identifier));
       };
     };
     slot.finish_creation;

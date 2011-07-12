@@ -14,7 +14,7 @@ Section Public
 
   - compile_in list:LIST :SELF <-
   (
-    list.error_collector.add_error(error(ERR, position, "Unexpected symbol"));
+    list.error_collector.add_error(position.error("Unexpected symbol"));
     Self
   );
 

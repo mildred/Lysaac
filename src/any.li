@@ -43,6 +43,7 @@ Section Public
   - dbg s:ABSTRACT_STRING <- warn s;
   - dbgln s:ABSTRACT_STRING <- warnln s;
 
+  /*
   - error (e:ERR, p:POS, m:ABSTRACT_STRING) :ERR <-
   ( + res :ERR;
     (e.success).if {
@@ -52,6 +53,7 @@ Section Public
     };
     res
   );
+  */
   
   - progress_notice info:ABSTRACT_STRING <- (warn "*** "; warnln info;);
   
