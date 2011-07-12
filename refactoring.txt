@@ -1,4 +1,4 @@
 - use a PROGRESS type to make progression. It should contain many variables to estimate progression
 - ITM_EXPR.result shall be made private and ITM_EXPR.get_result should return a MAYBE(EXPR) that contains an ERR object.
+- refactoring for multiple results: multiple results should be modeled using EXPRS (not a descendant of EXPR). EXPR1 shall be a descendant of EXPRS for performance reasons. ITM_EXPR.get_result shall return EXPRS and the number of results should be checked.
 - name types
-- allocate global registers (@get_global) before generation so they can be used out of order
