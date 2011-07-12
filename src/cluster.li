@@ -44,6 +44,8 @@ Section Public
     
     ((p := prototype_for_role r) != NULL).if {
       res := p.to_type;
+    } else {
+      res <! position.error("Could not find role " + r);
     };
     res
   );
@@ -56,6 +58,8 @@ Section Public
     
     ((p := prototype_for_role "Block") != NULL).if {
       res := p.to_type_block;
+    } else {
+      res <! position.error("Could not find role Block");
     };
     res
   );

@@ -16,7 +16,7 @@ Section Public
   - item i:INTEGER :EXPR <- list.item i;
   
   - add_last e:EXPR <-
-  [ ? { list != NULL }; ]
+  [ -? {Self != SELF}; ? { list != NULL }; ]
   (
     // Avoid call on NULL and Lisaac optimizing everything else after the
     // die_with_code(1); resulting in a syntax error: the Result_??? variable is
@@ -26,9 +26,10 @@ Section Public
     list.add_last e;
   );
 
-  - Self:SELF '<<' other:EXPR :SELF <- (add_last other; Self);
+  - Self:SELF '<<' other:EXPR :SELF <- [ -? {Self != SELF}; ] (add_last other; Self);
   
   - Self:SELF '<<<' other:EXPRS :SELF <-
+  [ -? {Self != SELF}; -? {list != NULL}; -? { Self != other }; ]
   (
     other.lower.to (other.upper) do { i:INTEGER;
       add_last (other.item i);
@@ -37,10 +38,17 @@ Section Public
   );
   
   - make :SELF <-
+  [ -? {Self != SELF}; ]
   (
     list := FAST_ARRAY(EXPR).create 0;
     Self
   );
 
   + list :FAST_ARRAY(EXPR);
+  
+  - check <-
+  (
+    ? { Self != SELF };
+    ? { list != NULL };
+  );
   

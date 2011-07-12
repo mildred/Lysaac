@@ -24,3 +24,5 @@ Section Public
     expression := e;
     Self
   );
+  
+  - check;

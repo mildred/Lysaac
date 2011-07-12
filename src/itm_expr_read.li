@@ -61,6 +61,7 @@ Section Public
           .clone
           .make_read self slot slot_obj;
         arguments.iterate.loop_v { a:ITM_EXPR;
+          a.compile_in list;
           a.results.failure.if {
             results <! a.results.err.extend(a.position, "Discarding argument");
           } else {

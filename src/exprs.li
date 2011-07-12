@@ -50,7 +50,7 @@ Section Public
   
   - make_error e:ERR :SELF <-
   (
-    (err = NULL).if {
+    ((err = NULL) || {err = ERR}).if {
       err := e;
     } else {
       err <! e;
@@ -59,3 +59,6 @@ Section Public
   );
   
   - to_err :ERR <- err;
+  
+  - check;
+  

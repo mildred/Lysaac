@@ -14,7 +14,10 @@ Section Public
   (
     results <! position.error("Cannot compile " + type_name);
     Self
-  );
+  )
+  [
+    results.check;
+  ];
   
   + results :EXPRS;
 

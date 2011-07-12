@@ -49,6 +49,7 @@ Section Public
 
       result_exprs.iterate.loop_v { e:ITM_EXPR;
         e.compile_in list;
+        e.results.check;
         e.results.failure.if {
           results <! e.results;
         } else {
@@ -103,7 +104,7 @@ Section PARSER
 
   - make :SELF <-
   (
-    results      := EXPRN.clone;
+    results      := EXPRN.clone.make;
     is_block     := FALSE;
     instructions := FAST_ARRAY(ITM_INST).create 0;
     result_exprs := FAST_ARRAY(ITM_EXPR).create 0;
