@@ -10,12 +10,10 @@ Section Public
 
   + expression :ITM_EXPR;
   
-  - compile_in list:LIST <- (expression.compile_in list;);
+  - compile_in list:LIST :ERR <- (expression.compile_in list.results.err);
   
   - to_string :STRING <-
   ( type_name + "<" + expression.to_string + ">" );
-  
-  - err :ERR <- expression.err;
 
 Section PARSER
   

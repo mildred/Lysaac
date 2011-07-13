@@ -32,6 +32,7 @@ Section Public
     count  := c;
     type   := t;
     result := REG.clone.make_type (BASE_TYPE.create_pointer t);
+    made   := TRUE;
     Self
   );
 

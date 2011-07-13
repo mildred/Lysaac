@@ -27,6 +27,7 @@ Section Public
   (
     type   := t;
     result := REG.clone.make_type (BASE_TYPE.i32);
+    made := TRUE;
     Self
   );
 

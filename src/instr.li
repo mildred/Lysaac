@@ -28,9 +28,12 @@ Section Public
   - generate gen:GENERATOR <- deferred;
   
   + error :ERR := ERR;
+  
+  + made :BOOLEAN := FALSE;
 
   - add_in list:LIST :SELF <-
   [
+    -? { made };
     -? { list != NULL };
     -? { list_parent = NULL };
   ]

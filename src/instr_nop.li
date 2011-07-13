@@ -12,3 +12,4 @@ Section Public
 
   - generate gen:GENERATOR;
 
+  - made :BOOLEAN <- TRUE;

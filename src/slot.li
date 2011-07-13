@@ -246,7 +246,10 @@ Section Private
       INSTR_CALL
         .clone
         .make_ptrcall (list.self)
-        .add_in list;
+        .finalize_in list
+        .if_fail { e:ERR;
+          add_error(e.extend(ast.position, "Calling the block"));
+        };
     } else {
       add_error(ast.position.error("Unknown opcode " + internal_opcode));
     }

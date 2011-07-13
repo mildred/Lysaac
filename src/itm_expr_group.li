@@ -44,7 +44,7 @@ Section Public
       };
 
       instructions.iterate.loop_v { i:ITM_INST;
-        i.compile_in list;
+        results <! i.compile_in list;
       };
 
       result_exprs.iterate.loop_v { e:ITM_EXPR;

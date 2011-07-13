@@ -35,6 +35,7 @@ Section ITM_EXPR_INT
     value       := v;
     static_type := t;
     result      := REG.clone.make_type t;
+    made := TRUE;
     Self
   )
   [ +? { result.is_valid }; ];

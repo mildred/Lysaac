@@ -21,6 +21,7 @@ Section ITM_EXPR_GROUP
   (
     function_name := fn;
     result := REG.clone.make_type (t);
+    made := TRUE;
     Self
   );
 

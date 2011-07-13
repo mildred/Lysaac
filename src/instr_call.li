@@ -90,6 +90,21 @@ Section Public
     args.add_last v;
     Self
   );
+  
+  - finalize :ERR <-
+  (
+    made := TRUE;
+    ERR
+  );
+  
+  - finalize_in list:LIST :ERR <-
+  ( + e:ERR;
+    e := finalize;
+    e.success.if {
+      add_in list;
+    };
+    e
+  );
 
 Section Private
   

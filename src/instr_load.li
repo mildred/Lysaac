@@ -28,6 +28,7 @@ Section Public
   (
     pointer := r;
     result  := REG.clone.make_type (r.base_type.pointer_type);
+    made := TRUE;
     Self
   );
 

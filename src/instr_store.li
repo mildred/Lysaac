@@ -27,6 +27,7 @@ Section Public
   (
     pointer := ptr;
     value   := v;
+    made := TRUE;
     Self
   );
 

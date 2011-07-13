@@ -48,6 +48,7 @@ Section Public
     
     res_type := r.base_type.pointer_type.struct_types.item (s.type_index);
     result := REG.clone.make_type (BASE_TYPE.create_pointer res_type);
+    made := TRUE;
     Self
   );
 
