@@ -1,0 +1,16 @@
+Section Header
+
+  + name := Expanded BOOL;
+
+Section BOOL
+
+  + bit_value :BIT <- Dispatch;
+
+Section Public
+
+  - if_true  blc:{} :BOOL;
+  - if_false blc:{} :BOOL;
+
+  - if   blc:{} :BOOL <- if_true  blc;
+  - else blc:{} :BOOL <- if_false blc;
+

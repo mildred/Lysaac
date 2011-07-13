@@ -1,5 +1,19 @@
 Feature: Types must be able to contain values
-    
+
+  Types can be of two types: base types and structured types.
+  
+  Base types are integers for example and are defined using the type slot in the
+  Section Header
+  
+  Structured types are every other type. Structured types are defined by the +
+  slot they contain. A + slot generates a field in the structured type that have
+  the same type as the type of the slot.
+  
+  This workd well for data slots. When the slot can be a code slot, the data
+  field is still generated but the compiler might generate any number of
+  additional slots that it requires to dispatch between data slots and code
+  slots. This isn't yet implemented and as a consequence not well defined.
+
 
   Scenario: Assignment should be possible
     Given the following prototypes in "c":

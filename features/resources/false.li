@@ -1,0 +1,17 @@
+Section Header
+
+  + name := Expanded FALSE;
+
+Section Inherit
+
+  - parent_bool :BOOL := BOOL;
+
+Section BOOL
+
+  + bit_value :BIT := Dispatch 0;
+
+Section Public
+
+  - if_true  blc:{} :BOOL <- ( FALSE );
+  - if_false blc:{} :BOOL <- ( blc.value; FALSE );
+
