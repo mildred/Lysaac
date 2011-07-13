@@ -205,7 +205,7 @@ Section Private
       exprs.failure.if {
         add_error(exprs.err.extend(ast.position, "Dropping return value #1 for slot " + name));
       }.elseif {! exprs.is_empty} then {
-        exprs.is_single.if {
+        exprs.is_single.if_false {
           add_error(ast.position.error("Only keep the first return value"));
         };
         (exprs.first.type = result_type).if {

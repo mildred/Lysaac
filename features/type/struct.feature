@@ -114,7 +114,6 @@ Feature: Types must be able to contain values
       
       """
 
-  @wip
   Scenario: shared values are the same on different objects
     Given the following prototypes in "c":
       | Prototype |
