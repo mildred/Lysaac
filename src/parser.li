@@ -21,7 +21,11 @@ Section SELF
   
   - warning s:ABSTRACT_STRING in p:POS <-
   (
-    error_stack := ERR.create s position p parent error_stack;
+    ((error_stack = NULL) || {error_stack = ERR}).if {
+      error_stack := p.error(s);
+    } else {
+      error_stack.extend(p, s);
+    };
   );
   
   - character i:INTEGER :CHARACTER <-
