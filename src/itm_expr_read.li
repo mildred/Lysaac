@@ -116,7 +116,9 @@ Section PARSER
   );
   
   - set_self s:ITM_EXPR <-
-  [ -?{ receiver = NULL }; ]
+  [
+    -? { receiver = NULL };
+  ]
   (
     s.set_itm_parent Self;
     receiver := s;

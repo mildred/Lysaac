@@ -828,7 +828,7 @@ Section SELF
           res := ITM_EXPR_WRITE.clone.make_position pos.make_affect affect in idf of tmp;
         };
       } else {
-        ((tmp := read_expr_call (idf, pos)) != NULL).if {
+        ((tmp := read_expr_call (idf, pos, NULL)) != NULL).if {
           res := tmp;
         };
       };
@@ -838,14 +838,16 @@ Section SELF
   
   //++ EXPR_CALL -> EXPR? ("." . EXPR_CALL)?
   
-  - read_expr_call (idf:CSTRING, pos:POS) :ITM_EXPR_READ <-
+  - read_expr_call (idf:CSTRING, pos:POS, self:ITM_EXPR_READ) :ITM_EXPR_READ <-
   ( + res :ITM_EXPR_READ;
-    + self :ITM_EXPR;
     + expr :ITM_EXPR;
     + p1, p2 :POS;
 
     read_spaces;
     res := ITM_EXPR_READ.clone.make_position pos.make idf;
+    (self != NULL).if {
+      res.set_self self;
+    };
     expr := read_expr;
     expr.is_void.if_false {
       res.add_argument expr;
@@ -853,11 +855,9 @@ Section SELF
     read_spaces;
     p1 := position;
     read_maybe ".".if {
-      self := res;
       p2 := position;
       read_identifier.if {
-        res := read_expr_call (last_identifier, p2);
-        res.set_self self;
+        res := read_expr_call (last_identifier, p2, res);
       } else {
         warning "Expected identifier after '.'" in p1;
       };
