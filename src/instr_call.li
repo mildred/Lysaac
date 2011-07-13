@@ -92,9 +92,13 @@ Section Public
   );
   
   - finalize :ERR <-
-  (
-    made := TRUE;
-    ERR
+  ( + e:ERR;
+    e := ERR.clone;
+    (slot.arguments.count != args.count).if {
+      e <! slot.position.error("Try to call this slot with " + args.count.to_string + " arguments instead of " + slot.arguments.count.to_string);
+    };
+    made := e.success;
+    e
   );
   
   - finalize_in list:LIST :ERR <-

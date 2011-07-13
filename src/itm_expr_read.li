@@ -83,7 +83,7 @@ Section Public
           };
         };
         call.finalize.if_fail { e:ERR;
-          results <! e.extend(position, "Calling " + slot);
+          results <! e.extend(position, "Discarding calling " + slot);
         } else {
           call.add_in list;
           (slot_obj.has_result).if {
