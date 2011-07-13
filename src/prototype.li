@@ -164,7 +164,7 @@ Section ITM_EXPR
     };
     
     res.has_element.if_false {
-      res <! ast.position.error("Could not find slot " + name);
+      res <! position.error("Could not find slot " + name);
     };
     
     res

@@ -85,7 +85,9 @@ Section ERR
         res.append ": ";
       };
       res.append message;
-      res.add_last '\n';
+      (parent != NULL).if {
+        res.add_last '\n';
+      };
     };
     (parent != NULL).if {
       parent.to_string_in res;

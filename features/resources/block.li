@@ -1,0 +1,10 @@
+Section Header
+
+  + name := BLOCK;
+  
+  - role := Block;
+
+Section Public
+
+  - value <- Internal `value`;
+

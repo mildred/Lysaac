@@ -43,13 +43,25 @@ Section Public
       //
       // Slot call
       //
+      
+      self := list.self;
 
-      (receiver = NULL).if {
-        self := list.self;
-      } else {
-        self := receiver.compile_in list.results.first;
-        ? { receiver.results.is_single };
+      (receiver != NULL).if {
+        receiver.compile_in list.results.failure.if {
+          results <! receiver.results.err;
+        }.elseif {receiver.results.is_empty} then {
+          results <! receiver.position.error("Empty expression")
+            .extend(position,"Receiver is a null expression, using Self");
+        } else {
+          receiver.results.is_single.if_false {
+            results <! receiver.position.error("Multiple expression")
+              .extend(position,"Only considering ");
+          };
+          self := receiver.results.first;
+        };
       };
+
+      ? {self != NULL};
       ? {self.is_valid};
 
       self.type.prototype.find_slot slot.if_false { e:ERR;

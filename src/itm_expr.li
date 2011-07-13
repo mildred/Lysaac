@@ -12,6 +12,7 @@ Section Public
 
   - compile_in list:LIST :SELF <-
   (
+    results := EXPRS.clone;
     results <! position.error("Cannot compile " + type_name);
     Self
   )

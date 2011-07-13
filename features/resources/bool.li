@@ -2,7 +2,7 @@ Section Header
 
   + name := Expanded BOOL;
 
-Section BOOL
+Section Public //BOOL
 
   + bit_value :BIT <- Dispatch;
 

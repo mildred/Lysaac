@@ -10,6 +10,8 @@ Section Public
 
   + slots :FAST_ARRAY(ITM_SLOT);
   
+  - position :POS <- prototype_parent.position;
+  
   + itm_parent :ITM <-
   (
     crash_with_message "Trying to get parent of prototype";

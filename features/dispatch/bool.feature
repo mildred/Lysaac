@@ -29,6 +29,7 @@ Feature: Dispatching of booleans
   Scenario:
     Given the following prototypes in "c":
       | Prototype |
+      | BLOCK     |
       | CSTRING   |
       | INT32     |
       | BIT       |

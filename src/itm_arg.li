@@ -11,13 +11,17 @@ Section Public
   - style :ITM_STYLE := ITM_STYLE.clone.make '+';
 
   - read_in list:LIST :MAYBE(EXPR) <-
-  [
-    -? { result != NULL };
-    -? { result.reg.is_valid };
-  ]
-  (
-    MAYBE(EXPR).clone.make result
+  ( + res :MAYBE(EXPR);
+    (result = NULL).if {
+      res <! position.error("Unable to read argument " + name);
+    }.elseif {! result.is_valid} then {
+      res <! position.error("Unable to read valid argument " + name);
+    } else {
+      res << result;
+    };
+    res
   );
+
   
   - write val:EXPR in list:LIST :ERR <-
   (
