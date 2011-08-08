@@ -22,7 +22,7 @@ Section Public
   (
     gen.getelementptr_of value in result refs {
       path.iterate.loop_v { i:INTEGER;
-        gen.arg_i32 i;
+        gen.arg_int i;
       };
     };
   );

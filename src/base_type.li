@@ -61,6 +61,7 @@ Section Public
   - i16 :BASE_TYPE := create_integer 16;
   - i32 :BASE_TYPE := create_integer 32;
   - i64 :BASE_TYPE := create_integer 64;
+  - int :BASE_TYPE := create_integer (GENERATOR.int_size);
   
   //
   // Type: pointer

@@ -45,8 +45,8 @@ Section Public
   - generate gen:GENERATOR <-
   (
     gen.getelementptr_of global_var in result refs {
-      gen.arg_i32 0;
-      gen.arg_i32 0;
+      gen.arg_int 0;
+      gen.arg_int 0;
     };
   );
   

@@ -26,7 +26,7 @@ Section Public
   - make t:BASE_TYPE :SELF <-
   (
     type   := t;
-    result := REG.clone.make_type (BASE_TYPE.i32);
+    result := REG.clone.make_type (BASE_TYPE.int);
     made := TRUE;
     Self
   );
