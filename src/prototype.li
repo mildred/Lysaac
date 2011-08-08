@@ -87,9 +87,7 @@ Section Public
     initializer_list := LIST
       .clone
       .make_error_collector Self type NULL;
-    (role == "Block").if_false {
-      initializer_list.make_self (prototype_rvalue_expr);
-    };
+    initializer_list.make_self (prototype_rvalue_expr);
     state := state_compiled;
   )
   [ +? {compiled}; ];
@@ -179,7 +177,7 @@ Section CLUSTER, ITM_TYPE, SLOT, INSTR_FNPTR
   ( + type:TYPE;
 
     (role == "Block").if {
-      type := to_type_block;
+      type := to_type_reference;
     }.elseif {expanded} then {
       type := to_type_expanded;
     } else {
@@ -189,7 +187,10 @@ Section CLUSTER, ITM_TYPE, SLOT, INSTR_FNPTR
   );
   
   - to_type_expanded :TYPE <-
-  [ -? {made}; ]
+  [
+    -? {role !== "Block"};
+    -? {made};
+  ]
   (
     (type_exp = NULL).if {
       type_exp := TYPE.clone.make_expanded Self;
@@ -201,18 +202,18 @@ Section CLUSTER, ITM_TYPE, SLOT, INSTR_FNPTR
   [ -? {made}; ]
   (
     (type_ref = NULL).if {
-      type_ref := TYPE.clone.make_reference Self;
+      (role == "Block").if {
+        type_ref := TYPE.clone.make_block Self;
+      } else {
+        type_ref := TYPE.clone.make_reference Self;
+      };
     };
     type_ref
   );
-
+  
   - to_type_block :TYPE <-
-  (
-    (type_block = NULL).if {
-      type_block := TYPE.clone.make_block Self;
-    };
-    type_block
-  );
+  [ -? { role == "Block" }; ]
+  ( to_type );
 
 Section CLUSTER_ITEM
 
@@ -231,7 +232,6 @@ Section CLUSTER_ITEM
     prototype_rvalue := REG;
     type_ref   := NULL;
     type_exp   := NULL;
-    type_block := NULL;
     num_compiled_data_slots := 0;
     Self
   );
@@ -302,8 +302,6 @@ Section Private
   + ast :ITM_PROTOTYPE;
 
   + slots :FAST_ARRAY(SLOT);
-  
-  + type_block :TYPE;
   
   + type_ref :TYPE;
   

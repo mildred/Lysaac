@@ -119,13 +119,14 @@ Section LIST_PROC
 
   - compile list_procs:LIST_PROC <-
   ( + t:TYPE;
-    t := prototype.to_type;
+    t := prototype.to_type_reference;
     t.void.if {
       self := EXPR;
     } else {
       self := EXPR.clone.make_type t;
     };
     ? { self.is_valid };
+    ? { self.type.reference };
     list := LIST.clone.make_self self.make_error_collector Self type result_type;
     external.if {
       // External Slot
