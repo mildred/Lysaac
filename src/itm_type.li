@@ -16,16 +16,15 @@ Section Public
   ( + res :MAYBE(TYPE);
   
     block.if {
-      + p:PROTOTYPE;
-      p := cluster_parent.prototype_for_role "Block";
-      (p = NULL).if {
-        res <! position.error("Could not find prototype for role Block");
-      } else {
+      cluster_parent.prototype_for_role "Block".if { p:PROTOTYPE;
         res << p.to_type_block;
+      } else_error { e:ERR;
+        res <! position.error("Could not find prototype for role Block");
       };
     } else {
-      res << slot_parent.find_type (prototype.prototype);
-      (res.element = NULL).if {
+      slot_parent.find_type (prototype.prototype).if { t:TYPE;
+        res << t;
+      } else_error { e:ERR;
         res <! position.error("Could not find type " + name);
       };
     };

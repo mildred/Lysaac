@@ -49,15 +49,15 @@ Feature: Show an error when a type is not found
         | c         |    |    | Errors in c:                              |
         | c/main.li |    |    | Errors in c/main.li:                      |
         | c/main.li |  7 |  3 | Errors in slot integer:                   |
-        | c         |    |    | Could not find role Integer               |
+        | c         |    |    | Could not find prototype for role Integer |
         | c/main.li |  7 | 16 | Discarding integer                        |
         | c/main.li |  7 |  3 | Dropping return value #1 for slot integer |
         | c/main.li |  9 |  3 | Errors in slot string:                    |
-        | c         |    |    | Could not find role String                |
+        | c         |    |    | Could not find prototype for role String  |
         | c/main.li |  9 | 16 | Discarding string                         |
         | c/main.li |  9 |  3 | Dropping return value #1 for slot string  |
         | c/main.li | 11 |  3 | Errors in slot block:                     |
-        | c         |    |    | Could not find role Block                 |
+        | c         |    |    | Could not find prototype for role Block   |
         | c/main.li | 11 | 16 | Discarding block                          |
         | c/main.li | 11 |  3 | Dropping return value #1 for slot block   |
 

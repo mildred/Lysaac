@@ -18,7 +18,7 @@ Section Public
   - compiled  :BOOLEAN <- state >= state_compiled;  // Internal code is compiled
   - generated :BOOLEAN <- state >= state_generated; // Code is generated.
 
-  - find_type type_name:CSTRING :TYPE <-
+  - find_type type_name:CSTRING :MAYBE(TYPE) <-
   [
     -? { made };
     -? { cluster.parsed };

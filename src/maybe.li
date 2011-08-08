@@ -74,3 +74,6 @@ Section Public
 
   - if true_blc:{E;} else false_blc:{} :BOOLEAN <-
   ( has_element.if { true_blc.value element; } else false_blc; has_element );
+
+  - if true_blc:{E;} else_error false_blc:{ERR;} :BOOLEAN <-
+  ( has_element.if { true_blc.value element; } else {false_blc.value error}; has_element );

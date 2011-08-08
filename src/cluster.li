@@ -30,36 +30,43 @@ Section Public
     name := str.substring (str.lower) to (str.upper - 4).as_upper
   );
   
-  - prototype_for_role r:CSTRING :PROTOTYPE <-
+  - prototype_for_role r:CSTRING :MAYBE(PROTOTYPE) <-
   [ -? {parsed}; ]
-  (
-    prototype_roles.fast_reference_at r
+  ( + res:MAYBE(PROTOTYPE);
+    + p:PROTOTYPE;
+    res.clear;
+
+    p := prototype_roles.fast_reference_at r;
+    (p != NULL).if {
+      res << p;
+    } else {
+      res <! position.error("Could not find prototype for role " + r);
+    };
+    res
   );
   
   - type_for_role r:CSTRING :MAYBE(TYPE) <-
   [ -? {parsed}; ]
-  ( + p:PROTOTYPE;
-    + res:MAYBE(TYPE);
+  ( + res:MAYBE(TYPE);
     res.clear;
     
-    ((p := prototype_for_role r) != NULL).if {
-      res := p.to_type;
-    } else {
-      res <! position.error("Could not find role " + r);
+    (prototype_for_role r).if { p:PROTOTYPE;
+      res << p.to_type;
+    } else_error { e:ERR;
+      res <! e;
     };
     res
   );
   
   - type_block :MAYBE(TYPE) <-
   [ -? {parsed}; ]
-  ( + p:PROTOTYPE;
-    + res:MAYBE(TYPE);
+  ( + res:MAYBE(TYPE);
     res.clear;
     
-    ((p := prototype_for_role "Block") != NULL).if {
-      res := p.to_type_block;
-    } else {
-      res <! position.error("Could not find role Block");
+    (prototype_for_role "Block").if { p:PROTOTYPE;
+      res << p.to_type_block;
+    } else_error { e:ERR;
+      res <! e;
     };
     res
   );
@@ -119,18 +126,37 @@ Section Public
     Self
   );
   
-  - find_type type_name:CSTRING :TYPE <-
+  - find_prototype type_name:CSTRING :MAYBE(PROTOTYPE) <-
   [ -? {made}; ]
   ( + it :ITERATOR(CLUSTER_ITEM);
-    + res :TYPE;
+    + res :MAYBE(PROTOTYPE);
+    res.clear;
   
     (it := list.iterate).loop_v { i:CLUSTER_ITEM;
       ((i.is_prototype) && {i.name == type_name}).if {
         it.stop;
-        ? { i.prototype.made };
-        res := i.prototype.to_type;
+        res := i.prototype;
       };
     };
+    
+    res.ko.if {
+      res <! position.error("Could not find prototype " + type_name);
+    };
+    res
+  );
+  
+  - find_type type_name:CSTRING :MAYBE(TYPE) <-
+  [ -? {made}; ]
+  ( + res :MAYBE(TYPE);
+    res.clear;
+    
+    find_prototype type_name.if { pro:PROTOTYPE;
+      ? { pro.made };
+      res := pro.to_type;
+    } else_error { e:ERR;
+      res <! e;
+    };
+
     res
   );
   

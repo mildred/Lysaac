@@ -4,4 +4,8 @@ Section Header
 
 Section Public
 
-  - find_type type_name:CSTRING :TYPE <- (deferred; NULL);
+  - find_prototype type_name:CSTRING :MAYBE(PROTOTYPE) <- (deferred; NULL);
+  
+  - find_type type_name:CSTRING :MAYBE(TYPE) <- (deferred; NULL);
+
+

@@ -10,7 +10,7 @@ Section Inherit
 
 Section Public
 
-  - find_type type_name:CSTRING :TYPE <- prototype_parent.find_type type_name;
+  - find_type type_name:CSTRING :MAYBE(TYPE) <- prototype_parent.find_type type_name;
   
   - slot_parent :ITM_SLOT <- Self;
   
