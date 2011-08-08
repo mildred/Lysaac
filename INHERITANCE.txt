@@ -1,0 +1,7 @@
+Section Insert, no polymorphism
+  - build a list of inherited slots, and include them in the slots list for the PROTOTYPE
+  - compile the slots
+Section Inherit, polymorphism
+  - add support in types for Static
+  - in case of slot call when the self is not Strict, do resolution first
+

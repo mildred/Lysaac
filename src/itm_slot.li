@@ -32,11 +32,18 @@ Section Public
   
   - is_internal :BOOLEAN <- ( has_keyword "Internal" );
   
+  - is_inherit :BOOLEAN <- ( has_keyword "Inherit" );
+  
   - has_keyword k:CSTRING :BOOLEAN <-
   (
      + res :BOOLEAN;
     (keywords != NULL).if {
       res := keywords.has k;
+    };
+    (section != NULL).if {
+      res.if_false {
+        section.keywords.has k;
+      };
     };
     res
   );

@@ -579,8 +579,12 @@ Section SELF
   
   - read_h_slots <-
   ( + slot :ITM_SLOT;
+    + sec:ITM_SECTION;
+    
+    sec := ITM_SECTION.clone.make;
+    sec.keywords.add_keyword "Header";
   
-    ((slot := read_c_slot) != NULL).if {
+    ((slot := read_c_slot_in sec) != NULL).if {
       hook_header_slot slot;
       read_h_slots;
     };
@@ -670,8 +674,7 @@ Section SELF
   
   - read_c_slots sec:ITM_SECTION <-
   ( + slot :ITM_SLOT;
-    ((slot := read_c_slot) != NULL).if {
-      slot.set_section sec;
+    ((slot := read_c_slot_in sec) != NULL).if {
       handle_slot slot;
       read_c_slots sec;
     };
@@ -679,7 +682,7 @@ Section SELF
 
   //++ C_SLOT -> style . identifier C_ARGS? (":" TYPE)? (affect keyword* EXPR)? ";"
   
-  - read_c_slot :ITM_SLOT <-
+  - read_c_slot_in sec:ITM_SECTION :ITM_SLOT <-
   ( + slot :ITM_SLOT;
     + style :ITM_STYLE;
     + affect :ITM_AFFECT;
@@ -692,6 +695,7 @@ Section SELF
     style := read_style;
     style.valid.if {
       slot := ITM_SLOT.clone.make_position p.make;
+      slot.set_section sec;
       slot.set_style style;
       read_spaces;
       read_identifier.if {

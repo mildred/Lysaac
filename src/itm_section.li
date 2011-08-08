@@ -5,12 +5,14 @@ Section Header
 Section Inherit
 
   + parent_any :Expanded ANY;
-  
-Section PARSER
+
+Section Public
 
   + keywords :ITM_KEYWORDS;
   
   + prototypes :FAST_ARRAY(ITM_EXPR_PROTO);
+  
+Section PARSER
   
   - add_proto p:ITM_EXPR_PROTO <-
   ( 
