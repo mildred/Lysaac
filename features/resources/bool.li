@@ -8,8 +8,8 @@ Section Public //BOOL
 
 Section Public
 
-  - if_true  blc:{} :BOOL;
-  - if_false blc:{} :BOOL;
+  - if_true  blc:{} :BOOL <- Deferred;
+  - if_false blc:{} :BOOL <- Deferred;
 
   - if   blc:{} :BOOL <- if_true  blc;
   - else blc:{} :BOOL <- if_false blc;
