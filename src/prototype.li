@@ -83,11 +83,13 @@ Section Public
   - compile <-
   [ -? {defined}; -? {! compiled}; ]
   (
-    prototype_value  := REG.clone.make_type (BASE_TYPE.create_pointer base_type);
+    prototype_rvalue := REG.clone.make_type (BASE_TYPE.create_pointer base_type);
     initializer_list := LIST
       .clone
       .make_error_collector Self type NULL;
-    initializer_list.make_self (compile_prototype_value_in initializer_list);
+    (role == "Block").if_false {
+      initializer_list.make_self (prototype_rvalue_expr);
+    };
     state := state_compiled;
   )
   [ +? {compiled}; ];
@@ -118,11 +120,11 @@ Section Public
     expanded.if {
       res := INSTR_LOAD
         .clone
-        .make prototype_value
+        .make prototype_rvalue
         .add_in l
         .result;
     } else {
-      res := prototype_value;
+      res := prototype_rvalue;
     };
     
     EXPR.clone.make (res, to_type)
@@ -133,21 +135,21 @@ Section Private
   - generate_initializer gen:GENERATOR <-
   (
     gen.ctor_sub 65535 in global_ctor_sub do {
-      ? { prototype_value.is_realized };
+      ? { prototype_rvalue.is_realized };
       initializer_list.generate gen;
     };
   );
 
   - generate_prototype_value gen:GENERATOR <-
-  [ -? { ! prototype_value.is_realized }; ]
+  [ -? { ! prototype_rvalue.is_realized }; ]
   (
     (role == "Block").if {
-      gen.global_block_prototype_value prototype_value name name;
+      gen.global_block_prototype_value prototype_rvalue name name;
     } else {
-      gen.global_prototype_value prototype_value name name;
+      gen.global_prototype_value prototype_rvalue name name;
     };
   )
-  [ +? { prototype_value.is_realized }; ];
+  [ +? { prototype_rvalue.is_realized }; ];
 
 Section ITM_EXPR
 
@@ -174,17 +176,37 @@ Section CLUSTER, ITM_TYPE, SLOT, INSTR_FNPTR
 
   - to_type :TYPE <-
   [ -? {made}; ]
-  (
+  ( + type:TYPE;
+
     (role == "Block").if {
       type := to_type_block;
-    }.elseif {type = NULL} then {
-      type := TYPE.clone.make Self;
+    }.elseif {expanded} then {
+      type := to_type_expanded;
+    } else {
+      type := to_type_reference;
     };
     type
   );
+  
+  - to_type_expanded :TYPE <-
+  [ -? {made}; ]
+  (
+    (type_exp = NULL).if {
+      type_exp := TYPE.clone.make_expanded Self;
+    };
+    type_exp
+  );
+
+  - to_type_reference :TYPE <-
+  [ -? {made}; ]
+  (
+    (type_ref = NULL).if {
+      type_ref := TYPE.clone.make_reference Self;
+    };
+    type_ref
+  );
 
   - to_type_block :TYPE <-
-  [ -? {made}; ]
   (
     (type_block = NULL).if {
       type_block := TYPE.clone.make_block Self;
@@ -206,8 +228,9 @@ Section CLUSTER_ITEM
     position := POS.create(file, 0, 0);
     state    := state_made;
     initializer_list := NULL;
-    prototype_value := REG;
-    type       := NULL;
+    prototype_rvalue := REG;
+    type_ref   := NULL;
+    type_exp   := NULL;
     type_block := NULL;
     num_compiled_data_slots := 0;
     Self
@@ -280,12 +303,17 @@ Section Private
 
   + slots :FAST_ARRAY(SLOT);
   
-  + type :TYPE;
-  
   + type_block :TYPE;
   
-  + prototype_value :REG;
+  + type_ref :TYPE;
   
+  + type_exp :TYPE;
+  
+  + prototype_rvalue :REG; // Always a pointer value (reference)
+  
+  - prototype_rvalue_expr :EXPR <-
+    EXPR.clone.make (prototype_rvalue, to_type_reference);
+    
   + global_ctor_sub :REG;
 
 

@@ -6,7 +6,7 @@ Section Inherit
 
   - parent_bool :BOOL := BOOL;
 
-Section Public //BOOL
+Section BOOL
 
   + bit_value :BIT := Dispatch 0;
 

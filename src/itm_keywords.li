@@ -13,13 +13,15 @@ Section Public
     keywords.valid_index (keywords.first_index_of k)
   );
 
-Section PARSER
+Section PARSER, ITM_SECTION
 
   - make :SELF <-
   (
     keywords := FAST_ARRAY(CSTRING).create 0;
     Self
   );
+
+Section PARSER
   
   - add_keyword k:CSTRING <-
   (

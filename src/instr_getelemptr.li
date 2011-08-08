@@ -29,6 +29,9 @@ Section Public
 
   - make r:REG slot s:SLOT :SELF <-
   [
+    r.base_type.pointer.if_false {
+      warnln("INSTR_GETELEMPTR.make " + r.to_string + " slot " + s.to_string + " non pointer register");
+    };
     -? { r.base_type.pointer };
     -? { r.base_type.pointer_type.struct };
     -? { s.type_index >= 0 };

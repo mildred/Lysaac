@@ -8,8 +8,20 @@ Section Inherit
   
 Section PARSER
 
+  + keywords :ITM_KEYWORDS;
+  
+  + prototypes :FAST_ARRAY(ITM_EXPR_PROTO);
+  
+  - add_proto p:ITM_EXPR_PROTO <-
+  ( 
+    // p.set_itm_parent Self;
+    prototypes.add_last p;
+  );
+
   - make :SELF <-
   (
+    keywords   := ITM_KEYWORDS.clone.make;
+    prototypes := FAST_ARRAY(ITM_EXPR_PROTO).create 0;
     Self
   );
 

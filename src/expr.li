@@ -24,7 +24,7 @@ Section Public
     -? { ! r.base_type.void };
     -? { r.is_valid };
     (t.base_type == r.base_type).if_false {
-      warnln(t.base_type.to_string + " != " + r.base_type.to_string);
+      warnln(t.base_type.to_string + " (type) != " + r.base_type.to_string + " (reg)");
     };
     -? { t.base_type == r.base_type };
   ]

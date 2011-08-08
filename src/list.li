@@ -37,6 +37,7 @@ Section PROC, PROTOTYPE
   [
     -? {s != NULL};
     -? {s.is_valid};
+    -? {s.reg.base_type.pointer};
   ]
   (
     self := s;

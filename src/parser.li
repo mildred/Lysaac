@@ -621,7 +621,29 @@ Section SELF
     };
   );
   
-  //++ SECTION -> "Section" . "Public" SECTION_CODE
+  //++ SECTION_ITEMS -> (keyword | PROTOTYPE) ( ","  . SECTION_ITEMS )?
+
+  - read_section_items_in sec:ITM_SECTION <-
+  ( + result :BOOLEAN;
+    + p :ITM_EXPR_PROTO;
+
+    read_spaces;
+    read_keyword.if {
+      sec.keywords.add_keyword last_keyword;
+      result := TRUE;
+    }.elseif { (p := read_prototype) != NULL } then {
+      sec.add_proto p;
+      result := TRUE;
+    };
+    result.if {
+      read_spaces;
+      read_maybe ",".if {
+        read_section_items_in sec;
+      };
+    };
+  );
+  
+  //++ SECTION -> "Section" . SECTION_ITEMS SECTION_CODE
   
   - read_section :BOOLEAN <-
   ( + res:BOOLEAN;
@@ -630,9 +652,7 @@ Section SELF
     read_spaces;
     read_maybe "Section".if {
       sec := ITM_SECTION.clone.make;
-      read_spaces;
-      read_always "Public";
-      read_spaces;
+      read_section_items_in sec;
       res := TRUE;
       read_section_code sec;
     };
