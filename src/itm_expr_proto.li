@@ -11,11 +11,24 @@ Section Public
   - is_void :BOOLEAN <- FALSE;
 
   + prototype :CSTRING;
+  
+  + has_results :BOOLEAN := TRUE;
+
+  - compile_in list:LIST :SELF <-
+  (
+    lookup_prototype prototype.if { p:PROTOTYPE;
+      results << p.compile_prototype_value_in list;
+    } else {
+      results <! position.error("Cannot find prototype " + prototype);
+    };
+    Self
+  );
 
 Section PARSER
   
   - make p:CSTRING :SELF <-
   (
+    results   := EXPR1.clone;
     prototype := p;
     Self
   );

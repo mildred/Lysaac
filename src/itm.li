@@ -42,4 +42,6 @@ Section ITM
   
   - lookup_local name:CSTRING :ITM_LOCAL <- itm_parent.lookup_local name;
   
+  - lookup_prototype name:CSTRING :MAYBE(PROTOTYPE) <- itm_parent.lookup_prototype name;
+  
 

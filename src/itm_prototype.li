@@ -23,6 +23,11 @@ Section Public
 Section ITM
   
   - lookup_local name:CSTRING :ITM_LOCAL <- NULL;
+  
+  - lookup_prototype name:CSTRING :MAYBE(PROTOTYPE) <-
+  (
+    cluster_parent.find_prototype name
+  );
 
 Section PROTOTYPE
 
