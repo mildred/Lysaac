@@ -24,7 +24,7 @@ Section Public
 
   - generate gen:GENERATOR <-
   (
-    (slot = NULL).if {
+    function_pointer.is_valid.if {
       gen.call_ptr function_pointer args { generate_args gen; } result result;
     } else {
       gen.call (slot.external_name) args { generate_args gen; } result result;
@@ -71,12 +71,12 @@ Section Public
     Self
   );
 
-  - make_ptrcall function:REG :SELF <-
+  - make_ptrcall function:REG of s:SLOT :SELF <-
   (
     receiver      := EXPR;
     args          := FAST_ARRAY(EXPR).create 0;
     result        := REG.clone;
-    slot          := NULL;
+    slot          := s;
     include_self  := FALSE;
     function_pointer := function;
     Self

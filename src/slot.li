@@ -245,7 +245,7 @@ Section Private
     }.elseif {internal_opcode == "value"} then {
       INSTR_CALL
         .clone
-        .make_ptrcall (list.self)
+        .make_ptrcall (list.self) of Self
         .finalize_in list
         .if_fail { e:ERR;
           add_error(e.extend(ast.position, "Calling the block"));
