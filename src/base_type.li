@@ -22,7 +22,7 @@ Section Public
   - kind :INTEGER <-
   ( + kind :INTEGER;
   
-    (i_size > 0).if {
+    (i_size != 0).if {
       kind := kind_integer;
     }.elseif {m_vector_size >= 0} then {
       kind := kind_vector;
@@ -52,16 +52,19 @@ Section Public
   //
   
   - create_integer size:INTEGER  :SELF <- clone.make_integer size;
+  
+  - create_integer_cst           :SELF <- clone.make_integer (-1);
 
   - integer      :BOOLEAN <- (kind == kind_integer);
   - integer_size :INTEGER <- [ -?{integer}; ] i_size;
+  - integer_cst  :BOOLEAN <- [ -?{integer}; ] (i_size < 0);
   
   - i1  :BASE_TYPE := create_integer 1;
   - i8  :BASE_TYPE := create_integer 8;
   - i16 :BASE_TYPE := create_integer 16;
   - i32 :BASE_TYPE := create_integer 32;
   - i64 :BASE_TYPE := create_integer 64;
-  - int :BASE_TYPE := create_integer (GENERATOR.int_size);
+  - int :BASE_TYPE := create_integer_cst;
   
   //
   // Type: pointer
@@ -102,6 +105,48 @@ Section Public
   //
   // Generic
   //
+  
+  - resolve_with_and_assert other:BASE_TYPE :BOOLEAN <-
+  ( + res:BOOLEAN;
+    res := resolve_with other;
+    res.if_false {
+      crash_with_message(to_string + " is invalid with " + other.to_string);
+    };
+    res
+  );
+  
+  - resolve_with other:BASE_TYPE :BOOLEAN <-
+  ( + res:BOOLEAN;
+    (kind == other.kind).if {
+      integer.if {
+        integer_cst.if {
+          i_size := other.integer_size;
+          ? {integer_size == other.integer_size};
+        };
+        res := (integer_size == other.integer_size);
+      }.elseif {pointer} then {
+        res := pointer_type.resolve_with (other.pointer_type);
+      }.elseif {function} then {
+        res := TRUE;
+      }.elseif {struct} then {
+        res := (struct_types.count = other.struct_types.count);
+        res.if {
+          (struct_types.lower).to(struct_types.upper) do { i:INTEGER;
+            res := res && {
+              struct_types.item i.resolve_with
+                (other.struct_types.item i)
+            };
+          };
+        };
+      }.elseif {vector} then {
+        res := (vector_length == other.vector_length) &&
+               {vector_type.resolve_with (other.vector_type)};
+      } else {
+        res := TRUE;
+      };
+    };
+    res
+  );
   
   - generate gen:GENERATOR <-
   [ -? { Self != SELF }; ]
@@ -151,8 +196,12 @@ Section Public
       res.append "void";
     }
     .when kind_integer then {
-      res.append "i";
-      integer_size.append_in res;
+      integer_cst.if {
+        res.append "int";
+      } else {
+        res.append "i";
+        integer_size.append_in res;
+      };
     }
     .when kind_pointer then {
       pointer_type.to_llvm_in res;
@@ -186,28 +235,6 @@ Section Public
   ( + res :STRING;
     res := type_name + "<";
     to_llvm_in res;
-    /*
-     + i_size.to_string + "," + f_ptr.to_string;
-    (p_type = NULL).if {
-      res.append ",NULL";
-    } else {
-      res.append ",";
-      res.append (p_type.to_string);
-    };
-    (m_struct = NULL).if {
-      res.append ",NULL";
-    } else {
-      res.append ",{";
-      m_struct.iterate.loop_v { t:BASE_TYPE;
-        res.append (t.to_string);
-        res.add_last ',';
-      };
-      (m_struct.count > 0).if {
-        res.remove_last 1;
-      };
-      res.append "}";
-    };
-    */
     res.append ">";
     res
   );

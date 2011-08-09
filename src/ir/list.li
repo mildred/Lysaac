@@ -16,6 +16,9 @@ Section Public
   (
     first_result_or_invalid.is_valid.if {
       ? { t != NULL };
+      (first_result_or_invalid.base_type == t.base_type).if_false {
+        crash_with_message (first_result_or_invalid.base_type.to_string + " !== " + t.base_type.to_string);
+      };
       ? { first_result_or_invalid.base_type == t.base_type };
     } else {
       ? { t = NULL };
@@ -75,6 +78,9 @@ Section ITM_EXPR_GROUP, SLOT
   [ "multiple results not yet implemented" -? { results.is_empty }; ]
   (
     results.add_last res;
+    results.is_empty.if_false {
+      results.first.base_type.resolve_with_and_assert (result_type.base_type);
+    };
     assert_result_coherent_with result_type;
   );
   

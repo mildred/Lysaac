@@ -26,12 +26,9 @@ Section Public
   - make_store_in ptr:REG value v:REG :SELF <-
   [
     -? { ptr.base_type.pointer };
-    (ptr.base_type.pointer_type == v.base_type).if_false {
-      warnln("store " + ptr.base_type.to_string + ", " + v.base_type.to_string);
-    };
-    -? { ptr.base_type.pointer_type == v.base_type };
   ]
   (
+    v.base_type.resolve_with_and_assert (ptr.base_type.pointer_type);
     pointer := ptr;
     value   := v;
     made := TRUE;

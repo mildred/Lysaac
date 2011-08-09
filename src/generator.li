@@ -32,8 +32,13 @@ Section Public
 
   - type_integer size:INTEGER <-
   (
-    context.add_last 'i';
-    size.append_in context;
+    (size > 0).if {
+      context.add_last 'i';
+      size.append_in context;
+    } else {
+      context.append "int";
+      crash_with_message context
+    };
   );
 
   - type_pointer blc:{} <-
