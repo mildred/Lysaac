@@ -1,0 +1,47 @@
+Section Header
+
+  + name := TYPE_LINT;
+  
+  - export := BASE_TYPE;
+
+Section Inherit
+
+  + parent_type :Expanded TYPE;
+  
+Section Public
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Identification
+  //
+
+  - name     :CSTRING <- "Integer";
+  - expanded :BOOLEAN <- TRUE;
+  - block    :BOOLEAN <- FALSE;
+  - void     :BOOLEAN <- FALSE;
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Create Register
+  //
+
+  - can_create_reg :BOOLEAN <- TRUE;
+
+  - create_reg :REG <-
+  (
+    REG.clone.make_type (BASE_TYPE.int)
+  );
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Implementation Slots
+  //
+  
+  - consistent_with_base t:BASE_TYPE :BOOLEAN <- t.integer;
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Other
+  //
+  
+  - keywords_str :CSTRING <- "";

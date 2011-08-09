@@ -10,24 +10,13 @@ Section Inherit
   
 Section Public
   
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Identification
+  //
+  
   - name :CSTRING <- (keywords_str + prototype.name).to_abstract_string;
-
-  - to_impl :TYPE_IMPL <- Self;
-  
-  - is_impl :MAYBE(TYPE_IMPL) <- MAYBE(TYPE_IMPL).make Self;
-
-  - can_create_reg :BOOLEAN <- prototype.defined;
-  
-  - create_reg :REG <- REG.clone.make_type base_type;
-  
-  - consistent_with_base t:BASE_TYPE :BOOLEAN <- ( base_type == t );
-  
-  - to_impl_of other:TYPE_IMPL :MAYBE(TYPE_IMPL) <- is_impl;
-//  ( + res :MAYBE(TYPE_IMPL);
-//    base_type.resolve_with (result_type.base_type);
-//    res << Self;
-//    res
-//  );
+  - void :BOOLEAN <- base_type.void;
 
   + prototype :PROTOTYPE;
   
@@ -46,7 +35,19 @@ Section Public
     base_type
   );
   
-  - void :BOOLEAN <- base_type.void;
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Create Register
+  //
+
+  - can_create_reg :BOOLEAN <- prototype.defined;
+  
+  - create_reg :REG <- REG.clone.make_type base_type;
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Generate
+  //
 
   - generate gen:GENERATOR <-
   (
@@ -58,9 +59,32 @@ Section Public
     };
   );
   
-  - to_string :STRING <- type_name + "<" + prototype.name + "," + base_type.to_string + ">";
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Implementation Slots
+  //
   
+  - consistent_with_base t:BASE_TYPE :BOOLEAN <- ( base_type == t );
+
+  - to_impl :TYPE_IMPL <- Self;
+  
+  - is_impl :MAYBE(TYPE_IMPL) <- MAYBE(TYPE_IMPL).make Self;
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Other
+  //
+  
+  - to_string :STRING <-
+    type_name + "<" + name + " " + base_type.to_string + ">";
+
   - to_base_type :BASE_TYPE <- base_type;
+
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Creation
+  //
 
 Section PROTOTYPE
 

@@ -8,29 +8,77 @@ Section Inherit
   
 Section Public
   
-  - name :CSTRING <- deferred;
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Identification
+  //
   
-  + block :BOOLEAN     := FALSE;
-  
+  - name      :CSTRING <- deferred;
+  + block     :BOOLEAN := FALSE;
   - reference :BOOLEAN <- ( ! expanded );
+  + expanded  :BOOLEAN := FALSE;
+  - void      :BOOLEAN <- TRUE;
   
-  + expanded :BOOLEAN  := FALSE;
-  
-  - void :BOOLEAN      <- TRUE;
-
-  - generate gen:GENERATOR <- deferred;
-
-  - to_impl :TYPE_IMPL <- deferred;
-  
-  - is_impl :MAYBE(TYPE_IMPL) <- deferred;
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Create Register
+  //
 
   - can_create_reg :BOOLEAN <- FALSE;
   
   - create_reg :REG <- deferred;
   
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Generate
+  //
+
+  - generate gen:GENERATOR <-
+  (
+    crash "Try to generate type " + name
+  );
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Implementation Slots
+  //
+  
   - consistent_with_base t:BASE_TYPE :BOOLEAN <- deferred;
   
-  - to_impl_of other:TYPE_IMPL :MAYBE(TYPE_IMPL) <- deferred;
+  - to_impl_of other:TYPE_IMPL :MAYBE(TYPE_IMPL) <-
+  [ -? {consistent_with_base other}; ]
+  ( + res:MAYBE(TYPE_IMPL);
+    consistent_with_base other.if {
+      res << other;
+    } else {
+      res <! ERR.create("Type "+other.name+" is not consistent with "+name);
+    };
+    res
+  );
+
+  + to_impl :TYPE_IMPL;
+  
+  - is_impl :MAYBE(TYPE_IMPL) <- MAYBE(TYPE_IMPL);
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Creation
+  //
+  
+  - make_with_implementation impl:TYPE_IMPL :SELF <-
+  (
+    to_impl := impl;
+    Self
+  );
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Other
+  //
+  
+  - to_string :STRING <- type_name + "<" + name + ">";
+
+Section TYPE
   
   - keywords_str :CSTRING <-
   ( + res:CSTRING;
