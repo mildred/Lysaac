@@ -1,0 +1,93 @@
+Section Header
+
+  + name := SLOT_IMPL;
+
+Section Inherit
+
+  + parent_slot :Expanded SLOT;
+
+Section Public
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Identification
+  //
+
+  - name :CSTRING <- ast.identifier;
+  
+  - style :ITM_STYLE <- ast.style;
+  
+  - external :BOOLEAN <- ast.is_external;
+  - export   :BOOLEAN <- ast.is_export;
+  - internal :BOOLEAN <- ast.is_internal;
+  
+  - shared :BOOLEAN <- style.minus;
+  
+  - slot_data :BOOLEAN <- (ast.affect.data);
+  - slot_code :BOOLEAN <- (! slot_data);
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Debug
+  //
+  
+  - position :POS <- ast.position;
+
+Section Private
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Private Interface
+  //
+
+  + ast :ITM_SLOT;
+
+Section SLOT
+
+  - ast_expression :ITM_EXPR <- ast.expression;
+
+Section ITM_SLOT
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Creation
+  //
+
+  - make s:ITM_SLOT :SELF <-
+  (
+    make_error_collector ("slot " + s.identifier);
+    arguments := FAST_ARRAY(REG).create 0;
+    list           := NULL;
+    ast            := s;
+    self_prototype := ast.prototype_parent;
+    self           := EXPR;
+    type_index     := -1;
+    result_type    := NULL;
+    ? {self_prototype != NULL};
+    Self
+  );
+  
+  - add_argument v:REG <- arguments.add_last v;
+  
+  - set_return_type t:TYPE <-
+  [ -? { t != NULL }; ]
+  (
+    result_type := t;
+  );
+  
+  - finish_creation <-
+  ( + error :BOOLEAN;
+    (internal).if {
+      + sym :ITM_EXPR_SYM;
+      sym ?= ast.expression;
+      (sym = NULL).if {
+        error := TRUE;
+        add_error(ast.expression.position.error("Expected symbol"));
+      } else {
+        internal_opcode := sym.symbol;
+      };
+    };
+    error.if_false {
+      self_prototype.add_slot Self;
+    };
+  );

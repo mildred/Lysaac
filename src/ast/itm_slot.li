@@ -71,11 +71,11 @@ Section ITM
 Section ITM_PROTOTYPE
 
   - define_in list:LIST_PROC <-
-  ( + slot:SLOT;
+  ( + slot:SLOT_IMPL;
   
     ? {prototype_parent != NULL};
   
-    slot := SLOT.clone.make Self;
+    slot := SLOT_IMPL.clone.make Self;
     arguments.iterate.loop_v { l:ITM_ARG;
       l.get_argument_variable.if_false { e:ERR;
         slot.add_error(e.extend(position, "Dropping argument "+l.name+" for slot " + identifier));

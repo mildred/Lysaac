@@ -8,35 +8,75 @@ Section Inherit
 
 Section Public
 
-  - name :CSTRING <- ast.identifier;
-  
-  - external :BOOLEAN <- ast.is_external;
-  - export   :BOOLEAN <- ast.is_export;
-  - internal :BOOLEAN <- ast.is_internal;
-  
-  + internal_opcode :CSTRING := "";
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Identification
+  //
+
+  - name :CSTRING <- (deferred; NULL);
+  // User-friendly name
   
   + external_name :CSTRING <-
+  // Symbol name
   ( 
     (export | external).if {
       external_name := name;
     } else {
-      external_name := symbol_encode_prototype prototype slot Self;
+      external_name := symbol_encode_prototype self_prototype slot Self;
     };
     external_name
   );
   
-  + arguments :FAST_ARRAY(REG);
+  - style   :ITM_STYLE <- deferred;
   
-  + prototype :PROTOTYPE;
-
-  + self :EXPR;
+  - external  :BOOLEAN <- deferred;
+  - export    :BOOLEAN <- deferred;
+  - internal  :BOOLEAN <- deferred;
+  
+  - shared    :BOOLEAN <- style.minus;
+  
+  - slot_data :BOOLEAN <- deferred;
+  - slot_code :BOOLEAN <- (! slot_data);
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Location
+  //
+  
+  - root_prototype :PROTOTYPE <- self_prototype;
+  // Prototype in which the slot is first defined
+  
+  + self_prototype :PROTOTYPE;
+  // Prototype SELF, of the synamic type
+  
+  - prototype :PROTOTYPE <- self_prototype;
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Signature
+  //
   
   + result_type :TYPE;
   
-  - style :ITM_STYLE <- ast.style;
-  
   - has_result :BOOLEAN <- (result_type != NULL);
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Implementation
+  //
+  
+  + internal_opcode :CSTRING := "";
+  
+  + arguments :FAST_ARRAY(REG);
+
+  + self :EXPR;
+  
+  + type_index :INTEGER := -1;
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Debug
+  //
   
   - to_string :STRING <-
   ( + res:STRING;
@@ -48,19 +88,27 @@ Section Public
     res
   );
   
-  + type_index :INTEGER := -1;
-  
-  - position :POS <- ast.position;
-  
-  - shared :BOOLEAN <- style.minus;
-  
-  - slot_data :BOOLEAN <- (ast.affect.data);
-  
-  - slot_code :BOOLEAN <- (! slot_data);
+  - position :POS <- (deferred; POS);
 
 Section Private
 
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Private Interface
+  //
+  
+  + self_prototype_expr :EXPR;
+
   + list :LIST;
+
+Section SLOT
+
+  - ast_expression :ITM_EXPR <- (deferred; NULL);
+
+Section ITM_EXPR_WRITE
+
+  + shared_data_variable :REG;
+  // Register for shared slot (style '-')
 
 Section PROTOTYPE
 
@@ -74,52 +122,22 @@ Section PROTOTYPE
     default_value
   );
 
-Section ITM_SLOT
+  - set_type_index i:INTEGER <-
+  [ -? {i >= 0}; ]
+  (
+    type_index := i;
+  );
 
-  - make s:ITM_SLOT :SELF <-
-  (
-    make_error_collector ("slot " + s.identifier);
-    arguments := FAST_ARRAY(REG).create 0;
-    list          := NULL;
-    ast           := s;
-    prototype     := ast.prototype_parent;
-    self          := EXPR;
-    type_index    := -1;
-    result_type   := NULL;
-    ? {prototype != NULL};
-    Self
-  );
-  
-  - add_argument v:REG <- arguments.add_last v;
-  
-  - set_return_type t:TYPE <-
-  [ -? { t != NULL }; ]
-  (
-    result_type := t;
-  );
-  
-  - finish_creation <-
-  ( + error :BOOLEAN;
-    (internal).if {
-      + sym :ITM_EXPR_SYM;
-      sym ?= ast.expression;
-      (sym = NULL).if {
-        error := TRUE;
-        add_error(ast.expression.position.error("Expected symbol"));
-      } else {
-        internal_opcode := sym.symbol;
-      };
-    };
-    error.if_false {
-      prototype.add_slot Self;
-    };
-  );
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Compilation
+  //
 
 Section LIST_PROC
 
   - compile list_procs:LIST_PROC <-
   ( + t:TYPE;
-    t := prototype.to_type_reference;
+    t := self_prototype.to_type_reference;
     t.void.if {
       self := EXPR;
     } else {
@@ -131,7 +149,7 @@ Section LIST_PROC
     external.if {
       // External Slot
       + sym :ITM_EXPR_SYM;
-      sym ?= ast.expression;
+      sym ?= ast_expression;
       ? { sym != NULL };
       external_name := sym.symbol;
     } else {
@@ -139,7 +157,7 @@ Section LIST_PROC
         shared_data_variable := REG.clone.make_type (BASE_TYPE.create_pointer(result_type.base_type));
       };
       list.set_list_procs list_procs;
-      prototype.initializer_list.set_list_procs list_procs;
+      self_prototype.initializer_list.set_list_procs list_procs;
       compile_initializer;
       compile_slot;
     };
@@ -151,28 +169,28 @@ Section Private
   [ -? {! external}; ]
   ( + r:REG;
     slot_data.if {
-      ast.expression.compile_in (prototype.initializer_list);
-      ast.expression.results.failure.if {
-        add_error (ast.expression.results.err);
-      }.elseif {ast.expression.results.is_empty} then {
-        add_error (ast.position.error("Missing initial value"));
+      ast_expression.compile_in (self_prototype.initializer_list);
+      ast_expression.results.failure.if {
+        add_error (ast_expression.results.err);
+      }.elseif {ast_expression.results.is_empty} then {
+        add_error (position.error("Missing initial value"));
       } else {
-        (!ast.expression.results.is_single).if {
-          add_error (ast.position.error("Dropping the last " + (ast.expression.results.count - 1).to_string + " values"));
+        (!ast_expression.results.is_single).if {
+          add_error (position.error("Dropping the last " + (ast_expression.results.count - 1).to_string + " values"));
         }.elseif {shared} then {
           r := shared_data_variable;
         } else {
           r := INSTR_GETELEMPTR
             .clone
-            .make (prototype.initializer_list.self) slot Self
-            .add_in (prototype.initializer_list)
+            .make (self_prototype.initializer_list.self) slot Self
+            .add_in (self_prototype.initializer_list)
             .result;
         };
         INSTR_STORE
           .clone
           .make_store_in r
-            value (ast.expression.results.first)
-          .add_in (prototype.initializer_list);
+            value (ast_expression.results.first)
+          .add_in (self_prototype.initializer_list);
       };
     };
   );
@@ -197,22 +215,22 @@ Section Private
           .add_in list
           .result);
       };
-    }.elseif {ast.expression != NULL} then {
+    }.elseif {ast_expression != NULL} then {
       // Nominal case
       
       + exprs :EXPRS;
-      exprs := ast.expression.compile_in list.results;
+      exprs := ast_expression.compile_in list.results;
       
       exprs.failure.if {
-        add_error(exprs.err.extend(ast.position, "Dropping return value #1 for slot " + name));
+        add_error(exprs.err.extend(position, "Dropping return value #1 for slot " + name));
       }.elseif {! exprs.is_empty} then {
         exprs.is_single.if_false {
-          add_error(ast.position.error("Only keep the first return value"));
+          add_error(position.error("Only keep the first return value"));
         };
         (exprs.first.type = result_type).if {
           list.add_result (exprs.first.reg);
         }.elseif {has_result} then {
-          add_error(ast.expression.position.error(
+          add_error(ast_expression.position.error(
             "Incompatible type for return value #1. "
             + "Got: " + pretty_type(exprs.first.type)
             + ", expected: " + pretty_type(result_type)));
@@ -222,13 +240,13 @@ Section Private
       // Empty slot
     };
     ((has_result) && {list.results.is_empty}).if {
-      add_error(ast.position.error(
+      add_error(position.error(
         "No value given for this slot. Using prototype "
         + pretty_type(result_type)));
       list.add_result (result_type.prototype.compile_prototype_value_in list);
     };
     export.if {
-      prototype_self := prototype.compile_prototype_value_in list;
+      self_prototype_expr := self_prototype.compile_prototype_value_in list;
     };
   );
   
@@ -249,14 +267,19 @@ Section Private
         .make_ptrcall (list.self) of Self
         .finalize_in list
         .if_fail { e:ERR;
-          add_error(e.extend(ast.position, "Calling the block"));
+          add_error(e.extend(position, "Calling the block"));
         };
     } else {
-      add_error(ast.position.error("Unknown opcode " + internal_opcode));
+      add_error(position.error("Unknown opcode " + internal_opcode));
     }
   );
 
 Section LIST_PROC
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Link
+  //
 
   - link gen:GENERATOR <-
   (
@@ -267,6 +290,11 @@ Section LIST_PROC
       list.link gen;
     };
   );
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Generation
+  //
   
   - generate gen:GENERATOR <-
   (
@@ -309,30 +337,12 @@ Section Private
       };
     } do {
       export.if {
-        ? { prototype_self != NULL };
-        self.reg.realize_using (prototype_self);
+        ? { self_prototype_expr != NULL };
+        self.reg.realize_using (self_prototype_expr);
       };
       ? { self.reg.is_realized };
       list.generate gen;
     } return (list.first_result_or_invalid);
   );
-
-Section PROTOTYPE
-
-  - set_type_index i:INTEGER <-
-  [ -? {i >= 0}; ]
-  (
-    type_index := i;
-  );
-
-Section ITM_EXPR_WRITE
-
-  + shared_data_variable :REG;
-
-Section Private
-
-  + ast :ITM_SLOT;
-  
-  + prototype_self :EXPR;
 
 

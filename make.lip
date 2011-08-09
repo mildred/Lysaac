@@ -21,6 +21,10 @@ Section Private
     general_front_end;
     input_file := "lysaac";
     path "src/";
+    path "src/ast";
+    path "src/interfaces";
+    path "src/ir";
+    path "src/tool";
     path "lib/";
   );
 
