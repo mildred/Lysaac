@@ -152,7 +152,7 @@ Section Public
     
     find_prototype type_name.if { pro:PROTOTYPE;
       ? { pro.made };
-      res := pro.to_type;
+      res << pro.to_type;
     } else_error { e:ERR;
       res <! e;
     };

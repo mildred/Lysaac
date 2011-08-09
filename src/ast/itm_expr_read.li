@@ -64,7 +64,7 @@ Section Public
       ? {self != NULL};
       ? {self.is_valid};
 
-      self.type.prototype.find_slot slot.if_false { e:ERR;
+      self.type.to_impl.prototype.find_slot slot.if_false { e:ERR;
         results <! e.extend(position, "Discarding message");
       
       } else { slot_obj :SLOT;

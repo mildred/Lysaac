@@ -23,10 +23,12 @@ Section Public
     -? { r != NULL };
     -? { ! r.base_type.void };
     -? { r.is_valid };
-    (t.base_type == r.base_type).if_false {
-      warnln(t.base_type.to_string + " (type) != " + r.base_type.to_string + " (reg)");
+    t.is_impl.if { ti:TYPE_IMPL;
+      (ti.base_type == r.base_type).if_false {
+        warnln(ti.base_type.to_string + " (type) != " + r.base_type.to_string + " (reg)");
+      };
+      -? { ti.base_type == r.base_type };
     };
-    -? { t.base_type == r.base_type };
   ]
   (
     reg  := r;
@@ -40,10 +42,10 @@ Section Public
   - make_type t:TYPE :SELF <-
   [
     -? { t != NULL };
-    -? { t.prototype.defined };
+    -? { t.can_create_reg };
   ]
   (
-    make(REG.clone.make_type t, t)
+    make(t.create_reg, t)
   );
 
   - to_reg  :REG  <- [ -? { reg != NULL }; ] reg;

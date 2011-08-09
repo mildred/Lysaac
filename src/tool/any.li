@@ -82,7 +82,7 @@ Section Public
     (t = NULL).if {
       res := "VOID";
     } else {
-      res := t.prototype.name;
+      res := t.name;
     };
     res
   );

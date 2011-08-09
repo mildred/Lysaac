@@ -20,7 +20,7 @@ Section ITM_EXPR_GROUP
   - make fn:CSTRING type_block t:TYPE :SELF <-
   (
     function_name := fn;
-    result := REG.clone.make_type (t);
+    result := t.create_reg;
     made := TRUE;
     Self
   );

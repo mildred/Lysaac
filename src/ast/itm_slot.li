@@ -76,7 +76,7 @@ Section ITM_PROTOTYPE
 
   - define_in list:LIST_PROC <-
   ( + slot:SLOT_IMPL;
-    + maybe_type:MAYBE(TYPE);
+    + maybe_type:MAYBE(TYPE_IMPL);
   
     ? {prototype_parent != NULL};
   
@@ -92,7 +92,7 @@ Section ITM_PROTOTYPE
     (return_type != NULL).if {
       (maybe_type := return_type.to_type).if_false { e:ERR;
         slot.add_error(e.extend(position, "Dropping return type for slot " + identifier));
-      } else { t:TYPE;
+      } else { t:TYPE_IMPL;
         ? { t != NULL };
         slot.set_return_type (t);
       };

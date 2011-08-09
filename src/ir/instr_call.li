@@ -61,12 +61,13 @@ Section Public
   (
     receiver      := receiver_expr;
     args          := FAST_ARRAY(EXPR).create 0;
-    result        := REG.clone;
     slot          := s;
     include_self  := ! slot.external;
     function_pointer := REG;
     (slot.result_type != NULL).if {
-      result.make_type (slot.result_type);
+      result      := slot.result_type.create_reg;
+    } else {
+      result      := REG.clone;
     };
     Self
   );

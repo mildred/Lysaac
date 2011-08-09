@@ -45,7 +45,7 @@ Section ITM_EXPR_GROUP
     
     type.to_type.if_false { err:ERR;
       e := err.extend(position, "Could not allocate storage for local " + name);
-    } else { t:TYPE;
+    } else { t:TYPE_IMPL;
       full_type := t;
       pointer := INSTR_ALLOCA
         .clone
@@ -71,5 +71,5 @@ Section Private
 
   + pointer :REG;
   
-  + full_type :TYPE;
+  + full_type :TYPE_IMPL;
 

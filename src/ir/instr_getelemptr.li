@@ -41,7 +41,7 @@ Section Public
       warnln("base type      : " + r.base_type.to_string);
     };
     -? { r.base_type.pointer_type.struct_types.valid_index (s.type_index) };
-    -? { s.result_type.base_type == r.base_type.pointer_type.struct_types.item (s.type_index) };
+    -? { s.result_type.to_impl.base_type == r.base_type.pointer_type.struct_types.item (s.type_index) };
   ]
   ( + res_type :BASE_TYPE;
     value := r;

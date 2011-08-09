@@ -1,0 +1,102 @@
+Section Header
+
+  + name := TYPE_IMPL;
+  
+  - export := BASE_TYPE;
+
+Section Inherit
+
+  + parent_type :Expanded TYPE;
+  
+Section Public
+  
+  - name :CSTRING <- (keywords_str + prototype.name).to_abstract_string;
+
+  - to_impl :TYPE_IMPL <- Self;
+  
+  - is_impl :MAYBE(TYPE_IMPL) <- MAYBE(TYPE_IMPL).make Self;
+
+  - can_create_reg :BOOLEAN <- prototype.defined;
+  
+  - create_reg :REG <- REG.clone.make_type base_type;
+  
+  - consistent_with_base t:BASE_TYPE :BOOLEAN <- ( base_type == t );
+  
+  - to_impl_of other:TYPE_IMPL :MAYBE(TYPE_IMPL) <- is_impl;
+//  ( + res :MAYBE(TYPE_IMPL);
+//    base_type.resolve_with (result_type.base_type);
+//    res << Self;
+//    res
+//  );
+
+  + prototype :PROTOTYPE;
+  
+  + base_type :BASE_TYPE <-
+  [ -? { prototype.defined }; ]
+  (
+    block.if {
+      base_type := BASE_TYPE.create_pointer (BASE_TYPE.create_function);
+    } else {
+      expanded.if {
+        base_type := prototype.base_type;
+      } else {
+        base_type := BASE_TYPE.create_pointer (prototype.base_type);
+      };
+    };
+    base_type
+  );
+  
+  - void :BOOLEAN <- base_type.void;
+
+  - generate gen:GENERATOR <-
+  (
+    (base_type = NULL).if {
+      crash_with_message ("Cannot generate type for "+prototype.name);
+      not_yet_implemented;
+    } else {
+      base_type.generate gen;
+    };
+  );
+  
+  - to_string :STRING <- type_name + "<" + prototype.name + "," + base_type.to_string + ">";
+  
+  - to_base_type :BASE_TYPE <- base_type;
+
+Section PROTOTYPE
+
+  - make_reference p:PROTOTYPE :SELF <-
+  [
+    -? { p.made };
+    -? { p.role !== "Block" };
+  ]
+  (
+    block := FALSE;
+    expanded := FALSE;
+    prototype := p;
+    Self
+  );
+
+  - make_expanded p:PROTOTYPE :SELF <-
+  [
+    -? { p.made };
+    -? { p.role !== "Block" };
+  ]
+  (
+    block := FALSE;
+    expanded := TRUE;
+    prototype := p;
+    Self
+  );
+  
+  - make_block p:PROTOTYPE :SELF <-
+  [
+    -? { p.made };
+    -? { p.role == "Block" };
+  ]
+  (
+    block := TRUE;
+    prototype := p;
+    expanded := FALSE;
+    Self
+  );
+

@@ -44,7 +44,7 @@ Section Public
       } else {
         // Slot write
 
-        list.self.type.prototype.find_slot slot_name.if_false { e:ERR;
+        list.self.type.to_impl.prototype.find_slot slot_name.if_false { e:ERR;
           results <! e.extend(position, "Discarding write");
         } else { slot:SLOT;
           (!slot.slot_data).if {

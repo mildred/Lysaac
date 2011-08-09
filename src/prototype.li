@@ -38,7 +38,7 @@ Section Public
       base_type := BASE_TYPE.create_struct;
       slots.iterate.loop_v { s:SLOT;
         s.shared.if_false {
-          base_type.struct_types.add_last (s.result_type.base_type);
+          base_type.struct_types.add_last (s.result_type.to_impl.base_type);
         };
       };
     };
@@ -174,9 +174,9 @@ Section ITM_EXPR
 
 Section CLUSTER, ITM_TYPE, SLOT, INSTR_FNPTR
 
-  - to_type :TYPE <-
+  - to_type :TYPE_IMPL <-
   [ -? {made}; ]
-  ( + type:TYPE;
+  ( + type:TYPE_IMPL;
 
     (role == "Block").if {
       type := to_type_reference;
@@ -188,32 +188,32 @@ Section CLUSTER, ITM_TYPE, SLOT, INSTR_FNPTR
     type
   );
   
-  - to_type_expanded :TYPE <-
+  - to_type_expanded :TYPE_IMPL <-
   [
     -? {role !== "Block"};
     -? {made};
   ]
   (
     (type_exp = NULL).if {
-      type_exp := TYPE.clone.make_expanded Self;
+      type_exp := TYPE_IMPL.clone.make_expanded Self;
     };
     type_exp
   );
 
-  - to_type_reference :TYPE <-
+  - to_type_reference :TYPE_IMPL <-
   [ -? {made}; ]
   (
     (type_ref = NULL).if {
       (role == "Block").if {
-        type_ref := TYPE.clone.make_block Self;
+        type_ref := TYPE_IMPL.clone.make_block Self;
       } else {
-        type_ref := TYPE.clone.make_reference Self;
+        type_ref := TYPE_IMPL.clone.make_reference Self;
       };
     };
     type_ref
   );
   
-  - to_type_block :TYPE <-
+  - to_type_block :TYPE_IMPL <-
   [ -? { role == "Block" }; ]
   ( to_type );
 
@@ -308,9 +308,9 @@ Section Private
 
   + ast :ITM_PROTOTYPE;
   
-  + type_ref :TYPE;
+  + type_ref :TYPE_IMPL;
   
-  + type_exp :TYPE;
+  + type_exp :TYPE_IMPL;
   
   + prototype_rvalue :REG; // Always a pointer value (reference)
   

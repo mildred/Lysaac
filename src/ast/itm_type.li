@@ -12,8 +12,8 @@ Section Public
   
   + block :BOOLEAN;
   
-  - to_type :MAYBE(TYPE) <-
-  ( + res :MAYBE(TYPE);
+  - to_type :MAYBE(TYPE_IMPL) <-
+  ( + res :MAYBE(TYPE_IMPL);
   
     block.if {
       cluster_parent.prototype_for_role "Block".if { p:PROTOTYPE;
@@ -23,7 +23,7 @@ Section Public
       };
     } else {
       slot_parent.find_type (prototype.prototype).if { t:TYPE;
-        res << t;
+        res << t.to_impl;
       } else_error { e:ERR;
         res <! position.error("Could not find type " + name);
       };

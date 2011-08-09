@@ -1,89 +1,43 @@
 Section Header
 
   + name := TYPE;
-  
-  - export := BASE_TYPE;
 
 Section Inherit
 
   + parent_any :Expanded ANY;
   
 Section Public
+  
+  - name :CSTRING <- deferred;
+  
+  + block :BOOLEAN     := FALSE;
+  
+  - reference :BOOLEAN <- ( ! expanded );
+  
+  + expanded :BOOLEAN  := FALSE;
+  
+  - void :BOOLEAN      <- TRUE;
 
-  + prototype :PROTOTYPE;
+  - generate gen:GENERATOR <- deferred;
+
+  - to_impl :TYPE_IMPL <- deferred;
   
-  + block :BOOLEAN;
+  - is_impl :MAYBE(TYPE_IMPL) <- deferred;
+
+  - can_create_reg :BOOLEAN <- FALSE;
   
-  + reference :BOOLEAN <- ( ! expanded );
+  - create_reg :REG <- deferred;
   
-  + expanded :BOOLEAN;
+  - consistent_with_base t:BASE_TYPE :BOOLEAN <- deferred;
   
-  + base_type :BASE_TYPE <-
-  [ -? { prototype.defined }; ]
-  (
-    block.if {
-      base_type := BASE_TYPE.create_pointer (BASE_TYPE.create_function);
+  - to_impl_of other:TYPE_IMPL :MAYBE(TYPE_IMPL) <- deferred;
+  
+  - keywords_str :CSTRING <-
+  ( + res:CSTRING;
+    reference.if {
+      res := "Reference ";
     } else {
-      expanded.if {
-        base_type := prototype.base_type;
-      } else {
-        base_type := BASE_TYPE.create_pointer (prototype.base_type);
-      };
+      res := "Expanded ";
     };
-    base_type
+    res
   );
-  
-  - void :BOOLEAN <- base_type.void;
-
-  - generate gen:GENERATOR <-
-  (
-    (base_type = NULL).if {
-      crash_with_message ("Cannot generate type for "+prototype.name);
-      not_yet_implemented;
-    } else {
-      base_type.generate gen;
-    };
-  );
-  
-  - to_string :STRING <- type_name + "<" + prototype.name + "," + base_type.to_string + ">";
-  
-  - to_base_type :BASE_TYPE <- base_type;
-
-Section PROTOTYPE
-
-  - make_reference p:PROTOTYPE :SELF <-
-  [
-    -? { p.made };
-    -? { p.role !== "Block" };
-  ]
-  (
-    block := FALSE;
-    expanded := FALSE;
-    prototype := p;
-    Self
-  );
-
-  - make_expanded p:PROTOTYPE :SELF <-
-  [
-    -? { p.made };
-    -? { p.role !== "Block" };
-  ]
-  (
-    block := FALSE;
-    expanded := TRUE;
-    prototype := p;
-    Self
-  );
-  
-  - make_block p:PROTOTYPE :SELF <-
-  [
-    -? { p.made };
-    -? { p.role == "Block" };
-  ]
-  (
-    block := TRUE;
-    prototype := p;
-    reference := TRUE;
-    Self
-  );
-

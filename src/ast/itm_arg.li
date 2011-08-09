@@ -39,7 +39,7 @@ Section ITM_SLOT
     type.to_type.if_false { err:ERR;
       res <! err.extend(position, "Cannot resolve type for "+name); // TODO
       result = NULL;
-    } else { t:TYPE;
+    } else { t:TYPE_IMPL;
       r .make_type t
         .make_pretty_name name;
       ? { r.is_valid };
