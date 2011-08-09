@@ -56,7 +56,7 @@ Section Public
   // Signature
   //
   
-  + result_type :TYPE;
+  - result_type :TYPE <- (deferred; NULL);
   
   - has_result :BOOLEAN <- (result_type != NULL);
   
@@ -65,7 +65,7 @@ Section Public
   // Implementation
   //
   
-  + internal_opcode :CSTRING := "";
+  - internal_opcode :CSTRING <- (deferred; NULL);
   
   + arguments :FAST_ARRAY(REG);
 

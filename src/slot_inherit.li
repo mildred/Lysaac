@@ -1,0 +1,74 @@
+Section Header
+
+  + name := SLOT_INHERIT;
+
+Section Inherit
+
+  + parent_slot :Expanded SLOT;
+
+Section Public
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Identification
+  //
+
+  - name :CSTRING <- inherit_from.name;
+  
+  - style   :ITM_STYLE <- inherit_from.style;
+  
+  - external  :BOOLEAN <- inherit_from.external;
+  - export    :BOOLEAN <- inherit_from.export;
+  - internal  :BOOLEAN <- inherit_from.internal;
+    
+  - slot_data :BOOLEAN <- inherit_from.slot_data;
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Location
+  //
+  
+  - root_prototype :PROTOTYPE <- inherit_from.root_prototype;
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Signature
+  //
+  
+  - result_type :TYPE <- inherit_from.result_type;
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Implementation
+  //
+  
+  - internal_opcode :CSTRING <- inherit_from.internal_opcode;
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Debug
+  //
+  
+  - position :POS <- inherit_from.position;
+
+Section Private
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Private Interface
+  //
+  
+  + inherit_from :SLOT;
+
+Section SLOT
+
+  - ast_expression :ITM_EXPR <- inherit_from.ast_expression;
+
+Section Private
+
+  - make_from s:SLOT in p:PROTOTYPE :SELF <-
+  (
+    inherit_from   := s;
+    self_prototype := p;
+    Self
+  );

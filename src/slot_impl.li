@@ -15,16 +15,27 @@ Section Public
 
   - name :CSTRING <- ast.identifier;
   
-  - style :ITM_STYLE <- ast.style;
+  - style   :ITM_STYLE <- ast.style;
   
-  - external :BOOLEAN <- ast.is_external;
-  - export   :BOOLEAN <- ast.is_export;
-  - internal :BOOLEAN <- ast.is_internal;
-  
-  - shared :BOOLEAN <- style.minus;
+  - external  :BOOLEAN <- ast.is_external;
+  - export    :BOOLEAN <- ast.is_export;
+  - internal  :BOOLEAN <- ast.is_internal;
   
   - slot_data :BOOLEAN <- (ast.affect.data);
-  - slot_code :BOOLEAN <- (! slot_data);
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Signature
+  //
+  
+  + result_type :TYPE;
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Implementation
+  //
+  
+  + internal_opcode :CSTRING := "";
 
   //////////////////////////////////////////////////////////////////////////////
   //
