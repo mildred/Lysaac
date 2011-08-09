@@ -58,7 +58,7 @@ Section Public
 
   + to_impl :TYPE_IMPL;
   
-  - is_impl :MAYBE(TYPE_IMPL) <- MAYBE(TYPE_IMPL);
+  - is_impl :BOOLEAN <- FALSE;
   
   //////////////////////////////////////////////////////////////////////////////
   //

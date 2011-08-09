@@ -23,11 +23,11 @@ Section Public
     -? { r != NULL };
     -? { ! r.base_type.void };
     -? { r.is_valid };
-    t.is_impl.if { ti:TYPE_IMPL;
-      (ti.base_type == r.base_type).if_false {
-        warnln(ti.base_type.to_string + " (type) != " + r.base_type.to_string + " (reg)");
+    t.is_impl.if {
+      (t.to_impl.base_type == r.base_type).if_false {
+        warnln(t.to_impl.base_type.to_string + " (type) != " + r.base_type.to_string + " (reg)");
       };
-      -? { ti.base_type == r.base_type };
+      -? { t.to_impl.base_type == r.base_type };
     };
   ]
   (

@@ -68,7 +68,7 @@ Section Public
 
   - to_impl :TYPE_IMPL <- Self;
   
-  - is_impl :MAYBE(TYPE_IMPL) <- MAYBE(TYPE_IMPL).make Self;
+  - is_impl :BOOLEAN <- TRUE;
   
   //////////////////////////////////////////////////////////////////////////////
   //
