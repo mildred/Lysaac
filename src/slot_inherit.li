@@ -64,11 +64,17 @@ Section SLOT
 
   - ast_expression :ITM_EXPR <- inherit_from.ast_expression;
 
-Section Private
+Section ITM_SLOT
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Creation
+  //
 
   - make_from s:SLOT in p:PROTOTYPE :SELF <-
   (
     inherit_from   := s;
     self_prototype := p;
+    self_prototype.add_slot Self;
     Self
   );

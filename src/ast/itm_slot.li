@@ -34,6 +34,10 @@ Section Public
   
   - is_inherit :BOOLEAN <- ( has_keyword "Inherit" );
   
+  - is_insert :BOOLEAN <- ( has_keyword "Insert" );
+  
+  - is_inherit_or_insert :BOOLEAN <- ((is_inherit) || {is_insert});
+  
   - has_keyword k:CSTRING :BOOLEAN <-
   (
      + res :BOOLEAN;
@@ -72,6 +76,7 @@ Section ITM_PROTOTYPE
 
   - define_in list:LIST_PROC <-
   ( + slot:SLOT_IMPL;
+    + maybe_type:MAYBE(TYPE);
   
     ? {prototype_parent != NULL};
   
@@ -85,7 +90,7 @@ Section ITM_PROTOTYPE
       };
     };
     (return_type != NULL).if {
-      return_type.to_type.if_false { e:ERR;
+      (maybe_type := return_type.to_type).if_false { e:ERR;
         slot.add_error(e.extend(position, "Dropping return type for slot " + identifier));
       } else { t:TYPE;
         ? { t != NULL };
@@ -94,6 +99,29 @@ Section ITM_PROTOTYPE
     };
     slot.finish_creation;
     list.add_slot slot;
+    
+    ((is_inherit_or_insert) && {return_type = NULL}).if {
+      slot.add_error(position.error("Inherit or Insert slot do not have a return type"));
+    }.elseif {(is_inherit_or_insert) && {maybe_type.ok}} then {
+      + p:PROTOTYPE;
+      // if it is an Inherit or Insert slot:
+      //   - define the parent type unless it is in state defining (in which case,
+      //     raise a warning because of looping inheritance) or unless it is already
+      //     defined.
+      //   - for each of the parent slot, create an appropriate SLOT_INHERIT object
+      //     and add it to the prototype
+      p := maybe_type.element.prototype;
+      p.defining.if {
+        slot.add_error(position.error("Inheritance loop, discarding inheritance"));
+      }.elseif {!p.defined} then {
+        p.define_in list;
+      };
+      p.slots.iterate.loop_v { s:SLOT;
+        + si :SLOT_INHERIT;
+        si := SLOT_INHERIT.clone.make_from s in p;
+        list.add_slot si;
+      };
+    };
   );
   
 Section PARSER

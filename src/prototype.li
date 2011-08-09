@@ -14,6 +14,7 @@ Section Public
 
   - made      :BOOLEAN <- state >= state_made;      // Object is made and ready
   - parsed    :BOOLEAN <- state >= state_parsed;    // AST is parsed
+  - defining  :BOOLEAN <- state == state_defining;  // External interfaces are being defined
   - defined   :BOOLEAN <- state >= state_defined;   // External interfaces are defined
   - compiled  :BOOLEAN <- state >= state_compiled;  // Internal code is compiled
   - generated :BOOLEAN <- state >= state_generated; // Code is generated.
@@ -75,6 +76,7 @@ Section Public
   - define_in list:LIST_PROC <-
   [ -? {parsed}; -?{!defined}; ]
   (
+    state := state_defining;
     ast.define_in list;
     state := state_defined;
   )
@@ -283,6 +285,10 @@ Section SLOT_BLOCK
     slots.add_last s;
   );
 
+Section ITM_SLOT
+
+  + slots :FAST_ARRAY(SLOT);
+
 Section Private
 
   + num_compiled_data_slots :INTEGER := 0;
@@ -292,16 +298,15 @@ Section Private
   - state_none      :INTEGER := 0;
   - state_made      :INTEGER := 1;
   - state_parsed    :INTEGER := 3;
-  - state_defined   :INTEGER := 4;
-  - state_compiled  :INTEGER := 5;
-  - state_linked    :INTEGER := 6;
-  - state_generated :INTEGER := 7;
+  - state_defining  :INTEGER := 4;
+  - state_defined   :INTEGER := 5;
+  - state_compiled  :INTEGER := 6;
+  - state_linked    :INTEGER := 7;
+  - state_generated :INTEGER := 8;
 
   + parser :PARSER_LI;
 
   + ast :ITM_PROTOTYPE;
-
-  + slots :FAST_ARRAY(SLOT);
   
   + type_ref :TYPE;
   
