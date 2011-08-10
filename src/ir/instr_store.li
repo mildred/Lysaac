@@ -26,9 +26,10 @@ Section Public
   - make_store_in ptr:REG value v:REG :SELF <-
   [
     -? { ptr.base_type.pointer };
+    v.compatible_with (ptr.base_type.pointer_type);
   ]
   (
-    v.base_type.resolve_with_and_assert (ptr.base_type.pointer_type);
+    v.resolve_base_type_with (ptr.base_type.pointer_type);
     pointer := ptr;
     value   := v;
     made := TRUE;

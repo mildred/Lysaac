@@ -55,13 +55,11 @@ Section Public
   
   - implement_type_with other:TYPE_IMPL :ERR <-
   ( + res:ERR;
-    type.is_impl.if_false {
-      type.to_impl_of other.if { t:TYPE_IMPL;
-        type := t;
-        reg.resolve_base_type_with (t.base_type);
-      } else_error { e:ERR;
-        res  := e;
-      };
+    type.to_impl_of other.if { t:TYPE_IMPL;
+      type := t;
+      reg.resolve_base_type_with (t.base_type);
+    } else_error { e:ERR;
+      res  := e;
     };
     res
   );

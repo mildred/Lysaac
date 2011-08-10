@@ -14,7 +14,6 @@ Feature: Integers constants can be of any integer type, not just i32
   want to access its type, it means we want to use it. Construct the type
   at this stage.
 
-  @wip
   Scenario:
     Given the following prototypes in "c":
       | Prototype |

@@ -64,7 +64,8 @@ Section Public
   - i16 :BASE_TYPE := create_integer 16;
   - i32 :BASE_TYPE := create_integer 32;
   - i64 :BASE_TYPE := create_integer 64;
-  - int :BASE_TYPE := create_integer_cst;
+  - int :BASE_TYPE <- create_integer_cst;
+  // int is created each time because when the type is resolved, it changes
   
   //
   // Type: pointer
@@ -106,43 +107,46 @@ Section Public
   // Generic
   //
   
-  - resolve_with_and_assert other:BASE_TYPE :BOOLEAN <-
-  ( + res:BOOLEAN;
-    res := resolve_with other;
-    res.if_false {
-      crash_with_message(to_string + " is invalid with " + other.to_string);
-    };
-    res
-  );
+  - compatible_with other:BASE_TYPE :BOOLEAN <- compatible_with other and_resolve FALSE;
+  - resolve_with other:BASE_TYPE :BOOLEAN <- compatible_with other and_resolve TRUE;
   
-  - resolve_with other:BASE_TYPE :BOOLEAN <-
+  - compatible_with other:BASE_TYPE and_resolve do_resolve:BOOLEAN :BOOLEAN <-
   ( + res:BOOLEAN;
     (kind == other.kind).if {
-      integer.if {
-        integer_cst.if {
+      
+      kind
+      .when kind_void then {
+        res := TRUE;
+      }
+      .when kind_integer then {
+        (do_resolve && {integer_cst}).if {
           i_size := other.integer_size;
           ? {integer_size == other.integer_size};
         };
-        res := (integer_size == other.integer_size);
-      }.elseif {pointer} then {
-        res := pointer_type.resolve_with (other.pointer_type);
-      }.elseif {function} then {
+        res := (integer_size == other.integer_size) ||
+               {(!do_resolve) && {integer_cst}};
+      }
+      .when kind_pointer then {
+        res := pointer_type.compatible_with (other.pointer_type) and_resolve do_resolve;
+      }
+      .when kind_function then {
         res := TRUE;
-      }.elseif {struct} then {
+      }
+      .when kind_struct then {
         res := (struct_types.count = other.struct_types.count);
         res.if {
           (struct_types.lower).to(struct_types.upper) do { i:INTEGER;
             res := res && {
-              struct_types.item i.resolve_with
-                (other.struct_types.item i)
+              struct_types.item i
+                .compatible_with (other.struct_types.item i)
+                     and_resolve do_resolve
             };
           };
         };
-      }.elseif {vector} then {
+      }
+      .when kind_vector then {
         res := (vector_length == other.vector_length) &&
-               {vector_type.resolve_with (other.vector_type)};
-      } else {
-        res := TRUE;
+               {vector_type.compatible_with (other.vector_type) and_resolve do_resolve};
       };
     };
     res
@@ -151,26 +155,32 @@ Section Public
   - generate gen:GENERATOR <-
   [ -? { Self != SELF }; ]
   (
-    integer.if {
+    kind
+    .when kind_void then {
+      gen.type_void;
+    }
+    .when kind_integer then {
       gen.type_integer integer_size;
-    }.elseif {pointer} then {
+    }
+    .when kind_pointer then {
       gen.type_pointer {
         pointer_type.generate gen;
       };
-    }.elseif {function} then {
+    }
+    .when kind_function then {
       gen.type_function;
-    }.elseif {struct} then {
+    }
+    .when kind_struct then {
       gen.type_struct {
         struct_types.iterate.loop_v { t:BASE_TYPE;
           gen.type_struct_element { t.generate gen }
         };
       };
-    }.elseif {vector} then {
+    }
+    .when kind_vector then {
       gen.type_vector m_vector_size of {
         p_type.generate gen;
       };
-    } else {
-      gen.type_void;
     };
   );
   
@@ -181,12 +191,32 @@ Section Public
   
   - Self:SELF '==' other:E :BOOLEAN <-
   (
-    (E = SELF) &&
-    {i_size   = other.i_size} &&
-    {{p_type   = other.p_type} || {p_type == other.p_type}} &&
-    {f_ptr    = other.f_ptr } &&
-    {m_vector_size = other.m_vector_size} &&
-    {(m_struct = other.m_struct) || {m_struct == other.m_struct}}
+    (E = SELF) && {other != NULL} && {kind = other.kind} &&
+    { + res:BOOLEAN;
+    
+      kind
+      .when kind_void then {
+        res := TRUE;
+      }
+      .when kind_integer then {
+        res := (integer_size == other.integer_size);
+      }
+      .when kind_pointer then {
+        res := (pointer_type == other.pointer_type);
+      }
+      .when kind_function then {
+        res := TRUE;
+      }
+      .when kind_struct then {
+        res := (struct_types == other.struct_types);
+      }
+      .when kind_vector then {
+        res := (vector_length == other.vector_length) &&
+               {vector_type   == other.vector_type};
+      };
+      
+      res
+    }
   );
   
   - to_llvm_in res:STRING :STRING <-

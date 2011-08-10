@@ -79,9 +79,18 @@ Section Public
   // Type Resolving
   //
   
+  - compatible_with t:BASE_TYPE <-
+  (
+    m_base_type.compatible_with t.if_false {
+      crash_with_message(to_string + " is incompatible with " + t.to_string);
+    };
+  );
+  
   - resolve_base_type_with other:BASE_TYPE <-
   (
-    ? { m_base_type.resolve_with other };
+    m_base_type.resolve_with other.if_false {
+      crash_with_message("Try to resolve " + to_string + " with " + other.to_string + ": incompatible types");
+    };
   );
   
   //

@@ -187,6 +187,7 @@ Section Private
             .add_in (self_prototype.initializer_list)
             .result;
         };
+        ast_expression.results.first.reg.compatible_with (r.base_type.pointer_type);
         INSTR_STORE
           .clone
           .make_store_in r
