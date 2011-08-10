@@ -67,7 +67,7 @@ Section Public
   
   - internal_opcode :CSTRING <- (deferred; NULL);
   
-  + arguments :FAST_ARRAY(REG);
+  + arguments :FAST_ARRAY(EXPR);
 
   + self :EXPR;
   
@@ -301,8 +301,8 @@ Section LIST_PROC
   (
     external.if {
       gen.declare_sub external_name args {
-        arguments.iterate.loop_v { v:REG;
-          gen.arg { v.base_type.generate gen; };
+        arguments.iterate.loop_v { v:EXPR;
+          gen.arg { v.reg.base_type.generate gen; };
         };
       } return {
         (result_type = NULL).if {
@@ -333,8 +333,8 @@ Section Private
       export.if_false {
         self.reg.generate_arg gen;
       };
-      arguments.iterate.loop_v { v:REG;
-        v.generate_arg gen;
+      arguments.iterate.loop_v { v:EXPR;
+        v.reg.generate_arg gen;
       };
     } do {
       export.if {

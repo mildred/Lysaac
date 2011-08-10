@@ -76,6 +76,15 @@ Section Public
   );
   
   //
+  // Type Resolving
+  //
+  
+  - resolve_base_type_with other:BASE_TYPE <-
+  (
+    ? { m_base_type.resolve_with other };
+  );
+  
+  //
   // Realization
   //
   

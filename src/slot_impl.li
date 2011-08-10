@@ -29,7 +29,7 @@ Section Public
   //
   
   + result_type :TYPE;
-  
+
   //////////////////////////////////////////////////////////////////////////////
   //
   // Implementation
@@ -67,7 +67,7 @@ Section ITM_SLOT
   - make s:ITM_SLOT :SELF <-
   (
     make_error_collector ("slot " + s.identifier);
-    arguments := FAST_ARRAY(REG).create 0;
+    arguments      := FAST_ARRAY(EXPR).create 0;
     list           := NULL;
     ast            := s;
     self_prototype := ast.prototype_parent;
@@ -78,7 +78,7 @@ Section ITM_SLOT
     Self
   );
   
-  - add_argument v:REG <- arguments.add_last v;
+  - add_argument v:EXPR <- arguments.add_last v;
   
   - set_return_type t:TYPE <-
   [ -? { t != NULL }; ]

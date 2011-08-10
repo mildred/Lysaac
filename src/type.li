@@ -51,7 +51,7 @@ Section Public
     consistent_with_base other.if {
       res << other;
     } else {
-      res <! ERR.create("Type "+other.name+" is not consistent with "+name);
+      res <! ERR.create(("Type "+other.name+" is not consistent with "+name).to_abstract_string);
     };
     res
   );

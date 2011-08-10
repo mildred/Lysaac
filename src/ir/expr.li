@@ -50,4 +50,19 @@ Section Public
 
   - to_reg  :REG  <- [ -? { reg != NULL }; ] reg;
   - to_type :TYPE <- [ -? { is_valid    }; ] type;
+  
+  - to_string :STRING <- ( type_name + "<" + reg.to_string + ";" + type.to_string + ">" );
+  
+  - implement_type_with other:TYPE_IMPL :ERR <-
+  ( + res:ERR;
+    type.is_impl.if_false {
+      type.to_impl_of other.if { t:TYPE_IMPL;
+        type := t;
+        reg.resolve_base_type_with (t.base_type);
+      } else_error { e:ERR;
+        res  := e;
+      };
+    };
+    res
+  );
 
