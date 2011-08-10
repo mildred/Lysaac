@@ -61,3 +61,27 @@ Feature: Show an error when a type is not found
         | c/main.li | 11 | 16 | Discarding block                          |
         | c/main.li | 11 |  3 | Dropping return value #1 for slot block   |
 
+  Scenario: Duplicate slot
+    Given the following prototypes in "c":
+      | Prototype |
+      | INT32     |
+      And a file "c/main.li" with
+        """
+        Section Header
+          
+          + name := MAIN;
+          
+        Section Public
+        
+          - integer :INT32 <- 1;
+          - integer :INT32 <- 2;
+        
+        """
+     When I compile the cluster "c"
+     Then I should have the errors
+        | file      | l  | c  | message                                   |
+        | c         |    |    | Errors in c:                              |
+        | c/main.li |    |    | Errors in c/main.li:                      |
+        | c/main.li |  7 |  3 | Slot integer has a duplicate:             |
+        | c/main.li |  8 |  3 | Discarding this slot                      |
+

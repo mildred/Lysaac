@@ -47,7 +47,13 @@ Section Public
   
   - to_impl_of other:TYPE_IMPL :MAYBE(TYPE_IMPL) <-
   ( + res:MAYBE(TYPE_IMPL);
-    consistent_with_base other.if {
+    (other = NULL).if {
+      void.if {
+        res << to_impl;
+      } else {
+        res <! ERR.create(("Void is not consistent with "+name).to_abstract_string);
+      };
+    }.elseif {consistent_with_base other} then {
       res << other;
     } else {
       res <! ERR.create(("Type "+other.name+" is not consistent with "+name).to_abstract_string);

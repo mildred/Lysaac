@@ -229,13 +229,15 @@ Section Private
         exprs.is_single.if_false {
           add_error(position.error("Only keep the first return value"));
         };
-        (exprs.first.type = result_type).if {
-          list.add_result (exprs.first.reg);
-        }.elseif {has_result} then {
-          add_error(ast_expression.position.error(
-            "Incompatible type for return value #1. "
-            + "Got: " + pretty_type(exprs.first.type)
-            + ", expected: " + pretty_type(result_type)));
+        has_result.if {
+          exprs.first.implement_type_with (result_type.to_impl).if_fail { e:ERR;
+            add_error(e.extend(position,
+              "Incompatible type for return value #1. "
+              + "Got: " + pretty_type(exprs.first.type)
+              + ", expected: " + pretty_type(result_type)));
+          } else {
+            list.add_result (exprs.first.reg);
+          };
         };
       };
     } else {

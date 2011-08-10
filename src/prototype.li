@@ -78,6 +78,7 @@ Section Public
   (
     state := state_defining;
     ast.define_in list;
+    check_slot_name_unicity list;
     state := state_defined;
   )
   [ +? { defined }; ];
@@ -132,6 +133,21 @@ Section Public
 
 Section Private
 
+  - check_slot_name_unicity list:LIST_PROC <-
+  ( + it:ITERATOR(SLOT);
+    
+    (it := slots.iterate_reverse).loop_v { dup:SLOT;
+      find_slot (dup.name).if { s:SLOT;
+        (dup != s).if {
+          add_error (s.position.error ("Slot " + s.name + " has a duplicate:"));
+          add_error (dup.position.error ("Discarding this slot"));
+          slots.remove (it.index);
+          list.remove_slot dup;
+        };
+      };
+    };
+  );
+
   - generate_initializer gen:GENERATOR <-
   (
     gen.ctor_sub 65535 in global_ctor_sub do {
@@ -154,12 +170,17 @@ Section Private
 Section ITM_EXPR
 
   - find_slot name:CSTRING :MAYBE(SLOT) <-
+    find_slot name except NULL;
+
+Section Private
+
+  - find_slot name:CSTRING except slt:SLOT :MAYBE(SLOT) <-
   [ -? {parsed}; ]
   ( + it:ITERATOR(SLOT);
     + res :MAYBE(SLOT);
     
     (it := slots.iterate).loop_v { s:SLOT;
-      (s.name = name).if {
+      ((s != slt) && {s.name = name}).if {
         res << s;
         it.stop;
       };

@@ -68,6 +68,16 @@ Section CLUSTER
   + num_steps :INTEGER;
   + cur_step  :INTEGER;
 
+Section PROTOTYPE
+
+  - remove_slot s:SLOT <-
+  ( + i:INTEGER;
+    i := slots.fast_first_index_of s;
+    slots.valid_index i.if {
+      slots.remove i;
+    };
+  );
+
 Section ITM_SLOT, ITM_EXPR_GROUP
 
   - add_slot s:SLOT <-
