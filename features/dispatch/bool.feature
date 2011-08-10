@@ -71,7 +71,9 @@ Feature: Dispatching of booleans
             puts("This is TRUE");
           }.else {
             puts("This is FALSE");
-          };
+          }
+          .if_true  { puts "TRUE"; }
+          .if_false { puts "FALSE"; };
         );
       
         - main <- Export
@@ -86,7 +88,10 @@ Feature: Dispatching of booleans
      Then I should see
       """
       This is FALSE
+      FALSE
       This is TRUE
+      TRUE
       This is FALSE
+      FALSE
       
       """
