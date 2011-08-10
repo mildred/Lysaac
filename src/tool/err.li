@@ -55,9 +55,13 @@ Section Public
   - extend (pos:POS, msg:ABSTRACT_STRING) :SELF <- append (create msg position pos);
   
   - append other:ERR :SELF <-
-  [ -? { Self != SELF }; ]
+  [
+    -? { Self  != SELF };
+  ]
   (
-    (parent = NULL).if {
+    (other = SELF).if {
+      // Nothing
+    }.elseif {parent = NULL} then {
       success.if {
         make_other other;
       } else {

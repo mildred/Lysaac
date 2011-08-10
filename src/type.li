@@ -46,7 +46,6 @@ Section Public
   - consistent_with_base t:BASE_TYPE :BOOLEAN <- deferred;
   
   - to_impl_of other:TYPE_IMPL :MAYBE(TYPE_IMPL) <-
-  [ -? {consistent_with_base other}; ]
   ( + res:MAYBE(TYPE_IMPL);
     consistent_with_base other.if {
       res << other;
