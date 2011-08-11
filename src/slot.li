@@ -27,16 +27,18 @@ Section Public
     external_name
   );
   
-  - style   :ITM_STYLE <- deferred;
+  - style     :ITM_STYLE <- deferred;
   
-  - external  :BOOLEAN <- deferred;
-  - export    :BOOLEAN <- deferred;
-  - internal  :BOOLEAN <- deferred;
+  - external    :BOOLEAN <- deferred;
+  - export      :BOOLEAN <- deferred;
+  - internal    :BOOLEAN <- deferred;
+  - dispatch    :BOOLEAN <- deferred;
+  - is_deferred :BOOLEAN <- deferred;
   
-  - shared    :BOOLEAN <- style.minus;
+  - shared      :BOOLEAN <- style.minus;
   
-  - slot_data :BOOLEAN <- deferred;
-  - slot_code :BOOLEAN <- (! slot_data);
+  - slot_data   :BOOLEAN <- deferred;
+  - slot_code   :BOOLEAN <- (! slot_data);
   
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -160,7 +162,9 @@ Section LIST_PROC
       list.set_list_procs list_procs;
       self_prototype.initializer_list.set_list_procs list_procs;
       compile_initializer;
-      compile_slot;
+      is_deferred.if_false {
+        compile_slot;
+      };
     };
   );
 
@@ -318,7 +322,9 @@ Section LIST_PROC
       ((slot_data) && {shared}).if {
         gen.global_variable shared_data_variable;
       };
-      generate_slot gen;
+      is_deferred.if_false {
+        generate_slot gen;
+      };
     };
   );
 

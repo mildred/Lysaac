@@ -26,6 +26,12 @@ Section Public
   
   + affect :ITM_AFFECT;
   
+  - is_dispatch :BOOLEAN <- ( has_keyword "Dispatch" );
+  
+  - is_deferred :BOOLEAN <- ( has_keyword "Deferred" );
+  
+  - is_dispatcher :BOOLEAN <- ( has_keyword "Dispatcher" );
+  
   - is_external :BOOLEAN <- ( has_keyword "External" );
   
   - is_export :BOOLEAN <- ( has_keyword "Export" );
@@ -81,6 +87,17 @@ Section ITM_PROTOTYPE
     ? {prototype_parent != NULL};
   
     slot := SLOT_IMPL.clone.make Self;
+    
+    ((expression != NULL) && {is_dispatch}).if {
+      expression.is_a ITM_EXPR_INT.if {
+        + p:ITM_EXPR_INT;
+        p ?= expression;
+        slot.prototype.set_dispatch_value (p.value);
+      } else {
+        slot.add_error(expression.position.error("Expected integer constant for Dispatch slot"));
+      };
+    };
+    
     arguments.iterate.loop_v { l:ITM_ARG;
       l.get_argument_variable.if_false { e:ERR;
         slot.add_error(e.extend(position, "Dropping argument "+l.name+" for slot " + identifier));

@@ -45,6 +45,10 @@ Section Public
     base_type
   );
   
+  + has_dispatch_value :BOOLEAN;
+  
+  + dispatch_value :INTEGER;
+  
   - void :BOOLEAN <- base_type.void;
   
   + filename :CSTRING;
@@ -256,7 +260,18 @@ Section CLUSTER_ITEM
     type_ref   := NULL;
     type_exp   := NULL;
     num_compiled_data_slots := 0;
+    has_dispatch_value := FALSE;
+    dispatch_value := 0;
     Self
+  );
+
+Section ITM_SLOT
+
+  - set_dispatch_value i:INTEGER <-
+  [ -? { ! has_dispatch_value }; ]
+  (
+    has_dispatch_value := TRUE;
+    dispatch_value := i;
   );
 
 Section PARSER_LI

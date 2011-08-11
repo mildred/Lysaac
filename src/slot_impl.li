@@ -15,11 +15,13 @@ Section Public
 
   - name :CSTRING <- ast.identifier;
   
-  - style   :ITM_STYLE <- ast.style;
+  - style     :ITM_STYLE <- ast.style;
   
-  - external  :BOOLEAN <- ast.is_external;
-  - export    :BOOLEAN <- ast.is_export;
-  - internal  :BOOLEAN <- ast.is_internal;
+  - external    :BOOLEAN <- ast.is_external;
+  - export      :BOOLEAN <- ast.is_export;
+  - internal    :BOOLEAN <- ast.is_internal;
+  - dispatch    :BOOLEAN <- ast.is_dispatch;
+  - is_deferred :BOOLEAN <- ast.is_deferred;
   
   - slot_data :BOOLEAN <- (ast.affect.data);
   

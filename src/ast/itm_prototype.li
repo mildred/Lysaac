@@ -10,6 +10,10 @@ Section Public
 
   + slots :FAST_ARRAY(ITM_SLOT);
   
+  + dispatch_slot :ITM_SLOT;
+  
+  + dispatcher_slot :ITM_SLOT;
+  
   - position :POS <- prototype_parent.position;
   
   + itm_parent :ITM <-
@@ -51,12 +55,31 @@ Section PARSER
   (
     prototype_parent := p;
     slots := FAST_ARRAY(ITM_SLOT).create 0;
+    dispatch_slot := NULL;
+    dispatcher_slot := NULL;
     Self
   );
   
-  - add_slot s:ITM_SLOT :SELF <-
-  (
+  - add_slot s:ITM_SLOT :ERR <-
+  ( + res:ERR;
     s.set_itm_parent Self;
     slots.add_last s;
-    Self
+    s.is_dispatch.if {
+      (dispatch_slot = NULL).if {
+        dispatch_slot := s;
+      } else {
+        res := dispatch_slot.position
+          .error("There is already a Dispatch slot")
+          .extend(s.position, "Discarding this slot");
+      };
+    }.elseif {s.is_dispatcher} then {
+      (dispatcher_slot = NULL).if {
+        dispatcher_slot := s;
+      } else {
+        res := dispatcher_slot.position
+          .error("There is already a Dispatcher slot")
+          .extend(s.position, "Discarding this slot");
+      };
+    };
+    res
   );

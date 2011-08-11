@@ -15,13 +15,15 @@ Section Public
 
   - name :CSTRING <- inherit_from.name;
   
-  - style   :ITM_STYLE <- inherit_from.style;
+  - style     :ITM_STYLE <- inherit_from.style;
   
-  - external  :BOOLEAN <- inherit_from.external;
-  - export    :BOOLEAN <- inherit_from.export;
-  - internal  :BOOLEAN <- inherit_from.internal;
+  - external    :BOOLEAN <- inherit_from.external;
+  - export      :BOOLEAN <- inherit_from.export;
+  - internal    :BOOLEAN <- inherit_from.internal;
+  - dispatch    :BOOLEAN <- inherit_from.dispatch;
+  - is_deferred :BOOLEAN <- inherit_from.is_deferred;
     
-  - slot_data :BOOLEAN <- inherit_from.slot_data;
+  - slot_data   :BOOLEAN <- inherit_from.slot_data;
   
   //////////////////////////////////////////////////////////////////////////////
   //
