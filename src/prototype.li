@@ -311,11 +311,9 @@ Section SLOT
 
   - add_slot s:SLOT <-
   (
-    warnln("slot " + s.external_name + " inherit=" + s.inherit.to_string);
     s.inherit.if {
       ? {! is_polymorphic};
       is_polymorphic := TRUE;
-      warnln(name + " is polymorphic");
     };
     add_error_collector_child s;
     slots.add_last s;

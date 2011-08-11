@@ -72,8 +72,6 @@ Section ITM_PROTOTYPE
   - define_in list:LIST_PROC <-
   ( + slot:SLOT_IMPL;
     + maybe_type:MAYBE(TYPE_IMPL);
-    
-    warnln("slot " + to_pointer.to_string + " " + identifier + " section " + section.keywords.to_string + " inherit=" + is_inherit.to_string + " " + (section.keywords.has "Inherit".to_string));
   
     ? {prototype_parent != NULL};
   
