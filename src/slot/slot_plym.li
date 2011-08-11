@@ -1,0 +1,94 @@
+Section Header
+
+  + name := SLOT_PLYM;
+
+Section Inherit
+
+  - parent_slot :Expanded SLOT;
+
+Section Public
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Identification
+  //
+
+  - name :CSTRING <- "plym";
+  
+  - special_feature_slot :BOOLEAN <- TRUE;
+  
+  - style     :ITM_STYLE <- ITM_STYLE.make '-';
+  
+  - external    :BOOLEAN <- FALSE;
+  - export      :BOOLEAN <- FALSE;
+  - internal    :BOOLEAN <- FALSE;
+  - dispatch    :BOOLEAN <- FALSE;
+  - dispatcher  :BOOLEAN <- FALSE;
+  - inherit     :BOOLEAN <- FALSE;
+  - insert      :BOOLEAN <- FALSE;
+  - is_deferred :BOOLEAN <- FALSE;
+
+  - slot_data   :BOOLEAN <- FALSE;
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Signature
+  //
+  
+  - result_type :TYPE <- NULL; // TODO
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Implementation
+  //
+  
+  - internal_opcode :CSTRING <- "";
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Debug
+  //
+  
+  - position :POS <- inherit_from.position;
+
+Section Private
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Private Interface
+  //
+  
+  + inherit_from :SLOT;
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Compilation
+  //
+
+Section SLOT
+
+  - compile_slot <-
+  (
+    // INSTR_SWITCH
+    // INSTR_LABEL
+    // INSTR_RET
+    // ...
+    // Result: NULL
+  );
+
+Section ITM_SLOT
+
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Creation
+  //
+
+  - make_in p:PROTOTYPE :SELF <-
+  (
+    self_prototype := p;
+    self_prototype.add_slot Self;
+    // Argument: Self :Strict SELF
+    // Argument: slot :SystemInteger
+    // Return: SystemPointer
+    Self
+  );

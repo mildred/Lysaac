@@ -1,0 +1,10 @@
+Section Header
+
+  + name := SLOT_PLYT;
+
+Section Inherit
+
+  - parent_slot :Expanded SLOT;
+
+Section Public
+
