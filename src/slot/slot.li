@@ -35,12 +35,22 @@ Section Public
   - export      :BOOLEAN <- deferred;
   - internal    :BOOLEAN <- deferred;
   - dispatch    :BOOLEAN <- deferred;
+  - dispatcher  :BOOLEAN <- deferred;
+  - inherit     :BOOLEAN <- deferred;
+  - insert      :BOOLEAN <- deferred;
   - is_deferred :BOOLEAN <- deferred;
   
   - shared      :BOOLEAN <- style.minus;
   
   - slot_data   :BOOLEAN <- deferred;
   - slot_code   :BOOLEAN <- (! slot_data);
+  
+  - bound       :BOOLEAN <- TRUE;
+
+  - inherit_or_insert :BOOLEAN <- (inherit) || {insert};
+  
+  - can_be_inherited :BOOLEAN <-
+    ! ((inherit_or_insert) || {special_feature_slot});
   
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -166,11 +176,15 @@ Section LIST_PROC
       compile_initializer;
       is_deferred.if_false {
         compile_slot;
+        ? { (!has_result) || {!list.results.is_empty} };
+        export.if {
+          self_prototype_expr := self_prototype.compile_prototype_value_in list;
+        };
       };
     };
   );
 
-Section Private
+Section SLOT
 
   - compile_initializer <-
   [ -? {! external}; ]
@@ -254,9 +268,6 @@ Section Private
         "No value given for this slot. Using prototype "
         + pretty_type(result_type)));
       list.add_result (result_type.to_impl.prototype.compile_prototype_value_in list);
-    };
-    export.if {
-      self_prototype_expr := self_prototype.compile_prototype_value_in list;
     };
   );
   

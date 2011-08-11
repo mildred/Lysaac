@@ -17,7 +17,7 @@ Section Public
   + block     :BOOLEAN := FALSE;
   - reference :BOOLEAN <- ( ! expanded );
   + expanded  :BOOLEAN := FALSE;
-  + strict    :BOOLEAN :- FALSE;
+  + strict    :BOOLEAN := FALSE;
   - void      :BOOLEAN <- TRUE;
   
   //////////////////////////////////////////////////////////////////////////////
@@ -87,14 +87,14 @@ Section Public
 Section TYPE
   
   - keywords_str :CSTRING <-
-  ( + res:CSTRING;
+  ( + res:ABSTRACT_STRING;
     reference.if {
       res := "Reference ";
     } else {
       res := "Expanded ";
     };
     strict.if {
-      res := res + "Strict "; 
+      res := res + "Strict ";
     };
     res
   );

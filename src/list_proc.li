@@ -82,6 +82,7 @@ Section ITM_SLOT, ITM_EXPR_GROUP
 
   - add_slot s:SLOT <-
   (
+    //warnln("add slot: "+s.external_name);
     slots.add_last s;
   );
   

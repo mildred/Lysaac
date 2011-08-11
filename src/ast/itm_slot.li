@@ -45,18 +45,7 @@ Section Public
   - is_inherit_or_insert :BOOLEAN <- ((is_inherit) || {is_insert});
   
   - has_keyword k:CSTRING :BOOLEAN <-
-  (
-     + res :BOOLEAN;
-    (keywords != NULL).if {
-      res := keywords.has k;
-    };
-    (section != NULL).if {
-      res.if_false {
-        section.keywords.has k;
-      };
-    };
-    res
-  );
+  ( ((keywords != NULL) && {keywords.has k}) || {section.keywords.has k} );
   
   + arguments :FAST_ARRAY(ITM_ARG);
 
@@ -83,6 +72,8 @@ Section ITM_PROTOTYPE
   - define_in list:LIST_PROC <-
   ( + slot:SLOT_IMPL;
     + maybe_type:MAYBE(TYPE_IMPL);
+    
+    warnln("slot " + to_pointer.to_string + " " + identifier + " section " + section.keywords.to_string + " inherit=" + is_inherit.to_string + " " + (section.keywords.has "Inherit".to_string));
   
     ? {prototype_parent != NULL};
   
@@ -134,9 +125,11 @@ Section ITM_PROTOTYPE
         p.define_in list;
       };
       p.slots.iterate.loop_v { s:SLOT;
-        + si :SLOT_INHERIT;
-        si := SLOT_INHERIT.clone.make_from s in p;
-        list.add_slot si;
+        s.can_be_inherited.if {
+          + si :SLOT_INHERIT;
+          si := SLOT_INHERIT.clone.make_from s in prototype_parent;
+          list.add_slot si;
+        };
       };
     };
   );

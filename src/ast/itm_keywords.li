@@ -12,6 +12,19 @@ Section Public
   (
     keywords.valid_index (keywords.first_index_of k)
   );
+  
+  - to_string :STRING <-
+  ( + res :STRING;
+    res := "".to_string;
+    keywords.iterate.loop_v { s:CSTRING;
+      res.append s;
+      res.add_last ' ';
+    };
+    (res.count > 0).if {
+      res.remove_last 1;
+    };
+    res
+  );
 
 Section PARSER, ITM_SECTION
 

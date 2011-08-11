@@ -21,10 +21,15 @@ Section Public
   - export      :BOOLEAN <- inherit_from.export;
   - internal    :BOOLEAN <- inherit_from.internal;
   - dispatch    :BOOLEAN <- inherit_from.dispatch;
+  - dispatcher  :BOOLEAN <- inherit_from.dispatcher;
+  - inherit     :BOOLEAN <- inherit_from.inherit;
+  - insert      :BOOLEAN <- inherit_from.insert;
   - is_deferred :BOOLEAN <- inherit_from.is_deferred;
     
   - slot_data   :BOOLEAN <- inherit_from.slot_data;
   
+  - bound       :BOOLEAN <- (inherit_from != NULL) && {inherit_from.bound};
+
   //////////////////////////////////////////////////////////////////////////////
   //
   // Location
@@ -74,6 +79,9 @@ Section ITM_SLOT
   //
 
   - make_from s:SLOT in p:PROTOTYPE :SELF <-
+  [
+    -? {s.bound};
+  ]
   (
     inherit_from   := s;
     self_prototype := p;

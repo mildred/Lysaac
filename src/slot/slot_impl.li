@@ -21,6 +21,9 @@ Section Public
   - export      :BOOLEAN <- ast.is_export;
   - internal    :BOOLEAN <- ast.is_internal;
   - dispatch    :BOOLEAN <- ast.is_dispatch;
+  - dispatcher  :BOOLEAN <- ast.is_dispatcher;
+  - inherit     :BOOLEAN <- ast.is_inherit;
+  - insert      :BOOLEAN <- ast.is_insert;
   - is_deferred :BOOLEAN <- ast.is_deferred;
   
   - slot_data :BOOLEAN <- (ast.affect.data);

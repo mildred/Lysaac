@@ -25,6 +25,8 @@ Section Private
     path "src/interfaces";
     path "src/ir";
     path "src/tool";
+    path "src/slot";
+    path "src/type";
     path "lib/";
   );
 
