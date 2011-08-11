@@ -17,6 +17,7 @@ Section Public
   + block     :BOOLEAN := FALSE;
   - reference :BOOLEAN <- ( ! expanded );
   + expanded  :BOOLEAN := FALSE;
+  + strict    :BOOLEAN :- FALSE;
   - void      :BOOLEAN <- TRUE;
   
   //////////////////////////////////////////////////////////////////////////////
@@ -91,6 +92,9 @@ Section TYPE
       res := "Reference ";
     } else {
       res := "Expanded ";
+    };
+    strict.if {
+      res := res + "Strict "; 
     };
     res
   );

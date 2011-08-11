@@ -16,6 +16,8 @@ Section Public
   - name :CSTRING <- (deferred; NULL);
   // User-friendly name
   
+  - special_feature_slot :BOOLEAN <- FALSE;
+  
   + external_name :CSTRING <-
   // Symbol name
   ( 

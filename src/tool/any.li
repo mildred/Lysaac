@@ -90,10 +90,18 @@ Section Public
   // ly_          lysaac namespace
   // ly_<P>_0     namespace for prototype P with no parameters
   // ly_<P>_0_<S> namespace for slot P.S
+  //              normal slots are prefixed with their name length
+  //              special feature slots are only [a-z]
   
   - symbol_encode_prototype prototype:PROTOTYPE slot slot:SLOT :CSTRING <-
-  (
-    ("ly_" + encode_symbol_part("P", prototype.name) + "_0_" + encode_symbol_part("S", slot.name)).to_abstract_string
+  ( + res :ABSTRACT_STRING;
+    res := "ly_" + encode_symbol_part("P", prototype.name) + "_0_";
+    slot.special_feature_slot.if {
+      res := res + slot.name;
+    } else {
+      res := res + encode_symbol_part("S", slot.name);
+    };
+    res
   );
 
 Section Private
