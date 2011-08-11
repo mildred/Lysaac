@@ -150,6 +150,7 @@ Section PROTOTYPE
 Section LIST_PROC
 
   - compile list_procs:LIST_PROC <-
+  [ -? { list = NULL }; ]
   ( + t:TYPE;
     t := self_prototype.to_type_reference;
     t.void.if {
@@ -318,6 +319,13 @@ Section LIST_PROC
   //
   
   - generate gen:GENERATOR <-
+  [
+    self.reg.is_realized.if {
+      warnln("Self already realized: " + self.to_string);
+      gen.crash;
+    };
+    -? { ! self.reg.is_realized };
+  ]
   (
     external.if {
       gen.declare_sub external_name args {

@@ -86,7 +86,11 @@ Section Public
     ast.define_in list;
     check_slot_name_unicity list;
     is_polymorphic.if {
-      add_slot (SLOT_PLYM.clone.make_in Self);
+      + s :SLOT_PLYM;
+      s := SLOT_PLYM.clone.make_in Self;
+      add_slot s;
+      list.add_slot s;
+      //warnln("Add slot plym " + s.to_string);
     };
     state := state_defined;
   )

@@ -78,7 +78,7 @@ Section PROTOTYPE
     };
   );
 
-Section ITM_SLOT, ITM_EXPR_GROUP
+Section ITM_SLOT, ITM_EXPR_GROUP, PROTOTYPE
 
   - add_slot s:SLOT <-
   (

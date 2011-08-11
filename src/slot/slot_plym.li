@@ -4,7 +4,7 @@ Section Header
 
 Section Inherit
 
-  - parent_slot :Expanded SLOT;
+  + parent_slot :Expanded SLOT;
 
 Section Public
 
@@ -50,6 +50,11 @@ Section Public
   //
   
   - position :POS <- inherit_from.position;
+  
+  - to_string :STRING <-
+  (
+    type_name + "<" + to_pointer.to_string + ":" + self_prototype.to_string + ">"
+  );
 
 Section Private
 
@@ -85,10 +90,18 @@ Section PROTOTYPE
 
   - make_in p:PROTOTYPE :SELF <-
   (
+    make_error_collector ("special slot " + name);
+    arguments      := FAST_ARRAY(EXPR).create 0;
+    list           := NULL;
     self_prototype := p;
-    self_prototype.add_slot Self;
+    self           := EXPR;
+    type_index     := -1;
+    result_type    := NULL;
     // Argument: Self :Strict SELF
+    //arguments.add_last EXPR;
     // Argument: slot :SystemInteger
+    //arguments.add_last EXPR;
     // Return: SystemPointer
+    self_prototype.add_slot Self;
     Self
   );

@@ -33,7 +33,9 @@ Section Public
   - warn_errors <-
   (
     has_errors.if {
-      ERR.create (("Errors in " + error_collector_message + ":").to_string) position position.println;
+      error_collector_message.is_empty.if_false {
+        ERR.create (("Errors in " + error_collector_message + ":").to_string) position position.println;
+      };
       error_collection.lower.to (error_collection.upper) do { i:INTEGER;
         error_collection.item i.println;
       };

@@ -8,6 +8,15 @@ Section Inherit
 
 Section Public
 
+  - dup :SELF <-
+  ( + res :SELF;
+    res := clone;
+    res.make_duplicate_of Self;
+    res
+  );
+  
+  - make_duplicate_of other:SELF <- deferred;
+
   - is_a obj:T :BOOLEAN <- same_dynamic_type obj;
   
   - if_a obj:T then true:{SELF;} :BOOLEAN <-

@@ -4,7 +4,7 @@ Section Header
 
 Section Inherit
 
-  - parent_slot :Expanded SLOT;
+  + parent_slot :Expanded SLOT;
 
 Section Public
 

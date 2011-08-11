@@ -83,8 +83,14 @@ Section ITM_SLOT
     -? {s.bound};
   ]
   (
+    make_error_collector ("slot " + s.name);
+    arguments      := FAST_ARRAY(EXPR).create 0;
     inherit_from   := s;
     self_prototype := p;
+    self           := EXPR;
+    s.arguments.iterate.loop_v { arg:EXPR;
+      arguments.add_last (arg.dup);
+    };
     self_prototype.add_slot Self;
     Self
   );

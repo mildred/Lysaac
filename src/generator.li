@@ -8,6 +8,8 @@ Section Inherit
 
 Section Public
 
+  - crash <- crash_with_message output;
+
   - int_size :INTEGER := 32;
 
   //

@@ -23,6 +23,13 @@ Section Public
     res
   );
   
+  - make_duplicate_of other:SELF <-
+  (
+    is_valid.if {
+      m_base_type := other.base_type.dup;
+    };
+  );
+  
   //
   // Predicates
   //
