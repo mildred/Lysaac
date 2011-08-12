@@ -23,12 +23,13 @@ Section Public
   //
 
   - generate gen:GENERATOR <-
-  (
+  ( + r:REG;
     function_pointer.is_valid.if {
-      gen.call_ptr function_pointer args { generate_args gen; } result result;
+      r := function_pointer;
     } else {
-      gen.call (slot.external_name) args { generate_args gen; } result result;
+      r := slot.global_symbol;
     };
+    gen.call r args { generate_args gen; } result result;
   );
 
 Section Private

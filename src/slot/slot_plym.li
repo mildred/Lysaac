@@ -97,6 +97,7 @@ Section PROTOTYPE
     self           := EXPR;
     type_index     := -1;
     result_type    := NULL;
+    global_symbol  := REG.clone;
     // Argument: Self :Strict SELF
     //arguments.add_last EXPR;
     // Argument: slot :SystemInteger

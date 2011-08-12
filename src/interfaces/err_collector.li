@@ -9,14 +9,15 @@ Section Inherit
 Section Public
 
   - add_error e:ERR <-
-  [ -? { e.failure }; ]
   (
-    error_collection.add_last e;
-    /*
-    warnln ("=== add error in "+error_collector_message+":");
-    e.println;
-    warnln "===";
-    */
+    e.failure.if {
+      error_collection.add_last e;
+      /*
+      warnln ("=== add error in "+error_collector_message+":");
+      e.println;
+      warnln "===";
+      */
+    };
   );
   
   - has_errors :BOOLEAN <- (num_errors > 0);

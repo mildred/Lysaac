@@ -79,6 +79,7 @@ Section ITM_SLOT
     self           := EXPR;
     type_index     := -1;
     result_type    := NULL;
+    global_symbol  := REG.clone;
     ? {self_prototype != NULL};
     Self
   );

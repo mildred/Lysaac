@@ -87,6 +87,7 @@ Section ITM_SLOT
     arguments      := FAST_ARRAY(EXPR).create 0;
     inherit_from   := s;
     self_prototype := p;
+    global_symbol  := REG.clone;
     self           := EXPR;
     s.arguments.iterate.loop_v { arg:EXPR;
       arguments.add_last (arg.dup);

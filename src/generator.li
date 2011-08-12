@@ -177,13 +177,13 @@ Section Public
   // Subroutines
   //
 
-  - declare_sub name:CSTRING args args:{} return ret:{} <-
+  - declare_sub name:REG args args:{} return ret:{} <-
   (
     put_indent;
     put "declare ";
     ret.value;
     put " ";
-    put_reg "@" name name;
+    put_reg name;
     put " (";
     args.value;
     put ")\n\n";
@@ -191,13 +191,12 @@ Section Public
   
   - ctor_sub prio:INTEGER in global:REG do blc:{} <-
   ( + proc:INTEGER;
-    proc := global.identifier;
     constructors.add_last prio;
-    constructors.add_last proc;
+    constructors.add_last (global.identifier);
     context_const {
       put_indent;
       put "define void ";
-      put_global proc;
+      put_reg global;
       put " () {\n";
       indent;
       last_local := 0;
@@ -210,7 +209,7 @@ Section Public
     };
   );
   
-  - sub name:CSTRING self s:REG args args:{} do blc:{} return r:REG <-
+  - sub name:REG self s:REG args args:{} do blc:{} return r:REG <-
   [ -? { s.is_valid }; ]
   (
     s.make_pretty_name "_self";
@@ -218,7 +217,7 @@ Section Public
     put "define ";
     put_reg_type r;
     put_c ' ';
-    put_reg "@" name name;
+    put_reg name;
     put " (";
     args.value;
     put ") {\n";
@@ -314,7 +313,7 @@ Section Public
     put_line;
   );
   
-  - call name:CSTRING args blc:{} result r:REG <-
+  - call name:REG args blc:{} result r:REG <-
   (
     put_indent;
     r.is_valid.if {
@@ -325,24 +324,7 @@ Section Public
     put "tail call ";
     put_reg_type r;
     put_c ' ';
-    put_reg "@" name name;
-    put "(";
-    blc.value;
-    put ")\n";
-  );
-  
-  - call_ptr var:REG args blc:{} result r:REG <-
-  (
-    put_indent;
-    r.is_valid.if {
-      r.realize "%" id get_local;
-      put_reg r;
-      put " = ";
-    };
-    put "tail call ";
-    put_reg_type r;
-    put_c ' ';
-    put_reg var;
+    put_reg name;
     put "(";
     blc.value;
     put ")\n";

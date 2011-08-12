@@ -24,6 +24,7 @@ Section ITM_EXPR_GROUP
     itm_expr        := ast;
     self            := EXPR.clone.make_type (l.self.type);
     list            := LIST.clone.make_self self.make_error_collector Self type NULL;
+    global_symbol   := REG.clone.make_type (BASE_TYPE.create_pointer (BASE_TYPE.create_function));
     Self
   );
 
@@ -35,12 +36,16 @@ Section LIST_PROC
     itm_expr.compile_in list;
   );
   
-  - link gen:GENERATOR <- list.link gen;
+  - link gen:GENERATOR <-
+  (
+    gen.alloc_global global_symbol;
+    list.link gen;
+  );
   
   - generate gen:GENERATOR <-
   [ -? { ! self.reg.is_realized }; ]
   (
-    gen.sub external_name self self args {} do {
+    gen.sub global_symbol self self args {} do {
       list.generate gen;
     } return REG;
   );

@@ -305,6 +305,7 @@ Section LIST_PROC
 
   - link gen:GENERATOR <-
   (
+    add_error(gen.alloc_global global_symbol symbol external_name);
     external.if_false {
       ((slot_data) && {shared}).if {
         gen.alloc_global shared_data_variable;
@@ -328,7 +329,7 @@ Section LIST_PROC
   ]
   (
     external.if {
-      gen.declare_sub external_name args {
+      gen.declare_sub global_symbol args {
         arguments.iterate.loop_v { v:EXPR;
           gen.arg { v.reg.base_type.generate gen; };
         };
@@ -359,7 +360,7 @@ Section Private
   (
     list.assert_result_coherent_with(result_type);
 
-    gen.sub external_name self self args {
+    gen.sub global_symbol self self args {
       export.if_false {
         self.reg.generate_arg gen;
       };

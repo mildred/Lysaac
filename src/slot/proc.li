@@ -12,6 +12,8 @@ Section Public
 
   - external_name :CSTRING <- (deferred; CSTRING);
 
+  + global_symbol :REG;
+
   - self:EXPR <- EXPR;
   
 Section LIST_PROC
