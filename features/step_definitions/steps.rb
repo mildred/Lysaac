@@ -87,7 +87,7 @@ Then "I shouldn't have any errors" do
   e = parse_errors(@er_file)
   if e.length > 0 then
     got_table = Cucumber::Ast::Table.new([["file", "l", "c", "message"]] + e)
-    raise Exception, ("Got #{e.length} errors:\n" + got_table.to_s(:color => false))
+    raise Exception, ("Got #{e.length} errors:\n" + got_table.to_s(:color => false, :prefixes => ""))
   end
 end
 
