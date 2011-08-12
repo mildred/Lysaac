@@ -189,7 +189,7 @@ Section LIST_PROC
     } else {
       ((shared) && {slot_data}).if {
         shared_data_variable := REG.clone.make_type
-          (BASE_TYPE.create_pointer(result_type.ref_base_type));
+          (BASE_TYPE.create_pointer(result_type.to_impl.base_type));
       };
       list.set_list_procs list_procs;
       self_prototype.initializer_list.set_list_procs list_procs;
@@ -299,7 +299,7 @@ Section SLOT
     (internal_opcode == "object_size").if {
       list.add_result (INSTR_SIZEOF
         .clone
-        .make (self.type.to_impl.prototype.to_type_expanded.ref_base_type)
+        .make (self.type.to_impl.prototype.base_type)
         .add_in list
         .result);
     }.elseif {internal_opcode == "value"} then {
@@ -356,7 +356,7 @@ Section LIST_PROC
         (result_type = NULL).if {
           gen.type_void;
         } else {
-          result_type.ref_base_type.generate gen;
+          result_type.to_impl.base_type.generate gen;
         };
       };
     } else {

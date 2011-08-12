@@ -1,7 +1,5 @@
 redo-ifchange bin/lysaac.cov
 
-rm -rf tmp
-
 redo wip-tests
 res1=$?
 

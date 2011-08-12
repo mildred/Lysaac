@@ -29,10 +29,10 @@ Section Public
     -? { ! r.base_type.void };
     -? { r.is_valid };
     t.is_impl.if {
-      (t.ref_base_type == r.base_type).if_false {
-        warnln(t.ref_base_type.to_string + " (type) != " + r.base_type.to_string + " (reg)");
+      (t.to_impl.base_type == r.base_type).if_false {
+        warnln(t.to_impl.base_type.to_string + " (type) != " + r.base_type.to_string + " (reg)");
       };
-      -? { t.ref_base_type == r.base_type };
+      -? { t.to_impl.base_type == r.base_type };
     };
   ]
   (
@@ -62,7 +62,7 @@ Section Public
   ( + res:ERR;
     type.to_impl_of other.if { t:TYPE_IMPL;
       type := t;
-      reg.resolve_base_type_with (t.ref_base_type);
+      reg.resolve_base_type_with (t.base_type);
     } else_error { e:ERR;
       res  := e;
     };

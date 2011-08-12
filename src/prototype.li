@@ -27,28 +27,24 @@ Section Public
   (
     cluster.find_type type_name
   );
-
-Section TYPE_IMPL
-
-  + struct_base_type :BASE_TYPE <-
+  
+  + base_type :BASE_TYPE <-
   // The Expanded LLVM type
   [ -? {defined}; ]
-  ( + base_type :BASE_TYPE;
+  (
     (role == "Block").if {
       base_type := BASE_TYPE.create_function;
     } else {
       base_type := BASE_TYPE.create_struct;
       slots.iterate.loop_v { s:SLOT;
         s.shared.if_false {
-          base_type.struct_types.add_last (s.result_type.ref_base_type);
+          base_type.struct_types.add_last (s.result_type.to_impl.base_type);
         };
       };
     };
     base_type
   );
-
-Section Public
-
+  
   + is_polymorphic :BOOLEAN;
   
   + has_dispatch_value :BOOLEAN;
@@ -103,7 +99,7 @@ Section Public
   - compile <-
   [ -? {defined}; -? {! compiled}; ]
   (
-    prototype_rvalue := to_type_reference.create_reg;
+    prototype_rvalue := REG.clone.make_type (BASE_TYPE.create_pointer base_type);
     initializer_list := LIST
       .clone
       .make_error_collector Self type NULL;
@@ -114,7 +110,6 @@ Section Public
   
   - link gen:GENERATOR <-
   (
-    link_type gen;
     global_ctor_sub := REG.clone;
     gen.alloc_global global_ctor_sub;
     initializer_list.link gen;
@@ -124,7 +119,6 @@ Section Public
   - generate gen:GENERATOR <-
   [ -? {compiled}; -? {! generated}; ]
   (
-    generate_type gen;
     generate_prototype_value gen;
     generate_initializer gen;
     state := state_generated;
@@ -164,26 +158,6 @@ Section Private
           list.remove_slot dup;
         };
       };
-    };
-  );
-
-  - link_type gen:GENERATOR <-
-  (
-    (type_ref != NULL).if {
-      type_ref.link_definition gen;
-    };
-    (type_exp != NULL).if {
-      type_exp.link_definition gen;
-    };
-  );
-
-  - generate_type gen:GENERATOR <-
-  (
-    (type_ref != NULL).if {
-      type_ref.generate_definition gen;
-    };
-    (type_exp != NULL).if {
-      type_exp.generate_definition gen;
     };
   );
 
@@ -326,7 +300,7 @@ Section PARSER_LI
     -? { t != NULL };
   ]
   (
-    struct_base_type := t;
+    base_type := t;
   );
   
   - make_expanded :SELF <-
