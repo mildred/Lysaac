@@ -2,9 +2,11 @@ Section Header
 
   + name := REG;
   
-  // A var is a promise between a SINGLE producer (writer) and a consumer
-  // (reader). It is realized when the generator gives it a name or an
-  // identifier. It corresponds to an LLVM register.
+  // A register is a promise between a single producer and consumers.
+  // it is realized either at link time (for global registers) or generation
+  // time (if there are no consumers before the producer can realize its value).
+  //
+  // Realizing it means that the GENERATOR gives it a name/identifier.
 
 Section Inherit
 
@@ -58,21 +60,23 @@ Section Public
     -? { t != NULL };
   ]
   (
-    is_valid := TRUE;
-    m_base_type := t;
-    name := "";
-    identifier := 0;
+    is_valid    := TRUE;
+    prefix      := "";
+    name        := "";
+    identifier  := 0;
     pretty_name := "";
+    m_base_type := t;
     Self
   );
   
   - make_from other:REG :SELF <-
   (
     is_valid    := other.is_valid;
+    prefix      := other.prefix;
+    name        := other.name;
+    identifier  := other.identifier;
+    pretty_name := other.pretty_name;
     m_base_type := other.m_base_type;
-    name := "";
-    identifier := 0;
-    pretty_name := "";
     Self
   );
   
@@ -140,8 +144,8 @@ Section Public
 Section GENERATOR
 
   + identifier :INTEGER := 0;
-  + prefix :CSTRING := "";
-  + name :CSTRING := "";
+  + prefix     :CSTRING := "";
+  + name       :CSTRING := "";
 
   - realize_code c:CSTRING :SELF <-
   [
