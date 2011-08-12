@@ -4,7 +4,7 @@ Section Header
 
 Section Inherit
 
-  + parent_any :Expanded ANY;
+  + parent_abstract_type :Expanded ABSTRACT_TYPE;
 
 Section Public
   
@@ -89,7 +89,10 @@ Section Public
   //
   
   - create_pointer ptr:LOW_LEVEL_TYPE :SELF <- clone.make_pointer ptr;
-    
+  
+  - is_pointer       :BOOLEAN <- (kind == kind_pointer);
+  - dereference_type :ABSTRACT_TYPE <- pointer_type;
+
   - pointer      :BOOLEAN <- (kind == kind_pointer);
   - pointer_type :LOW_LEVEL_TYPE <- [ -?{pointer}; ] p_type;
   

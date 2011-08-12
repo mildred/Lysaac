@@ -1,0 +1,15 @@
+Section Header
+
+  + name := ABSTRACT_TYPE;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+  
+Section Public
+
+  - is_pointer       :BOOLEAN       <- (deferred; FALSE);
+  - dereference_type :ABSTRACT_TYPE <- (deferred; NULL);
+  
+  - generate gen:GENERATOR <- deferred;
+

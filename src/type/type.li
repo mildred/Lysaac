@@ -4,7 +4,7 @@ Section Header
 
 Section Inherit
 
-  + parent_any :Expanded ANY;
+  + parent_base_type :Expanded BASE_TYPE;
   
 Section Public
   

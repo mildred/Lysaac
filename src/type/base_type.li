@@ -1,0 +1,11 @@
+Section Header
+
+  + name := BASE_TYPE;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+  
+Section Public
+
+

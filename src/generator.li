@@ -117,12 +117,12 @@ Section Public
   //
 
   - declare_private_constant_string string:ABSTRACT_STRING in var:REG <-
-  [ -?{ var.base_type.pointer }; ]
+  [ -?{ var.base_type.is_pointer }; ]
   (
     context_const {
       put_reg var;
       put " = private constant ";
-      var.base_type.pointer_type.generate Self;
+      var.base_type.dereference_type.generate Self;
       put_c ' ';
       expr_string_constant_with_nul string;
       put "\n";
@@ -130,11 +130,11 @@ Section Public
   );
   
   - global_block_prototype_value v:REG name n:CSTRING <-
-  ( + t :LOW_LEVEL_TYPE;
+  ( + t :ABSTRACT_TYPE;
     context_const {
       t := v.base_type;
-      t.pointer.if {
-        t := t.pointer_type;
+      t.is_pointer.if {
+        t := t.dereference_type;
       };
       v.realize "@" name n;
       put "define void ";
@@ -149,10 +149,10 @@ Section Public
   );
   
   - global_prototype_value v:REG name n:CSTRING <-
-  [ -? { v.base_type.pointer }; ]
-  ( + t :LOW_LEVEL_TYPE;
+  [ -? { v.base_type.is_pointer }; ]
+  ( + t :ABSTRACT_TYPE;
     context_const {
-      t := v.base_type.pointer_type;
+      t := v.base_type.dereference_type;
       v.realize "@" name n;
       put_reg v;
       put " = global ";
@@ -162,10 +162,10 @@ Section Public
   );
   
   - global_variable v:REG <-
-  [ -? { v.base_type.pointer }; ]
-  ( + t :LOW_LEVEL_TYPE;
+  [ -? { v.base_type.is_pointer }; ]
+  ( + t :ABSTRACT_TYPE;
     context_const {
-      t := v.base_type.pointer_type;
+      t := v.base_type.dereference_type;
       put_reg v;
       put " = global ";
       t.generate Self;
