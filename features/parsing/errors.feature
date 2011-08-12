@@ -14,9 +14,8 @@ Feature: Parsing errors
         """
      When I compile the cluster "c"
      Then I should have the errors
-        | file      | l | c  | message                        |
-        | c         |   |    | Errors in c:                   |
-        | c/main.li |   |    | Errors in c/main.li:           |
+        | file      | l |  c | message                        |
+        | c/main.li | 1 |    | Errors in c/main.li:           |
         | c/main.li | 7 | 12 | Expected return type after ":" |
 
   Scenario: slot argument with no type
@@ -33,9 +32,8 @@ Feature: Parsing errors
         """
      When I compile the cluster "c"
      Then I should have the errors
-        | file      | l | c  | message                                           |
-        | c         |   |    | Errors in c:                                      |
-        | c/main.li |   |    | Errors in c/main.li:                              |
+        | file      | l |  c | message                                           |
+        | c/main.li | 1 |    | Errors in c/main.li:                              |
         | c/main.li | 7 | 14 | Expected ":"                                      |
         | c/main.li | 7 | 14 | Expected type for argument arg, dropping argument |
 
@@ -53,10 +51,9 @@ Feature: Parsing errors
         """
      When I compile the cluster "c"
      Then I should have the errors
-        | file      | l | c  | message              |
-        | c         |   |    | Errors in c:         |
-        | c/main.li |   |    | Errors in c/main.li: |
-        | c/main.li | 7 | 3  | Errors in slot main: |
+        | file      | l |  c | message              |
+        | c/main.li | 1 |    | Errors in c/main.li: |
+        | c/main.li | 7 |  3 | Errors in slot main: |
         | c/main.li | 7 | 13 | Unexpected symbol    |
 
 

@@ -16,9 +16,8 @@ Feature: Show an error when a type is not found
         """
      When I compile the cluster "c"
      Then I should have the errors
-        | file      | l | c  | message                             |
-        | c         |   |    | Errors in c:                        |
-        | c/main.li |   |    | Errors in c/main.li:                |
+        | file      | l |  c | message                             |
+        | c/main.li | 1 |    | Errors in c/main.li:                |
         | c/main.li | 7 |  3 | Errors in slot toto:                |
         | c/main.li | 7 | 11 | Could not find type TOTO            |
         | c/main.li | 7 |  3 | Dropping return type for slot toto  |
@@ -45,9 +44,8 @@ Feature: Show an error when a type is not found
         """
      When I compile the cluster "c"
      Then I should have the errors
-        | file      | l  | c  | message                                   |
-        | c         |    |    | Errors in c:                              |
-        | c/main.li |    |    | Errors in c/main.li:                      |
+        | file      |  l |  c | message                                   |
+        | c/main.li |  1 |    | Errors in c/main.li:                      |
         | c/main.li |  7 |  3 | Errors in slot integer:                   |
         | c         |    |    | Could not find prototype for role Integer |
         | c/main.li |  7 | 16 | Discarding integer                        |
@@ -79,9 +77,8 @@ Feature: Show an error when a type is not found
         """
      When I compile the cluster "c"
      Then I should have the errors
-        | file      | l  | c  | message                                   |
-        | c         |    |    | Errors in c:                              |
-        | c/main.li |    |    | Errors in c/main.li:                      |
-        | c/main.li |  7 |  3 | Slot integer has a duplicate:             |
-        | c/main.li |  8 |  3 | Discarding this slot                      |
+        | file      | l |  c | message                                   |
+        | c/main.li | 1 |    | Errors in c/main.li:                      |
+        | c/main.li | 7 |  3 | Slot integer has a duplicate:             |
+        | c/main.li | 8 |  3 | Discarding this slot                      |
 

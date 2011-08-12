@@ -262,7 +262,7 @@ Section CLUSTER_ITEM
     ast      := NULL;
     slots    := FAST_ARRAY(SLOT).create 0;
     parser   := PARSER_LI.clone.make Self;
-    position := POS.create(file, 0, 0);
+    position := POS.create(file, 1, 0);
     state    := state_made;
     initializer_list := NULL;
     prototype_rvalue := REG;
