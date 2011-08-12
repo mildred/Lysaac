@@ -2,7 +2,7 @@ Section Header
 
   + name := TYPE_LINT;
   
-  - export := BASE_TYPE;
+  - export := LOW_LEVEL_TYPE;
 
 Section Inherit
 
@@ -29,7 +29,7 @@ Section Public
 
   - create_reg :REG <-
   (
-    REG.clone.make_type (BASE_TYPE.int)
+    REG.clone.make_type (LOW_LEVEL_TYPE.int)
   );
   
   //////////////////////////////////////////////////////////////////////////////
@@ -37,7 +37,7 @@ Section Public
   // Implementation Slots
   //
   
-  - consistent_with_base t:BASE_TYPE :BOOLEAN <- t.integer;
+  - consistent_with_base t:LOW_LEVEL_TYPE :BOOLEAN <- t.integer;
   
   //////////////////////////////////////////////////////////////////////////////
   //

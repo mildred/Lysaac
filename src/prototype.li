@@ -28,14 +28,14 @@ Section Public
     cluster.find_type type_name
   );
   
-  + base_type :BASE_TYPE <-
+  + base_type :LOW_LEVEL_TYPE <-
   // The Expanded LLVM type
   [ -? {defined}; ]
   (
     (role == "Block").if {
-      base_type := BASE_TYPE.create_function;
+      base_type := LOW_LEVEL_TYPE.create_function;
     } else {
-      base_type := BASE_TYPE.create_struct;
+      base_type := LOW_LEVEL_TYPE.create_struct;
       slots.iterate.loop_v { s:SLOT;
         s.shared.if_false {
           base_type.struct_types.add_last (s.result_type.to_impl.base_type);
@@ -99,7 +99,7 @@ Section Public
   - compile <-
   [ -? {defined}; -? {! compiled}; ]
   (
-    prototype_rvalue := REG.clone.make_type (BASE_TYPE.create_pointer base_type);
+    prototype_rvalue := REG.clone.make_type (LOW_LEVEL_TYPE.create_pointer base_type);
     initializer_list := LIST
       .clone
       .make_error_collector Self type NULL;
@@ -293,7 +293,7 @@ Section PARSER_LI
     cluster.set_prototype Self for_role r;
   );
 
-  - set_base_type t:BASE_TYPE <-
+  - set_base_type t:LOW_LEVEL_TYPE <-
   [
     -? {made};
     -? {! parsed};

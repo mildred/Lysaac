@@ -130,7 +130,7 @@ Section Public
   );
   
   - global_block_prototype_value v:REG name n:CSTRING <-
-  ( + t :BASE_TYPE;
+  ( + t :LOW_LEVEL_TYPE;
     context_const {
       t := v.base_type;
       t.pointer.if {
@@ -150,7 +150,7 @@ Section Public
   
   - global_prototype_value v:REG name n:CSTRING <-
   [ -? { v.base_type.pointer }; ]
-  ( + t :BASE_TYPE;
+  ( + t :LOW_LEVEL_TYPE;
     context_const {
       t := v.base_type.pointer_type;
       v.realize "@" name n;
@@ -163,7 +163,7 @@ Section Public
   
   - global_variable v:REG <-
   [ -? { v.base_type.pointer }; ]
-  ( + t :BASE_TYPE;
+  ( + t :LOW_LEVEL_TYPE;
     context_const {
       t := v.base_type.pointer_type;
       put_reg v;

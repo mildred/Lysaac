@@ -45,7 +45,7 @@ Section Public
   
   + pretty_name :CSTRING := "";
   
-  - base_type :BASE_TYPE <-
+  - base_type :LOW_LEVEL_TYPE <-
   [ -? { is_valid }; ]
   ( m_base_type   );
   
@@ -53,7 +53,7 @@ Section Public
   // Construction
   //
   
-  - make_type t:BASE_TYPE :SELF <-
+  - make_type t:LOW_LEVEL_TYPE :SELF <-
   [
     -? { t != NULL };
   ]
@@ -86,14 +86,14 @@ Section Public
   // Type Resolving
   //
   
-  - compatible_with t:BASE_TYPE <-
+  - compatible_with t:LOW_LEVEL_TYPE <-
   (
     m_base_type.compatible_with t.if_false {
       crash_with_message(to_string + " is incompatible with " + t.to_string);
     };
   );
   
-  - resolve_base_type_with other:BASE_TYPE <-
+  - resolve_base_type_with other:LOW_LEVEL_TYPE <-
   (
     m_base_type.resolve_with other.if_false {
       crash_with_message("Try to resolve " + to_string + " with " + other.to_string + ": incompatible types");
@@ -185,5 +185,5 @@ Section GENERATOR
 
 Section Private
 
-  + m_base_type :BASE_TYPE;
+  + m_base_type :LOW_LEVEL_TYPE;
 

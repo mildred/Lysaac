@@ -44,7 +44,7 @@ Section Public
   // Implementation Slots
   //
   
-  - consistent_with_base t:BASE_TYPE :BOOLEAN <- deferred;
+  - consistent_with_base t:LOW_LEVEL_TYPE :BOOLEAN <- deferred;
   
   - to_impl_of other:TYPE_IMPL :MAYBE(TYPE_IMPL) <-
   ( + res:MAYBE(TYPE_IMPL);

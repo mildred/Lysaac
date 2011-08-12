@@ -1,6 +1,6 @@
 Section Header
 
-  + name := BASE_TYPE;
+  + name := LOW_LEVEL_TYPE;
 
 Section Inherit
 
@@ -16,7 +16,7 @@ Section Public
     }
     .when kind_struct then {
       make_struct;
-      struct_types.iterate.loop_v { t:BASE_TYPE;
+      struct_types.iterate.loop_v { t:LOW_LEVEL_TYPE;
         struct_types.add_last (t.dup);
       };
     }
@@ -76,22 +76,22 @@ Section Public
   - integer_size :INTEGER <- [ -?{integer}; ] i_size;
   - integer_cst  :BOOLEAN <- [ -?{integer}; ] (i_size < 0);
   
-  - i1  :BASE_TYPE := create_integer 1;
-  - i8  :BASE_TYPE := create_integer 8;
-  - i16 :BASE_TYPE := create_integer 16;
-  - i32 :BASE_TYPE := create_integer 32;
-  - i64 :BASE_TYPE := create_integer 64;
-  - int :BASE_TYPE <- create_integer_cst;
+  - i1  :LOW_LEVEL_TYPE := create_integer 1;
+  - i8  :LOW_LEVEL_TYPE := create_integer 8;
+  - i16 :LOW_LEVEL_TYPE := create_integer 16;
+  - i32 :LOW_LEVEL_TYPE := create_integer 32;
+  - i64 :LOW_LEVEL_TYPE := create_integer 64;
+  - int :LOW_LEVEL_TYPE <- create_integer_cst;
   // int is created each time because when the type is resolved, it changes
   
   //
   // Type: pointer
   //
   
-  - create_pointer ptr:BASE_TYPE :SELF <- clone.make_pointer ptr;
+  - create_pointer ptr:LOW_LEVEL_TYPE :SELF <- clone.make_pointer ptr;
     
   - pointer      :BOOLEAN <- (kind == kind_pointer);
-  - pointer_type :BASE_TYPE <- [ -?{pointer}; ] p_type;
+  - pointer_type :LOW_LEVEL_TYPE <- [ -?{pointer}; ] p_type;
   
   //
   // Type: function
@@ -108,26 +108,26 @@ Section Public
   - create_struct :SELF <- clone.make_struct;
   
   - struct       :BOOLEAN <- (kind == kind_struct);
-  - struct_types :FAST_ARRAY(BASE_TYPE) <- [ -? {struct}; ] m_struct;
+  - struct_types :FAST_ARRAY(LOW_LEVEL_TYPE) <- [ -? {struct}; ] m_struct;
   
   //
   // Type: vector
   //
   
-  - create_vector items:INTEGER of t:BASE_TYPE :SELF <- clone.make_vector items of t;
+  - create_vector items:INTEGER of t:LOW_LEVEL_TYPE :SELF <- clone.make_vector items of t;
   
   - vector        :BOOLEAN <- (kind == kind_vector);
   - vector_length :INTEGER   <- [ -?{vector}; ] m_vector_size;
-  - vector_type   :BASE_TYPE <- [ -?{vector}; ] p_type;
+  - vector_type   :LOW_LEVEL_TYPE <- [ -?{vector}; ] p_type;
   
   //
   // Generic
   //
   
-  - compatible_with other:BASE_TYPE :BOOLEAN <- compatible_with other and_resolve FALSE;
-  - resolve_with other:BASE_TYPE :BOOLEAN <- compatible_with other and_resolve TRUE;
+  - compatible_with other:LOW_LEVEL_TYPE :BOOLEAN <- compatible_with other and_resolve FALSE;
+  - resolve_with other:LOW_LEVEL_TYPE :BOOLEAN <- compatible_with other and_resolve TRUE;
   
-  - compatible_with other:BASE_TYPE and_resolve do_resolve:BOOLEAN :BOOLEAN <-
+  - compatible_with other:LOW_LEVEL_TYPE and_resolve do_resolve:BOOLEAN :BOOLEAN <-
   ( + res:BOOLEAN;
     (kind == other.kind).if {
       
@@ -189,7 +189,7 @@ Section Public
     }
     .when kind_struct then {
       gen.type_struct {
-        struct_types.iterate.loop_v { t:BASE_TYPE;
+        struct_types.iterate.loop_v { t:LOW_LEVEL_TYPE;
           gen.type_struct_element { t.generate gen }
         };
       };
@@ -259,7 +259,7 @@ Section Public
     }
     .when kind_struct then {
       res.append "{";
-      m_struct.iterate.loop_v { t:BASE_TYPE;
+      m_struct.iterate.loop_v { t:LOW_LEVEL_TYPE;
         t.to_llvm_in res;
         res.add_last ',';
       };
@@ -289,10 +289,10 @@ Section Public
 Section Private
 
   + i_size        :INTEGER               := 0;
-  + p_type        :BASE_TYPE             := NULL;
+  + p_type        :LOW_LEVEL_TYPE             := NULL;
   + f_ptr         :BOOLEAN               := FALSE;
   + m_vector_size :INTEGER               := -1;
-  + m_struct      :FAST_ARRAY(BASE_TYPE) := NULL;
+  + m_struct      :FAST_ARRAY(LOW_LEVEL_TYPE) := NULL;
   
   - make_void size:INTEGER :SELF <-
   (
@@ -316,7 +316,7 @@ Section Private
     Self
   );
   
-  - make_pointer ptr:BASE_TYPE :SELF <-
+  - make_pointer ptr:LOW_LEVEL_TYPE :SELF <-
   (
     i_size := 0;
     p_type := ptr;
@@ -344,12 +344,12 @@ Section Private
     p_type := NULL;
     f_ptr  := FALSE;
     m_vector_size := -1;
-    m_struct := FAST_ARRAY(BASE_TYPE).create 0;
+    m_struct := FAST_ARRAY(LOW_LEVEL_TYPE).create 0;
     ? { kind == kind_struct };
     Self
   );
   
-  - make_vector items:INTEGER of t:BASE_TYPE :SELF <-
+  - make_vector items:INTEGER of t:LOW_LEVEL_TYPE :SELF <-
   (
     i_size := 0;
     p_type := t;

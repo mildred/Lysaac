@@ -189,7 +189,7 @@ Section LIST_PROC
     } else {
       ((shared) && {slot_data}).if {
         shared_data_variable := REG.clone.make_type
-          (BASE_TYPE.create_pointer(result_type.to_impl.base_type));
+          (LOW_LEVEL_TYPE.create_pointer(result_type.to_impl.base_type));
       };
       list.set_list_procs list_procs;
       self_prototype.initializer_list.set_list_procs list_procs;

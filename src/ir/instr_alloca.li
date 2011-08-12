@@ -10,7 +10,7 @@ Section Public
 
   + count :INTEGER;
   
-  + type :BASE_TYPE;
+  + type :LOW_LEVEL_TYPE;
 
   //
   // Link
@@ -27,11 +27,11 @@ Section Public
     gen.alloca count of { type.generate gen } in result;
   );
   
-  - make_type t:BASE_TYPE count c:INTEGER :SELF <-
+  - make_type t:LOW_LEVEL_TYPE count c:INTEGER :SELF <-
   (
     count  := c;
     type   := t;
-    result := REG.clone.make_type (BASE_TYPE.create_pointer t);
+    result := REG.clone.make_type (LOW_LEVEL_TYPE.create_pointer t);
     made   := TRUE;
     Self
   );

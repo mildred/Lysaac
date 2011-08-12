@@ -43,14 +43,14 @@ Section Public
     -? { r.base_type.pointer_type.struct_types.valid_index (s.type_index) };
     -? { s.result_type.to_impl.base_type == r.base_type.pointer_type.struct_types.item (s.type_index) };
   ]
-  ( + res_type :BASE_TYPE;
+  ( + res_type :LOW_LEVEL_TYPE;
     value := r;
     path  := FAST_ARRAY(INTEGER).create_with_capacity 1;
     path.add_last 0;
     path.add_last (s.type_index);
     
     res_type := r.base_type.pointer_type.struct_types.item (s.type_index);
-    result := REG.clone.make_type (BASE_TYPE.create_pointer res_type);
+    result := REG.clone.make_type (LOW_LEVEL_TYPE.create_pointer res_type);
     made := TRUE;
     Self
   );
