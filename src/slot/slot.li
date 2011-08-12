@@ -54,6 +54,22 @@ Section Public
   
   //////////////////////////////////////////////////////////////////////////////
   //
+  // Inheritance
+  //
+  
+  - has_been_redefined :BOOLEAN <- TRUE;
+  
+  - is_inherited :BOOLEAN <- ! inherited_from.is_empty;
+  
+  + inherited_from :FAST_ARRAY(SLOT);
+  
+  - add_inherited_parent parent_slot:SLOT <-
+  (
+    inherited_from.add_last parent_slot;
+  );
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
   // Location
   //
   

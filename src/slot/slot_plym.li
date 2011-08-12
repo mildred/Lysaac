@@ -32,6 +32,13 @@ Section Public
   
   //////////////////////////////////////////////////////////////////////////////
   //
+  // Inheritance
+  //
+  
+  - has_been_redefined :BOOLEAN <- FALSE;
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
   // Signature
   //
   
@@ -98,6 +105,7 @@ Section PROTOTYPE
     type_index     := -1;
     result_type    := NULL;
     global_symbol  := REG.clone;
+    inherited_from := FAST_ARRAY(SLOT).create 0;
     // Argument: Self :Strict SELF
     //arguments.add_last EXPR;
     // Argument: slot :SystemInteger

@@ -29,6 +29,13 @@ Section Public
   - slot_data   :BOOLEAN <- inherit_from.slot_data;
   
   - bound       :BOOLEAN <- (inherit_from != NULL) && {inherit_from.bound};
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Inheritance
+  //
+  
+  - has_been_redefined :BOOLEAN <- FALSE;
 
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -89,6 +96,8 @@ Section ITM_SLOT
     self_prototype := p;
     global_symbol  := REG.clone;
     self           := EXPR;
+    inherited_from := FAST_ARRAY(SLOT).create 0;
+    inherited_from.add_last s;
     s.arguments.iterate.loop_v { arg:EXPR;
       arguments.add_last (arg.dup);
     };

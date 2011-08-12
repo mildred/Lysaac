@@ -80,6 +80,7 @@ Section ITM_SLOT
     type_index     := -1;
     result_type    := NULL;
     global_symbol  := REG.clone;
+    inherited_from := FAST_ARRAY(SLOT).create 0;
     ? {self_prototype != NULL};
     Self
   );

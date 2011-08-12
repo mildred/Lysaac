@@ -152,12 +152,28 @@ Section Private
     (it := slots.iterate_reverse).loop_v { dup:SLOT;
       find_slot (dup.name).if { s:SLOT;
         (dup != s).if {
-          add_error (s.position.error ("Slot " + s.name + " has a duplicate:"));
-          add_error (dup.position.error ("Discarding this slot"));
-          slots.remove (it.index);
-          list.remove_slot dup;
+          s.has_been_redefined.if {
+            add_error (s.position.error ("Slot " + s.name + " has a duplicate:"));
+            add_error (dup.position.error ("Discarding this slot"));
+            slots.remove (it.index);
+            list.remove_slot dup;
+          } else {
+            ? {s.is_inherited};
+            // Remove the automatically inherited slot
+            dup.add_inherited_parent (s.inherited_from.first);
+            remove_slot s;
+            list.remove_slot s;
+          };
         };
       };
+    };
+  );
+
+  - remove_slot s:SLOT <-
+  ( + i:INTEGER;
+    i := slots.fast_first_index_of s;
+    slots.valid_index i.if {
+      slots.remove i;
     };
   );
 
