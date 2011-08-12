@@ -20,6 +20,8 @@ Section Public
   - block    :BOOLEAN <- FALSE;
   - void     :BOOLEAN <- FALSE;
   
+  - ref_base_type :BASE_TYPE <- BASE_TYPE.create_integer_cst;
+  
   //////////////////////////////////////////////////////////////////////////////
   //
   // Create Register

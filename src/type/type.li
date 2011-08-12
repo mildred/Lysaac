@@ -20,6 +20,8 @@ Section Public
   + strict    :BOOLEAN := FALSE;
   - void      :BOOLEAN <- TRUE;
   
+  - ref_base_type :BASE_TYPE <- (deferred; BASE_TYPE);
+  
   //////////////////////////////////////////////////////////////////////////////
   //
   // Create Register
@@ -86,15 +88,19 @@ Section Public
 
 Section TYPE
   
-  - keywords_str :CSTRING <-
-  ( + res:ABSTRACT_STRING;
+  - keywords_str spc:CHARACTER :CSTRING <-
+  ( + res :STRING;
+    res := "".to_string;
     reference.if {
-      res := "Reference ";
+      res.append "Reference";
+      res.add_last spc;
     } else {
-      res := "Expanded ";
+      res.append "Expanded";
+      res.add_last spc;
     };
     strict.if {
-      res := res + "Strict ";
+      res.append "Strict";
+      res.add_last spc;
     };
     res
   );

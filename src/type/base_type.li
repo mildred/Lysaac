@@ -35,12 +35,15 @@ Section Public
   - kind_function :INTEGER := 3;
   - kind_struct   :INTEGER := 4;
   - kind_vector   :INTEGER := 5;
+  - kind_ref      :INTEGER := 6;
   
   - kind :INTEGER <-
   ( + kind :INTEGER;
   
     (i_size != 0).if {
       kind := kind_integer;
+    }.elseif {m_ref != NULL} then {
+      kind := kind_ref;
     }.elseif {m_vector_size >= 0} then {
       kind := kind_vector;
     }.elseif {p_type != NULL} then {
@@ -121,6 +124,15 @@ Section Public
   - vector_type   :BASE_TYPE <- [ -?{vector}; ] p_type;
   
   //
+  // Type: ref
+  //
+  
+  - create_ref reg:REG :SELF <- clone.make_ref reg;
+  
+  - ref          :BOOLEAN <- (kind == kind_ref);
+  - ref_register :REG     <- m_ref;
+  
+  //
   // Generic
   //
   
@@ -164,6 +176,9 @@ Section Public
       .when kind_vector then {
         res := (vector_length == other.vector_length) &&
                {vector_type.compatible_with (other.vector_type) and_resolve do_resolve};
+      }
+      .when kind_ref then {
+        res := (ref_register = other.ref_register);
       };
     };
     res
@@ -198,6 +213,9 @@ Section Public
       gen.type_vector m_vector_size of {
         p_type.generate gen;
       };
+    }
+    .when kind_ref then {
+      gen.type_reg ref_register;
     };
   );
   
@@ -230,6 +248,9 @@ Section Public
       .when kind_vector then {
         res := (vector_length == other.vector_length) &&
                {vector_type   == other.vector_type};
+      }
+      .when kind_ref then {
+        res := (ref_register = other.ref_register);
       };
       
       res
@@ -274,6 +295,11 @@ Section Public
       res.append "x";
       vector_type.to_llvm_in res;
       res.append "]";
+    }
+    .when kind_ref then {
+      res.append "%\"";
+      res.append (ref_register.to_string);
+      res.append "\"";
     };
     res
   );
@@ -293,6 +319,7 @@ Section Private
   + f_ptr         :BOOLEAN               := FALSE;
   + m_vector_size :INTEGER               := -1;
   + m_struct      :FAST_ARRAY(BASE_TYPE) := NULL;
+  + m_ref         :REG                   := NULL;
   
   - make_void size:INTEGER :SELF <-
   (
@@ -301,6 +328,7 @@ Section Private
     f_ptr  := FALSE;
     m_vector_size := -1;
     m_struct := NULL;
+    m_ref := NULL;
     ? { kind == kind_void };
     Self
   );
@@ -312,6 +340,7 @@ Section Private
     f_ptr  := FALSE;
     m_vector_size := -1;
     m_struct := NULL;
+    m_ref := NULL;
     ? { kind == kind_integer };
     Self
   );
@@ -323,6 +352,7 @@ Section Private
     f_ptr  := FALSE;
     m_vector_size := -1;
     m_struct := NULL;
+    m_ref := NULL;
     ? { kind == kind_pointer };
     Self
   );
@@ -334,6 +364,7 @@ Section Private
     f_ptr  := TRUE;
     m_vector_size := -1;
     m_struct := NULL;
+    m_ref := NULL;
     ? { kind == kind_function };
     Self
   );
@@ -345,6 +376,7 @@ Section Private
     f_ptr  := FALSE;
     m_vector_size := -1;
     m_struct := FAST_ARRAY(BASE_TYPE).create 0;
+    m_ref := NULL;
     ? { kind == kind_struct };
     Self
   );
@@ -356,6 +388,22 @@ Section Private
     f_ptr  := FALSE;
     m_vector_size := items;
     m_struct := NULL;
+    m_ref := NULL;
     ? { kind == kind_vector };
+    Self
+  );
+  
+  - make_ref ref:REG :SELF <-
+  [
+    -? { ref != NULL };
+  ]
+  (
+    i_size := 0;
+    p_type := NULL;
+    f_ptr  := FALSE;
+    m_vector_size := -1;
+    m_struct := NULL;
+    m_ref := ref;
+    ? { kind == kind_ref };
     Self
   );

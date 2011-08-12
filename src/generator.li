@@ -27,10 +27,33 @@ Section Public
     r.realize "@" name sym;
     ERR
   );
+  
+  - alloc_type r:REG name sym:CSTRING :ERR <-
+  (
+    //TODO: check symbol collision
+    r.realize "%" name sym;
+    ERR
+  );
 
   //
   // Types
   //
+  
+  - type_definition reg:REG do blc:{} <-
+  [ -? {reg.is_realized}; ]
+  (
+    context_const {
+      put_reg reg;
+      put " = type ";
+      blc.value;
+      put_line;
+    };
+  );
+  
+  - type_reg reg:REG <-
+  (
+    put_reg reg;
+  );
 
   - type_integer size:INTEGER <-
   (
@@ -178,6 +201,9 @@ Section Public
   //
 
   - declare_sub name:REG args args:{} return ret:{} <-
+  [
+    -? {name.is_realized};
+  ]
   (
     put_indent;
     put "declare ";
@@ -210,7 +236,10 @@ Section Public
   );
   
   - sub name:REG self s:REG args args:{} do blc:{} return r:REG <-
-  [ -? { s.is_valid }; ]
+  [
+    -? {name.is_realized};
+    -? { s.is_valid };
+  ]
   (
     s.make_pretty_name "_self";
     put_indent;

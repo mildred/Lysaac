@@ -15,25 +15,30 @@ Section Public
   // Identification
   //
   
-  - name :CSTRING <- (keywords_str + prototype.name).to_abstract_string;
-  - void :BOOLEAN <- base_type.void;
+  + type_reg :REG;
+  
+  - external_name :CSTRING <- (keywords_str '_' + prototype.name).to_abstract_string;
+  - name :CSTRING <- (keywords_str ' ' + prototype.name).to_abstract_string;
+  - void :BOOLEAN <- FALSE;
 
   + prototype :PROTOTYPE;
   
-  + base_type :BASE_TYPE <-
+  - struct_base_type :BASE_TYPE <-
   [ -? { prototype.defined }; ]
-  (
+  ( + base_type :BASE_TYPE;
     block.if {
       base_type := BASE_TYPE.create_pointer (BASE_TYPE.create_function);
     } else {
       expanded.if {
-        base_type := prototype.base_type;
+        base_type := prototype.struct_base_type;
       } else {
-        base_type := BASE_TYPE.create_pointer (prototype.base_type);
+        base_type := BASE_TYPE.create_pointer (prototype.struct_base_type);
       };
     };
     base_type
   );
+  
+  - ref_base_type :BASE_TYPE <- BASE_TYPE.create_ref type_reg;
   
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -42,7 +47,7 @@ Section Public
 
   - can_create_reg :BOOLEAN <- prototype.defined;
   
-  - create_reg :REG <- REG.clone.make_type base_type;
+  - create_reg :REG <- REG.clone.make_type ref_base_type;
   
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -51,20 +56,31 @@ Section Public
 
   - generate gen:GENERATOR <-
   (
-    (base_type = NULL).if {
-      crash_with_message ("Cannot generate type for "+prototype.name);
-      not_yet_implemented;
-    } else {
-      base_type.generate gen;
+    gen.type_reg type_reg;
+  );
+
+Section PROTOTYPE
+
+  - link_definition gen:GENERATOR <-
+  (
+    gen.alloc_type type_reg name external_name;
+  );
+
+  - generate_definition gen:GENERATOR <-
+  (
+    gen.type_definition type_reg do {
+      struct_base_type.generate gen;
     };
   );
+
+Section Public
   
   //////////////////////////////////////////////////////////////////////////////
   //
   // Implementation Slots
   //
   
-  - consistent_with_base t:BASE_TYPE :BOOLEAN <- ( base_type == t );
+  - consistent_with_base t:BASE_TYPE :BOOLEAN <- ( ref_base_type == t );
 
   - to_impl :TYPE_IMPL <- Self;
   
@@ -76,9 +92,9 @@ Section Public
   //
   
   - to_string :STRING <-
-    type_name + "<" + name + " " + base_type.to_string + ">";
+    type_name + "<" + name + " " + ref_base_type.to_string + ">";
 
-  - to_base_type :BASE_TYPE <- base_type;
+  - to_base_type :BASE_TYPE <- ref_base_type;
 
   
   //////////////////////////////////////////////////////////////////////////////
@@ -97,6 +113,7 @@ Section PROTOTYPE
     block := FALSE;
     expanded := FALSE;
     prototype := p;
+    type_reg := REG.clone;
     Self
   );
 
@@ -109,6 +126,7 @@ Section PROTOTYPE
     block := FALSE;
     expanded := TRUE;
     prototype := p;
+    type_reg := REG.clone;
     Self
   );
   
@@ -121,6 +139,7 @@ Section PROTOTYPE
     block := TRUE;
     prototype := p;
     expanded := FALSE;
+    type_reg := REG.clone;
     Self
   );
 
