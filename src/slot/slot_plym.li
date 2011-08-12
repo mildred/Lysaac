@@ -101,7 +101,6 @@ Section PROTOTYPE
     arguments      := FAST_ARRAY(EXPR).create 0;
     list           := NULL;
     self_prototype := p;
-    self           := EXPR;
     type_index     := -1;
     result_type    := NULL;
     global_symbol  := REG.clone;

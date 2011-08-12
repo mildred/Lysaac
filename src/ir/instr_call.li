@@ -94,12 +94,18 @@ Section Public
   );
   
   - finalize :ERR <-
+  [
+    -? { slot.self.is_valid };
+  ]
   ( + e:ERR;
     e := ERR.clone;
     (slot.arguments.count != args.count).if {
       e <! slot.position.error("Try to call this slot with " + args.count.to_string + " arguments instead of " + slot.arguments.count.to_string);
     } else {
       include_self.if {
+        ? { slot.self != NULL };
+        ? { slot.self.type != NULL };
+        ? { slot.self.type.to_impl != NULL };
         e <! receiver.implement_type_with (slot.self.type.to_impl);
       };
       args.lower.to (args.upper) do { i:INTEGER;

@@ -99,7 +99,17 @@ Section Public
   
   + arguments :FAST_ARRAY(EXPR);
 
-  + self :EXPR;
+  + self :EXPR <-
+  [ -? { self_prototype.defined }; ]
+  ( + t:TYPE;
+    t := self_prototype.to_type_reference;
+    ? { ! t.void };
+    self := EXPR.clone.make_type t;
+    ? { self.is_valid };
+    ? { self.type != NULL };
+    ? { self.type.reference };
+    self
+  );
   
   + type_index :INTEGER := -1;
 
@@ -167,15 +177,7 @@ Section LIST_PROC
 
   - compile list_procs:LIST_PROC <-
   [ -? { list = NULL }; ]
-  ( + t:TYPE;
-    t := self_prototype.to_type_reference;
-    t.void.if {
-      self := EXPR;
-    } else {
-      self := EXPR.clone.make_type t;
-    };
-    ? { self.is_valid };
-    ? { self.type.reference };
+  (
     list := LIST.clone.make_self self.make_error_collector Self type result_type;
     external.if {
       // External Slot

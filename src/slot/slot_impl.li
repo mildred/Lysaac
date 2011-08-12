@@ -76,7 +76,6 @@ Section ITM_SLOT
     list           := NULL;
     ast            := s;
     self_prototype := ast.prototype_parent;
-    self           := EXPR;
     type_index     := -1;
     result_type    := NULL;
     global_symbol  := REG.clone;

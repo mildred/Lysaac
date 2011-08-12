@@ -95,7 +95,6 @@ Section ITM_SLOT
     inherit_from   := s;
     self_prototype := p;
     global_symbol  := REG.clone;
-    self           := EXPR;
     inherited_from := FAST_ARRAY(SLOT).create 0;
     inherited_from.add_last s;
     s.arguments.iterate.loop_v { arg:EXPR;
