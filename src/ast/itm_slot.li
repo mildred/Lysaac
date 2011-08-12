@@ -103,8 +103,7 @@ Section ITM_PROTOTYPE
         slot.set_return_type (t);
       };
     };
-    slot.finish_creation;
-    list.add_slot slot;
+    slot.finish_creation_in list;
     
     ((is_inherit_or_insert) && {return_type = NULL}).if {
       slot.add_error(position.error("Inherit or Insert slot do not have a return type"));

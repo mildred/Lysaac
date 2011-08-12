@@ -68,7 +68,7 @@ Section CLUSTER
   + num_steps :INTEGER;
   + cur_step  :INTEGER;
 
-Section PROTOTYPE
+Section PROTOTYPE, SLOT
 
   - remove_slot s:SLOT <-
   ( + i:INTEGER;
@@ -78,7 +78,7 @@ Section PROTOTYPE
     };
   );
 
-Section ITM_SLOT, ITM_EXPR_GROUP, PROTOTYPE
+Section ITM_SLOT, ITM_EXPR_GROUP, SLOT, PROTOTYPE
 
   - add_slot s:SLOT <-
   (

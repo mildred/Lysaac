@@ -152,28 +152,12 @@ Section Private
     (it := slots.iterate_reverse).loop_v { dup:SLOT;
       find_slot (dup.name).if { s:SLOT;
         (dup != s).if {
-          s.has_been_redefined.if {
-            add_error (s.position.error ("Slot " + s.name + " has a duplicate:"));
-            add_error (dup.position.error ("Discarding this slot"));
-            slots.remove (it.index);
-            list.remove_slot dup;
-          } else {
-            ? {s.is_inherited};
-            // Remove the automatically inherited slot
-            dup.add_inherited_parent (s.inherited_from.first);
-            remove_slot s;
-            list.remove_slot s;
-          };
+          add_error (s.position.error ("Slot " + s.name + " has a duplicate:"));
+          add_error (dup.position.error ("Discarding this slot"));
+          slots.remove (it.index);
+          list.remove_slot dup;
         };
       };
-    };
-  );
-
-  - remove_slot s:SLOT <-
-  ( + i:INTEGER;
-    i := slots.fast_first_index_of s;
-    slots.valid_index i.if {
-      slots.remove i;
     };
   );
 
@@ -196,7 +180,7 @@ Section Private
   )
   [ +? { prototype_rvalue.is_realized }; ];
 
-Section ITM_EXPR
+Section Public
 
   - find_slot name:CSTRING :MAYBE(SLOT) <-
     find_slot name except NULL;
@@ -340,6 +324,14 @@ Section SLOT
     ((s.style.plus) && {s.has_result}).if {
       s.set_type_index num_compiled_data_slots;
       num_compiled_data_slots := num_compiled_data_slots + 1;
+    };
+  );
+
+  - replace_slot old:SLOT by new:SLOT <-
+  ( + i:INTEGER;
+    i := slots.fast_first_index_of old;
+    slots.valid_index i.if {
+      slots.remove i;
     };
   );
 

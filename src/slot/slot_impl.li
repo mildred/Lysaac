@@ -92,7 +92,7 @@ Section ITM_SLOT
     result_type := t;
   );
   
-  - finish_creation <-
+  - finish_creation_in list:LIST_PROC <-
   ( + error :BOOLEAN;
     (internal).if {
       + sym :ITM_EXPR_SYM;
@@ -105,6 +105,20 @@ Section ITM_SLOT
       };
     };
     error.if_false {
-      self_prototype.add_slot Self;
+      + replace_slot :SLOT;
+      self_prototype.find_slot name.if { s:SLOT;
+        ((s.is_inherited) && {!s.has_been_redefined}).if {
+          replace_slot := s;
+        };
+      };
+      (replace_slot != NULL).if {
+        inherited_from := replace_slot.inherited_from;
+        type_index     := replace_slot.type_index;
+        list.remove_slot replace_slot;
+        self_prototype.replace_slot replace_slot by Self;
+      } else {
+        self_prototype.add_slot Self;
+      };
+      list.add_slot Self;
     };
   );

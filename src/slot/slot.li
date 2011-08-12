@@ -165,6 +165,7 @@ Section PROTOTYPE
   - set_type_index i:INTEGER <-
   [ -? {i >= 0}; ]
   (
+    warnln("Slot " + external_name + " has type_index " + i.to_string);
     type_index := i;
   );
 
