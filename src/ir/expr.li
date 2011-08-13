@@ -9,35 +9,30 @@ Section Inherit
   + parent_any :Expanded ANY;
 
 Section Public
-  
-  - make_duplicate_of other:SELF <-
-  (
-    reg := other.reg.dup;
-  );
 
   + reg  :REG  := REG;
-  + type :TYPE := NULL;
+  
+  - type :TYPE <-
+  ( + t:TYPE;
+    t ?= reg.base_type
+  );
   
   - is_valid :BOOLEAN <- (((reg != NULL) || {reg.is_valid}) && {type != NULL});
   
-  - make_type t:TYPE value r:REG :SELF <- make(r, t);
-
-  - make (r:REG, t:TYPE) :SELF <-
+  - is_impl  :BOOLEAN <- type.is_impl;
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Creation
+  //
+  
+  - make_reg r:REG :SELF <-
   [
-    -? { t != NULL };
-    -? { r != NULL };
-    -? { ! r.base_type.void };
     -? { r.is_valid };
-    t.is_impl.if {
-      (t.to_impl.base_type == r.base_type).if_false {
-        warnln(t.to_impl.base_type.to_string + " (type) != " + r.base_type.to_string + " (reg)");
-      };
-      -? { t.to_impl.base_type == r.base_type };
-    };
+    -? { + t:TYPE; t ?= r.base_type; t != NULL };
   ]
   (
-    reg  := r;
-    type := t;
+    reg := r;
     Self
   )
   [
@@ -46,26 +41,40 @@ Section Public
   
   - make_type t:TYPE :SELF <-
   [
-    -? { t != NULL };
     -? { t.can_create_reg };
   ]
   (
-    make(t.create_reg, t)
+    reg := t.create_reg;
+    Self
+  )
+  [
+    +? { type = t };
+    +? { is_valid };
+  ];
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Implementation
+  //
+  
+  - to_impl_with t:TYPE_IMPL :MAYBE(EXPR) <-
+  // Transform a non implemented EXPR into an implemented EXPR
+  ( + res :MAYBE(EXPR);
+    is_impl.if {
+      res << Self;
+    } else {
+      //not_yet_implemented;
+    };
+    res
   );
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Conversions
+  //
 
   - to_reg  :REG  <- [ -? { reg != NULL }; ] reg;
   - to_type :TYPE <- [ -? { is_valid    }; ] type;
   
   - to_string :STRING <- ( type_name + "<" + reg.to_string + ";" + type.to_string + ">" );
   
-  - implement_type_with other:TYPE_IMPL :ERR <-
-  ( + res:ERR;
-    type.to_impl_of other.if { t:TYPE_IMPL;
-      type := t;
-      reg.resolve_base_type_with (t.base_type);
-    } else_error { e:ERR;
-      res  := e;
-    };
-    res
-  );
-

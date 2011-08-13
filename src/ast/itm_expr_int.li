@@ -19,7 +19,7 @@ Section Public
     } else { t:TYPE;
       + lt:TYPE_LINT;
       lt := TYPE_LINT.clone.make_with_implementation (t.to_impl);
-      results << EXPR.clone.make_type lt value
+      results << EXPR.clone.make_reg
         (INSTR_INT
           .clone
           .make value static_type lt

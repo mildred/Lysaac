@@ -24,10 +24,10 @@ Section Public
   );
   
   - make r:REG :SELF <-
-  [ -? { r.base_type.pointer }; ]
+  [ -? { r.base_type.is_pointer }; ]
   (
     pointer := r;
-    result  := REG.clone.make_type (r.base_type.pointer_type);
+    result  := REG.clone.make_type (r.base_type.to_exp);
     made := TRUE;
     Self
   );

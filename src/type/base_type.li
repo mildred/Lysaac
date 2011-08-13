@@ -4,8 +4,46 @@ Section Header
 
 Section Inherit
 
-  + parent_any :Expanded ANY;
+  + parent_abstract_type :Expanded ABSTRACT_TYPE;
   
 Section Public
+  
+  - dereference_type :ABSTRACT_TYPE <- [ -? {is_pointer}; ] to_exp;
+
+  + to_ptr :BASE_TYPE <-
+  (
+    to_pointer := TYPE_POINTER.clone.make Self
+  );
+  
+  - to_exp :BASE_TYPE <-
+  [ -? {is_pointer}; ]
+  ( deferred; NULL );
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Register
+  //
+
+  - can_create_reg :BOOLEAN <- TRUE;
+  
+  - create_reg :REG <-
+  [ -? {can_create_reg}; ]
+  (
+    REG.clone.make_type to_impl
+  );
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Abstract
+  //
+  
+  - generate gen:GENERATOR <- ( deferred; );
+  
+  - to_llimpl        :BASE_TYPE     <- (Self) [ +? {Result.is_impl }; ]; 
+
+  - is_pointer       :BOOLEAN       <- FALSE;
+  - is_void          :BOOLEAN       <- TRUE;
+  - is_impl          :BOOLEAN       <- TRUE;
+
 
 

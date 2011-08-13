@@ -23,15 +23,15 @@ Section Public
     gen.sizeof { type.generate gen; } in result;
   );
   
-  - make t:LOW_LEVEL_TYPE :SELF <-
+  - make t:BASE_TYPE :SELF <-
   (
     type   := t;
-    result := REG.clone.make_type (LOW_LEVEL_TYPE.int);
-    made := TRUE;
+    result := TYPE_LINT.create_reg;
+    made   := TRUE;
     Self
   );
 
 Section Private
 
-  + type :LOW_LEVEL_TYPE;
+  + type :BASE_TYPE;
 

@@ -1,8 +1,6 @@
 Section Header
 
   + name := TYPE_LINT;
-  
-  - export := LOW_LEVEL_TYPE;
 
 Section Inherit
 
@@ -37,7 +35,7 @@ Section Public
   // Implementation Slots
   //
   
-  - consistent_with_base t:LOW_LEVEL_TYPE :BOOLEAN <- t.integer;
+  + to_impl :TYPE_IMPL;
   
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -45,3 +43,15 @@ Section Public
   //
   
   - keywords_str :CSTRING <- "";
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Creation
+  //
+  
+  - make_with_implementation impl:TYPE_IMPL :SELF <-
+  (
+    to_impl := impl;
+    Self
+  );
+

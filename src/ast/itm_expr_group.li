@@ -24,7 +24,7 @@ Section Public
           .clone
           .make_block Self list_parent list;
 
-        results << EXPR.clone.make_type t value (block.global_symbol);
+        results << EXPR.clone.make_reg (block.global_symbol);
 
         list.list_procs.add_block block;
         is_block := FALSE; // Second pass
