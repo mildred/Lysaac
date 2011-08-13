@@ -13,8 +13,25 @@ Section Inherit
   + parent_any :Expanded ANY;
   
 Section Public
+
+  - to_string :STRING <-
+  ( + res:STRING;
+    res := type_name + "<" + prefix + "\"" + name + "\"" + "." + identifier.to_string + "?pretty_name=" + pretty_name + "&base_type=";
+    (m_base_type = NULL).if {
+      res.append "NULL>";
+    } else {
+      res.append (m_base_type.to_string + ">");
+    };
+    res
+  );
   
-  //////////////////////////////////////////////////////////////////////////////
+  - make_duplicate_of other:SELF <-
+  (
+    is_valid.if {
+      m_base_type := other.base_type.dup;
+    };
+  );
+  
   //
   // Predicates
   //
@@ -24,21 +41,21 @@ Section Public
   + is_valid :BOOLEAN;
   - is_null  :BOOLEAN <- ( ! is_valid );
   
-  //////////////////////////////////////////////////////////////////////////////
   //
   // Attributes
   //
   
   + pretty_name :CSTRING := "";
   
-  - base_type :BASE_TYPE <- [ -? { is_valid }; ] ( m_base_type );
+  - base_type :LOW_LEVEL_TYPE <-
+  [ -? { is_valid }; ]
+  ( m_base_type   );
   
-  //////////////////////////////////////////////////////////////////////////////
   //
   // Construction
   //
   
-  - make_type t:BASE_TYPE :SELF <-
+  - make_type t:LOW_LEVEL_TYPE :SELF <-
   [
     -? { t != NULL };
   ]
@@ -69,13 +86,24 @@ Section Public
     Self
   );
   
-  //////////////////////////////////////////////////////////////////////////////
   //
   // Type Resolving
   //
   
+  - compatible_with t:LOW_LEVEL_TYPE <-
+  (
+    m_base_type.compatible_with t.if_false {
+      crash_with_message(to_string + " is incompatible with " + t.to_string);
+    };
+  );
   
-  //////////////////////////////////////////////////////////////////////////////
+  - resolve_base_type_with other:LOW_LEVEL_TYPE <-
+  (
+    m_base_type.resolve_with other.if_false {
+      crash_with_message("Try to resolve " + to_string + " with " + other.to_string + ": incompatible types");
+    };
+  );
+  
   //
   // Realization
   //
@@ -94,7 +122,6 @@ Section Public
     base_type.realize_default_value gen for Self;
   );
   
-  //////////////////////////////////////////////////////////////////////////////
   //
   // Generation
   //
@@ -108,31 +135,11 @@ Section Public
     -? { ! is_realized };
   ]
   (
-    base_type.is_void.if_false {
+    base_type.void.if_false {
       gen.arg_name n variable Self;
     };
   )
   [ -? { is_realized }; ];
-
-  //////////////////////////////////////////////////////////////////////////////
-  
-  - to_string :STRING <-
-  ( + res:STRING;
-    res := type_name + "<" + prefix + "\"" + name + "\"" + "." + identifier.to_string + "?pretty_name=" + pretty_name + "&base_type=";
-    (m_base_type = NULL).if {
-      res.append "NULL>";
-    } else {
-      res.append (m_base_type.to_string + ">");
-    };
-    res
-  );
-  
-  - make_duplicate_of other:SELF <-
-  (
-    is_valid.if {
-      m_base_type := other.base_type.dup;
-    };
-  );
 
 Section GENERATOR
 
@@ -182,5 +189,5 @@ Section GENERATOR
 
 Section Private
 
-  + m_base_type :BASE_TYPE;
+  + m_base_type :LOW_LEVEL_TYPE;
 

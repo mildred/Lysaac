@@ -14,21 +14,26 @@ Section Public
   //
   // Identification
   //
+  
+  - name :CSTRING <- (keywords_str + prototype.name).to_abstract_string;
+  - void :BOOLEAN <- base_type.void;
 
-  - name             :CSTRING       <- (keywords_str + prototype.name).to_abstract_string;
-
-  + is_block         :BOOLEAN       := FALSE;
-  - is_reference     :BOOLEAN       <- ( ! is_expanded);
-  + is_expanded      :BOOLEAN       := FALSE;
-  + is_strict        :BOOLEAN       := FALSE;
-
-  - is_pointer       :BOOLEAN       <- is_reference;
-  - is_void          :BOOLEAN       <- TRUE;
-  - is_impl          :BOOLEAN       <- TRUE;
-
-
-  + prototype        :PROTOTYPE;
-
+  + prototype :PROTOTYPE;
+  
+  + base_type :LOW_LEVEL_TYPE <-
+  [ -? { prototype.defined }; ]
+  (
+    block.if {
+      base_type := LOW_LEVEL_TYPE.create_pointer (LOW_LEVEL_TYPE.create_function);
+    } else {
+      expanded.if {
+        base_type := prototype.base_type;
+      } else {
+        base_type := LOW_LEVEL_TYPE.create_pointer (prototype.base_type);
+      };
+    };
+    base_type
+  );
   
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -37,6 +42,8 @@ Section Public
 
   - can_create_reg :BOOLEAN <- prototype.defined;
   
+  - create_reg :REG <- REG.clone.make_type base_type;
+  
   //////////////////////////////////////////////////////////////////////////////
   //
   // Generate
@@ -44,9 +51,24 @@ Section Public
 
   - generate gen:GENERATOR <-
   (
-    not_yet_implemented;
+    (base_type = NULL).if {
+      crash_with_message ("Cannot generate type for "+prototype.name);
+      not_yet_implemented;
+    } else {
+      base_type.generate gen;
+    };
   );
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Implementation Slots
+  //
+  
+  - consistent_with_base t:LOW_LEVEL_TYPE :BOOLEAN <- ( base_type == t );
 
+  - to_impl :TYPE_IMPL <- Self;
+  
+  - is_impl :BOOLEAN <- TRUE;
   
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -54,7 +76,10 @@ Section Public
   //
   
   - to_string :STRING <-
-    type_name + "<" + name + ">";
+    type_name + "<" + name + " " + base_type.to_string + ">";
+
+  - to_low_level_type :LOW_LEVEL_TYPE <- base_type;
+
   
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -69,8 +94,8 @@ Section PROTOTYPE
     -? { p.role !== "Block" };
   ]
   (
-    is_block := FALSE;
-    is_expanded := FALSE;
+    block := FALSE;
+    expanded := FALSE;
     prototype := p;
     Self
   );
@@ -81,8 +106,8 @@ Section PROTOTYPE
     -? { p.role !== "Block" };
   ]
   (
-    is_block := FALSE;
-    is_expanded := TRUE;
+    block := FALSE;
+    expanded := TRUE;
     prototype := p;
     Self
   );
@@ -93,9 +118,9 @@ Section PROTOTYPE
     -? { p.role == "Block" };
   ]
   (
-    is_block := TRUE;
-    is_expanded := FALSE;
+    block := TRUE;
     prototype := p;
+    expanded := FALSE;
     Self
   );
 

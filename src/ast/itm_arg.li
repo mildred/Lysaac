@@ -43,7 +43,7 @@ Section ITM_SLOT
       r .make_type t
         .make_pretty_name name;
       ? { r.is_valid };
-      result := EXPR.clone.make_reg r;
+      result := EXPR.clone.make(r, t);
       res << result;
     };
     res

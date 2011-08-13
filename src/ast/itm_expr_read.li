@@ -87,7 +87,7 @@ Section Public
         } else {
           call.add_in list;
           (slot_obj.has_result).if {
-            results << EXPR.clone.make_reg (call.result);
+            results << EXPR.clone.make (call.result, slot_obj.result_type);
             ? { results.is_single };
             ? { results.last.is_valid };
           };

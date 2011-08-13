@@ -99,7 +99,7 @@ Section Public
   - compile <-
   [ -? {defined}; -? {! compiled}; ]
   (
-    prototype_rvalue := to_type_reference.create_reg;
+    prototype_rvalue := REG.clone.make_type (LOW_LEVEL_TYPE.create_pointer base_type);
     initializer_list := LIST
       .clone
       .make_error_collector Self type NULL;
@@ -141,7 +141,7 @@ Section Public
       res := prototype_rvalue;
     };
     
-    EXPR.clone.make_reg res
+    EXPR.clone.make (res, to_type)
   );
 
 Section Private
@@ -206,7 +206,7 @@ Section Private
     res
   );
 
-Section Public
+Section CLUSTER, ITM_TYPE, SLOT, INSTR_FNPTR
 
   - to_type :TYPE_IMPL <-
   [ -? {made}; ]
@@ -372,7 +372,8 @@ Section Private
   
   + prototype_rvalue :REG; // Always a pointer value (reference)
   
-  - prototype_rvalue_expr :EXPR <- EXPR.clone.make_reg prototype_rvalue;
+  - prototype_rvalue_expr :EXPR <-
+    EXPR.clone.make (prototype_rvalue, to_type_reference);
     
   + global_ctor_sub :REG;
 

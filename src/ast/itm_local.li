@@ -24,7 +24,7 @@ Section Public
       .add_in list
       .result;
     
-    res << EXPR.clone.make_reg r;
+    res << EXPR.clone.make (r, full_type);
     ? { res.element.is_valid };
     res
   );

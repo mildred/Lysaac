@@ -103,11 +103,11 @@ Section Public
   [ -? { self_prototype.defined }; ]
   ( + t:TYPE;
     t := self_prototype.to_type_reference;
-    ? { ! t.is_void };
+    ? { ! t.void };
     self := EXPR.clone.make_type t;
     ? { self.is_valid };
     ? { self.type != NULL };
-    ? { self.type.is_reference };
+    ? { self.type.reference };
     self
   );
   
@@ -189,7 +189,7 @@ Section LIST_PROC
     } else {
       ((shared) && {slot_data}).if {
         shared_data_variable := REG.clone.make_type
-          (result_type.to_ptr);
+          (LOW_LEVEL_TYPE.create_pointer(result_type.to_impl.base_type));
       };
       list.set_list_procs list_procs;
       self_prototype.initializer_list.set_list_procs list_procs;
@@ -227,6 +227,7 @@ Section SLOT
             .add_in (self_prototype.initializer_list)
             .result;
         };
+        ast_expression.results.first.reg.compatible_with (r.base_type.pointer_type);
         INSTR_STORE
           .clone
           .make_store_in r
@@ -269,14 +270,14 @@ Section SLOT
           add_error(position.error("Only keep the first return value"));
         };
         has_result.if {
-          //exprs.first.implement_type_with (result_type.to_impl).if_fail { e:ERR;
-          //  add_error(e.extend(position,
-          //    "Incompatible type for return value #1. "
-          //    + "Got: " + pretty_type(exprs.first.type)
-          //    + ", expected: " + pretty_type(result_type)));
-          //} else {
+          exprs.first.implement_type_with (result_type.to_impl).if_fail { e:ERR;
+            add_error(e.extend(position,
+              "Incompatible type for return value #1. "
+              + "Got: " + pretty_type(exprs.first.type)
+              + ", expected: " + pretty_type(result_type)));
+          } else {
             list.add_result (exprs.first.reg);
-          //};
+          };
         };
       };
     } else {
@@ -296,11 +297,11 @@ Section SLOT
   ]
   (
     (internal_opcode == "object_size").if {
-    /*  list.add_result (INSTR_SIZEOF
+      list.add_result (INSTR_SIZEOF
         .clone
-        .make (self.type.to_exp)
+        .make (self.type.to_impl.prototype.base_type)
         .add_in list
-        .result);*/
+        .result);
     }.elseif {internal_opcode == "value"} then {
       INSTR_CALL
         .clone
@@ -355,7 +356,7 @@ Section LIST_PROC
         (result_type = NULL).if {
           gen.type_void;
         } else {
-          result_type.to_impl.generate gen;
+          result_type.to_impl.base_type.generate gen;
         };
       };
     } else {
@@ -376,6 +377,8 @@ Section Private
     -? { ! self.reg.is_realized };
   ]
   (
+    list.assert_result_coherent_with(result_type);
+
     gen.sub global_symbol self self args {
       export.if_false {
         self.reg.generate_arg gen;

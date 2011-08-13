@@ -12,26 +12,75 @@ Section Public
   //
   // Identification
   //
+  
+  - name      :CSTRING <- deferred;
+  + block     :BOOLEAN := FALSE;
+  - reference :BOOLEAN <- ( ! expanded );
+  + expanded  :BOOLEAN := FALSE;
+  + strict    :BOOLEAN := FALSE;
+  - void      :BOOLEAN <- TRUE;
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Create Register
+  //
 
-  - name             :CSTRING       <- deferred;
+  - can_create_reg :BOOLEAN <- FALSE;
+  
+  - create_reg :REG <- deferred;
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Generate
+  //
 
-  - is_block         :BOOLEAN       <- FALSE;
-  - is_reference     :BOOLEAN       <- ( ! is_expanded);
-  - is_expanded      :BOOLEAN       <- FALSE;
-  - is_strict        :BOOLEAN       <- FALSE;
+  - generate gen:GENERATOR <-
+  (
+    crash "Try to generate type " + name
+  );
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Implementation Slots
+  //
+  
+  - consistent_with_base t:LOW_LEVEL_TYPE :BOOLEAN <- deferred;
+  
+  - to_impl_of other:TYPE_IMPL :MAYBE(TYPE_IMPL) <-
+  ( + res:MAYBE(TYPE_IMPL);
+    (other = NULL).if {
+      void.if {
+        res << to_impl;
+      } else {
+        res <! ERR.create(("Void is not consistent with "+name).to_abstract_string);
+      };
+    }.elseif {consistent_with_base other} then {
+      res << other;
+    } else {
+      res <! ERR.create(("Type "+other.name+" is not consistent with "+name).to_abstract_string);
+    };
+    res
+  );
 
-  - is_pointer       :BOOLEAN       <- is_reference;
-  - is_void          :BOOLEAN       <- TRUE;
-  - is_impl          :BOOLEAN       <- FALSE;
+  + to_impl :TYPE_IMPL;
+  
+  - is_impl :BOOLEAN <- FALSE;
+  
+  //////////////////////////////////////////////////////////////////////////////
+  //
+  // Creation
+  //
+  
+  - make_with_implementation impl:TYPE_IMPL :SELF <-
+  (
+    to_impl := impl;
+    Self
+  );
   
   //////////////////////////////////////////////////////////////////////////////
   //
   // Other
   //
-  
-  - to_impl :TYPE_IMPL <- (Self);
-  
-  - to_llimpl :BASE_TYPE <- to_impl;
   
   - to_string :STRING <- type_name + "<" + name + ">";
 
@@ -39,14 +88,13 @@ Section TYPE
   
   - keywords_str :CSTRING <-
   ( + res:ABSTRACT_STRING;
-    is_reference.if {
+    reference.if {
       res := "Reference ";
     } else {
       res := "Expanded ";
     };
-    is_strict.if {
+    strict.if {
       res := res + "Strict ";
     };
     res
   );
-
