@@ -26,7 +26,7 @@ Section Public
   [
     -? { t != NULL };
     -? { r != NULL };
-    -? { ! r.base_type.void };
+    -? { ! r.base_type.is_void };
     -? { r.is_valid };
     t.is_impl.if {
       (t.to_impl.base_type == r.base_type).if_false {

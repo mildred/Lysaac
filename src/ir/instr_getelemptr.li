@@ -28,29 +28,30 @@ Section Public
   );
 
   - make r:REG slot s:SLOT :SELF <-
-  [
-    r.base_type.pointer.if_false {
+  [ + r_struct :BASE_TYPE;
+    r.base_type.is_pointer.if_false {
       warnln("INSTR_GETELEMPTR.make " + r.to_string + " slot " + s.to_string + " non pointer register");
     };
-    -? { r.base_type.pointer };
-    -? { r.base_type.pointer_type.struct };
+    -? { r.base_type.is_pointer };
+    r_struct := r.base_type.to_pointer_deref;
+    -? { r_struct.is_struct };
     -? { s.type_index >= 0 };
-    r.base_type.pointer_type.struct_types.valid_index (s.type_index).if_false {
+    r_struct.struct_valid_index (s.type_index).if_false {
       warnln("INSTR_GETELEMPTR.make slot " + s.to_string + " with invalid type_index");
       warnln("slot type index: " + s.type_index.to_string);
       warnln("base type      : " + r.base_type.to_string);
     };
-    -? { r.base_type.pointer_type.struct_types.valid_index (s.type_index) };
-    -? { s.result_type.to_impl.base_type == r.base_type.pointer_type.struct_types.item (s.type_index) };
+    -? { r_struct.struct_valid_index (s.type_index) };
+    -? { s.result_type.same_as(r_struct.to_struct_member (s.type_index)) };
   ]
-  ( + res_type :LOW_LEVEL_TYPE;
+  ( + res_type :BASE_TYPE;
     value := r;
     path  := FAST_ARRAY(INTEGER).create_with_capacity 1;
     path.add_last 0;
     path.add_last (s.type_index);
     
-    res_type := r.base_type.pointer_type.struct_types.item (s.type_index);
-    result := REG.clone.make_type (LOW_LEVEL_TYPE.create_pointer res_type);
+    res_type := r.base_type.to_pointer_deref.to_struct_member (s.type_index);
+    result := REG.clone.make_type (res_type.to_pointer_indirect);
     made := TRUE;
     Self
   );

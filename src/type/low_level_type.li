@@ -4,7 +4,7 @@ Section Header
 
 Section Inherit
 
-  + parent_abstract_type :Expanded ABSTRACT_TYPE;
+  + parent_base_type :Expanded BASE_TYPE;
 
 Section Public
   
@@ -60,6 +60,7 @@ Section Public
   // Type: void
   //
   
+  - is_void :BOOLEAN <- (kind == kind_void);
   - void :BOOLEAN <- (kind == kind_void);
   
   - void_type :SELF := clone.make_void;
@@ -209,9 +210,9 @@ Section Public
     gen.expr_undef_in reg
   );
   
-  - Self:SELF '==' other:E :BOOLEAN <-
+  - equals_to other:SELF :BOOLEAN <-
   (
-    (E = SELF) && {other != NULL} && {kind = other.kind} &&
+    (other != NULL) && {kind = other.kind} &&
     { + res:BOOLEAN;
     
       kind

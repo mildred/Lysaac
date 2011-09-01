@@ -122,7 +122,7 @@ Section Public
     context_const {
       put_reg var;
       put " = private constant ";
-      var.base_type.dereference_type.generate Self;
+      var.base_type.dereference_abstract_type.generate Self;
       put_c ' ';
       expr_string_constant_with_nul string;
       put "\n";
@@ -134,7 +134,7 @@ Section Public
     context_const {
       t := v.base_type;
       t.is_pointer.if {
-        t := t.dereference_type;
+        t := t.dereference_abstract_type;
       };
       v.realize "@" name n;
       put "define void ";
@@ -152,7 +152,7 @@ Section Public
   [ -? { v.base_type.is_pointer }; ]
   ( + t :ABSTRACT_TYPE;
     context_const {
-      t := v.base_type.dereference_type;
+      t := v.base_type.dereference_abstract_type;
       v.realize "@" name n;
       put_reg v;
       put " = global ";
@@ -165,7 +165,7 @@ Section Public
   [ -? { v.base_type.is_pointer }; ]
   ( + t :ABSTRACT_TYPE;
     context_const {
-      t := v.base_type.dereference_type;
+      t := v.base_type.dereference_abstract_type;
       put_reg v;
       put " = global ";
       t.generate Self;

@@ -47,7 +47,7 @@ Section Private
   - generate_arg arg:REG in gen:GENERATOR <-
   [ -? { arg.is_valid }; ]
   (
-    arg.base_type.void.if_false {
+    arg.base_type.is_void.if_false {
       gen.call_arg arg type { arg.base_type.generate gen };
     };
   );

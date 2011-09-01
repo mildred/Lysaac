@@ -227,7 +227,7 @@ Section SLOT
             .add_in (self_prototype.initializer_list)
             .result;
         };
-        ast_expression.results.first.reg.compatible_with (r.base_type.pointer_type);
+        ast_expression.results.first.reg.a_compatible_with (r.base_type.to_pointer_deref);
         INSTR_STORE
           .clone
           .make_store_in r
@@ -377,7 +377,7 @@ Section Private
     -? { ! self.reg.is_realized };
   ]
   (
-    list.assert_result_coherent_with(result_type);
+    list.assert_result_same_as(result_type);
 
     gen.sub global_symbol self self args {
       export.if_false {

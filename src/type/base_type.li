@@ -4,8 +4,51 @@ Section Header
 
 Section Inherit
 
-  + parent_any :Expanded ANY;
+  + parent_abstract_type :Expanded ABSTRACT_TYPE;
   
 Section Public
 
+  //
+  // Assertions
+  //
 
+  - a_pointer <- ? { is_pointer };
+  - a_struct  <- ? { is_struct };
+  - a_void    <- ? { is_void };
+  
+  - a_struct_valid_index i:INTEGER <-
+  (
+    ? { is_struct };
+    ? { struct_valid_index i };
+  );
+  
+Section Public
+
+  - is_pointer :BOOLEAN <- (deferred; FALSE);
+  - is_struct  :BOOLEAN <- (deferred; FALSE);
+  - is_void    :BOOLEAN <- TRUE;
+  
+  //
+  // Pointer type
+  //
+
+  - to_pointer_deref    :BASE_TYPE <- [a_pointer;] (deferred; NULL);
+  - to_pointer_indirect :BASE_TYPE <- [a_pointer;] (deferred; NULL);
+  
+  - dereference_abstract_type :ABSTRACT_TYPE <- to_pointer_deref;
+  
+  //
+  // Structure type
+  //
+  
+  - struct_size                  :INTEGER   <- [a_struct;] (deferred; 0);
+  - struct_valid_index i:INTEGER :BOOLEAN   <- (i >= 0) && {i < struct_size};
+  - to_struct_member   i:INTEGER :BASE_TYPE <- [a_struct_valid_index i;] (deferred; NULL);
+  
+  //
+  // Type resolution
+  //
+  
+  - same_as other:BASE_TYPE :BOOLEAN <- (deferred; FALSE);
+  
+  - resolve_with other:BASE_TYPE :BASE_TYPE <- [ -? {same_as other}; ] (deferred) [ +? {Result != NULL}; ];

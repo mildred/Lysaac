@@ -47,7 +47,7 @@ Section Public
   
   + pretty_name :CSTRING := "";
   
-  - base_type :LOW_LEVEL_TYPE <-
+  - base_type :BASE_TYPE <-
   [ -? { is_valid }; ]
   ( m_base_type   );
   
@@ -55,7 +55,7 @@ Section Public
   // Construction
   //
   
-  - make_type t:LOW_LEVEL_TYPE :SELF <-
+  - make_type t:BASE_TYPE :SELF <-
   [
     -? { t != NULL };
   ]
@@ -90,16 +90,18 @@ Section Public
   // Type Resolving
   //
   
-  - compatible_with t:LOW_LEVEL_TYPE <-
+  - a_compatible_with t:BASE_TYPE <-
   (
-    m_base_type.compatible_with t.if_false {
+    m_base_type.same_as t.if_false {
       crash_with_message(to_string + " is incompatible with " + t.to_string);
     };
   );
   
-  - resolve_base_type_with other:LOW_LEVEL_TYPE <-
+  - resolve_base_type_with other:BASE_TYPE <-
   (
-    m_base_type.resolve_with other.if_false {
+    m_base_type.same_as other.if {
+      m_base_type := m_base_type.resolve_with other;
+    } else {
       crash_with_message("Try to resolve " + to_string + " with " + other.to_string + ": incompatible types");
     };
   );
@@ -135,7 +137,7 @@ Section Public
     -? { ! is_realized };
   ]
   (
-    base_type.void.if_false {
+    base_type.is_void.if_false {
       gen.arg_name n variable Self;
     };
   )
@@ -189,5 +191,5 @@ Section GENERATOR
 
 Section Private
 
-  + m_base_type :LOW_LEVEL_TYPE;
+  + m_base_type :BASE_TYPE;
 
