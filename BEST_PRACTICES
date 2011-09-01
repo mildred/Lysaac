@@ -1,0 +1,20 @@
+Best practices to avoid Lisaac compilation bugs
+===============================================
+
+ -  If you want to make a deferred slot that return a value, use the construct
+    `(deferred; dumb_value)`. If `dumb_value` is `NULL`, you might get into
+    problems because you'll likely trigger a call on NULL instruction, thus
+    optimizing a whole lot of things. Often, there will be leftover instructions
+    that would cause a C compile error. So use a prototype constant if you can.
+    The code is now:
+    
+         - slot :RESULT <- (deferred; RESULT);
+
+ -  Don't use too much `Expanded` types, you might trigger compilation bugs and
+    you might regret it. let's get a bootstrapping compiler and afterwards
+    optimize with `Expanded`s.
+
+ -  If you create an array (any structure that use a `NATIVE_ARRAY`), please
+    have somewhere in living code where you add items to it. Else you'll fail to
+    compile.
+
