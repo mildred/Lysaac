@@ -106,13 +106,19 @@ Section Public
         ? { slot.self != NULL };
         ? { slot.self.type != NULL };
         ? { slot.self.type.to_impl != NULL };
-        e <! receiver.implement_type_with (slot.self.type.to_impl);
+        receiver.implement_type_with (slot.self.type.to_impl).if_false {
+          not_yet_implemented;
+          e <! ERR;
+        };
       };
       args.lower.to (args.upper) do { i:INTEGER;
         + formal, actual :EXPR;
         actual := args.item i;
         formal := slot.arguments.item i;
-        e <! actual.implement_type_with (formal.type.to_impl);
+        actual.implement_type_with (formal.type.to_impl).if_false {
+          not_yet_implemented;
+          e <! ERR;
+        };
       };
     };
     made := e.success;

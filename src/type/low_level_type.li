@@ -24,6 +24,8 @@ Section Public
       p_type := other.vector_type.dup;
     };
   );
+  
+  - resolved :BOOLEAN <- ! ((integer) && {integer_cst});
 
   //
   // Kind of type
@@ -73,6 +75,7 @@ Section Public
   
   - create_integer_cst           :SELF <- clone.make_integer (-1);
 
+  - is_integer   :BOOLEAN <- (kind == kind_integer);
   - integer      :BOOLEAN <- (kind == kind_integer);
   - integer_size :INTEGER <- [ -?{integer}; ] i_size;
   - integer_cst  :BOOLEAN <- [ -?{integer}; ] (i_size < 0);
@@ -88,6 +91,9 @@ Section Public
   //
   // Type: pointer
   //
+
+  - to_pointer_deref    :BASE_TYPE <- pointer_type;
+  - to_pointer_indirect :BASE_TYPE <- LOW_LEVEL_TYPE.create_pointer Self;
   
   - create_pointer ptr:LOW_LEVEL_TYPE :SELF <- clone.make_pointer ptr;
   
@@ -111,8 +117,11 @@ Section Public
   
   - create_struct :SELF <- clone.make_struct;
   
+  - is_struct    :BOOLEAN <- (kind == kind_struct);
   - struct       :BOOLEAN <- (kind == kind_struct);
   - struct_types :FAST_ARRAY(LOW_LEVEL_TYPE) <- [ -? {struct}; ] m_struct;
+  - struct_size  :INTEGER <- m_struct.count;
+  - to_struct_member   i:INTEGER :BASE_TYPE <- m_struct.item i;
   
   //
   // Type: vector
@@ -120,6 +129,7 @@ Section Public
   
   - create_vector items:INTEGER of t:LOW_LEVEL_TYPE :SELF <- clone.make_vector items of t;
   
+  - is_vector     :BOOLEAN <- (kind == kind_vector);
   - vector        :BOOLEAN <- (kind == kind_vector);
   - vector_length :INTEGER   <- [ -?{vector}; ] m_vector_size;
   - vector_type   :LOW_LEVEL_TYPE <- [ -?{vector}; ] p_type;
@@ -129,7 +139,7 @@ Section Public
   //
   
   - compatible_with other:LOW_LEVEL_TYPE :BOOLEAN <- compatible_with other and_resolve FALSE;
-  - resolve_with other:LOW_LEVEL_TYPE :BOOLEAN <- compatible_with other and_resolve TRUE;
+  //- resolve_with other:LOW_LEVEL_TYPE :BOOLEAN <- compatible_with other and_resolve TRUE;
   
   - compatible_with other:LOW_LEVEL_TYPE and_resolve do_resolve:BOOLEAN :BOOLEAN <-
   ( + res:BOOLEAN;

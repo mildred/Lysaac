@@ -13,12 +13,13 @@ Section Public
   // Identification
   //
   
-  - name      :CSTRING <- deferred;
-  + block     :BOOLEAN := FALSE;
-  - reference :BOOLEAN <- ( ! expanded );
-  + expanded  :BOOLEAN := FALSE;
-  + strict    :BOOLEAN := FALSE;
-  - is_void   :BOOLEAN <- TRUE;
+  - name       :CSTRING <- deferred;
+  + block      :BOOLEAN := FALSE;
+  - reference  :BOOLEAN <- ( ! expanded );
+  + expanded   :BOOLEAN := FALSE;
+  + strict     :BOOLEAN := FALSE;
+  - is_void    :BOOLEAN <- TRUE;
+  - is_pointer :BOOLEAN <- reference;
   
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -43,6 +44,20 @@ Section Public
   //
   // Implementation Slots
   //
+
+  - resolve_with other:BASE_TYPE :BASE_TYPE <-
+  [
+    -? { same_as other  };
+    -? { other.resolved };
+  ]
+  (
+    deferred; BASE_TYPE
+  )
+  [
+    +? { Result != NULL  };
+    +? { Result.resolved };
+    +? { +t:TYPE; t ?= Result; t != NULL };
+  ];
   
   - consistent_with_base t:LOW_LEVEL_TYPE :BOOLEAN <- deferred;
   

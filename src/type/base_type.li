@@ -12,6 +12,7 @@ Section Public
   // Assertions
   //
 
+  - a_integer <- ? { is_integer };
   - a_pointer <- ? { is_pointer };
   - a_struct  <- ? { is_struct };
   - a_void    <- ? { is_void };
@@ -24,9 +25,17 @@ Section Public
   
 Section Public
 
+  - is_integer :BOOLEAN <- (deferred; FALSE);
   - is_pointer :BOOLEAN <- (deferred; FALSE);
   - is_struct  :BOOLEAN <- (deferred; FALSE);
   - is_void    :BOOLEAN <- (deferred; TRUE);
+  
+  //
+  // Integer type
+  //
+  
+  - integer_size :INTEGER <- [a_integer;] (deferred; 0);
+  - is_integer_constant :BOOLEAN <- (integer_size == 0);
   
   //
   // Pointer type
@@ -49,6 +58,50 @@ Section Public
   // Type resolution
   //
   
-  - same_as other:BASE_TYPE :BOOLEAN <- (deferred; FALSE);
+  - same_as other:BASE_TYPE :BOOLEAN <-
+  [
+    -? { other.resolved };
+  ]
+  ( + res :BOOLEAN;
+    is_void.if {
+      res := other.is_void;
+    }.elseif {is_integer} then {
+      res := integer_size == other.integer_size;
+    }.elseif {is_pointer} then {
+      res := (other.is_pointer) &&
+             {to_pointer_deref.same_as(other.to_pointer_deref)};
+    }.elseif {is_struct} then {
+      + i :INTEGER;
+      res := (other.is_struct) &&
+             {struct_size = other.struct_size};
+      {(res) && {i < struct_size}}.while_do {
+        res := (to_struct_member i).same_as(other.to_struct_member i);
+      };
+    } else {
+      res := same_as_otherwise other;
+    };
+    res
+  );
   
-  - resolve_with other:BASE_TYPE :BASE_TYPE <- [ -? {same_as other}; ] (deferred; BASE_TYPE) [ +? {Result != NULL}; ];
+  - resolved :BOOLEAN <- (deferred; TRUE);
+
+  - resolve_with other:BASE_TYPE :BASE_TYPE <-
+  [
+    -? { same_as other  };
+    -? { other.resolved };
+  ]
+  (
+    deferred; BASE_TYPE
+  )
+  [
+    +? { Result != NULL  };
+    +? { Result.resolved };
+  ];
+  
+Section BASE_TYPE
+
+  - same_as_otherwise other:BASE_TYPE :BOOLEAN <-
+  (
+    crash_with_message("Comparison between " + to_string + " and " + other.to_string);
+    FALSE
+  );

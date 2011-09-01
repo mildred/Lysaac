@@ -270,13 +270,13 @@ Section SLOT
           add_error(position.error("Only keep the first return value"));
         };
         has_result.if {
-          exprs.first.implement_type_with (result_type.to_impl).if_fail { e:ERR;
-            add_error(e.extend(position,
+          exprs.first.implement_type_with (result_type.to_impl).if {
+            list.add_result (exprs.first.reg);
+          } else {
+            add_error(position.error(
               "Incompatible type for return value #1. "
               + "Got: " + pretty_type(exprs.first.type)
               + ", expected: " + pretty_type(result_type)));
-          } else {
-            list.add_result (exprs.first.reg);
           };
         };
       };
@@ -299,7 +299,7 @@ Section SLOT
     (internal_opcode == "object_size").if {
       list.add_result (INSTR_SIZEOF
         .clone
-        .make (self.type.to_impl.prototype.base_type)
+        .make (self.type.to_impl.prototype.to_type_expanded.base_type)
         .add_in list
         .result);
     }.elseif {internal_opcode == "value"} then {
