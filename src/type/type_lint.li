@@ -18,7 +18,7 @@ Section Public
   - name     :CSTRING <- "Integer";
   - expanded :BOOLEAN <- TRUE;
   - block    :BOOLEAN <- FALSE;
-  - void     :BOOLEAN <- FALSE;
+  - is_void  :BOOLEAN <- FALSE;
   
   //////////////////////////////////////////////////////////////////////////////
   //

@@ -103,7 +103,7 @@ Section Public
   [ -? { self_prototype.defined }; ]
   ( + t:TYPE;
     t := self_prototype.to_type_reference;
-    ? { ! t.void };
+    ? { ! t.is_void };
     self := EXPR.clone.make_type t;
     ? { self.is_valid };
     ? { self.type != NULL };

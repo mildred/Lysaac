@@ -16,7 +16,7 @@ Section Public
   //
   
   - name :CSTRING <- (keywords_str + prototype.name).to_abstract_string;
-  - void :BOOLEAN <- base_type.void;
+  - is_void :BOOLEAN <- base_type.is_void;
 
   + prototype :PROTOTYPE;
   

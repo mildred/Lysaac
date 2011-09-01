@@ -18,7 +18,7 @@ Section Public
   - reference :BOOLEAN <- ( ! expanded );
   + expanded  :BOOLEAN := FALSE;
   + strict    :BOOLEAN := FALSE;
-  - void      :BOOLEAN <- TRUE;
+  - is_void   :BOOLEAN <- TRUE;
   
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -49,7 +49,7 @@ Section Public
   - to_impl_of other:TYPE_IMPL :MAYBE(TYPE_IMPL) <-
   ( + res:MAYBE(TYPE_IMPL);
     (other = NULL).if {
-      void.if {
+      is_void.if {
         res << to_impl;
       } else {
         res <! ERR.create(("Void is not consistent with "+name).to_abstract_string);

@@ -51,7 +51,7 @@ Section Public
   
   + dispatch_value :INTEGER;
   
-  - void :BOOLEAN <- base_type.void;
+  - is_void :BOOLEAN <- base_type.is_void;
   
   + filename :CSTRING;
   
