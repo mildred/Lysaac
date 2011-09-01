@@ -77,7 +77,7 @@ Section Public
 
   - is_integer   :BOOLEAN <- (kind == kind_integer);
   - integer      :BOOLEAN <- (kind == kind_integer);
-  - integer_size :INTEGER <- [ -?{integer}; ] i_size;
+  - integer_size :INTEGER <- [ -?{integer}; ] ( + res:INTEGER; (i_size < 0).if { res := 0;  } else { res := i_size; }; res );
   - integer_cst  :BOOLEAN <- [ -?{integer}; ] (i_size < 0);
   
   - i1  :LOW_LEVEL_TYPE := create_integer 1;
@@ -179,6 +179,16 @@ Section Public
         res := (vector_length == other.vector_length) &&
                {vector_type.compatible_with (other.vector_type) and_resolve do_resolve};
       };
+    };
+    res
+  );
+  
+  - resolve_with other:BASE_TYPE :BASE_TYPE <-
+  ( + res:BASE_TYPE;
+    ((is_integer) && {integer_cst}).if {
+      res := other;
+    } else {
+      res := Self;
     };
     res
   );

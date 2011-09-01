@@ -2,6 +2,13 @@
 - ITM_EXPR.result shall be made private and ITM_EXPR.get_result should return a MAYBE(EXPR) that contains an ERR object.
 - refactoring for multiple results: multiple results should be modeled using EXPRS (not a descendant of EXPR). EXPR1 shall be a descendant of EXPRS for performance reasons. ITM_EXPR.get_result shall return EXPRS and the number of results should be checked.
 - LOW_LEVEL_TYPE shall disappear and be replaced by the new BASE_TYPE.
-  LOW_LEVEL_TYPE should be made a descendant of BASE_TYPE
-  Make REG accept a BASE_TYPE instead
+  [X] LOW_LEVEL_TYPE should be made a descendant of BASE_TYPE
+  [X] Make REG accept a BASE_TYPE instead
+  [ ] Make tests pass
   Remove the different types from LOW_LEVEL_TYPE one by one and implement them separately, as descendant of BASE_TYPE
+  [ ] Integer
+  [ ] Pointer
+  [ ] Function
+  [ ] Struct
+  [ ] Vector
+  [ ] Void (???)

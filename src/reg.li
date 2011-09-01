@@ -90,7 +90,7 @@ Section Public
   // Type Resolving
   //
   
-  - a_compatible_with t:BASE_TYPE <-
+  - a_same_as t:BASE_TYPE <-
   (
     m_base_type.same_as t.if_false {
       crash_with_message(to_string + " is incompatible with " + t.to_string);

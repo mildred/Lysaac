@@ -19,6 +19,8 @@ Section Public
   - expanded :BOOLEAN <- TRUE;
   - block    :BOOLEAN <- FALSE;
   - is_void  :BOOLEAN <- FALSE;
+  - resolved :BOOLEAN <- FALSE;
+  - integer_size :INTEGER <- 0;
   
   //////////////////////////////////////////////////////////////////////////////
   //

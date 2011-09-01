@@ -35,7 +35,7 @@ Section Public
   //
   
   - integer_size :INTEGER <- [a_integer;] (deferred; 0);
-  - is_integer_constant :BOOLEAN <- (integer_size == 0);
+  - is_integer_constant :BOOLEAN <- (integer_size <= 0);
   
   //
   // Pointer type
@@ -66,14 +66,15 @@ Section Public
     is_void.if {
       res := other.is_void;
     }.elseif {is_integer} then {
-      res := integer_size == other.integer_size;
+      res := (other.is_integer)
+          && { (is_integer_constant) || {integer_size == other.integer_size}};
     }.elseif {is_pointer} then {
-      res := (other.is_pointer) &&
-             {to_pointer_deref.same_as(other.to_pointer_deref)};
+      res := (other.is_pointer)
+          && {to_pointer_deref.same_as(other.to_pointer_deref)};
     }.elseif {is_struct} then {
       + i :INTEGER;
-      res := (other.is_struct) &&
-             {struct_size = other.struct_size};
+      res := (other.is_struct)
+          && {struct_size = other.struct_size};
       {(res) && {i < struct_size}}.while_do {
         res := (to_struct_member i).same_as(other.to_struct_member i);
       };

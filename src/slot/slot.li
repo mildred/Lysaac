@@ -227,7 +227,7 @@ Section SLOT
             .add_in (self_prototype.initializer_list)
             .result;
         };
-        ast_expression.results.first.reg.a_compatible_with (r.base_type.to_pointer_deref);
+        ast_expression.results.first.reg.a_same_as (r.base_type.to_pointer_deref);
         INSTR_STORE
           .clone
           .make_store_in r
