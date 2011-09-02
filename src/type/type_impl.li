@@ -104,8 +104,13 @@ Section Public
   [
     -? {reference};
   ]
-  (
-    prototype.to_type_expanded
+  ( + res:BASE_TYPE;
+    block.if {
+      res := base_type.to_pointer_deref;
+    } else {
+      res := prototype.to_type_expanded;
+    };
+    res
   );
   
   - to_pointer_indirect :BASE_TYPE <-

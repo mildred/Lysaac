@@ -1,6 +1,9 @@
 Section Header
 
   + name := BASE_TYPE;
+  
+  // Parent for all types, even those whhich appears only at low level code
+  // generation.
 
 Section Inherit
 
@@ -12,10 +15,11 @@ Section Public
   // Assertions
   //
 
-  - a_integer <- ? { is_integer };
-  - a_pointer <- ? { is_pointer };
-  - a_struct  <- ? { is_struct };
-  - a_void    <- ? { is_void };
+  - a_void     <- ? { is_void     };
+  - a_integer  <- ? { is_integer  };
+  - a_pointer  <- ? { is_pointer  };
+  - a_struct   <- ? { is_struct   };
+  - a_function <- ? { is_function };
   
   - a_struct_valid_index i:INTEGER <-
   (
@@ -25,10 +29,11 @@ Section Public
   
 Section Public
 
-  - is_integer :BOOLEAN <- (deferred; FALSE);
-  - is_pointer :BOOLEAN <- (deferred; FALSE);
-  - is_struct  :BOOLEAN <- (deferred; FALSE);
-  - is_void    :BOOLEAN <- (deferred; TRUE);
+  - is_void     :BOOLEAN <- (deferred; TRUE);
+  - is_integer  :BOOLEAN <- (deferred; FALSE);
+  - is_pointer  :BOOLEAN <- (deferred; FALSE);
+  - is_struct   :BOOLEAN <- (deferred; FALSE);
+  - is_function :BOOLEAN <- (deferred; FALSE);
   
   //
   // Integer type
@@ -42,7 +47,7 @@ Section Public
   //
 
   - to_pointer_deref    :BASE_TYPE <- [a_pointer;] (deferred; BASE_TYPE);
-  - to_pointer_indirect :BASE_TYPE <- [a_pointer;] (deferred; BASE_TYPE);
+  - to_pointer_indirect :BASE_TYPE <- (deferred; BASE_TYPE) [Result.a_pointer;];
   
   - dereference_abstract_type :ABSTRACT_TYPE <- to_pointer_deref;
   
@@ -79,6 +84,8 @@ Section Public
         res := (to_struct_member i).same_as(other.to_struct_member i);
         i := i + 1;
       };
+    }.elseif {is_function} then {
+      res := other.is_function;
     } else {
       res := same_as_otherwise other;
     };

@@ -21,6 +21,7 @@ Section Public
   - is_void  :BOOLEAN <- FALSE;
   - resolved :BOOLEAN <- FALSE;
   - integer_size :INTEGER <- 0;
+  - is_integer :BOOLEAN <- TRUE;
   
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -38,6 +39,8 @@ Section Public
   //
   // Implementation Slots
   //
+
+  - resolve_with other:BASE_TYPE :BASE_TYPE <- other;
   
   - consistent_with_base t:LOW_LEVEL_TYPE :BOOLEAN <- t.integer;
   

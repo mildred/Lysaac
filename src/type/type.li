@@ -1,6 +1,9 @@
 Section Header
 
   + name := TYPE;
+  
+  // Parent for all types that can be associated with any Lysaac expression
+  // (prototypes, literal integers, ...)
 
 Section Inherit
 

@@ -110,6 +110,7 @@ Section Public
   - create_function :SELF <- clone.make_function;
   
   - function :BOOLEAN <- (kind == kind_function);
+  - is_function :BOOLEAN <- (kind == kind_function);
   
   //
   // Type: struct
