@@ -189,7 +189,7 @@ Section Private
 
 Section TYPE_IMPL
 
-  + base_type :LOW_LEVEL_TYPE := NULL;
+  + base_type :BASE_TYPE := NULL;
 
 Section CLUSTER, ITM_TYPE, SLOT, INSTR_FNPTR, TYPE_IMPL
 
@@ -278,7 +278,7 @@ Section PARSER_LI
     cluster.set_prototype Self for_role r;
   );
 
-  - set_base_type t:LOW_LEVEL_TYPE <-
+  - set_base_type t:BASE_TYPE <-
   [
     -? {made};
     -? {! parsed};

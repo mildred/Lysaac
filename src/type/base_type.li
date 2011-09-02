@@ -114,7 +114,7 @@ Section Public
     -? { other.resolved };
   ]
   (
-    deferreed; BASE_TYPE
+    deferred; BASE_TYPE
   )
   [
     +? { Result != NULL  };

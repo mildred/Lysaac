@@ -46,8 +46,6 @@ Section Public
   // Creation
   //
   
-  + pointed_type :BASE_TYPE;
-  
   - create t:BASE_TYPE :SELF <- clone.make t;
   
   - make t:BASE_TYPE :SELF <-
@@ -55,3 +53,9 @@ Section Public
     pointed_type := t;
     Self
   );
+
+Section Private
+
+  + pointed_type :BASE_TYPE;
+  
+

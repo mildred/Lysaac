@@ -56,7 +56,7 @@ Section ITM_EXPR_STR
   (
     string := s;
     static_type := t;
-    global_var := REG.clone.make_type (LOW_LEVEL_TYPE.create_pointer (LOW_LEVEL_TYPE.create_vector (string.count+1) of (LOW_LEVEL_TYPE.i8)));
+    global_var := (LOW_LEVEL_TYPE.create_vector (string.count+1) of (LOW_LEVEL_TYPE.i8)).to_pointer_indirect.create_reg;
     result := t.create_reg;
     made := TRUE;
     Self

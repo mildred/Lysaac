@@ -24,7 +24,7 @@ Section ITM_EXPR_GROUP
     itm_expr        := ast;
     self            := EXPR.clone.make_type (l.self.type);
     list            := LIST.clone.make_self self.make_error_collector Self type NULL;
-    global_symbol   := REG.clone.make_type (LOW_LEVEL_TYPE.create_pointer (LOW_LEVEL_TYPE.create_function));
+    global_symbol   := TYPE_FUNCTION.create.to_pointer_indirect.create_reg;
     Self
   );
 

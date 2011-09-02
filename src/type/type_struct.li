@@ -1,0 +1,85 @@
+Section Header
+
+  + name := TYPE_STRUCT;
+
+Section Inherit
+
+  + parent_base_type :Expanded BASE_TYPE;
+  
+Section Public
+
+  - is_void     :BOOLEAN <- FALSE;
+  - is_integer  :BOOLEAN <- FALSE;
+  - is_pointer  :BOOLEAN <- FALSE;
+  - is_struct   :BOOLEAN <- TRUE;
+  - is_function :BOOLEAN <- FALSE;
+  
+  
+  //
+  // Structure type
+  //
+  
+  - struct_size                  :INTEGER   <- struct_members.count;
+  - to_struct_member   i:INTEGER :BASE_TYPE <- struct_members.item i;
+
+  //
+  // Type resolution
+  //
+  
+  - resolved :BOOLEAN <-
+  ( + res:BOOLEAN;
+    + i :INTEGER;
+    res := TRUE;
+    i   := 0;
+    {(i < struct_size) && {res}}.while_do {
+      res := to_struct_member i.resolved;
+      i := i + 1;
+    };
+    res
+  );
+
+  - resolve_with other:BASE_TYPE :BASE_TYPE <-
+  ( + i :INTEGER;
+    create { st:TYPE_STRUCT;
+      { i < struct_size }.while_do {
+        st.add_type (to_struct_member i.resolve_with (other.to_struct_member i));
+        i := i + 1;
+      };
+    }
+  );
+  
+  //
+  // Generation
+  //
+  
+  - generate gen:GENERATOR <-
+  (
+    gen.type_struct {
+      struct_members.iterate.loop_v { t:BASE_TYPE;
+        gen.type_struct_element { t.generate gen };
+      };
+    };
+  );
+
+  //
+  // Creation
+  //
+  
+  - create blc:{TYPE_STRUCT;} :SELF <- clone.make blc;
+  
+  - add_type t:BASE_TYPE :SELF <-
+  (
+    struct_members.add_last t;
+    Self
+  );
+  
+  - make blc:{TYPE_STRUCT;} :SELF <-
+  (
+    struct_members := FAST_ARRAY(BASE_TYPE).create 0;
+    blc.value Self;
+    Self
+  );
+
+Section Private
+
+  + struct_members :FAST_ARRAY(BASE_TYPE);

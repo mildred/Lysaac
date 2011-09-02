@@ -16,8 +16,8 @@ Section Public
   - name :CSTRING <- (keywords_str + prototype.name).to_abstract_string;
   - is_void :BOOLEAN <- base_type.is_void;
   
-  - is_struct :BOOLEAN <- base_type.struct;
-  - is_integer :BOOLEAN <- base_type.integer;
+  - is_struct :BOOLEAN <- base_type.is_struct;
+  - is_integer :BOOLEAN <- base_type.is_integer;
   - integer_size :INTEGER <- base_type.integer_size;
   - struct_size  :INTEGER <- base_type.struct_size;
   - to_struct_member i:INTEGER :BASE_TYPE <- base_type.to_struct_member i;
@@ -140,26 +140,24 @@ Section TYPE
 
 Section Private
 
-  + base_type :LOW_LEVEL_TYPE <-
+  + base_type :BASE_TYPE <-
   [ -? { prototype.defined }; ]
   (
     block.if {
-      base_type := LOW_LEVEL_TYPE.create_pointer (LOW_LEVEL_TYPE.create_function);
+      base_type := TYPE_FUNCTION.create.to_pointer_indirect;
     } else {
-      + prototype_base_type :LOW_LEVEL_TYPE;
-      prototype_base_type := prototype.base_type;
-      (prototype_base_type = NULL).if {
-        prototype_base_type := LOW_LEVEL_TYPE.create_struct;
-        prototype.slots.iterate.loop_v { s:SLOT;
-          s.shared.if_false {
-            prototype_base_type.struct_types.add_last (s.result_type.resolve);
+      base_type := prototype.base_type;
+      (base_type = NULL).if {
+        base_type := TYPE_STRUCT.create { st:TYPE_STRUCT;
+          prototype.slots.iterate.loop_v { s:SLOT;
+            s.shared.if_false {
+              st.add_type (s.result_type.resolve);
+            };
           };
         };
       };
-      expanded.if {
-        base_type := prototype_base_type;
-      } else {
-        base_type := LOW_LEVEL_TYPE.create_pointer prototype_base_type;
+      reference.if {
+        base_type := base_type.to_pointer_indirect;
       };
     };
     base_type
