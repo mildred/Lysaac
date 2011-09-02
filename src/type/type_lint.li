@@ -42,8 +42,6 @@ Section Public
 
   - resolve_with other:BASE_TYPE :BASE_TYPE <- other;
   
-  - consistent_with_base t:LOW_LEVEL_TYPE :BOOLEAN <- t.integer;
-  
   //////////////////////////////////////////////////////////////////////////////
   //
   // Other

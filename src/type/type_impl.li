@@ -84,11 +84,7 @@ Section Public
 
   - resolve_with other:BASE_TYPE :BASE_TYPE <- Self;
   
-  - consistent_with_base t:LOW_LEVEL_TYPE :BOOLEAN <- ( base_type == t );
-
   - to_impl :TYPE_IMPL <- Self;
-  
-  - is_impl :BOOLEAN <- TRUE;
   
   //////////////////////////////////////////////////////////////////////////////
   //
@@ -166,4 +162,8 @@ Section PROTOTYPE
     expanded := FALSE;
     Self
   );
+  
+Section TYPE
+
+  - implementation <- Self;
 

@@ -16,7 +16,7 @@ Section Public
     }
     .when kind_struct then {
       make_struct;
-      struct_types.iterate.loop_v { t:LOW_LEVEL_TYPE;
+      struct_types.iterate.loop_v { t:BASE_TYPE;
         struct_types.add_last (t.dup);
       };
     }
@@ -120,7 +120,7 @@ Section Public
   
   - is_struct    :BOOLEAN <- (kind == kind_struct);
   - struct       :BOOLEAN <- (kind == kind_struct);
-  - struct_types :FAST_ARRAY(LOW_LEVEL_TYPE) <- [ -? {struct}; ] m_struct;
+  - struct_types :FAST_ARRAY(BASE_TYPE) <- [ -? {struct}; ] m_struct;
   - struct_size  :INTEGER <- m_struct.count;
   - to_struct_member   i:INTEGER :BASE_TYPE <- m_struct.item i;
   
@@ -214,7 +214,7 @@ Section Public
     }
     .when kind_struct then {
       gen.type_struct {
-        struct_types.iterate.loop_v { t:LOW_LEVEL_TYPE;
+        struct_types.iterate.loop_v { t:BASE_TYPE;
           gen.type_struct_element { t.generate gen }
         };
       };
@@ -284,8 +284,10 @@ Section Public
     }
     .when kind_struct then {
       res.append "{";
-      m_struct.iterate.loop_v { t:LOW_LEVEL_TYPE;
-        t.to_llvm_in res;
+      m_struct.iterate.loop_v { t:BASE_TYPE;
+        + t2 :LOW_LEVEL_TYPE;
+        t2 ?= t;
+        t2.to_llvm_in res;
         res.add_last ',';
       };
       (m_struct.count > 0).if {
@@ -317,7 +319,7 @@ Section Private
   + p_type        :LOW_LEVEL_TYPE             := NULL;
   + f_ptr         :BOOLEAN               := FALSE;
   + m_vector_size :INTEGER               := -1;
-  + m_struct      :FAST_ARRAY(LOW_LEVEL_TYPE) := NULL;
+  + m_struct      :FAST_ARRAY(BASE_TYPE) := NULL;
   
   - make_void size:INTEGER :SELF <-
   (
@@ -369,7 +371,7 @@ Section Private
     p_type := NULL;
     f_ptr  := FALSE;
     m_vector_size := -1;
-    m_struct := FAST_ARRAY(LOW_LEVEL_TYPE).create 0;
+    m_struct := FAST_ARRAY(BASE_TYPE).create 0;
     ? { kind == kind_struct };
     Self
   );

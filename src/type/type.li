@@ -62,36 +62,27 @@ Section Public
     +? { +t:TYPE; t ?= Result; t != NULL };
   ];
   
-  - consistent_with_base t:LOW_LEVEL_TYPE :BOOLEAN <- deferred;
-  
-  - to_impl_of other:TYPE_IMPL :MAYBE(TYPE_IMPL) <-
-  ( + res:MAYBE(TYPE_IMPL);
-    (other = NULL).if {
-      is_void.if {
-        res << to_impl;
-      } else {
-        res <! ERR.create(("Void is not consistent with "+name).to_abstract_string);
-      };
-    }.elseif {consistent_with_base other} then {
-      res << other;
-    } else {
-      res <! ERR.create(("Type "+other.name+" is not consistent with "+name).to_abstract_string);
-    };
-    res
-  );
+  - resolve :BASE_TYPE <-
+  (
+    implementation
+  )
+  [
+    +? { Result != NULL  };
+    +? { Result.resolved };
+    +? { +t:TYPE; t ?= Result; t != NULL };
+  ];
 
-  + to_impl :TYPE_IMPL;
-  
-  - is_impl :BOOLEAN <- FALSE;
+  - to_impl :TYPE_IMPL <- implementation;
   
   //////////////////////////////////////////////////////////////////////////////
   //
   // Creation
+  // (This should go in TYPE_LITERAL)
   //
   
   - make_with_implementation impl:TYPE_IMPL :SELF <-
   (
-    to_impl := impl;
+    implementation := impl;
     Self
   );
   
@@ -103,6 +94,8 @@ Section Public
   - to_string :STRING <- type_name + "<" + name + ">";
 
 Section TYPE
+
+  + implementation :TYPE_IMPL;
   
   - keywords_str :CSTRING <-
   ( + res:ABSTRACT_STRING;
