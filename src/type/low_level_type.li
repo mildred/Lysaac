@@ -20,9 +20,9 @@ Section Public
         struct_types.add_last (t.dup);
       };
     }
-    .when kind_vector then {
+    /*.when kind_vector then {
       p_type := other.vector_type.dup;
-    };
+    }*/;
   );
   
   - resolved :BOOLEAN <- ! ((integer) && {integer_cst});
@@ -133,7 +133,7 @@ Section Public
   - is_vector     :BOOLEAN <- (kind == kind_vector);
   - vector        :BOOLEAN <- (kind == kind_vector);
   - vector_length :INTEGER   <- [ -?{vector}; ] m_vector_size;
-  - vector_type   :LOW_LEVEL_TYPE <- [ -?{vector}; ] p_type;
+  - vector_type   :BASE_TYPE <- [ -?{vector}; ] p_type;
   
   //
   // Generic
@@ -295,13 +295,13 @@ Section Public
       };
       res.append "}";
     }
-    .when kind_vector then {
+    /*.when kind_vector then {
       res.append "[";
       vector_length.append_in res;
       res.append "x";
       vector_type.to_llvm_in res;
       res.append "]";
-    };
+    }*/;
     res
   );
 

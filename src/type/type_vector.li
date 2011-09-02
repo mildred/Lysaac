@@ -1,0 +1,65 @@
+Section Header
+
+  + name := TYPE_VECTOR;
+
+Section Inherit
+
+  + parent_base_type :Expanded BASE_TYPE;
+  
+Section Public
+
+  - is_void     :BOOLEAN <- FALSE;
+  - is_integer  :BOOLEAN <- FALSE;
+  - is_pointer  :BOOLEAN <- FALSE;
+  - is_struct   :BOOLEAN <- FALSE;
+  - is_function :BOOLEAN <- FALSE;
+  - is_vector   :BOOLEAN <- TRUE;
+  
+  //
+  // Vector type
+  //
+
+  - vector_type   :BASE_TYPE <- the_vector_type;
+  - vector_length :INTEGER   <- the_vector_length;
+
+  //
+  // Type resolution
+  //
+  
+  - resolved :BOOLEAN <- vector_type.resolved;
+
+  - resolve_with other:BASE_TYPE :BASE_TYPE <-
+  (
+    create vector_length times (vector_type.resolve_with (other.vector_type))
+  );
+  
+  //
+  // Generation
+  //
+  
+  - generate gen:GENERATOR <-
+  (
+    gen.type_vector vector_length of {
+      vector_type.generate gen;
+    };
+  );
+
+  //
+  // Creation
+  //
+  
+  - create l:INTEGER times t:BASE_TYPE :SELF <- clone.make l times t;
+  
+  - make l:INTEGER times t:BASE_TYPE :SELF <-
+  (
+    the_vector_type := t;
+    the_vector_length := l;
+    Self
+  );
+
+Section Private
+
+  + the_vector_type :BASE_TYPE;
+  + the_vector_length :INTEGER;
+  
+

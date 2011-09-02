@@ -37,7 +37,7 @@ Section SELF
         slot.expression.is_a ITM_EXPR_INT.if {
           + p:ITM_EXPR_INT;
           p ?= slot.expression;
-          prototype.set_base_type (LOW_LEVEL_TYPE.create_integer (p.value));
+          prototype.set_base_type (TYPE_INT.create (p.value));
         } else {
           warning("expected integer constant");
         };

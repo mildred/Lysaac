@@ -13,6 +13,7 @@ Section Public
   - is_pointer  :BOOLEAN <- FALSE;
   - is_struct   :BOOLEAN <- FALSE;
   - is_function :BOOLEAN <- TRUE;
+  - is_vector   :BOOLEAN <- FALSE;
   
   //
   // Type resolution

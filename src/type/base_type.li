@@ -20,6 +20,7 @@ Section Public
   - a_pointer  <- ? { is_pointer  };
   - a_struct   <- ? { is_struct   };
   - a_function <- ? { is_function };
+  - a_vector   <- ? { is_vector   };
   
   - a_struct_valid_index i:INTEGER <-
   (
@@ -34,6 +35,7 @@ Section Public
   - is_pointer  :BOOLEAN <- (deferred; FALSE);
   - is_struct   :BOOLEAN <- (deferred; FALSE);
   - is_function :BOOLEAN <- (deferred; FALSE);
+  - is_vector   :BOOLEAN <- (deferred; FALSE);
   
   //
   // Integer type
@@ -58,6 +60,13 @@ Section Public
   - struct_size                  :INTEGER   <- [a_struct;] (deferred; 0);
   - struct_valid_index i:INTEGER :BOOLEAN   <- (i >= 0) && {i < struct_size};
   - to_struct_member   i:INTEGER :BASE_TYPE <- [a_struct_valid_index i;] (deferred; BASE_TYPE);
+  
+  //
+  // Vector type
+  //
+
+  - vector_type   :BASE_TYPE <- [a_vector;] (deferred; BASE_TYPE);
+  - vector_length :INTEGER   <- [a_vector;] (deferred; 0);
   
   //
   // Create Register

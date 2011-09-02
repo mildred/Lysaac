@@ -1,0 +1,65 @@
+Section Header
+
+  + name := TYPE_INT;
+
+Section Inherit
+
+  + parent_base_type :Expanded BASE_TYPE;
+  
+Section Public
+
+  - is_void     :BOOLEAN <- FALSE;
+  - is_integer  :BOOLEAN <- TRUE;
+  - is_pointer  :BOOLEAN <- FALSE;
+  - is_struct   :BOOLEAN <- FALSE;
+  - is_function :BOOLEAN <- FALSE;
+  - is_vector   :BOOLEAN <- FALSE;
+  
+  //
+  // Integer type
+  //
+  
+  - integer_size :INTEGER <- the_integer_size;
+
+  //
+  // Type resolution
+  //
+  
+  - resolved :BOOLEAN <- ! is_integer_constant;
+
+  - resolve_with other:BASE_TYPE :BASE_TYPE <- other;
+  
+  //
+  // Generation
+  //
+  
+  - generate gen:GENERATOR <-
+  (
+    gen.type_integer integer_size;
+  );
+
+  //
+  // Creation
+  //
+  
+  - i1  :TYPE_INT := create 1;
+  - i8  :TYPE_INT := create 8;
+  - i16 :TYPE_INT := create 16;
+  - i32 :TYPE_INT := create 32;
+  - i64 :TYPE_INT := create 64;
+  - int :TYPE_INT := create_cst;
+  
+  - create_cst :SELF <- clone.make 0;
+  - create s:INTEGER :SELF <- clone.make s;
+  
+  - make s:INTEGER :SELF <-
+  (
+    the_integer_size := s;
+    Self
+  );
+
+Section Private
+
+  + the_integer_size :INTEGER;
+  
+

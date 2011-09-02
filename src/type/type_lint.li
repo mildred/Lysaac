@@ -30,7 +30,7 @@ Section Public
 
   - create_reg :REG <-
   (
-    REG.clone.make_type (LOW_LEVEL_TYPE.int)
+    REG.clone.make_type (TYPE_INT.int)
   );
   
   //////////////////////////////////////////////////////////////////////////////
