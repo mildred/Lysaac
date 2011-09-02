@@ -40,7 +40,7 @@ Section Public
         prototype_base_type := LOW_LEVEL_TYPE.create_struct;
         prototype.slots.iterate.loop_v { s:SLOT;
           s.shared.if_false {
-            prototype_base_type.struct_types.add_last (s.result_type.to_impl.base_type);
+            prototype_base_type.struct_types.add_last (s.result_type.resolve);
           };
         };
       };
@@ -165,5 +165,5 @@ Section PROTOTYPE
   
 Section TYPE
 
-  - implementation <- Self;
+  - implementation :TYPE_IMPL <- Self;
 
