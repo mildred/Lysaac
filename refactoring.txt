@@ -13,4 +13,5 @@
     [ ] Struct
     [ ] Vector
     [ ] Void (???)
-  [ ] Remove all references to LOW_LEVEL_TYPE
+  [ ] PROTOTYPE.base_type should be BASE_TYPE instead of LOW_LEVEL_TYPE
+  [ ] Remove all references to LOW_LEVEL_TYPE (there shouldn't be much left)
