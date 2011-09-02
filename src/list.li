@@ -76,7 +76,7 @@ Section ITM_EXPR_GROUP, SLOT
   (
     results.add_last res;
     results.is_empty.if_false {
-      results.first.resolve_base_type_with (result_type.to_impl.base_type);
+      results.first.resolve_base_type_with (result_type.resolve);
     };
     assert_result_same_as result_type;
   );

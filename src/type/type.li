@@ -71,6 +71,10 @@ Section Public
     +? { Result.resolved };
     +? { +t:TYPE; t ?= Result; t != NULL };
   ];
+  
+  - resolve_type :TYPE <- ( + t:TYPE; t ?= resolve );
+  
+  - resolve_type_with other:BASE_TYPE :TYPE <- ( + t:TYPE; t ?= resolve_with other );
 
   - to_impl :TYPE_IMPL <- implementation;
   

@@ -269,7 +269,7 @@ Section SLOT
           add_error(position.error("Only keep the first return value"));
         };
         has_result.if {
-          exprs.first.implement_type_with (result_type.to_impl).if {
+          exprs.first.implement_type_with (result_type.resolve_type).if {
             list.add_result (exprs.first.reg);
           } else {
             add_error(position.error(
@@ -355,7 +355,7 @@ Section LIST_PROC
         (result_type = NULL).if {
           gen.type_void;
         } else {
-          result_type.to_impl.base_type.generate gen;
+          result_type.resolve.generate gen;
         };
       };
     } else {
