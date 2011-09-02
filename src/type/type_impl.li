@@ -26,7 +26,7 @@ Section Public
 
   + prototype :PROTOTYPE;
 
-Section PROTOTYPE, SLOT_IMPL, ITM_LOCAL
+Section Private
   + base_type :LOW_LEVEL_TYPE <-
   [ -? { prototype.defined }; ]
   (

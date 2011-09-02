@@ -80,7 +80,7 @@ Section Public
   - compile <-
   [ -? {defined}; -? {! compiled}; ]
   (
-    prototype_rvalue := REG.clone.make_type (to_type_reference.base_type);
+    prototype_rvalue := to_type_reference.create_reg;
     initializer_list := LIST
       .clone
       .make_error_collector Self type NULL;

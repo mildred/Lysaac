@@ -298,7 +298,7 @@ Section SLOT
     (internal_opcode == "object_size").if {
       list.add_result (INSTR_SIZEOF
         .clone
-        .make (self.type.to_impl.prototype.to_type_expanded.base_type)
+        .make (self.type.to_impl.prototype.to_type_expanded)
         .add_in list
         .result);
     }.elseif {internal_opcode == "value"} then {

@@ -49,7 +49,7 @@ Section ITM_EXPR_GROUP
       full_type := t;
       pointer := INSTR_ALLOCA
         .clone
-        .make_type (t.base_type) count 1
+        .make_type (t) count 1
         .add_in list
         .result;
     };

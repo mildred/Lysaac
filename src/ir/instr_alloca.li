@@ -10,7 +10,7 @@ Section Public
 
   + count :INTEGER;
   
-  + type :LOW_LEVEL_TYPE;
+  + type :BASE_TYPE;
 
   //
   // Link
@@ -27,7 +27,7 @@ Section Public
     gen.alloca count of { type.generate gen } in result;
   );
   
-  - make_type t:LOW_LEVEL_TYPE count c:INTEGER :SELF <-
+  - make_type t:BASE_TYPE count c:INTEGER :SELF <-
   (
     count  := c;
     type   := t;
