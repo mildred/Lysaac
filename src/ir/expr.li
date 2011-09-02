@@ -57,11 +57,21 @@ Section Public
   - implement_type_with other:TYPE :BOOLEAN <-
   ( + res:BOOLEAN;
     type.same_as other.if {
+      reg.resolve_base_type_with other;
       type ?= type.resolve_with other;
+      ? { type != NULL };
       res  := TRUE;
     } else {
       res := FALSE;
     };
     res
-  );
+  )
+  [
+    Result.if {
+      +? {type.resolved};
+      +? {reg.base_type.resolved};
+    };
+    +? { reg.base_type.same_as type };
+    +? { type.same_as (reg.base_type) };
+  ];
 

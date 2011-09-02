@@ -39,7 +39,7 @@ Section Public
       size.append_in context;
     } else {
       context.append "int";
-      crash_with_message context
+      crash_with_message("Unbound integer generation:\n" + context)
     };
   );
 

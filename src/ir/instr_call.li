@@ -40,6 +40,7 @@ Section Private
       generate_arg receiver in gen;
     };
     args.iterate.loop_v { a:EXPR;
+      ? { a.type.resolved };
       generate_arg a in gen;
     };
   );
