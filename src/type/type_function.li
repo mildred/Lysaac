@@ -36,6 +36,8 @@ Section Public
   // Creation
   //
   
+  - make_duplicate_of other:SELF;
+  
   - create :SELF <- clone.make;
   
   - make :SELF <- Self;

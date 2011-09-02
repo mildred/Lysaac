@@ -109,6 +109,10 @@ Section Public
       };
     }.elseif {is_function} then {
       res := other.is_function;
+    }.elseif {is_vector} then {
+      res := (other.is_vector)
+          && {vector_length == other.vector_length}
+          && {vector_type.same_as(other.vector_type)};
     } else {
       res := same_as_otherwise other;
     };
@@ -129,6 +133,55 @@ Section Public
     +? { Result != NULL  };
     +? { Result.resolved };
   ];
+  
+  //
+  // Misc
+  //
+  
+  - to_string :STRING <- type_name + "<" + to_llvm + ">";
+  
+  - to_llvm :STRING <-
+  ( + res:STRING;
+    res := "".to_string;
+    to_llvm_in res;
+    res
+  );
+  
+  - to_llvm_in res:STRING <-
+  (
+    is_void.if {
+      res.append "void";
+    }.elseif {is_integer} then {
+      is_integer_constant.if {
+        res.append "int"; 
+      } else {
+        res.append "i";
+        integer_size.append_in res;
+      };
+    }.elseif {is_pointer} then {
+      to_pointer_deref.to_llvm_in res;
+      res.add_last '*';
+    }.elseif {is_struct} then {
+      res.append "{";
+      0.to (struct_size - 1) do { i:INTEGER;
+        to_struct_member i.to_llvm_in res;
+        (i < (struct_size - 1)).if {
+          res.add_last ',';
+        };
+      };
+      res.append "}";
+    }.elseif {is_function} then {
+      res.append "void()";
+    }.elseif {is_vector} then {
+      res.append "[";
+      vector_length.append_in res;
+      res.append "x";
+      vector_type.to_llvm_in res;
+      res.append "]";
+    } else {
+      not_yet_implemented;
+    };
+  );
   
 Section BASE_TYPE
 

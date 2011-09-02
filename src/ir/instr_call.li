@@ -10,6 +10,8 @@ Section Public
 
   + receiver :EXPR;
   
+  + position :POS;
+  
   + include_self :BOOLEAN;
 
   //
@@ -55,12 +57,13 @@ Section Private
 
 Section Public
 
-  - make_read receiver_expr:EXPR slot s:SLOT :SELF <-
+  - make_read receiver_expr:EXPR slot s:SLOT position p:POS :SELF <-
   [
     -? { s != NULL  };
     -? { receiver_expr.is_valid };
   ]
   (
+    position      := p;
     receiver      := receiver_expr;
     args          := FAST_ARRAY(EXPR).create 0;
     slot          := s;
@@ -74,8 +77,9 @@ Section Public
     Self
   );
 
-  - make_ptrcall function:REG of s:SLOT :SELF <-
+  - make_ptrcall function:REG of s:SLOT position p:POS :SELF <-
   (
+    position      := p;
     receiver      := EXPR;
     args          := FAST_ARRAY(EXPR).create 0;
     result        := REG.clone;
@@ -101,14 +105,15 @@ Section Public
   ( + e:ERR;
     e := ERR.clone;
     (slot.arguments.count != args.count).if {
-      e <! slot.position.error("Try to call this slot with " + args.count.to_string + " arguments instead of " + slot.arguments.count.to_string);
+      e <! slot.position.error("Slot have " + slot.arguments.count.to_string + " arguments")
+           .extend(position, "Try to call this slot with " + args.count.to_string + " arguments");
     } else {
       include_self.if {
         ? { slot.self != NULL };
         ? { slot.self.type != NULL };
         receiver.implement_type_with (slot.self.type.resolve_type).if_false {
-          not_yet_implemented;
-          e <! ERR;
+          e <! slot.position.error("Slot Self is " + slot.self.type.name)
+               .extend(position, "Incompatible actual Self: " + receiver.type.name);
         };
       };
       args.lower.to (args.upper) do { i:INTEGER;
@@ -116,8 +121,8 @@ Section Public
         actual := args.item i;
         formal := slot.arguments.item i;
         actual.implement_type_with (formal.type.resolve_type).if_false {
-          not_yet_implemented;
-          e <! ERR;
+          e <! formal.pos.error("Formal argument of type " + formal.type.name)
+               .extend(actual.pos, "Incompatible actual argument: " + actual.type.name);
         };
       };
     };

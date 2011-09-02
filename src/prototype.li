@@ -74,6 +74,7 @@ Section Public
       //warnln("Add slot plym " + s.to_string);
     };
     state := state_defined;
+    warnln("Prototype " + name + " defined to " + to_type.to_string);
   )
   [ +? { defined }; ];
   

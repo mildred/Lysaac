@@ -61,6 +61,23 @@ Section Public
       };
     };
   );
+  
+  //
+  // Misc
+  //
+
+  /*- to_string :STRING <-
+  ( + res :STRING;
+    res := type_name.to_string;
+    res.add_last '<';
+    struct_members.iterate.loop_v { t:BASE_TYPE;
+      res.append (t.to_string);
+      res.add_last ',';
+    };
+    struct_members.is_empty.if_false {res.remove_last 1;};
+    res.add_last '>';
+    res
+  );*/
 
   //
   // Creation
@@ -81,6 +98,14 @@ Section Public
     Self
   );
 
-Section Private
+  - make_duplicate_of other:SELF <-
+  (
+    struct_members := FAST_ARRAY(BASE_TYPE).create 0;
+    other.struct_members.iterate.loop_v { t:BASE_TYPE;
+      struct_members.add_last (t.dup);
+    };
+  );
+
+Section TYPE_STRUCT
 
   + struct_members :FAST_ARRAY(BASE_TYPE);

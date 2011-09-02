@@ -43,6 +43,12 @@ Section Public
       vector_type.generate gen;
     };
   );
+  
+  //
+  // Misc
+  //
+
+  //- to_string :STRING <- type_name + "<" + vector_length.to_string + "," + vector_type.to_string + ">";
 
   //
   // Creation
@@ -55,6 +61,12 @@ Section Public
     the_vector_type := t;
     the_vector_length := l;
     Self
+  );
+
+  - make_duplicate_of other:SELF <-
+  (
+    the_vector_length := other.vector_length;
+    the_vector_type   := other.vector_type.dup;
   );
 
 Section Private

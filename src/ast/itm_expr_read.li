@@ -71,7 +71,7 @@ Section Public
         + call :INSTR_CALL;
         call := INSTR_CALL
           .clone
-          .make_read self slot slot_obj;
+          .make_read self slot slot_obj position position;
         arguments.iterate.loop_v { a:ITM_EXPR;
           a.compile_in list;
           a.results.failure.if {

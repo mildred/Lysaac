@@ -42,6 +42,12 @@ Section Public
       to_pointer_deref.generate gen;
     };
   );
+  
+  //
+  // Misc
+  //
+
+  //- to_string :STRING <- type_name + "<" + pointed_type.to_string + ">";
 
   //
   // Creation
@@ -55,7 +61,12 @@ Section Public
     Self
   );
 
-Section Private
+  - make_duplicate_of other:SELF <-
+  (
+    pointed_type := other.pointed_type.dup;
+  );
+
+Section TYPE_POINTER
 
   + pointed_type :BASE_TYPE;
   

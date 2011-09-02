@@ -41,6 +41,9 @@ Section Public
       warnln("slot type index: " + s.type_index.to_string);
       warnln("base type      : " + r.base_type.to_string);
     };
+    r_struct.struct_valid_index (s.type_index).if_false {
+      warnln("Index " + s.type_index.to_string + " in " + r_struct.to_string);
+    };
     -? { r_struct.struct_valid_index (s.type_index) };
     -? { s.result_type.same_as(r_struct.to_struct_member (s.type_index)) };
   ]

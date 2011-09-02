@@ -304,7 +304,7 @@ Section SLOT
     }.elseif {internal_opcode == "value"} then {
       INSTR_CALL
         .clone
-        .make_ptrcall (list.self) of Self
+        .make_ptrcall (list.self) of Self position position
         .finalize_in list
         .if_fail { e:ERR;
           add_error(e.extend(position, "Calling the block"));

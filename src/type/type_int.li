@@ -58,6 +58,11 @@ Section Public
     Self
   );
 
+  - make_duplicate_of other:SELF <-
+  (
+    the_integer_size := other.integer_size;
+  );
+  
 Section Private
 
   + the_integer_size :INTEGER;
