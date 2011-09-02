@@ -1,0 +1,57 @@
+Section Header
+
+  + name := TYPE_POINTER;
+
+Section Inherit
+
+  + parent_base_type :Expanded BASE_TYPE;
+  
+Section Public
+
+  - is_void     :BOOLEAN <- FALSE;
+  - is_integer  :BOOLEAN <- FALSE;
+  - is_pointer  :BOOLEAN <- TRUE;
+  - is_struct   :BOOLEAN <- FALSE;
+  - is_function :BOOLEAN <- FALSE;
+  
+  //
+  // Pointer type
+  //
+
+  - to_pointer_deref    :BASE_TYPE <- pointed_type;
+
+  //
+  // Type resolution
+  //
+  
+  - resolved :BOOLEAN <- pointed_type.resolved;
+
+  - resolve_with other:BASE_TYPE :BASE_TYPE <-
+  (
+    pointed_type.resolve_with (other.to_pointer_deref).to_pointer_indirect
+  );
+  
+  //
+  // Generation
+  //
+  
+  - generate gen:GENERATOR <-
+  (
+    gen.type_pointer {
+      to_pointer_deref.generate gen;
+    };
+  );
+
+  //
+  // Creation
+  //
+  
+  + pointed_type :BASE_TYPE;
+  
+  - create t:BASE_TYPE :SELF <- clone.make t;
+  
+  - make t:BASE_TYPE :SELF <-
+  (
+    pointed_type := t;
+    Self
+  );

@@ -7,9 +7,10 @@
   [X] Make tests pass
   [ ] Cleanup of TYPE (to_impl ...)
   Remove the different types from LOW_LEVEL_TYPE one by one and implement them separately, as descendant of BASE_TYPE
-  [ ] Integer
-  [ ] Pointer
-  [ ] Function
-  [ ] Struct
-  [ ] Vector
-  [ ] Void (???)
+    [ ] Integer
+    [X] Pointer
+    [ ] Function
+    [ ] Struct
+    [ ] Vector
+    [ ] Void (???)
+  [ ] Remove all references to LOW_LEVEL_TYPE

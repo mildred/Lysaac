@@ -114,7 +114,7 @@ Section Public
     expanded.if {
       res := prototype.to_type_reference;
     } else {
-      not_yet_implemented;
+      res := TYPE_POINTER.create Self;
     };
     res
   );

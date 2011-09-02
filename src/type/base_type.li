@@ -47,7 +47,7 @@ Section Public
   //
 
   - to_pointer_deref    :BASE_TYPE <- [a_pointer;] (deferred; BASE_TYPE);
-  - to_pointer_indirect :BASE_TYPE <- (deferred; BASE_TYPE) [Result.a_pointer;];
+  - to_pointer_indirect :BASE_TYPE <- (TYPE_POINTER.create Self) [Result.a_pointer;];
   
   - dereference_abstract_type :ABSTRACT_TYPE <- to_pointer_deref;
   
@@ -66,6 +66,12 @@ Section Public
   - can_create_reg :BOOLEAN <- TRUE;
   
   - create_reg :REG <- REG.clone.make_type Self;
+  
+  //
+  // Generation
+  //
+  
+  - generate gen:GENERATOR <- deferred;
   
   //
   // Type resolution
@@ -108,7 +114,7 @@ Section Public
     -? { other.resolved };
   ]
   (
-    deferred; BASE_TYPE
+    deferreed; BASE_TYPE
   )
   [
     +? { Result != NULL  };
