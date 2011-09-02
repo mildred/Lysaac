@@ -31,7 +31,7 @@ Section Public
   (
     count  := c;
     type   := t;
-    result := REG.clone.make_type (LOW_LEVEL_TYPE.create_pointer t);
+    result := t.to_pointer_indirect.create_reg;
     made   := TRUE;
     Self
   );

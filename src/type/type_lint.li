@@ -2,8 +2,6 @@ Section Header
 
   + name := TYPE_LINT;
   
-  - export := LOW_LEVEL_TYPE;
-
 Section Inherit
 
   + parent_type :Expanded TYPE;
