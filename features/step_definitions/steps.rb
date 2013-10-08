@@ -40,8 +40,8 @@ When /^I (show|compile) the cluster "([^"]*)"$/ do |action, cluster|
 end
 
 When /^I execute the cluster "([^"]*)"$/ do |cluster|
-  When %Q{I compile the cluster "#{cluster}"}
-  And  "I shouldn't have any errors"
+  step %Q{I compile the cluster "#{cluster}"}
+  step "I shouldn't have any errors"
   if @cmd_code != 0 then
     puts "==> #{@er_file}"
     File.open(@er_file, 'r') { |f| puts f.read() }

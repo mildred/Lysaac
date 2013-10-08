@@ -1,4 +1,4 @@
-require 'spec/expectations'
+require 'rspec/expectations'
 require 'fileutils'
 
 $initcurrentdir = FileUtils.pwd
