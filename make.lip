@@ -2,7 +2,9 @@ Section Inherit
 
   + parent:STRING;
 
-Section Private  
+Section Private
+
+  + ccompiler :STRING := "clang -w";
   
   - general_front_end <-
   (
