@@ -37,6 +37,8 @@ Section Public
   (
     crash_with_message ("Slot deferred in " + type_name);
   );
+
+  - to_string :STRING <- type_name + "<?>";
   
   - warn s:ABSTRACT_STRING <-
   (

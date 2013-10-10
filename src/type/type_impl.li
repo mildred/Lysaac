@@ -143,6 +143,7 @@ Section Private
   + base_type :BASE_TYPE <-
   [ -? { prototype.defined }; ]
   (
+    //warnln("TYPE_IMPL<" + name + ">.base_type");
     block.if {
       base_type := TYPE_FUNCTION.create.to_pointer_indirect;
     } else {
@@ -152,6 +153,9 @@ Section Private
           prototype.slots.iterate.loop_v { s:SLOT;
             s.shared.if_false {
               st.add_type (s.result_type.resolve);
+              //warnln(" - add " + s.external_name);
+            } else {
+              //warnln(" - do not add " + s.external_name);
             };
           };
         };

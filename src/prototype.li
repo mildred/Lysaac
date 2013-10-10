@@ -301,6 +301,7 @@ Section SLOT
 
   - add_slot s:SLOT <-
   (
+    //warnln(name + ": add slot " + s.external_name);
     s.inherit.if {
       ? {! is_polymorphic};
       is_polymorphic := TRUE;
@@ -315,10 +316,20 @@ Section SLOT
 
   - replace_slot old:SLOT by new:SLOT <-
   ( + i:INTEGER;
+    //warnln(to_string + ": replace slot " + old.to_string + " by " + new.to_string);
     i := slots.fast_first_index_of old;
     slots.valid_index i.if {
-      slots.remove i;
+      slots.put new to i;
+    } else {
+      slots.add_last new;
+      warnln(to_string + ": Could not find slot " + old.to_string +
+        " to replace by " + new.to_string);
     };
+    /*
+    slots.iterate.loop_v { s:SLOT;
+      warnln(to_string + ": - " + s.to_string);
+    }
+    */
   );
 
 Section SLOT_BLOCK
