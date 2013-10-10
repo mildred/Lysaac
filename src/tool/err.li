@@ -84,6 +84,7 @@ Section ERR
   - to_string_in res:STRING <-
   (
     failure.if {
+      res.append "E:";
       position.is_null.if_false {
         res.append (position.to_string);
         res.append ": ";

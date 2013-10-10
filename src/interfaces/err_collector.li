@@ -6,17 +6,21 @@ Section Inherit
 
   + parent_any: Expanded ANY;
 
+Section Private
+
+  - debug_errors :BOOLEAN <- (is_debug_mode & FALSE);
+
 Section Public
 
   - add_error e:ERR <-
   (
     e.failure.if {
       error_collection.add_last e;
-      /*
-      warnln ("=== add error in "+error_collector_message+":");
-      e.println;
-      warnln "===";
-      */
+      debug_errors.if {
+        warnln ("=== add error in "+error_collector_message+":");
+        e.println;
+        warnln "===";
+      };
     };
   );
   

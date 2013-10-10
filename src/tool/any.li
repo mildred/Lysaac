@@ -8,6 +8,8 @@ Section Inherit
 
 Section Public
 
+  - debug b:{} <- (is_debug_mode.if b;);
+
   - dup :SELF <-
   ( + res :SELF;
     res := clone;
