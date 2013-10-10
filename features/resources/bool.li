@@ -4,9 +4,9 @@ Section Header
 
 Section Public //BOOL
 
-  + bit_value :BIT <- Dispatch 0;
+  + bit_value :BIT := Dispatch 0;
   
-  - dispatcher <- Dispatcher;
+  - dispatcher <- Dispatcher (TRUE, FALSE);
 
 Section Public
 

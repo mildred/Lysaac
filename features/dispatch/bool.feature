@@ -42,7 +42,7 @@ Feature: Dispatching of booleans
    
    -  At exhaustion, the type considered is the root of the hierarchy.
 
-  @wip
+  @future
   Scenario:
     Given the following prototypes in "c":
       | Prototype |
