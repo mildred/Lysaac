@@ -48,6 +48,8 @@ Section Public
   ( ((keywords != NULL) && {keywords.has k}) || {section.keywords.has k} );
   
   + arguments :FAST_ARRAY(ITM_ARG);
+  
+  - to_string :STRING <- (type_name + "<" + identifier + ">");
 
 Section ITM
 
@@ -149,6 +151,7 @@ Section PARSER
   - set_return_type t:ITM_TYPE <-
   [ -? {t != NULL}; ]
   (
+    //warnln (to_string + ".set_return_type " + t.to_string);
     t.set_itm_parent Self;
     return_type := t;
   )

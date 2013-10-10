@@ -46,7 +46,7 @@ Feature: Dispatching types
       
       """
 
-    And a file "c/child.li" with
+    And a file "c/child1.li" with
       """
       Section Header
       

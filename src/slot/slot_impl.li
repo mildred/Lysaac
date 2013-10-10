@@ -89,6 +89,7 @@ Section ITM_SLOT
   - set_return_type t:TYPE <-
   [ -? { t != NULL }; ]
   (
+    //warnln (to_string+ " return type is " + t.to_string);
     result_type := t;
   );
   

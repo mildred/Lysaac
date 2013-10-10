@@ -778,17 +778,19 @@ Section SELF
     res
   );
   
-  //++ TYPE -> PROTOTYPE
+  //++ TYPE -> KEYWORDS PROTOTYPE
   //++       | '{' '}'
   
   - read_type :ITM_TYPE <-
-  ( + proto :ITM_EXPR_PROTO;
+  ( + kwd   :ITM_KEYWORDS;
+    + proto :ITM_EXPR_PROTO;
     + res   :ITM_TYPE;
     + p     :POS;
 
+    kwd := read_keywords;
     proto := read_prototype;
     (proto != NULL).if {
-      res := ITM_TYPE.clone.make_position (proto.position).make proto;
+      res := ITM_TYPE.clone.make_position (proto.position).make (kwd, proto);
     }.elseif {read_spaces; last_character = '{'} then {
       p := position;
       read_character;

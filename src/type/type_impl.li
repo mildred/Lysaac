@@ -65,7 +65,15 @@ Section Public
   //
   
   - to_string :STRING <-
-    type_name + "<" + name + " " + base_type.to_string + ">";
+  ( + res :STRING;
+    
+    prototype.defined.if {
+      res := type_name + "<" + name + " " + base_type.to_string + ">";
+    } else {
+      res := type_name + "<" + name + " (prototype undefined yet)>";
+    };
+    res
+  );
 
   - to_pointer_deref    :BASE_TYPE <-
   [
@@ -151,9 +159,13 @@ Section Private
       (base_type = NULL).if {
         base_type := TYPE_STRUCT.create { st:TYPE_STRUCT;
           prototype.slots.iterate.loop_v { s:SLOT;
-            s.shared.if_false {
-              st.add_type (s.result_type.resolve);
-              //warnln(" - add " + s.external_name);
+            s.not_shared.if {
+              (s.result_type = NULL).if {
+                warnln (s.to_string + " has no result type");
+              } else {
+                st.add_type (s.result_type.resolve);
+                //warnln(" - add " + s.external_name);
+              };
             } else {
               //warnln(" - do not add " + s.external_name);
             };

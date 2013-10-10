@@ -10,10 +10,14 @@ Section Public
 
   + prototype :ITM_EXPR_PROTO;
   
+  + keywords :ITM_KEYWORDS;
+  
   + block :BOOLEAN;
   
   - to_type :MAYBE(TYPE_IMPL) <-
   ( + res :MAYBE(TYPE_IMPL);
+  
+    warnln "FIXME(ITM_TYPE): use keywords";
   
     block.if {
       cluster_parent.prototype_for_role "Block".if { p:PROTOTYPE;
@@ -38,13 +42,15 @@ Section PARSER
   - make_block :SELF <-
   (
     prototype := NULL;
+    keywords  := NULL;
     block     := TRUE;
     Self
   );
   
-  - make p:ITM_EXPR_PROTO :SELF <-
+  - make (k:ITM_KEYWORDS, p:ITM_EXPR_PROTO) :SELF <-
   (
     prototype := p;
+    keywords  := k;
     block     := FALSE;
     Self
   );

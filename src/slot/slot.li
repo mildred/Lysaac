@@ -41,6 +41,7 @@ Section Public
   - is_deferred :BOOLEAN <- deferred;
   
   - shared      :BOOLEAN <- style.minus;
+  - not_shared  :BOOLEAN <- (! shared);
   
   - slot_data   :BOOLEAN <- deferred;
   - slot_code   :BOOLEAN <- (! slot_data);
