@@ -1,6 +1,7 @@
 # config/cucumber.yml
 ##YAML Template
 ---
-wip:   --wip -f pretty -t @wip
-tests: -f rerun -o reports/failed-features.txt -f html -o reports/features.html -f progress -t '~@wip' -t '~@future'
+future: --wip -f progress -t @future
+wip:    --wip -f pretty -t @wip
+tests:  -f rerun -o reports/failed-features.txt -f html -o reports/features.html -f progress -t '~@wip' -t '~@future'
 
