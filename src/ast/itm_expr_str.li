@@ -12,14 +12,27 @@ Section Public
 
   + string :CSTRING;
 
-  - compile_in list:LIST :SELF <-
+  - compile_in list:LIST for t:TYPES :SELF <-
   (
-    cluster_parent.type_for_role "String".if_false { e:ERR;
-      results <! e.extend (position, "Discarding string");
-    } else { t:TYPE;
-      results << EXPR.clone.make
-        (INSTR_STRING.clone.make string static_type t.add_in list.result, t);
+    t.is_none.if {
+      cluster_parent.type_for_role "String".if_false { e:ERR;
+        results <! e.extend (position, "Discarding string");
+      } else { t:TYPE;
+        compile_in list using t;
+      };
+    } else {
+      // FIXME: check t.first is an integer
+      compile_in list using (t.first);
     };
+    Self
+  );
+  
+Section Private
+  
+  - compile_in list:LIST using t:TYPE :SELF <-
+  (
+    results << EXPR.clone.make
+      (INSTR_STRING.clone.make string static_type t.add_in list.result, t);
     Self
   );
   

@@ -12,20 +12,35 @@ Section Public
 
   + value :INTEGER;
 
-  - compile_in list:LIST :SELF <-
+  - compile_in list:LIST for t:TYPES :SELF <-
   (
-    cluster_parent.type_for_role "Integer".if_false { e:ERR;
-      results <! e.extend(position, "Discarding integer");
-    } else { t:TYPE;
-      + lt:TYPE_LINT;
-      lt := TYPE_LINT.clone.make_with_implementation (t.to_impl);
-      results << EXPR.clone.make_type lt value
-        (INSTR_INT
-          .clone
-          .make value static_type lt
-          .add_in list
-          .result);
+    t.is_none.if {
+      cluster_parent.type_for_role "Integer".if_false { e:ERR;
+        results <! e.extend(position, "Discarding integer");
+      } else { type:TYPE;
+        compile_in list using type;
+      };
+    } else {
+      // FIXME: check t.first is an integer
+      ? { t.count >= 1 };
+      ? { t.first != NULL };
+      compile_in list using (t.first);
     };
+    Self
+  );
+
+Section Private
+
+  - compile_in list:LIST using type:TYPE :SELF <-
+  [ -? { type != NULL }; ]
+  ( + lt:TYPE_LINT;
+    lt := TYPE_LINT.clone.make_with_implementation (type.to_impl);
+    results << EXPR.clone.make_type lt value
+      (INSTR_INT
+        .clone
+        .make value static_type lt
+        .add_in list
+        .result);
     Self
   );
 

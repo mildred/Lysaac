@@ -188,3 +188,5 @@ Section Public
 
   - loop_i b:{INTEGER;} <- { valid }.while_do { b.value index; next; };
 
+  - loop_iv b:{(INTEGER,V);} <- { valid }.while_do { b.value (index, get); next; };
+

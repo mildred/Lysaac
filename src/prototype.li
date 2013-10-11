@@ -19,13 +19,13 @@ Section Public
   - compiled  :BOOLEAN <- state >= state_compiled;  // Internal code is compiled
   - generated :BOOLEAN <- state >= state_generated; // Code is generated.
 
-  - find_type type_name:CSTRING :MAYBE(TYPE) <-
+  - find_prototype type_name:CSTRING :MAYBE(PROTOTYPE) <-
   [
     -? { made };
     -? { cluster.parsed };
   ]
   (
-    cluster.find_type type_name
+    cluster.find_prototype type_name
   );
 
   + is_polymorphic :BOOLEAN;
@@ -85,6 +85,7 @@ Section Public
     initializer_list := LIST
       .clone
       .make_error_collector Self type NULL;
+    ? { prototype_rvalue.base_type.is_pointer };
     initializer_list.make_self (prototype_rvalue_expr);
     state := state_compiled;
   )
@@ -110,20 +111,26 @@ Section Public
   - to_string :STRING <- type_name + "<" + name + ">";
   
   - compile_prototype_value_in l:LIST :EXPR <-
+    compile_prototype_value_in l is_expanded expanded;
+  
+  - compile_prototype_value_in l:LIST is_expanded exp:BOOLEAN :EXPR <-
   [ -? { l != NULL }; ]
   ( + res:REG;
+    + t  :TYPE_IMPL;
     
-    expanded.if {
+    exp.if {
+      t := to_type_expanded;
       res := INSTR_LOAD
         .clone
         .make prototype_rvalue
         .add_in l
         .result;
     } else {
+      t := to_type_reference;
       res := prototype_rvalue;
     };
     
-    EXPR.clone.make (res, to_type)
+    EXPR.clone.make (res, t)
   );
 
 Section Private
@@ -218,20 +225,33 @@ Section CLUSTER, ITM_TYPE, SLOT, INSTR_FNPTR, TYPE_IMPL
       type_exp := TYPE_IMPL.clone.make_expanded Self;
     };
     type_exp
-  );
+  )
+  [
+    +? { ! Result.is_pointer };
+  ];
 
   - to_type_reference :TYPE_IMPL <-
-  [ -? {made}; ]
+  [
+    -? {made};
+    (type_ref != NULL).if { -? { type_ref.is_pointer }; };
+  ]
   (
     (type_ref = NULL).if {
       (role == "Block").if {
         type_ref := TYPE_IMPL.clone.make_block Self;
+        ? { type_ref.is_pointer };
       } else {
         type_ref := TYPE_IMPL.clone.make_reference Self;
+        ? { type_ref.is_pointer };
       };
     };
     type_ref
-  );
+  )
+  [
+    +? { type_ref.is_pointer };
+    +? { type_ref = Result };
+    +? { Result.is_pointer };
+  ];
   
   - to_type_block :TYPE_IMPL <-
   [ -? { role == "Block" }; ]

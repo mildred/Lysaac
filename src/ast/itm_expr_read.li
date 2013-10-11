@@ -19,7 +19,7 @@ Section Public
   
   + arguments :FAST_ARRAY(ITM_EXPR);
   
-  - compile_in list:LIST :SELF <-
+  - compile_in list:LIST for t:TYPES :SELF <-
   [
     ? { list.self != NULL };
     ? { list.self.is_valid };
@@ -47,7 +47,7 @@ Section Public
       self := list.self;
 
       (receiver != NULL).if {
-        receiver.compile_in list.results.failure.if {
+        receiver.compile_in list for (TYPES.none).results.failure.if {
           results <! receiver.results.err;
         }.elseif {receiver.results.is_empty} then {
           results <! receiver.position.error("Empty expression")
@@ -72,8 +72,10 @@ Section Public
         call := INSTR_CALL
           .clone
           .make_read self slot slot_obj position position;
-        arguments.iterate.loop_v { a:ITM_EXPR;
-          a.compile_in list;
+        arguments.iterate.loop_i { i :INTEGER;
+          + a:ITM_EXPR;
+          a := arguments.item i;
+          a.compile_in list for (TYPES.none); // FIXME: get argument type in slot_obj
           a.results.failure.if {
             results <! a.results.err.extend(a.position, "Discarding argument");
           } else {

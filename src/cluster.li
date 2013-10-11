@@ -145,21 +145,6 @@ Section Public
     res
   );
   
-  - find_type type_name:CSTRING :MAYBE(TYPE) <-
-  [ -? {made}; ]
-  ( + res :MAYBE(TYPE);
-    res.clear;
-    
-    find_prototype type_name.if { pro:PROTOTYPE;
-      ? { pro.made };
-      res << pro.to_type;
-    } else_error { e:ERR;
-      res <! e;
-    };
-
-    res
-  );
-  
   + position :POS;
 
 Section PROTOTYPE
@@ -380,7 +365,9 @@ Section Private
       i.is_prototype.if {
         progress_step (cur_step,num_steps) message ("Define " + i.prototype.name);
         cur_step  := cur_step  + 1;
-        i.prototype.define_in slots;
+        i.prototype.defined.if_false {
+          i.prototype.define_in slots;
+        };
       };
     };
     state := state_defined;

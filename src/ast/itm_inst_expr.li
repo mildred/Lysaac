@@ -10,7 +10,7 @@ Section Public
 
   + expression :ITM_EXPR;
   
-  - compile_in list:LIST :ERR <- (expression.compile_in list.results.err);
+  - compile_in list:LIST :ERR <- (expression.compile_in list for (TYPES.none).results.err);
   
   - to_string :STRING <-
   ( type_name + "<" + expression.to_string + ">" );

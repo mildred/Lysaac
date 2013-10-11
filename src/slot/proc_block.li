@@ -33,7 +33,7 @@ Section LIST_PROC
   - compile list_procs:LIST_PROC <-
   (
     list.set_list_procs list_procs;
-    itm_expr.compile_in list;
+    itm_expr.compile_in list for (TYPES.none); // FIXME: is there an expected type?
   );
   
   - link gen:GENERATOR <-

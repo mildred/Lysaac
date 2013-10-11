@@ -210,7 +210,7 @@ Section SLOT
   [ -? {! external}; ]
   ( + r:REG;
     slot_data.if {
-      ast_expression.compile_in (self_prototype.initializer_list);
+      ast_expression.compile_in (self_prototype.initializer_list) for (TYPES.from_type result_type);
       ast_expression.results.failure.if {
         add_error (ast_expression.results.err);
       }.elseif {ast_expression.results.is_empty} then {
@@ -261,7 +261,7 @@ Section SLOT
       // Nominal case
       
       + exprs :EXPRS;
-      exprs := ast_expression.compile_in list.results;
+      exprs := ast_expression.compile_in list for (TYPES.from_type result_type).results;
       
       exprs.failure.if {
         add_error(exprs.err.extend(position, "Dropping return value #1 for slot " + name));
@@ -284,10 +284,13 @@ Section SLOT
       // Empty slot
     };
     ((has_result) && {list.results.is_empty}).if {
-      add_error(position.error(
-        "No value given for this slot. Using prototype "
-        + pretty_type(result_type)));
-      list.add_result (result_type.to_impl.prototype.compile_prototype_value_in list);
+      result_type.expanded.if_false {
+        add_error(position.error(
+          "No value given for this slot. Using prototype "
+          + pretty_type(result_type)));
+      };
+      list.add_result (result_type.to_impl.prototype
+        .compile_prototype_value_in list is_expanded (result_type.expanded));
     };
   );
   

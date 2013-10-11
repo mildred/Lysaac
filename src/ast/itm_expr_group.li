@@ -12,7 +12,7 @@ Section Public
 
   + is_block :BOOLEAN;
 
-  - compile_in list:LIST :SELF <-
+  - compile_in list:LIST for t:TYPES :SELF <-
   (
     is_block.if {
 
@@ -42,8 +42,14 @@ Section Public
         results <! i.compile_in list;
       };
 
-      result_exprs.iterate.loop_v { e:ITM_EXPR;
-        e.compile_in list;
+      result_exprs.iterate.loop_i { i:INTEGER;
+        + e:ITM_EXPR;
+        e := result_exprs.item i;
+        t.is_none.if {
+          e.compile_in list for (TYPES.none);
+        } else {
+          e.compile_in list for (TYPES.from_type (t.item i));
+        };
         e.results.check;
         e.results.failure.if {
           results <! e.results;

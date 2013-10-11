@@ -26,8 +26,20 @@ Section Public
         res <! position.error("Could not find prototype for role Block");
       };
     } else {
-      slot_parent.find_type (prototype.prototype).if { t:TYPE;
-        res << t.to_impl;
+      slot_parent.find_prototype (prototype.prototype).if { p:PROTOTYPE;
+        + t :TYPE_IMPL;
+        ? { p.made };
+        (keywords = NULL).if_false {
+          keywords.has "Expanded".if {
+            t := p.to_type_expanded;
+          }.elseif {keywords.has "Reference"} then {
+            t := p.to_type_reference;
+          };
+        };
+        (t = NULL).if {
+          t := p.to_type;
+        };
+        res << t;
       } else_error { e:ERR;
         res <! position.error("Could not find type " + name);
       };

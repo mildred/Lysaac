@@ -10,7 +10,7 @@ Section Public
 
   - is_void :BOOLEAN <- (deferred; TRUE);
 
-  - compile_in list:LIST :SELF <-
+  - compile_in list:LIST for t:TYPES :SELF <-
   (
     results := EXPRS.clone;
     results <! position.error("Cannot compile " + type_name);

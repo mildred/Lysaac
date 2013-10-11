@@ -16,12 +16,12 @@ Section Public
   
   + expr :ITM_EXPR;
 
-  - compile_in list:LIST :SELF <-
+  - compile_in list:LIST for t:TYPES :SELF <-
   [ -? { list.self != NULL }; ]
   ( + local :ITM_LOCAL;
     
     
-    expr.compile_in list;
+    expr.compile_in list for t;
     expr.results.failure.if {
       results <! expr.results.err.extend(position, "Discarding write");
     }.elseif {expr.results.is_empty} then {

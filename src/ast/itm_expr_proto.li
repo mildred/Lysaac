@@ -14,10 +14,14 @@ Section Public
   
   + has_results :BOOLEAN := TRUE;
 
-  - compile_in list:LIST :SELF <-
+  - compile_in list:LIST for t:TYPES :SELF <-
   (
     lookup_prototype prototype.if { p:PROTOTYPE;
-      results << p.compile_prototype_value_in list;
+      t.is_none.if {
+        results << p.compile_prototype_value_in list;
+      } else {
+        results << p.compile_prototype_value_in list is_expanded (t.first.expanded);
+      };
     } else {
       results <! position.error("Cannot find prototype " + prototype);
     };

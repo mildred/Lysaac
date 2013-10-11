@@ -12,7 +12,7 @@ Section Public
 
   + symbol :CSTRING;
 
-  - compile_in list:LIST :SELF <-
+  - compile_in list:LIST for t:TYPES :SELF <-
   (
     list.error_collector.add_error(position.error("Unexpected symbol"));
     Self

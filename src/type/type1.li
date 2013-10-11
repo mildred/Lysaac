@@ -1,0 +1,26 @@
+Section Header
+
+  + name := TYPE1;
+
+Section Inherit
+
+  + parent_types :Expanded TYPES;
+
+Section Public
+
+  - count :INTEGER <- 1;
+  
+  - lower :INTEGER <- 0;
+  - upper :INTEGER <- 0;
+  
+  - item i:INTEGER :TYPE <- type;
+  
+  + type :TYPE;
+  
+  - make t:TYPE :SELF <-
+  [ -? { t != NULL }; ]
+  (
+    type := t;
+    Self
+  );
+

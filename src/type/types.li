@@ -1,0 +1,42 @@
+Section Header
+
+  + name := TYPES;
+  
+  - import := TYPE;
+  
+  - default := TYPES;
+
+Section Inherit
+
+  + parent_any :Expanded ANY;
+
+  // + parent_traversable_TYPE :Expanded TRAVERSABLE(TYPE);
+
+Section Public
+
+  - count :INTEGER <- 0;
+  
+  - is_none   :BOOLEAN <- is_empty;
+  - is_empty  :BOOLEAN <- count = 0;
+  - is_single :BOOLEAN <- count = 1;
+  
+  - lower :INTEGER <- 0;
+  - upper :INTEGER <- -1;
+  
+  - first :TYPE <- item lower;
+  - last  :TYPE <- item upper;
+  
+  - item i:INTEGER :TYPE <- [ -? { i >= lower }; -? { i <= upper }; ] (NULL);
+
+  - from_type t:TYPE :TYPES <-
+  ( + res :TYPES;
+    (t != NULL).if {
+      res := TYPE1.clone.make t;
+    } else {
+      res := none;
+    };
+    res
+  );
+  
+  - none :TYPES <- TYPES;
+

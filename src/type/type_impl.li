@@ -116,7 +116,10 @@ Section PROTOTYPE
     expanded := FALSE;
     prototype := p;
     Self
-  );
+  )
+  [
+    +? { is_pointer };  
+  ];
 
   - make_expanded p:PROTOTYPE :SELF <-
   [
@@ -141,7 +144,7 @@ Section PROTOTYPE
     expanded := FALSE;
     Self
   );
-  
+
 Section TYPE
 
   - implementation :TYPE_IMPL <- Self;

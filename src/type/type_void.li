@@ -1,0 +1,42 @@
+Section Header
+
+  + name := TYPE_VOID;
+
+Section Inherit
+
+  + parent_base_type :Expanded BASE_TYPE;
+  
+Section Public
+
+  - is_void     :BOOLEAN <- TRUE;
+  - is_integer  :BOOLEAN <- FALSE;
+  - is_pointer  :BOOLEAN <- FALSE;
+  - is_struct   :BOOLEAN <- FALSE;
+  - is_function :BOOLEAN <- FALSE;
+  - is_vector   :BOOLEAN <- FALSE;
+
+  //
+  // Create Register
+  //
+
+  - can_create_reg :BOOLEAN <- FALSE;
+  
+  //
+  // Generation
+  //
+  
+  - generate gen:GENERATOR <-
+  (
+    gen.type_void;
+  );
+
+  //
+  // Type resolution
+  //
+  
+  - resolved :BOOLEAN <- TRUE;
+
+  - resolve_with other:BASE_TYPE :BASE_TYPE <- Self;
+
+  
+
