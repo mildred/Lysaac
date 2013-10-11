@@ -802,12 +802,13 @@ Section SELF
   );
   
   //++ EXPR -> symbol
-  //++       | string
-  //++       | int
-  //++       | PROTOTYPE
-  //++       | "(" GROUP ")"
-  //++       | "{" GROUP "}"
-  //++       | identifier (affect EXPR | EXPR_CALL)
+  //++       | string CALL?
+  //++       | int CALL?
+  //++       | PROTOTYPE CALL?
+  //++       | "(" GROUP ")" CALL?
+  //++       | "{" GROUP "}" CALL?
+  //++       | identifier affect EXPR
+  //++       | identifier CALL_NEXT)
   
   - read_expr :ITM_EXPR <-
   ( + res :ITM_EXPR;
@@ -821,22 +822,26 @@ Section SELF
       res := ITM_EXPR_SYM.clone.make_position pos.make last_symbol;
     }.elseif {read_string} then {
       res := ITM_EXPR_STR.clone.make_position pos.make last_string;
+      res := read_call res;
     }.elseif {read_int} then {
       res := ITM_EXPR_INT.clone.make_position pos.make last_int;
+      res := read_call res;
     }.elseif {(proto := read_prototype) != NULL} then {
-      res := proto;
+      res := read_call proto;
     }.elseif {last_character = '('} then {
       pos := position;
       read_always "(";
       read_spaces;
       res := read_group pos;
       read_always ")";
+      res := read_call res;
     }.elseif {last_character = '{'} then {
       pos := position;
       read_always "{";
       read_spaces;
       res := read_group pos.set_block;
       read_always "}";
+      res := read_call res;
     }.elseif {read_identifier} then {
       + affect :ITM_AFFECT;
       + idf    :CSTRING;
@@ -854,7 +859,7 @@ Section SELF
           res := ITM_EXPR_WRITE.clone.make_position pos.make_affect affect in idf of tmp;
         };
       } else {
-        ((tmp := read_expr_call (idf, pos, NULL)) != NULL).if {
+        ((tmp := read_call_next (idf, pos, NULL)) != NULL).if {
           res := tmp;
         };
       };
@@ -862,9 +867,56 @@ Section SELF
     res
   );
   
-  //++ EXPR_CALL -> EXPR? ("." . EXPR_CALL)?
+  //++ CALL -> "." identifier EXPR?
   
-  - read_expr_call (idf:CSTRING, pos:POS, self:ITM_EXPR_READ) :ITM_EXPR_READ <-
+  - read_call self:ITM_EXPR :ITM_EXPR <-
+  ( + res    :ITM_EXPR;
+    + p1, p2 :POS;
+
+    res := self;
+    read_spaces;
+    p1 := position;
+    read_maybe ".".if {
+      read_spaces;
+      p2 := position;
+      read_identifier.if {
+        res := read_call_next (last_identifier, p2, res);
+      } else {
+        warning "Expected identifier after '.'" in p1;
+      };
+    };
+    res
+  );
+  
+  //++ CALL_NEXT -> EXPR? CALL?
+
+  - read_call_next (idf:CSTRING, pos:POS, self:ITM_EXPR) :ITM_EXPR_READ <-
+  ( + res :ITM_EXPR_READ;
+    + expr :ITM_EXPR;
+
+    res := ITM_EXPR_READ.clone.make_position pos.make idf;
+    (self != NULL).if {
+      res.set_self self;
+    };
+
+    // Read argument
+    read_spaces;
+    expr := read_expr;
+    expr.is_void.if_false {
+      res.add_argument expr;
+    };
+    
+    // Read next call
+    res ?= read_call res;
+    ? { res != NULL };
+
+    res
+  );
+  
+  /*
+  //++ CALL_NEXT -> EXPR? ("." . identifier CALL_NEXT)?
+  
+  - read_call_next (idf:CSTRING, pos:POS, self:ITM_EXPR) :ITM_EXPR_READ <-
   ( + res :ITM_EXPR_READ;
     + expr :ITM_EXPR;
     + p1, p2 :POS;
@@ -883,13 +935,14 @@ Section SELF
     read_maybe ".".if {
       p2 := position;
       read_identifier.if {
-        res := read_expr_call (last_identifier, p2, res);
+        res := read_call_next (last_identifier, p2, res);
       } else {
         warning "Expected identifier after '.'" in p1;
       };
     };
     res
   );
+  */
   
   //++ GROUP -> LOCAL_DEF* (EXPR . ";")* (EXPR . ("," EXPR)*)?
   

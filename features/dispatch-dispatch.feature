@@ -81,8 +81,8 @@ Feature: Dispatching types
         (
           puts (ROOT.whoami);
           puts (CHILD1.whoami);
-          test (ROOT.whoami);
-          test (CHILD1.whoami);
+          test (ROOT);
+          test (CHILD1);
         );
       
       """
