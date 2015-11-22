@@ -251,6 +251,8 @@ Section Public
     put_local i;
     put " = getelementptr ";
     type.value;
+    put ", ";
+    type.value;
     put "* null, ";
     put_int_t;
     put " 1\n";
@@ -288,6 +290,8 @@ Section Public
     res.realize "%" id get_local;
     put_reg res;
     put " = getelementptr ";
+    receiver.base_type.pointer_type.generate Self;
+    put ", ";
     put_reg_type_and_name receiver;
     blc.value;
     put_line;
@@ -303,11 +307,17 @@ Section Public
   );
   
   - load_from ptr:REG in res:REG <-
+  [
+    -? { ptr.is_valid };
+    -? { ptr.base_type.pointer };
+  ]
   (
     res.realize "%" id get_local;
     put_indent;
     put_reg res;
     put " = load ";
+    ptr.base_type.pointer_type.generate Self;
+    put ", ";
     arg {put_reg_type_and_name ptr};
     put_line;
   );
@@ -507,7 +517,7 @@ Section Private
   - put_reg_type_and_name r:REG <-
   (
     put_reg_type r;
-    put_c ' ';
+    put " ";
     put_reg r;
   );
   

@@ -257,7 +257,7 @@ class CoverageInformation
   def parse(file, filename)
     lineno = 0
     current_file = nil
-    file.lines.each do |line|
+    file.each_line do |line|
       lineno += 1
       puts "...On the #{lineno}th line in #{filename}" if (lineno % 100000) == 0
       next if line[0,1] == "#"

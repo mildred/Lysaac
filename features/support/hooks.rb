@@ -7,9 +7,9 @@ end
 
 Around do |scenario, block|
   if scenario.respond_to? :scenario_outline then
-    name = scenario.scenario_outline.file_colon_line + ':' + scenario.line.to_s
+    name = scenario.scenario_outline.location.to_s + ':' + scenario.location.line.to_s
   else
-    name = scenario.file_colon_line
+    name = scenario.location.to_s
   end
   $scenariodir = File.join($homedir, "tmp", name.gsub(/[\/\\:]/, "."))
   cd_in_unique_dir

@@ -1,5 +1,11 @@
-require 'spec/expectations'
+require 'rspec/expectations'
 require 'fileutils'
+
+#RSpec.configure do |config|
+#  config.expect_with :rspec do |c|
+#    c.syntax = [:should, :expect]
+#  end
+#end
 
 $initcurrentdir = FileUtils.pwd
 $homedir = File.dirname(File.dirname(File.dirname(__FILE__)))

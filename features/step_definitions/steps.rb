@@ -34,21 +34,23 @@ When /^I (show|compile) the cluster "([^"]*)"$/ do |action, cluster|
       puts @cmd_text
       puts "==> [#{@cmd_code}] #{@cmd}"
       puts "==> [#{$?}] llvm-as <'#{@ll_file}' >'#{@bc_file}'"
-      $?.should == 0
+      $?.exitstatus.should == 0
     end
   end
 end
 
 When /^I execute the cluster "([^"]*)"$/ do |cluster|
-  When %Q{I compile the cluster "#{cluster}"}
-  And  "I shouldn't have any errors"
-  if @cmd_code != 0 then
+  steps %Q{
+    When I compile the cluster "#{cluster}"
+    And I shouldn't have any errors
+  }
+  if @cmd_code.exitstatus != 0 then
     puts "==> #{@er_file}"
     File.open(@er_file, 'r') { |f| puts f.read() }
     puts "==> #{@ll_file}"
     File.open(@ll_file, 'r') { |f| puts f.read() }
     puts "==> [#{@cmd_code}] #{@cmd}"
-    @cmd_code.should == 0
+    @cmd_code.exitstatus.should == 0
   end
   @cmd = "lli <'#{@bc_file}'"
   @cmd_text = `#{@cmd}`;
@@ -78,7 +80,7 @@ Then /^I should have the errors$/ do |expected_table|
   if expected_table.is_a? String then
     error_table_to_string(got_table).should == expected_table
   else
-    got_table = Cucumber::Ast::Table.new([expected_table.headers] + got_table)
+    got_table = Cucumber::Core::Ast::DataTable.new([expected_table.headers] + got_table)
     got_table.diff! expected_table
   end
 end
